@@ -1,0 +1,106 @@
+# TR CoffeeDB
+
+TR CoffeeDB is a Next.js and Supabase app for discovering specialty coffees from Turkish roasters. The product goal is simple: help buyers compare beans across roasters without opening a dozen separate storefronts.
+
+## What Is In This Repo
+
+- `src/app`: Next.js App Router pages for the catalog, quiz, roasters, and click tracking.
+- `src/components`: shared UI, coffee cards, filters, and quiz flow.
+- `src/lib`: Supabase clients, queries, constants, and shared types.
+- `scrapers`: Node-based scraper pipeline and migration helper.
+- `supabase/migrations`: schema, policies, indexes, functions, and seed data.
+
+## Requirements
+
+- Node.js 20
+- npm 10+
+- A Supabase project for app data and scraper writes
+
+Use the checked-in [`.nvmrc`](.nvmrc) to align local and CI Node versions.
+
+## Local Setup
+
+1. Install dependencies:
+
+   ```bash
+   npm ci
+   npm --prefix scrapers ci
+   ```
+
+2. Create local env files:
+
+   ```bash
+   cp .env.example .env.local
+   cp scrapers/.env.example scrapers/.env
+   ```
+
+3. Fill in the required variables:
+
+   App runtime:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+   Scrapers and migrations:
+   - `SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `DB_PASSWORD`
+
+4. Run database migrations:
+
+   ```bash
+   npm run scrapers:migrate
+   ```
+
+5. Start the app:
+
+   ```bash
+   npm run dev
+   ```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Common Commands
+
+```bash
+npm run dev
+npm run lint
+npm run typecheck
+npm run build
+npm run check
+npm run scrapers:migrate
+npm run scrapers:scrape -- --roaster <slug>
+```
+
+`npm run check` is the pre-PR smoke suite. It runs linting, TypeScript checks, the production build, and the scraper typecheck.
+
+## Scraper Workflow
+
+- Use `npm run scrapers:migrate` to apply the SQL files in [`supabase/migrations`](supabase/migrations).
+- Use `npm run scrapers:scrape` to run all configured scrapers.
+- Use `npm run scrapers:scrape -- --roaster <slug>` when you only want one roaster.
+- GitHub Actions also runs [`.github/workflows/scrape.yml`](.github/workflows/scrape.yml) on a schedule or manual dispatch.
+
+## Git Workflow
+
+The contributor rules live in [CONTRIBUTING.md](CONTRIBUTING.md). The short version:
+
+1. Keep `main` protected and deployable.
+2. Do work on short-lived branches.
+3. Open a PR for every change, even small ones.
+4. Require CI before merge.
+5. Squash-merge to keep history readable.
+
+Because this repository currently has no historical baseline, the first commit should be a clean bootstrap snapshot before multiple feature branches start diverging.
+
+## CI
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs the smoke checks we want required on pull requests:
+
+- web lint
+- web typecheck
+- production build
+- scraper typecheck
+
+## Next Steps From The Product Plan
+
+The approved implementation plan lives in [PLAN.md](PLAN.md). The current workflow work maps to Phase 3, Lane C: docs plus CI bootstrap. After this lands, the next parallel lanes are browse and quiz truthfulness, supported-roaster coverage, and targeted tests.
