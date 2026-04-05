@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "rm -rf .next/dev && next dev .",
     "typecheck": "tsc --noEmit",
     "scrapers:typecheck": "npm --prefix scrapers run typecheck",
     "scrapers:migrate": "npm --prefix scrapers run migrate",
