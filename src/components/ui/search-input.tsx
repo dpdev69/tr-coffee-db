@@ -1,22 +1,41 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRef } from 'react';
 
 export function SearchInput() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [value, setValue] = useState(searchParams.get('search') ?? '');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (value.trim()) {
-      router.push(`/coffees?search=${encodeURIComponent(value.trim())}`);
+
+    const params =
+      pathname === '/coffees'
+        ? new URLSearchParams(searchParams.toString())
+        : new URLSearchParams();
+    const nextValue = inputRef.current?.value.trim() ?? '';
+
+    if (nextValue) {
+      params.set('search', nextValue);
+    } else {
+      params.delete('search');
     }
+
+    params.delete('page');
+
+    const nextUrl = params.toString() ? `/coffees?${params.toString()}` : '/coffees';
+    router.push(nextUrl);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative">
+    <form
+      key={`${pathname}:${searchParams.get('search') ?? ''}`}
+      onSubmit={handleSubmit}
+      className="relative"
+    >
       <svg
         className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400"
         fill="none"
@@ -32,8 +51,8 @@ export function SearchInput() {
       </svg>
       <input
         type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
+        ref={inputRef}
+        defaultValue={searchParams.get('search') ?? ''}
         placeholder="Search coffees..."
         className="w-full rounded-lg border border-stone-300 bg-white py-2 pl-10 pr-4 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
       />

@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useCallback } from 'react';
 import {
+  BREW_METHOD_LABELS,
   PROCESS_LABELS,
   ROAST_LABELS,
   FLAVOR_CATEGORIES,
@@ -130,6 +131,18 @@ export function SidebarFilters({
             label={cat}
             checked={isActive('flavorCategory', cat)}
             onChange={() => updateFilter('flavorCategory', cat)}
+          />
+        ))}
+      </FilterGroup>
+
+      {/* Brew Method */}
+      <FilterGroup title="Brew Method">
+        {Object.entries(BREW_METHOD_LABELS).map(([value, label]) => (
+          <FilterCheckbox
+            key={value}
+            label={label}
+            checked={isActive('brewMethod', value)}
+            onChange={() => updateFilter('brewMethod', value)}
           />
         ))}
       </FilterGroup>

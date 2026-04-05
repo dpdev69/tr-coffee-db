@@ -2,9 +2,11 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getCoffees, type CoffeeFilters } from '@/lib/queries/coffees';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
+import { ActiveFilterSummary } from '@/components/coffee/active-filter-summary';
 import { SidebarFilters } from '@/components/coffee/sidebar-filters';
 import { CoffeeCardSkeleton } from '@/components/ui/skeleton';
 import { Pagination } from '@/components/ui/pagination';
+import { parseCoffeeFilters } from '@/lib/coffee-filters';
 
 export const metadata: Metadata = {
   title: 'Explore Coffees',
@@ -91,23 +93,7 @@ async function CoffeesLoader({
 }: {
   params: Record<string, string | string[] | undefined>;
 }) {
-  const toArray = (v: string | string[] | undefined): string[] | undefined => {
-    if (!v) return undefined;
-    return Array.isArray(v) ? v : [v];
-  };
-
-  const filters: CoffeeFilters = {
-    origin: toArray(params.origin),
-    process: toArray(params.process),
-    roastLevel: toArray(params.roastLevel),
-    roaster: toArray(params.roaster),
-    flavorCategory: toArray(params.flavorCategory),
-    brewMethod: toArray(params.brewMethod),
-    search: typeof params.search === 'string' ? params.search : undefined,
-    sort: (params.sort as CoffeeFilters['sort']) ?? 'newest',
-    page: params.page ? parseInt(params.page as string) : 1,
-    perPage: 24,
-  };
+  const filters: CoffeeFilters = parseCoffeeFilters(params);
 
   let result = { coffees: [], total: 0, page: 1, perPage: 24, totalPages: 0 } as Awaited<
     ReturnType<typeof getCoffees>
@@ -121,9 +107,7 @@ async function CoffeesLoader({
 
   return (
     <>
-      <p className="mb-4 text-sm text-stone-500">
-        {result.total} coffee{result.total !== 1 ? 's' : ''} found
-      </p>
+      <ActiveFilterSummary filters={filters} total={result.total} />
       <CoffeeGrid coffees={result.coffees} />
       {result.totalPages > 1 && (
         <Pagination
