@@ -7,7 +7,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ==========================================
 -- ROASTERS
 -- ==========================================
-CREATE TABLE roasters (
+CREATE TABLE IF NOT EXISTS roasters (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   slug TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE roasters (
 -- ==========================================
 -- COFFEES
 -- ==========================================
-CREATE TABLE coffees (
+CREATE TABLE IF NOT EXISTS coffees (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   roaster_id UUID NOT NULL REFERENCES roasters(id) ON DELETE CASCADE,
   slug TEXT NOT NULL,
@@ -83,7 +83,7 @@ CREATE TABLE coffees (
 -- ==========================================
 -- SCRAPE LOGS
 -- ==========================================
-CREATE TABLE scrape_logs (
+CREATE TABLE IF NOT EXISTS scrape_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   roaster_id UUID REFERENCES roasters(id) ON DELETE SET NULL,
   started_at TIMESTAMPTZ NOT NULL,
@@ -108,9 +108,13 @@ END;
 $$ LANGUAGE plpgsql
 SET search_path = public;
 
+DROP TRIGGER IF EXISTS roasters_updated_at ON roasters;
+
 CREATE TRIGGER roasters_updated_at
   BEFORE UPDATE ON roasters
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+DROP TRIGGER IF EXISTS coffees_updated_at ON coffees;
 
 CREATE TRIGGER coffees_updated_at
   BEFORE UPDATE ON coffees
