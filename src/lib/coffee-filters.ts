@@ -1,6 +1,7 @@
 import {
   BREW_METHOD_LABELS,
   FLAVOR_CATEGORIES,
+  FLAVOR_CATEGORY_LABELS,
   PROCESS_LABELS,
   ROAST_LABELS,
   SORT_OPTIONS,
@@ -69,39 +70,41 @@ export function getActiveCoffeeFilterLabels(filters: CoffeeFilters): string[] {
   const labels: string[] = [];
 
   if (filters.search) {
-    labels.push(`Search: ${filters.search}`);
+    labels.push(`Arama: ${filters.search}`);
   }
 
-  filters.origin?.forEach((origin) => labels.push(`Origin: ${origin}`));
+  filters.origin?.forEach((origin) => labels.push(`Köken: ${origin}`));
   filters.process?.forEach((process) =>
-    labels.push(`Process: ${PROCESS_LABELS[process] ?? process}`)
+    labels.push(`İşleme: ${PROCESS_LABELS[process] ?? process}`)
   );
   filters.roastLevel?.forEach((roastLevel) =>
-    labels.push(`Roast: ${ROAST_LABELS[roastLevel] ?? roastLevel}`)
+    labels.push(`Kavurma: ${ROAST_LABELS[roastLevel] ?? roastLevel}`)
   );
-  filters.roaster?.forEach((roaster) => labels.push(`Roaster: ${roaster}`));
+  filters.roaster?.forEach((roaster) => labels.push(`Kavurucu: ${roaster}`));
   filters.flavorCategory?.forEach((flavorCategory) =>
     labels.push(
-      `Flavor: ${
-        FLAVOR_CATEGORIES.find((category) => category === flavorCategory) ?? flavorCategory
+      `Tat: ${
+        FLAVOR_CATEGORIES.find((category) => category === flavorCategory)
+          ? FLAVOR_CATEGORY_LABELS[flavorCategory as keyof typeof FLAVOR_CATEGORY_LABELS]
+          : flavorCategory
       }`
     )
   );
   filters.brewMethod?.forEach((brewMethod) =>
-    labels.push(`Brew: ${BREW_METHOD_LABELS[brewMethod] ?? brewMethod}`)
+    labels.push(`Demleme: ${BREW_METHOD_LABELS[brewMethod] ?? brewMethod}`)
   );
 
   if (filters.isDecaf === true) {
-    labels.push('Decaf only');
+    labels.push('Sadece dekaf');
   }
 
   if (filters.priceMin != null || filters.priceMax != null) {
     if (filters.priceMin != null && filters.priceMax != null) {
-      labels.push(`Budget: ${filters.priceMin}-${filters.priceMax} TL/100g`);
+      labels.push(`Bütçe: ${filters.priceMin}-${filters.priceMax} TL/100 g`);
     } else if (filters.priceMin != null) {
-      labels.push(`Budget: ${filters.priceMin}+ TL/100g`);
+      labels.push(`Bütçe: ${filters.priceMin}+ TL/100 g`);
     } else if (filters.priceMax != null) {
-      labels.push(`Budget: up to ${filters.priceMax} TL/100g`);
+      labels.push(`Bütçe: en fazla ${filters.priceMax} TL/100 g`);
     }
   }
 

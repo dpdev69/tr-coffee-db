@@ -24,19 +24,19 @@ export function Header() {
             href="/coffees"
             className="text-sm font-medium text-stone-600 transition-colors hover:text-stone-900"
           >
-            Explore
+            Kahveler
           </Link>
           <Link
             href="/roasters"
             className="text-sm font-medium text-stone-600 transition-colors hover:text-stone-900"
           >
-            Roasters
+            Kavurucular
           </Link>
           <Link
             href="/quiz"
             className="text-sm font-medium text-stone-600 transition-colors hover:text-stone-900"
           >
-            Find My Coffee
+            Kahvemi Bul
           </Link>
         </nav>
 
@@ -51,7 +51,7 @@ export function Header() {
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="inline-flex items-center justify-center rounded-md p-2 text-stone-600 hover:bg-stone-100 md:hidden"
-          aria-label="Toggle menu"
+          aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
         >
           {mobileMenuOpen ? (
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -79,21 +79,21 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
               className="text-sm font-medium text-stone-700"
             >
-              Explore Coffees
+              Kahveleri İncele
             </Link>
             <Link
               href="/roasters"
               onClick={() => setMobileMenuOpen(false)}
               className="text-sm font-medium text-stone-700"
             >
-              Roasters
+              Kavurucular
             </Link>
             <Link
               href="/quiz"
               onClick={() => setMobileMenuOpen(false)}
               className="text-sm font-medium text-stone-700"
             >
-              Find My Coffee
+              Kahvemi Bul
             </Link>
           </nav>
         </div>

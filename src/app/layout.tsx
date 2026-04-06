@@ -16,11 +16,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "TR CoffeeDB — Discover Turkish Specialty Coffee",
+    default: "TR CoffeeDB — Türkiye'de Nitelikli Kahve Keşfi",
     template: "%s | TR CoffeeDB",
   },
   description:
-    "Compare and discover specialty coffees from Turkey's best roasters. Filter by origin, process, roast level, and flavor. All purchases go directly to roasters.",
+    "Türkiye'nin önde gelen kavurucularındaki nitelikli kahveleri karşılaştırın ve keşfedin. Köken, işleme yöntemi, kavurma seviyesi ve tada göre filtreleyin. Satın alma işlemleri doğrudan kavuruculara gider.",
 };
 
 export default function RootLayout({
@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="tr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-white font-sans text-stone-900">

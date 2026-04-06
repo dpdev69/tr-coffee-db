@@ -18,16 +18,16 @@ export function ActiveFilterSummary({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-stone-900">
-            {total} coffee{total !== 1 ? 's' : ''} found
+            {total} kahve bulundu
           </p>
           <p className="mt-1 text-sm text-stone-500">
             {hasActiveFilters
-              ? 'These results reflect your current browse or quiz filters.'
-              : 'Use filters or the quiz to narrow the catalog.'}
+              ? 'Bu sonuçlar mevcut filtrelerinizi ve test tercihlerinizi yansıtıyor.'
+              : 'Kataloğu daraltmak için filtreleri ya da testi kullanın.'}
           </p>
           {(filters.priceMin != null || filters.priceMax != null) && (
             <p className="mt-2 text-xs text-stone-500">
-              Budget filters use normalized price per 100g so different bag sizes compare fairly.
+              Bütçe filtreleri, farklı paket boyutlarını adil biçimde karşılaştırmak için 100 g normalize fiyatı kullanır.
             </p>
           )}
         </div>
@@ -37,7 +37,7 @@ export function ActiveFilterSummary({
             href="/coffees"
             className="text-sm font-medium text-amber-700 transition-colors hover:text-amber-800"
           >
-            Clear all
+            Tümünü temizle
           </Link>
         )}
       </div>

@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { getRoasters } from '@/lib/queries/roasters';
 
 export const metadata: Metadata = {
-  title: 'Roasters',
+  title: 'Kavurucular',
   description:
-    'Browse specialty coffee roasters across Turkey. Istanbul, Ankara, Izmir, and more.',
+    'Türkiye genelindeki nitelikli kahve kavurucularını keşfedin. İstanbul, Ankara, İzmir ve daha fazlası.',
 };
 
 export default async function RoastersPage() {
@@ -19,9 +19,9 @@ export default async function RoastersPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-bold text-stone-900">Roasters</h1>
+      <h1 className="text-2xl font-bold text-stone-900">Kavurucular</h1>
       <p className="mt-2 text-sm text-stone-500">
-        {roasters.length} specialty coffee roasters across Turkey
+        Türkiye genelinde {roasters.length} nitelikli kahve kavurucusu
       </p>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -42,7 +42,7 @@ export default async function RoastersPage() {
                 </h2>
                 <p className="text-sm text-stone-500">
                   {roaster.city}
-                  {coffeeCount > 0 && ` \u00b7 ${coffeeCount} coffees`}
+                  {coffeeCount > 0 && ` \u00b7 ${coffeeCount} kahve`}
                 </p>
               </div>
             </Link>
@@ -53,7 +53,7 @@ export default async function RoastersPage() {
       {roasters.length === 0 && (
         <div className="py-16 text-center">
           <p className="text-stone-500">
-            No roasters found. Connect Supabase to load data.
+            Kavurucu bulunamadı. Verileri yüklemek için Supabase bağlantısını kurun.
           </p>
         </div>
       )}

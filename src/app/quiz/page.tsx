@@ -2,18 +2,18 @@ import type { Metadata } from 'next';
 import { QuizContainer } from '@/components/quiz/quiz-container';
 
 export const metadata: Metadata = {
-  title: 'Coffee Matchmaker',
+  title: 'Kahve Eşleştirici',
   description:
-    'Answer 5 quick questions and we\'ll find the perfect Turkish specialty coffee for you.',
+    '5 kısa soruyu yanıtlayın, size uygun nitelikli kahveyi bulalım.',
 };
 
 export default function QuizPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-stone-900">Coffee Matchmaker</h1>
+        <h1 className="text-3xl font-bold text-stone-900">Kahve Eşleştirici</h1>
         <p className="mt-3 text-stone-500">
-          Answer 5 quick questions and we&apos;ll find your perfect match.
+          5 kısa soruyu yanıtlayın, size en uygun kahveyi bulalım.
         </p>
       </div>
       <div className="mt-10">

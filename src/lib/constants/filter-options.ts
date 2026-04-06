@@ -1,19 +1,19 @@
 export const PROCESS_LABELS: Record<string, string> = {
-  washed: 'Washed',
-  natural: 'Natural',
+  washed: 'Yıkanmış',
+  natural: 'Natürel',
   honey: 'Honey',
-  anaerobic: 'Anaerobic',
-  semi_washed: 'Semi-Washed',
-  wet_hulled: 'Wet Hulled',
-  experimental: 'Experimental',
+  anaerobic: 'Anaerobik',
+  semi_washed: 'Yarı Yıkanmış',
+  wet_hulled: 'Islak Kabuk Soyma',
+  experimental: 'Deneysel',
 };
 
 export const ROAST_LABELS: Record<string, string> = {
-  light: 'Light',
-  medium_light: 'Medium-Light',
-  medium: 'Medium',
-  medium_dark: 'Medium-Dark',
-  dark: 'Dark',
+  light: 'Açık',
+  medium_light: 'Orta-Açık',
+  medium: 'Orta',
+  medium_dark: 'Orta-Koyu',
+  dark: 'Koyu',
 };
 
 export const FLAVOR_CATEGORIES = [
@@ -27,19 +27,30 @@ export const FLAVOR_CATEGORIES = [
   'Herbal',
 ] as const;
 
+export const FLAVOR_CATEGORY_LABELS: Record<(typeof FLAVOR_CATEGORIES)[number], string> = {
+  Fruity: 'Meyvemsi',
+  Floral: 'Çiçeksi',
+  Chocolate: 'Çikolata',
+  Sweet: 'Tatlı',
+  Nutty: 'Kuruyemiş',
+  Spicy: 'Baharatlı',
+  Roasted: 'Kavrulmuş',
+  Herbal: 'Bitkisel',
+};
+
 export const BREW_METHOD_LABELS: Record<string, string> = {
   espresso: 'Espresso',
   filter: 'Filter / Pour Over',
   french_press: 'French Press',
   aeropress: 'Aeropress',
-  turkish: 'Turkish',
-  cold_brew: 'Cold Brew',
+  turkish: 'Türk Kahvesi',
+  cold_brew: 'Soğuk Demleme',
   moka_pot: 'Moka Pot',
 };
 
 export const SORT_OPTIONS = [
-  { value: 'newest', label: 'Newest First' },
-  { value: 'price_asc', label: 'Price: Low to High' },
-  { value: 'price_desc', label: 'Price: High to Low' },
-  { value: 'popular', label: 'Most Popular' },
+  { value: 'newest', label: 'En Yeni' },
+  { value: 'price_asc', label: 'Fiyat: Artan' },
+  { value: 'price_desc', label: 'Fiyat: Azalan' },
+  { value: 'popular', label: 'En Popüler' },
 ] as const;

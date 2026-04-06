@@ -8,9 +8,9 @@ export function CoffeeGrid({ coffees }: { coffees: CoffeeWithRoaster[] }) {
         <svg className="h-16 w-16 text-stone-300" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
         </svg>
-        <h3 className="mt-4 text-lg font-medium text-stone-900">No coffees found</h3>
+        <h3 className="mt-4 text-lg font-medium text-stone-900">Kahve bulunamadı</h3>
         <p className="mt-1 text-sm text-stone-500">
-          Try adjusting your filters or search terms.
+          Filtrelerinizi ya da arama teriminizi değiştirmeyi deneyin.
         </p>
       </div>
     );

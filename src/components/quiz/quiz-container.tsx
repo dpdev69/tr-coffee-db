@@ -14,58 +14,58 @@ interface QuizState {
 const STEPS = [
   {
     id: 'brew',
-    question: 'How do you usually brew your coffee?',
+    question: 'Kahveni genelde nasıl demliyorsun?',
     options: [
       { value: 'espresso', label: 'Espresso' },
       { value: 'filter', label: 'Pour Over / V60' },
       { value: 'french_press', label: 'French Press' },
       { value: 'aeropress', label: 'Aeropress' },
-      { value: 'turkish', label: 'Turkish (Cezve)' },
+      { value: 'turkish', label: 'Türk Kahvesi (Cezve)' },
     ],
     multi: false,
   },
   {
     id: 'flavors',
-    question: 'What flavors do you enjoy?',
-    subtitle: 'Pick as many as you like',
+    question: 'Hangi tatları seviyorsun?',
+    subtitle: 'İstediğin kadar seçebilirsin',
     options: [
-      { value: 'Fruity', label: 'Fruity & Bright' },
-      { value: 'Chocolate', label: 'Chocolatey' },
-      { value: 'Nutty', label: 'Nutty & Smooth' },
-      { value: 'Floral', label: 'Floral' },
-      { value: 'Sweet', label: 'Caramel & Sweet' },
-      { value: 'Spicy', label: 'Spicy & Bold' },
+      { value: 'Fruity', label: 'Meyvemsi ve Canlı' },
+      { value: 'Chocolate', label: 'Çikolatalı' },
+      { value: 'Nutty', label: 'Kuruyemişsi ve Yumuşak' },
+      { value: 'Floral', label: 'Çiçeksi' },
+      { value: 'Sweet', label: 'Karamelimsi ve Tatlı' },
+      { value: 'Spicy', label: 'Baharatlı ve Yoğun' },
     ],
     multi: true,
   },
   {
     id: 'adventure',
-    question: 'How adventurous are you?',
+    question: 'Ne kadar yeni tatlar denemek istiyorsun?',
     options: [
-      { value: 'classic', label: 'Classic & Familiar' },
-      { value: 'surprise', label: 'Surprise Me!' },
+      { value: 'classic', label: 'Klasik ve Tanıdık' },
+      { value: 'surprise', label: 'Beni Şaşırt!' },
     ],
     multi: false,
   },
   {
     id: 'roast',
-    question: 'Roast preference?',
+    question: 'Kavurma tercihin ne?',
     options: [
-      { value: 'light', label: 'Light' },
-      { value: 'medium', label: 'Medium' },
-      { value: 'dark', label: 'Dark' },
-      { value: 'any', label: 'No preference' },
+      { value: 'light', label: 'Açık' },
+      { value: 'medium', label: 'Orta' },
+      { value: 'dark', label: 'Koyu' },
+      { value: 'any', label: 'Fark etmez' },
     ],
     multi: false,
   },
   {
     id: 'budget',
-    question: 'Budget per 250g?',
+    question: '250 g için bütçen ne kadar?',
     options: [
-      { value: 'low', label: 'Under 300 TL' },
+      { value: 'low', label: '300 TL altı' },
       { value: 'mid', label: '300 - 500 TL' },
-      { value: 'high', label: '500 TL+' },
-      { value: 'any', label: 'No limit' },
+      { value: 'high', label: '500 TL ve üzeri' },
+      { value: 'any', label: 'Sınır yok' },
     ],
     multi: false,
   },
@@ -155,17 +155,17 @@ export function QuizContainer() {
           &#10003;
         </div>
         <h2 className="mt-4 text-xl font-bold text-stone-900">
-          We&apos;ve got your matches!
+          Sana uygun kahveleri bulduk!
         </h2>
         <p className="mt-2 text-stone-500">
-          Based on your preferences, here are our recommendations.
+          Tercihlerine göre önerilerimiz hazır.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
             href={buildFilterUrl()}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-sm font-semibold text-white hover:bg-amber-700"
           >
-            View My Matches
+            Eşleşmelerimi Gör
           </Link>
           <button
             onClick={() => {
@@ -174,7 +174,7 @@ export function QuizContainer() {
             }}
             className="inline-flex items-center justify-center rounded-lg border border-stone-300 px-6 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
           >
-            Retake Quiz
+            Testi Yeniden Çöz
           </button>
         </div>
       </div>
@@ -233,7 +233,7 @@ export function QuizContainer() {
           disabled={step === 0}
           className="rounded-lg px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-40"
         >
-          Back
+          Geri
         </button>
         {current.multi && (
           <button
@@ -241,7 +241,7 @@ export function QuizContainer() {
             disabled={current.multi && (selectedValue as string[]).length === 0}
             className="rounded-lg bg-amber-600 px-6 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-40"
           >
-            {isLastStep ? 'See Results' : 'Next'}
+            {isLastStep ? 'Sonuçları Gör' : 'İleri'}
           </button>
         )}
       </div>

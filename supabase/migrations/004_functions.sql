@@ -8,7 +8,8 @@ BEGIN
   SET click_count = click_count + 1
   WHERE id = coffee_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public;
 
 -- Grant execute to anon (public can track clicks)
 GRANT EXECUTE ON FUNCTION increment_click(UUID) TO anon;
@@ -51,7 +52,8 @@ BEGIN
     )
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public;
 
 GRANT EXECUTE ON FUNCTION get_filter_options() TO anon;
 
@@ -83,6 +85,7 @@ BEGIN
     plainto_tsquery('simple', query)
   ) DESC;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public;
 
 GRANT EXECUTE ON FUNCTION search_coffees(TEXT) TO anon;

@@ -19,7 +19,7 @@ export function Pagination({
     router.push(`${pathname}?${params.toString()}`);
   }
 
-  const pages: (number | '...')[] = [];
+  const pages: (number | '…')[] = [];
   for (let i = 1; i <= totalPages; i++) {
     if (
       i === 1 ||
@@ -27,8 +27,8 @@ export function Pagination({
       (i >= currentPage - 1 && i <= currentPage + 1)
     ) {
       pages.push(i);
-    } else if (pages[pages.length - 1] !== '...') {
-      pages.push('...');
+    } else if (pages[pages.length - 1] !== '…') {
+      pages.push('…');
     }
   }
 
@@ -39,12 +39,12 @@ export function Pagination({
         disabled={currentPage <= 1}
         className="rounded-lg px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-40 disabled:hover:bg-transparent"
       >
-        Previous
+        Önceki
       </button>
       {pages.map((page, i) =>
-        page === '...' ? (
+        page === '…' ? (
           <span key={`dots-${i}`} className="px-2 text-stone-400">
-            ...
+            …
           </span>
         ) : (
           <button
@@ -65,7 +65,7 @@ export function Pagination({
         disabled={currentPage >= totalPages}
         className="rounded-lg px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-40 disabled:hover:bg-transparent"
       >
-        Next
+        Sonraki
       </button>
     </nav>
   );

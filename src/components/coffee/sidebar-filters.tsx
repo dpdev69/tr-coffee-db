@@ -7,6 +7,7 @@ import {
   PROCESS_LABELS,
   ROAST_LABELS,
   FLAVOR_CATEGORIES,
+  FLAVOR_CATEGORY_LABELS,
   SORT_OPTIONS,
 } from '@/lib/constants/filter-options';
 
@@ -62,7 +63,7 @@ export function SidebarFilters({
     <aside className="space-y-6">
       {/* Sort */}
       <div>
-        <h3 className="text-sm font-semibold text-stone-900">Sort By</h3>
+        <h3 className="text-sm font-semibold text-stone-900">Sırala</h3>
         <select
           value={searchParams.get('sort') ?? 'newest'}
           onChange={(e) => setSort(e.target.value)}
@@ -81,13 +82,13 @@ export function SidebarFilters({
           onClick={clearAll}
           className="text-xs font-medium text-amber-700 hover:text-amber-800"
         >
-          Clear all filters
+          Tüm filtreleri temizle
         </button>
       )}
 
       {/* Origin */}
       {countries.length > 0 && (
-        <FilterGroup title="Origin">
+        <FilterGroup title="Köken">
           {countries.map((country) => (
             <FilterCheckbox
               key={country}
@@ -100,7 +101,7 @@ export function SidebarFilters({
       )}
 
       {/* Process */}
-      <FilterGroup title="Process">
+      <FilterGroup title="İşleme">
         {Object.entries(PROCESS_LABELS).map(([value, label]) => (
           <FilterCheckbox
             key={value}
@@ -112,7 +113,7 @@ export function SidebarFilters({
       </FilterGroup>
 
       {/* Roast Level */}
-      <FilterGroup title="Roast Level">
+      <FilterGroup title="Kavurma Seviyesi">
         {Object.entries(ROAST_LABELS).map(([value, label]) => (
           <FilterCheckbox
             key={value}
@@ -124,11 +125,11 @@ export function SidebarFilters({
       </FilterGroup>
 
       {/* Flavor Category */}
-      <FilterGroup title="Flavor">
+      <FilterGroup title="Tat">
         {FLAVOR_CATEGORIES.map((cat) => (
           <FilterCheckbox
             key={cat}
-            label={cat}
+            label={FLAVOR_CATEGORY_LABELS[cat]}
             checked={isActive('flavorCategory', cat)}
             onChange={() => updateFilter('flavorCategory', cat)}
           />
@@ -136,7 +137,7 @@ export function SidebarFilters({
       </FilterGroup>
 
       {/* Brew Method */}
-      <FilterGroup title="Brew Method">
+      <FilterGroup title="Demleme Yöntemi">
         {Object.entries(BREW_METHOD_LABELS).map(([value, label]) => (
           <FilterCheckbox
             key={value}
@@ -149,7 +150,7 @@ export function SidebarFilters({
 
       {/* Roaster */}
       {roasters.length > 0 && (
-        <FilterGroup title="Roaster">
+        <FilterGroup title="Kavurucu">
           {roasters.map((r) => (
             <FilterCheckbox
               key={r.slug}

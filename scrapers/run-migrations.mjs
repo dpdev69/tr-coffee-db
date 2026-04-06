@@ -51,6 +51,8 @@ const migrationFiles = [
   '003_indexes.sql',
   '004_functions.sql',
   '005_seed_roasters.sql',
+  '006_deactivate_coffee_sapiens.sql',
+  '007_set_function_search_paths.sql',
 ];
 
 async function tryConnect(config) {

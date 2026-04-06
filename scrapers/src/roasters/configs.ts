@@ -1,7 +1,7 @@
 import type { RoasterConfig } from '../types.js';
 
 // ==========================================
-// SHOPIFY ROASTERS (9) — all prices in TL
+// SHOPIFY ROASTERS (8) — all prices in TL
 // ==========================================
 
 export const petra: RoasterConfig = {
@@ -47,19 +47,6 @@ export const coachCoffee: RoasterConfig = {
   city: 'Istanbul',
   priceFormat: 'tl',
   tagFilters: ['kahve', 'coffee'],
-};
-
-export const coffeeSapiens: RoasterConfig = {
-  slug: 'coffee-sapiens',
-  name: 'Coffee Sapiens',
-  websiteUrl: 'https://www.coffeesapiens.com',
-  shopUrl: 'https://www.coffeesapiens.com',
-  platform: 'shopify',
-  city: 'Istanbul',
-  priceFormat: 'tl',
-  // Mixes equipment — filter by type/tags
-  productTypeFilter: ['kahve', 'coffee'],
-  tagFilters: ['kahve', 'coffee', 'çekirdek'],
 };
 
 export const coffeenutz: RoasterConfig = {
@@ -231,7 +218,6 @@ export const ALL_ROASTER_CONFIGS: RoasterConfig[] = [
   montag,
   aroastingLab,
   coachCoffee,
-  coffeeSapiens,
   coffeenutz,
   homestead,
   nokCoffee,

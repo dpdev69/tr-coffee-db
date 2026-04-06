@@ -53,7 +53,10 @@ export function SearchInput() {
         type="text"
         ref={inputRef}
         defaultValue={searchParams.get('search') ?? ''}
-        placeholder="Search coffees..."
+        name="search"
+        aria-label="Kahve ara"
+        autoComplete="off"
+        placeholder="Kahve ara…"
         className="w-full rounded-lg border border-stone-300 bg-white py-2 pl-10 pr-4 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
       />
     </form>

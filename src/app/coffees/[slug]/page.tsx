@@ -15,16 +15,18 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const coffee = await getCoffeeBySlug(slug);
-  if (!coffee) return { title: 'Coffee Not Found' };
+  if (!coffee) return { title: 'Kahve Bulunamadı' };
 
   const title = coffee.name_normalized ?? coffee.name;
   const roaster = coffee.roasters.name;
 
   return {
-    title: `${title} by ${roaster}`,
-    description: `${title} — ${coffee.origin_country ?? 'Specialty'} coffee by ${roaster}. ${
-      coffee.process !== 'unknown' ? PROCESS_LABELS[coffee.process] + ' process. ' : ''
-    }${coffee.price_amount ? coffee.price_amount + ' TL.' : ''}`,
+    title: `${title} | ${roaster}`,
+    description: `${roaster} kavurucusundan ${title}. ${
+      coffee.origin_country ? `${coffee.origin_country} kökenli. ` : ''
+    }${coffee.process !== 'unknown' ? `${PROCESS_LABELS[coffee.process] ?? coffee.process} işleme. ` : ''}${
+      coffee.price_amount ? `${coffee.price_amount} TL.` : ''
+    }`,
     openGraph: {
       title: `${title} | ${roaster}`,
       images: coffee.image_url ? [coffee.image_url] : [],
@@ -49,7 +51,7 @@ export default async function CoffeeDetailPage({
       {/* Breadcrumb */}
       <nav className="mb-6 text-sm text-stone-500">
         <Link href="/coffees" className="hover:text-stone-700">
-          Coffees
+          Kahveler
         </Link>
         <span className="mx-2">/</span>
         <span className="text-stone-900">{coffee.name_normalized ?? coffee.name}</span>
@@ -121,39 +123,39 @@ export default async function CoffeeDetailPage({
 
           {/* Specs table */}
           <div className="mt-8 space-y-4">
-            <h2 className="text-lg font-semibold text-stone-900">Details</h2>
+            <h2 className="text-lg font-semibold text-stone-900">Detaylar</h2>
             <dl className="divide-y divide-stone-100">
               {coffee.origin_country && (
-                <SpecRow label="Origin" value={
+                <SpecRow label="Köken" value={
                   [coffee.origin_country, coffee.origin_region].filter(Boolean).join(', ')
                 } />
               )}
               {coffee.origin_farm && (
-                <SpecRow label="Farm" value={coffee.origin_farm} />
+                <SpecRow label="Çiftlik" value={coffee.origin_farm} />
               )}
               {coffee.origin_altitude && (
-                <SpecRow label="Altitude" value={coffee.origin_altitude} />
+                <SpecRow label="Rakım" value={coffee.origin_altitude} />
               )}
               {coffee.process !== 'unknown' && (
                 <SpecRow
-                  label="Process"
+                  label="İşleme"
                   value={PROCESS_LABELS[coffee.process] ?? coffee.process}
                 />
               )}
               {coffee.roast_level !== 'unknown' && (
                 <SpecRow
-                  label="Roast"
+                  label="Kavurma"
                   value={ROAST_LABELS[coffee.roast_level] ?? coffee.roast_level}
                 />
               )}
               {coffee.variety && (
-                <SpecRow label="Variety" value={coffee.variety} />
+                <SpecRow label="Varyete" value={coffee.variety} />
               )}
               {coffee.sca_score && (
-                <SpecRow label="SCA Score" value={String(coffee.sca_score)} />
+                <SpecRow label="SCA Puanı" value={String(coffee.sca_score)} />
               )}
               {coffee.is_decaf && (
-                <SpecRow label="Decaf" value="Yes" />
+                <SpecRow label="Dekaf" value="Evet" />
               )}
             </dl>
           </div>
@@ -161,7 +163,7 @@ export default async function CoffeeDetailPage({
           {/* Flavor notes */}
           {coffee.flavor_notes_normalized.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-lg font-semibold text-stone-900">Tasting Notes</h2>
+              <h2 className="text-lg font-semibold text-stone-900">Tadım Notları</h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 {coffee.flavor_notes_normalized.map((note) => {
                   const category = coffee.flavor_categories.find((cat) =>
@@ -182,7 +184,7 @@ export default async function CoffeeDetailPage({
       {/* Similar coffees */}
       {similar.length > 0 && (
         <section className="mt-16">
-          <h2 className="text-xl font-bold text-stone-900">Similar Coffees</h2>
+          <h2 className="text-xl font-bold text-stone-900">Benzer Kahveler</h2>
           <div className="mt-6">
             <CoffeeGrid coffees={similar} />
           </div>

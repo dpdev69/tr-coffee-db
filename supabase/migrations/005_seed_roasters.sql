@@ -2,12 +2,11 @@
 -- These must exist before scrapers can run (they look up roaster_id by slug)
 
 INSERT INTO roasters (slug, name, website_url, shop_url, city, platform) VALUES
-  -- Shopify (9)
+  -- Shopify (8)
   ('petra', 'Petra Coffee', 'https://petracoffee.com', 'https://petracoffee.com', 'Istanbul', 'shopify'),
   ('montag', 'Montag Coffee Roasters', 'https://montagcoffee.com', 'https://montagcoffee.com', 'Istanbul', 'shopify'),
   ('aroasting-lab', 'A Roasting Lab', 'https://aroastinglab.com', 'https://aroastinglab.com', 'Bursa', 'shopify'),
   ('coach-coffee', 'Coach Coffee Company', 'https://coachcoffeeco.com', 'https://coachcoffeeco.com', 'Istanbul', 'shopify'),
-  ('coffee-sapiens', 'Coffee Sapiens', 'https://www.coffeesapiens.com', 'https://www.coffeesapiens.com', 'Istanbul', 'shopify'),
   ('coffeenutz', 'CoffeeNutz', 'https://www.coffeenutz.net', 'https://www.coffeenutz.net', 'Izmir', 'shopify'),
   ('homestead', 'Homestead Coffee', 'https://homestead.coffee', 'https://homestead.coffee', 'Antalya', 'shopify'),
   ('nok-coffee', 'Nok Coffee', 'https://www.nokcoffee.com', 'https://www.nokcoffee.com', 'Izmir', 'shopify'),

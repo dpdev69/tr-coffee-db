@@ -9,9 +9,9 @@ import { Pagination } from '@/components/ui/pagination';
 import { parseCoffeeFilters } from '@/lib/coffee-filters';
 
 export const metadata: Metadata = {
-  title: 'Explore Coffees',
+  title: 'Kahveler',
   description:
-    'Browse and filter specialty coffees from Turkish roasters. Compare by origin, process, roast level, flavor, and price.',
+    'Türkiye’deki nitelikli kahveleri keşfedin ve filtreleyin. Köken, işleme yöntemi, kavurma seviyesi, tat ve fiyata göre karşılaştırın.',
 };
 
 export default async function CoffeesPage({
@@ -23,7 +23,7 @@ export default async function CoffeesPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-bold text-stone-900">Explore Coffees</h1>
+      <h1 className="text-2xl font-bold text-stone-900">Kahveler</h1>
       <div className="mt-8 flex flex-col gap-8 lg:flex-row">
         {/* Sidebar */}
         <div className="w-full shrink-0 lg:w-64">
