@@ -56,6 +56,7 @@ export function parseCoffeeFilters(params: CoffeeSearchParams): CoffeeFilters {
     roaster: getArrayValue(params.roaster),
     flavorCategory: getArrayValue(params.flavorCategory),
     brewMethod: getArrayValue(params.brewMethod),
+    singleOrigin: getBooleanValue(params.singleOrigin),
     priceMin: getNumberValue(params.priceMin),
     priceMax: getNumberValue(params.priceMax),
     isDecaf: getBooleanValue(params.isDecaf),
@@ -93,6 +94,10 @@ export function getActiveCoffeeFilterLabels(filters: CoffeeFilters): string[] {
   filters.brewMethod?.forEach((brewMethod) =>
     labels.push(`Demleme: ${BREW_METHOD_LABELS[brewMethod] ?? brewMethod}`)
   );
+
+  if (filters.singleOrigin === true) {
+    labels.push('Yalnızca tek köken');
+  }
 
   if (filters.isDecaf === true) {
     labels.push('Sadece dekaf');
