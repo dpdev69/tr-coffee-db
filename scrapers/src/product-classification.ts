@@ -29,9 +29,12 @@ const EXCLUDED_TITLE_PATTERNS = [
   /\btadım\s*paketi\b/i,
   /\btadim\s*paketi\b/i,
   /\bdeneme\s*paketi\b/i,
+  /\bkeşif\s*seti\b/i,
+  /\bkesif\s*seti\b/i,
   /\btanışma\s*seti\b/i,
   /\btanisma\s*seti\b/i,
   /\bkahveleri\s*seti\b/i,
+  /\bbardak\s*altl/i,
   /\badventure\s*box\b/i,
   /\bfull\s*collection\b/i,
   /\btoptan\s*giriş\b/i,
@@ -41,6 +44,8 @@ const EXCLUDED_TITLE_PATTERNS = [
   /\bicilmeye\s*hazir\b/i,
   /\bşişe\s*dahil\b/i,
   /\bsise\s*dahil\b/i,
+  /\bçiğ\s*yeşil\s*(?:kahve\s*)?çekirdek\b/i,
+  /\bcig\s*yesil\s*(?:kahve\s*)?cekirdek\b/i,
 ];
 
 export function isLikelyCatalogCoffeeProduct(parts: Array<string | null | undefined>) {

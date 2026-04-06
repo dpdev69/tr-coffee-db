@@ -29,9 +29,12 @@ export const CATALOG_NAME_EXCLUSION_PATTERNS = [
   '%tadım paketi%',
   '%tadim paketi%',
   '%deneme paketi%',
+  '%keşif seti%',
+  '%kesif seti%',
   '%tanışma seti%',
   '%tanisma seti%',
   '%kahveleri seti%',
+  '%bardak altl%',
   '%adventure box%',
   '%full collection%',
   '%toptan giriş%',
@@ -41,6 +44,10 @@ export const CATALOG_NAME_EXCLUSION_PATTERNS = [
   '%icilmeye hazir%',
   '%şişe dahil%',
   '%sise dahil%',
+  '%çiğ yeşil kahve çekirdek%',
+  '%çiğ yeşil çekirdek%',
+  '%cig yesil kahve cekirdek%',
+  '%cig yesil cekirdek%',
 ] as const;
 
 export const SINGLE_ORIGIN_NAME_EXCLUSION_PATTERNS = [
