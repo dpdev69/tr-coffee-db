@@ -1,4 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
+import {
+  CATALOG_NAME_EXCLUSION_PATTERNS,
+  SINGLE_ORIGIN_NAME_EXCLUSION_PATTERNS,
+} from '@/lib/catalog-rules';
 import type { CoffeeWithRoaster } from '@/lib/types/database';
 
 export interface CoffeeFilters {
@@ -8,6 +12,7 @@ export interface CoffeeFilters {
   roaster?: string[];
   flavorCategory?: string[];
   brewMethod?: string[];
+  singleOrigin?: boolean;
   priceMin?: number;
   priceMax?: number;
   isDecaf?: boolean;
@@ -29,6 +34,10 @@ export async function getCoffees(filters: CoffeeFilters = {}) {
     .select('*, roasters!inner(name, slug, city)', { count: 'exact' })
     .eq('is_available', true);
 
+  for (const pattern of CATALOG_NAME_EXCLUSION_PATTERNS) {
+    query = query.not('name', 'ilike', pattern);
+  }
+
   if (filters.origin?.length) {
     query = query.in('origin_country', filters.origin);
   }
@@ -46,6 +55,13 @@ export async function getCoffees(filters: CoffeeFilters = {}) {
   }
   if (filters.brewMethod?.length) {
     query = query.overlaps('brew_methods', filters.brewMethod);
+  }
+  if (filters.singleOrigin) {
+    query = query.not('origin_country', 'is', null);
+
+    for (const pattern of SINGLE_ORIGIN_NAME_EXCLUSION_PATTERNS) {
+      query = query.not('name', 'ilike', pattern);
+    }
   }
   if (filters.priceMin != null) {
     query = query.gte('price_per_100g', filters.priceMin);

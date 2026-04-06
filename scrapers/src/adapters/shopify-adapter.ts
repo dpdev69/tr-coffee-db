@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { BaseScraper } from '../base-scraper.js';
+import { isLikelyCatalogCoffeeProduct } from '../product-classification.js';
 import type { RoasterConfig, RawProduct } from '../types.js';
 
 interface ShopifyProduct {
@@ -78,6 +79,16 @@ export class ShopifyAdapter extends BaseScraper {
   }
 
   private isCoffeeProduct(product: ShopifyProduct): boolean {
+    if (
+      !isLikelyCatalogCoffeeProduct([
+        product.title,
+        product.product_type,
+        ...product.tags,
+      ])
+    ) {
+      return false;
+    }
+
     const { productTypeFilter, tagFilters } = this.config;
 
     // Check product_type

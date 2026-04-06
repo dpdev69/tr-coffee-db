@@ -57,6 +57,29 @@ export function SidebarFilters({
   const isActive = (key: string, value: string) =>
     searchParams.getAll(key).includes(value);
 
+  const isToggleActive = (key: string) => {
+    const value = searchParams.get(key);
+    return value === 'true' || value === '1';
+  };
+
+  const toggleBooleanFilter = useCallback(
+    (key: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const currentValue = searchParams.get(key);
+      const nextValue = currentValue !== 'true' && currentValue !== '1';
+
+      if (nextValue) {
+        params.set(key, 'true');
+      } else {
+        params.delete(key);
+      }
+
+      params.delete('page');
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [pathname, router, searchParams]
+  );
+
   const hasFilters = searchParams.toString().length > 0;
 
   return (
@@ -89,6 +112,11 @@ export function SidebarFilters({
       {/* Origin */}
       {countries.length > 0 && (
         <FilterGroup title="Köken">
+          <FilterCheckbox
+            label="Yalnızca tek köken"
+            checked={isToggleActive('singleOrigin')}
+            onChange={() => toggleBooleanFilter('singleOrigin')}
+          />
           {countries.map((country) => (
             <FilterCheckbox
               key={country}
