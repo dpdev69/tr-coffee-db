@@ -209,6 +209,44 @@ export const williams: RoasterConfig = {
 };
 
 // ==========================================
+// IKAS ROASTERS (3)
+// Parsed from __NEXT_DATA__ storefront payloads
+// ==========================================
+
+export const paper: RoasterConfig = {
+  slug: 'paper',
+  name: 'Paper Coffee & Chocolate',
+  websiteUrl: 'https://paperroastingcoffee.com',
+  shopUrl: 'https://paperroastingcoffee.com/online-magaza',
+  platform: 'ikas',
+  city: 'Ankara',
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+};
+
+export const story: RoasterConfig = {
+  slug: 'story',
+  name: 'Story Coffee Roasters',
+  websiteUrl: 'https://storyroasters.com',
+  shopUrl: 'https://storyroasters.com/nitelikli-kahve',
+  platform: 'ikas',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+};
+
+export const spada: RoasterConfig = {
+  slug: 'spada',
+  name: 'Spada Coffee',
+  websiteUrl: 'https://spadacoffee.com',
+  shopUrl: 'https://spadacoffee.com/kahve',
+  platform: 'ikas',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+};
+
+// ==========================================
 // ALL CONFIGS — used by orchestrator
 // ==========================================
 
@@ -234,4 +272,8 @@ export const ALL_ROASTER_CONFIGS: RoasterConfig[] = [
   sezy,
   molecule,
   williams,
+  // Ikas
+  paper,
+  story,
+  spada,
 ];

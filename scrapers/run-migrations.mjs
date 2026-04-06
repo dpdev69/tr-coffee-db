@@ -8,6 +8,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const migrationsDir = join(__dirname, '..', 'supabase', 'migrations');
 
 const dbPassword = process.env.DB_PASSWORD;
+const explicitDbHost = process.env.SUPABASE_DB_HOST;
+const explicitDbPort = process.env.SUPABASE_DB_PORT
+  ? Number(process.env.SUPABASE_DB_PORT)
+  : 5432;
+const explicitDbUser = process.env.SUPABASE_DB_USER;
+const explicitDbName = process.env.SUPABASE_DB_NAME || 'postgres';
 if (!dbPassword) {
   console.error('DB_PASSWORD env var is required. Set it in scrapers/.env or export it.');
   process.exit(1);
@@ -24,6 +30,17 @@ if (!supabaseRef) {
 
 // Try different connection methods
 const connectionConfigs = [
+  ...(explicitDbHost
+    ? [{
+        host: explicitDbHost,
+        port: explicitDbPort,
+        user: explicitDbUser || 'postgres',
+        password: dbPassword,
+        database: explicitDbName,
+        ssl: { rejectUnauthorized: false },
+        connectionTimeoutMillis: 5000,
+      }]
+    : []),
   // Direct connection
   {
     host: `db.${supabaseRef}.supabase.co`,
@@ -53,6 +70,7 @@ const migrationFiles = [
   '005_seed_roasters.sql',
   '006_deactivate_coffee_sapiens.sql',
   '007_set_function_search_paths.sql',
+  '008_lock_down_increment_click.sql',
 ];
 
 async function tryConnect(config) {
@@ -63,6 +81,7 @@ async function tryConnect(config) {
 
 async function main() {
   let client;
+  let failedMigration = null;
 
   for (const config of connectionConfigs) {
     try {
@@ -90,10 +109,18 @@ async function main() {
       console.log(`  OK`);
     } catch (err) {
       console.error(`  FAILED: ${err.message}`);
+      failedMigration = file;
+      break;
     }
   }
 
   await client.end();
+
+  if (failedMigration) {
+    console.error(`Stopped after failed migration: ${failedMigration}`);
+    process.exit(1);
+  }
+
   console.log('Done!');
 }
 

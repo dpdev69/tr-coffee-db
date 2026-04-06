@@ -83,4 +83,5 @@ export interface RoasterConfig {
     description: string;
     nextPage?: string;
   };
+  structuredDataParser?: 'next-data-products';
 }

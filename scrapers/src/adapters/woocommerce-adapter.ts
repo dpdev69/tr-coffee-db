@@ -86,7 +86,7 @@ export class WooCommerceAdapter extends BaseScraper {
 
         page++;
         await new Promise((r) => setTimeout(r, 1500));
-      } catch {
+      } catch (error) {
         // If Store API fails, try legacy WC REST API
         if (page === 1) {
           console.warn(
@@ -94,7 +94,11 @@ export class WooCommerceAdapter extends BaseScraper {
           );
           return this.fetchFromLegacyApi();
         }
-        break;
+
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `WooCommerce Store API failed on page ${page}: ${message}`
+        );
       }
     }
 

@@ -14,7 +14,7 @@ function createScraper(config: RoasterConfig) {
     case 'ikas':
     case 'ticimax':
     case 'custom':
-      if (config.selectors) return new HtmlAdapter(config);
+      if (config.selectors || config.structuredDataParser) return new HtmlAdapter(config);
       console.warn(`[${config.slug}] HTML platform but no selectors configured, skipping`);
       return null;
     default:

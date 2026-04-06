@@ -72,9 +72,10 @@ export async function getCoffees(filters: CoffeeFilters = {}) {
   if (filters.isDecaf != null) {
     query = query.eq('is_decaf', filters.isDecaf);
   }
-  if (filters.search) {
+  const searchTerm = sanitizeSearchTerm(filters.search);
+  if (searchTerm) {
     query = query.or(
-      `name.ilike.%${filters.search}%,origin_country.ilike.%${filters.search}%,origin_region.ilike.%${filters.search}%`
+      `name.ilike.%${searchTerm}%,origin_country.ilike.%${searchTerm}%,origin_region.ilike.%${searchTerm}%`
     );
   }
 
@@ -108,6 +109,15 @@ export async function getCoffees(filters: CoffeeFilters = {}) {
     perPage,
     totalPages: Math.ceil((count ?? 0) / perPage),
   };
+}
+
+function sanitizeSearchTerm(search?: string) {
+  if (!search) return '';
+
+  return search
+    .replace(/[,%()"]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export async function getCoffeeBySlug(slug: string) {
