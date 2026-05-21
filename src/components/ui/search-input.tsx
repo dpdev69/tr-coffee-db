@@ -2,32 +2,28 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useRef } from 'react';
+import { buildGlobalSearchUrl } from '@/lib/search-url';
 
-export function SearchInput() {
+export function SearchInput({ onSearch }: { onSearch?: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  function submitSearch() {
+    router.push(
+      buildGlobalSearchUrl({
+        pathname,
+        currentQuery: searchParams.toString(),
+        nextSearch: inputRef.current?.value ?? '',
+      })
+    );
+    onSearch?.();
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
-    const params =
-      pathname === '/coffees'
-        ? new URLSearchParams(searchParams.toString())
-        : new URLSearchParams();
-    const nextValue = inputRef.current?.value.trim() ?? '';
-
-    if (nextValue) {
-      params.set('search', nextValue);
-    } else {
-      params.delete('search');
-    }
-
-    params.delete('page');
-
-    const nextUrl = params.toString() ? `/coffees?${params.toString()}` : '/coffees';
-    router.push(nextUrl);
+    submitSearch();
   }
 
   return (
@@ -57,8 +53,30 @@ export function SearchInput() {
         aria-label="Çekirdek ara"
         autoComplete="off"
         placeholder="Çekirdek ara…"
-        className="w-full rounded-lg border border-stone-300 bg-white py-2 pl-10 pr-4 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            submitSearch();
+          }
+        }}
+        className="w-full rounded-lg border border-stone-300 bg-white py-2 pl-10 pr-11 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
       />
+      <button
+        type="submit"
+        className="absolute right-1.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900"
+        aria-label="Aramayı uygula"
+      >
+        <svg
+          className="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="2"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+        </svg>
+      </button>
     </form>
   );
 }

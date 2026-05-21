@@ -7,6 +7,7 @@ import { SidebarFilters } from '@/components/coffee/sidebar-filters';
 import { CoffeeCardSkeleton } from '@/components/ui/skeleton';
 import { Pagination } from '@/components/ui/pagination';
 import { parseCoffeeFilters } from '@/lib/coffee-filters';
+import { getCurrentCatalogCutoffIso } from '@/lib/catalog-rules';
 import { SITE_NAME } from '@/lib/site';
 
 const description =
@@ -75,12 +76,14 @@ async function FiltersLoader() {
   try {
     const { createClient } = await import('@/lib/supabase/server');
     const supabase = await createClient();
+    const currentCutoff = getCurrentCatalogCutoffIso();
 
     const [countryResult, roasterResult] = await Promise.all([
       supabase
         .from('coffees')
         .select('origin_country')
         .eq('is_available', true)
+        .gte('last_seen_at', currentCutoff)
         .not('origin_country', 'is', null),
       supabase
         .from('roasters')

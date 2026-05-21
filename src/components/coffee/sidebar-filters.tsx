@@ -10,6 +10,7 @@ import {
   FLAVOR_CATEGORY_LABELS,
   SORT_OPTIONS,
 } from '@/lib/constants/filter-options';
+import { BEHAVIORAL_FILTERS, type BehavioralFilterOption } from '@/lib/behavioral-filters';
 
 export function SidebarFilters({
   countries,
@@ -76,6 +77,37 @@ export function SidebarFilters({
     return value === 'true' || value === '1';
   };
 
+  const isBehavioralFilterActive = (filter: BehavioralFilterOption) =>
+    filter.params.every(({ key, value }) => searchParams.getAll(key).includes(value));
+
+  const toggleBehavioralFilter = useCallback(
+    (filter: BehavioralFilterOption) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const shouldRemove = filter.params.every(({ key, value }) =>
+        params.getAll(key).includes(value)
+      );
+
+      for (const { key, value } of filter.params) {
+        const current = params.getAll(key);
+        params.delete(key);
+
+        const nextValues = shouldRemove
+          ? current.filter((item) => item !== value)
+          : current.includes(value)
+            ? current
+            : [...current, value];
+
+        for (const nextValue of nextValues) {
+          params.append(key, nextValue);
+        }
+      }
+
+      params.delete('page');
+      pushParams(params);
+    },
+    [pushParams, searchParams]
+  );
+
   const toggleBooleanFilter = useCallback(
     (key: string) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -132,6 +164,19 @@ export function SidebarFilters({
   const sortValue = searchParams.get('sort') ?? 'newest';
   const renderFilterSections = () => (
     <>
+      {/* Behavioral preference */}
+      <FilterGroup title="Kullanım / Tercih">
+        {BEHAVIORAL_FILTERS.map((filter) => (
+          <FilterCheckbox
+            key={filter.key}
+            label={filter.label}
+            description={filter.description}
+            checked={isBehavioralFilterActive(filter)}
+            onChange={() => toggleBehavioralFilter(filter)}
+          />
+        ))}
+      </FilterGroup>
+
       {/* Origin */}
       {countries.length > 0 && (
         <FilterGroup title="Köken">
@@ -364,22 +409,31 @@ function FilterGroup({
 
 function FilterCheckbox({
   label,
+  description,
   checked,
   onChange,
 }: {
   label: string;
+  description?: string;
   checked: boolean;
   onChange: () => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm text-stone-600 hover:bg-stone-50">
+    <label className="flex cursor-pointer items-start gap-2 rounded px-1 py-1 text-sm text-stone-600 hover:bg-stone-50">
       <input
         type="checkbox"
         checked={checked}
         onChange={onChange}
-        className="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
+        className="mt-0.5 h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
       />
-      {label}
+      <span>
+        <span className="block">{label}</span>
+        {description && (
+          <span className="mt-0.5 block text-xs leading-snug text-stone-400">
+            {description}
+          </span>
+        )}
+      </span>
     </label>
   );
 }

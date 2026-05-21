@@ -3,6 +3,7 @@ import { matchFlavorNotes } from './flavor-map.js';
 import { detectProcess } from './process-map.js';
 import { detectOrigin } from './origin-map.js';
 import { detectRoastLevel } from './roast-level-map.js';
+import { extractBrewRecipes } from './brew-recipes.js';
 
 export function normalize(raw: RawProduct): NormalizedCoffee {
   // Combine all text sources for analysis
@@ -27,6 +28,9 @@ export function normalize(raw: RawProduct): NormalizedCoffee {
 
   // Variety detection
   const variety = detectVariety(allText);
+
+  const harvestYear = detectHarvestYear(allText);
+  const roastDate = detectRoastDate(allText);
 
   // SCA score detection
   const scaScore = detectScaScore(allText);
@@ -65,6 +69,8 @@ export function normalize(raw: RawProduct): NormalizedCoffee {
     process_detail: processDetail,
     roast_level: roastLevel,
     variety,
+    harvest_year: harvestYear,
+    roast_date: roastDate,
     flavor_notes: raw.tags?.filter(isTastingNote) || [],
     flavor_notes_normalized: notes,
     flavor_categories: categories,
@@ -78,6 +84,7 @@ export function normalize(raw: RawProduct): NormalizedCoffee {
     is_available: raw.isAvailable,
     is_decaf: isDecaf,
     brew_methods: brewMethods,
+    brew_recipes: raw.brewRecipes ?? extractBrewRecipes(raw.description),
   };
 }
 
@@ -159,6 +166,28 @@ function detectScaScore(text: string): number | null {
     if (score >= 60 && score <= 100) return score;
   }
   return null;
+}
+
+function detectHarvestYear(text: string): string | null {
+  const patterns = [
+    /(?:hasat|harvest|crop|mahsul)\s*(?:yılı|yili|year)?\s*[:\-]?\s*((?:20\d{2})(?:\s*[\/\-]\s*(?:20)?\d{2})?)/i,
+    /\b((?:20\d{2})(?:\s*[\/\-]\s*(?:20)?\d{2})?)\s*(?:hasat|harvest|crop|mahsul)\b/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match?.[1]) return match[1].replace(/\s+/g, '');
+  }
+
+  return null;
+}
+
+function detectRoastDate(text: string): string | null {
+  const match = text.match(
+    /(?:kavrum|kavrulma|roast)\s*(?:tarihi|date)?\s*[:\-]?\s*(\d{1,2}[./-]\d{1,2}[./-](?:20)?\d{2})/i
+  );
+
+  return match?.[1] ?? null;
 }
 
 function detectBrewMethods(text: string): string[] {

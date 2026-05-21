@@ -2,14 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { buildQuizFilterResult, type QuizAnswers } from '@/lib/quiz-filters';
 
-interface QuizState {
-  brew: string | null;
-  flavors: string[];
-  adventure: string | null;
-  roast: string | null;
-  budget: string | null;
-}
+type QuizState = QuizAnswers;
 
 const STEPS = [
   {
@@ -84,6 +79,7 @@ export function QuizContainer() {
   const current = STEPS[step];
   const isLastStep = step === STEPS.length - 1;
   const isComplete = step >= STEPS.length;
+  const result = buildQuizFilterResult(answers);
 
   function selectOption(value: string) {
     const id = current.id as keyof QuizState;
@@ -98,54 +94,16 @@ export function QuizContainer() {
       });
     } else {
       setAnswers((prev) => ({ ...prev, [id]: value }));
-      // Auto-advance for single-select
-      setTimeout(() => {
-        if (isLastStep) {
-          setStep(STEPS.length);
-        } else {
-          setStep((s) => s + 1);
-        }
-      }, 200);
+      advanceStep();
     }
   }
 
-  function handleNext() {
+  function advanceStep() {
     if (isLastStep) {
       setStep(STEPS.length);
     } else {
       setStep((s) => s + 1);
     }
-  }
-
-  // Build filter URL from quiz answers
-  function buildFilterUrl(): string {
-    const params = new URLSearchParams();
-
-    if (answers.brew && answers.brew !== 'any') {
-      params.append('brewMethod', answers.brew);
-    }
-    for (const f of answers.flavors) {
-      params.append('flavorCategory', f);
-    }
-    if (answers.roast && answers.roast !== 'any') {
-      params.append('roastLevel', answers.roast);
-    }
-    if (answers.budget === 'low') {
-      params.set('priceMax', '120'); // ~300 TL for 250g = 120/100g
-    } else if (answers.budget === 'mid') {
-      params.set('priceMin', '120');
-      params.set('priceMax', '200');
-    } else if (answers.budget === 'high') {
-      params.set('priceMin', '200');
-    }
-
-    if (answers.adventure === 'surprise') {
-      params.set('sort', 'newest');
-    } else {
-      params.set('sort', 'popular');
-    }
-
-    return `/coffees?${params.toString()}`;
   }
 
   if (isComplete) {
@@ -160,12 +118,27 @@ export function QuizContainer() {
         <p className="mt-2 text-stone-500">
           Demleme, tat, kavrum ve bütçe cevapların katalog filtrelerine çevrildi.
         </p>
+        {result.explanations.length > 0 && (
+          <div className="mx-auto mt-5 max-w-xl rounded-xl border border-stone-200 bg-stone-50 p-4 text-left">
+            <h3 className="text-sm font-semibold text-stone-900">
+              Tercihler filtrelere nasıl çevrildi?
+            </h3>
+            <ul className="mt-3 space-y-2 text-sm text-stone-600">
+              {result.explanations.map((item) => (
+                <li key={item} className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
-            href={buildFilterUrl()}
+            href={result.url}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-sm font-semibold text-white hover:bg-amber-700"
           >
-            Kahveleri Karşılaştır
+            Kahveleri Göster
           </Link>
           <button
             onClick={() => {
@@ -237,7 +210,7 @@ export function QuizContainer() {
         </button>
         {current.multi && (
           <button
-            onClick={handleNext}
+            onClick={advanceStep}
             disabled={current.multi && (selectedValue as string[]).length === 0}
             className="rounded-lg bg-amber-600 px-6 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-40"
           >

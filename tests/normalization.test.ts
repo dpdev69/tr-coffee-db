@@ -93,6 +93,44 @@ describe('normalize coffee metadata', () => {
 
     assert.equal(coffee.roast_level, 'light');
   });
+
+  it('extracts only high-confidence product-page brew recipes', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        description:
+          'Demleme Reçetesi V60: Kahve 16 g, Su 250 ml, oran 1:15, 93 C. Öğütüm orta-ince. Bloom 45 sn. Toplam süre 2:30.',
+      })
+    );
+
+    assert.equal(coffee.brew_recipes.length, 1);
+    assert.equal(coffee.brew_recipes[0].method, 'Filter / Pour Over');
+    assert.equal(coffee.brew_recipes[0].dose_grams, 16);
+    assert.equal(coffee.brew_recipes[0].water_grams, 250);
+    assert.equal(coffee.brew_recipes[0].ratio, '1:15');
+    assert.equal(coffee.brew_recipes[0].water_temp_c, '93 C');
+    assert.equal(coffee.brew_recipes[0].source, 'product_page');
+  });
+
+  it('does not turn generic brew method mentions into recipes', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        description: 'Filtre ve espresso için uygundur. Dengeli ve tatlı bir kahvedir.',
+      })
+    );
+
+    assert.deepEqual(coffee.brew_recipes, []);
+  });
+
+  it('extracts crop year and roast date when product text exposes them', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        description: 'Hasat Yılı: 2024/25. Kavrum Tarihi: 10.05.2026.',
+      })
+    );
+
+    assert.equal(coffee.harvest_year, '2024/25');
+    assert.equal(coffee.roast_date, '10.05.2026');
+  });
 });
 
 function makeRawProduct(overrides: Partial<RawProduct> = {}): RawProduct {

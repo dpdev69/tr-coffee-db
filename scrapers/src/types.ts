@@ -11,6 +11,7 @@ export interface RawProduct {
   isAvailable: boolean;
   variants?: RawVariant[];
   tags?: string[];
+  brewRecipes?: BrewRecipe[];
   rawData?: Record<string, unknown>;
 }
 
@@ -20,6 +21,21 @@ export interface RawVariant {
   price: number;
   weightGrams: number | null;
   isAvailable: boolean;
+}
+
+export interface BrewRecipe {
+  method: string;
+  dose_grams: number | null;
+  water_grams: number | null;
+  yield_grams: number | null;
+  ratio: string | null;
+  grind: string | null;
+  water_temp_c: string | null;
+  brew_time: string | null;
+  steps: string[];
+  note: string | null;
+  source: 'product_page' | 'adapter';
+  source_text: string;
 }
 
 // After normalization, ready for Supabase upsert
@@ -36,6 +52,8 @@ export interface NormalizedCoffee {
   process_detail: string | null;
   roast_level: string;
   variety: string | null;
+  harvest_year: string | null;
+  roast_date: string | null;
   flavor_notes: string[];
   flavor_notes_normalized: string[];
   flavor_categories: string[];
@@ -49,6 +67,7 @@ export interface NormalizedCoffee {
   is_available: boolean;
   is_decaf: boolean;
   brew_methods: string[];
+  brew_recipes: BrewRecipe[];
 }
 
 export type Platform = 'shopify' | 'woocommerce' | 'ikas' | 'ticimax' | 'custom';

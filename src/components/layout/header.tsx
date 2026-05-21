@@ -70,7 +70,7 @@ export function Header() {
         <div className="border-t border-stone-200 bg-white px-4 py-4 md:hidden">
           <div className="mb-4">
             <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-lg bg-stone-100" />}>
-              <SearchInput />
+              <SearchInput onSearch={() => setMobileMenuOpen(false)} />
             </Suspense>
           </div>
           <nav className="flex flex-col gap-3">

@@ -137,6 +137,8 @@ export abstract class BaseScraper {
       process_detail: p.process_detail,
       roast_level: p.roast_level,
       variety: p.variety,
+      harvest_year: p.harvest_year,
+      roast_date: p.roast_date,
       flavor_notes: p.flavor_notes,
       flavor_notes_normalized: p.flavor_notes_normalized,
       flavor_categories: p.flavor_categories,
@@ -150,6 +152,7 @@ export abstract class BaseScraper {
       is_available: p.is_available,
       is_decaf: p.is_decaf,
       brew_methods: p.brew_methods,
+      brew_recipes: p.brew_recipes,
       last_scraped_at: new Date().toISOString(),
       last_seen_at: new Date().toISOString(),
     }));

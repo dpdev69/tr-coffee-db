@@ -54,3 +54,9 @@ export const SINGLE_ORIGIN_NAME_EXCLUSION_PATTERNS = [
   '%blend%',
   '%harman%',
 ] as const;
+
+export const CURRENT_CATALOG_MAX_AGE_DAYS = 3;
+
+export function getCurrentCatalogCutoffIso(now = Date.now()) {
+  return new Date(now - CURRENT_CATALOG_MAX_AGE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+}

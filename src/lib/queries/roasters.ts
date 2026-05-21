@@ -1,17 +1,35 @@
 import { createClient } from '@/lib/supabase/server';
+import { getCurrentCatalogCutoffIso } from '@/lib/catalog-rules';
 import type { Roaster } from '@/lib/types/database';
 
 export async function getRoasters() {
   const supabase = await createClient();
+  const currentCutoff = getCurrentCatalogCutoffIso();
 
-  const { data, error } = await supabase
-    .from('roasters')
-    .select('*, coffees(count)')
-    .eq('is_active', true)
-    .order('name');
+  const [
+    { data: roasters, error: roastersError },
+    { data: coffees, error: coffeesError },
+  ] = await Promise.all([
+    supabase.from('roasters').select('*').eq('is_active', true).order('name'),
+    supabase
+      .from('coffees')
+      .select('roaster_id')
+      .eq('is_available', true)
+      .gte('last_seen_at', currentCutoff),
+  ]);
 
-  if (error) throw error;
-  return (data ?? []) as (Roaster & { coffees: { count: number }[] })[];
+  if (roastersError) throw roastersError;
+  if (coffeesError) throw coffeesError;
+
+  const counts = new Map<string, number>();
+  for (const coffee of (coffees ?? []) as { roaster_id: string }[]) {
+    counts.set(coffee.roaster_id, (counts.get(coffee.roaster_id) ?? 0) + 1);
+  }
+
+  return ((roasters ?? []) as Roaster[]).map((roaster) => ({
+    ...roaster,
+    coffees: [{ count: counts.get(roaster.id) ?? 0 }],
+  }));
 }
 
 export async function getRoasterBySlug(slug: string) {
