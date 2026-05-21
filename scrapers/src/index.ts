@@ -42,6 +42,7 @@ async function main() {
   const allowedFailureSlugs = new Set(
     parseTargetSlugs([process.env.ALLOW_ROASTER_FAILURES ?? ''])
   );
+  const skippedSlugs = new Set(parseTargetSlugs([process.env.SKIP_ROASTERS ?? '']));
 
   // Filter configs if specific slugs provided (e.g., `npx tsx src/index.ts petra montag`)
   const configs =
@@ -61,6 +62,15 @@ async function main() {
   const results: OrchestratorResult[] = [];
 
   for (const config of configs) {
+    if (skippedSlugs.has(config.slug)) {
+      results.push({
+        slug: config.slug,
+        status: 'skipped',
+        reason: 'Skipped by SKIP_ROASTERS',
+      });
+      continue;
+    }
+
     const scraper = createScraper(config);
     if (!scraper) {
       results.push({
