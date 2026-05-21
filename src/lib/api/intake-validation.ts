@@ -50,6 +50,10 @@ type ValidationResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };
 
+type RequestValidationResult =
+  | { ok: true }
+  | { ok: false; error: string; status: number };
+
 export interface ClickPayload {
   coffee_id: string;
   source: string;
@@ -71,6 +75,31 @@ export type CorrectionValidationResult =
   | { ok: true; spam: false; data: CorrectionPayload }
   | { ok: true; spam: true }
   | { ok: false; error: string };
+
+export function validateJsonRequest(
+  request: Request,
+  maxBodyBytes: number
+): RequestValidationResult {
+  const contentType = request.headers.get('content-type') ?? '';
+  if (!/^application\/json(?:\s*;|$)/i.test(contentType)) {
+    return { ok: false, error: 'Invalid content type', status: 415 };
+  }
+
+  const contentLength = request.headers.get('content-length');
+  if (contentLength != null) {
+    const bytes = Number(contentLength);
+    if (!Number.isInteger(bytes) || bytes < 0 || bytes > maxBodyBytes) {
+      return { ok: false, error: 'Request body too large', status: 413 };
+    }
+  }
+
+  const origin = request.headers.get('origin');
+  if (origin && !isSameOrigin(origin, request.headers.get('host'))) {
+    return { ok: false, error: 'Invalid request origin', status: 403 };
+  }
+
+  return { ok: true };
+}
 
 export function validateClickPayload(input: unknown): ValidationResult<ClickPayload> {
   if (!isRecord(input)) {
@@ -434,6 +463,20 @@ function isAllowedPath(path: string) {
     || /^\/roasters\/?$/.test(path)
     || /^\/roasters\/[a-z0-9-]+\/?$/.test(path)
     || /^\/quiz\/?$/.test(path);
+}
+
+function isSameOrigin(origin: string, host: string | null) {
+  if (!host) return false;
+
+  try {
+    const originUrl = new URL(origin);
+    const isLocalOrigin =
+      originUrl.hostname === 'localhost' || originUrl.hostname === '127.0.0.1';
+
+    return originUrl.host === host && (originUrl.protocol === 'https:' || isLocalOrigin);
+  } catch {
+    return false;
+  }
 }
 
 function isRecord(input: unknown): input is Record<string, unknown> {

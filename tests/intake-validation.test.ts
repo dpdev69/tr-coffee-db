@@ -4,10 +4,51 @@ import { describe, it } from 'node:test';
 import {
   validateClickPayload,
   validateCorrectionPayload,
+  validateJsonRequest,
 } from '@/lib/api/intake-validation';
 
 const UUID = '11111111-1111-4111-8111-111111111111';
 const OTHER_UUID = '22222222-2222-4222-8222-222222222222';
+
+describe('validateJsonRequest', () => {
+  it('accepts same-origin JSON requests within the size limit', () => {
+    const request = makeRequest({
+      'content-type': 'application/json; charset=utf-8',
+      'content-length': '128',
+      host: 'tr-coffee-db.vercel.app',
+      origin: 'https://tr-coffee-db.vercel.app',
+    });
+
+    assert.deepEqual(validateJsonRequest(request, 1024), { ok: true });
+  });
+
+  it('rejects cross-origin, non-json, and oversized requests', () => {
+    assert.deepEqual(
+      validateJsonRequest(
+        makeRequest({
+          'content-type': 'application/json',
+          host: 'tr-coffee-db.vercel.app',
+          origin: 'https://evil.example',
+        }),
+        1024
+      ),
+      { ok: false, error: 'Invalid request origin', status: 403 }
+    );
+
+    assert.deepEqual(
+      validateJsonRequest(makeRequest({ 'content-type': 'text/plain' }), 1024),
+      { ok: false, error: 'Invalid content type', status: 415 }
+    );
+
+    assert.deepEqual(
+      validateJsonRequest(
+        makeRequest({ 'content-type': 'application/json', 'content-length': '1025' }),
+        1024
+      ),
+      { ok: false, error: 'Request body too large', status: 413 }
+    );
+  });
+});
 
 describe('validateClickPayload', () => {
   it('accepts and normalizes a valid click payload', () => {
@@ -75,6 +116,13 @@ describe('validateClickPayload', () => {
     );
   });
 });
+
+function makeRequest(headers: Record<string, string>) {
+  return new Request('https://tr-coffee-db.vercel.app/api/test', {
+    method: 'POST',
+    headers,
+  });
+}
 
 describe('validateCorrectionPayload', () => {
   it('accepts a valid correction and normalizes email and optional ids', () => {

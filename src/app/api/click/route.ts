@@ -1,8 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { validateClickPayload } from '@/lib/api/intake-validation';
+import { validateClickPayload, validateJsonRequest } from '@/lib/api/intake-validation';
+
+const MAX_CLICK_BODY_BYTES = 16_384;
 
 export async function POST(request: Request) {
+  const requestCheck = validateJsonRequest(request, MAX_CLICK_BODY_BYTES);
+  if (!requestCheck.ok) {
+    return NextResponse.json(
+      { error: requestCheck.error },
+      { status: requestCheck.status }
+    );
+  }
+
   let body: unknown;
 
   try {
