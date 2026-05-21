@@ -22,7 +22,7 @@ describe('parseCoffeeFilters', () => {
 
     assert.deepEqual(filters.origin, ['Colombia', 'Ethiopia']);
     assert.deepEqual(filters.process, ['washed', 'natural']);
-    assert.deepEqual(filters.roastLevel, ['dark', 'medium']);
+    assert.deepEqual(filters.roastLevel, ['dark', 'unknown', 'medium']);
     assert.deepEqual(filters.roaster, ['Kronotrop']);
     assert.deepEqual(filters.city, ['istanbul', 'izmir']);
     assert.deepEqual(filters.flavorCategory, ['Fruity', 'Chocolate']);

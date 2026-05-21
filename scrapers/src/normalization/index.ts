@@ -10,6 +10,7 @@ export function normalize(raw: RawProduct): NormalizedCoffee {
     raw.name,
     raw.description,
     ...(raw.tags || []),
+    ...collectRawDataText(raw.rawData),
   ].join(' ');
 
   // Origin detection
@@ -84,6 +85,37 @@ function trustedPositiveWeight(weightGrams: number | null): number | null {
   if (weightGrams === null) return null;
   if (!Number.isFinite(weightGrams)) return null;
   return weightGrams > 0 ? weightGrams : null;
+}
+
+function collectRawDataText(
+  value: unknown,
+  output: string[] = [],
+  depth = 0
+): string[] {
+  if (value == null || output.length >= 100) return output;
+
+  if (typeof value === 'string') {
+    const text = value.trim();
+    if (text) output.push(text);
+    return output;
+  }
+
+  if (depth > 6) return output;
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectRawDataText(item, output, depth + 1);
+    }
+    return output;
+  }
+
+  if (typeof value === 'object') {
+    for (const nested of Object.values(value)) {
+      collectRawDataText(nested, output, depth + 1);
+    }
+  }
+
+  return output;
 }
 
 function detectVariety(text: string): string | null {

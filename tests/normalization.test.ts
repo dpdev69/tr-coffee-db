@@ -36,6 +36,65 @@ describe('normalize price per 100g', () => {
   });
 });
 
+describe('normalize coffee metadata', () => {
+  it('detects Turkish process words with dotted characters', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        name: 'Etiyopya Killenso Yıkanmış',
+      })
+    );
+
+    assert.equal(coffee.process, 'washed');
+    assert.equal(coffee.process_detail, 'Yıkanmış');
+  });
+
+  it('prefers specific fermentation process over generic natural or washed words', () => {
+    const naturalAnaerobic = normalize(
+      makeRawProduct({
+        name: 'Rwanda Rugali Natural Anaerobic',
+      })
+    );
+    const carbonicWashed = normalize(
+      makeRawProduct({
+        name: 'Colombia Washed Carbonic Maceration',
+      })
+    );
+
+    assert.equal(naturalAnaerobic.process, 'anaerobic');
+    assert.equal(carbonicWashed.process, 'anaerobic');
+  });
+
+  it('uses platform metadata such as categories and attributes for classification', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        name: 'Kolombiya Monteblanco',
+        description: '',
+        tags: [],
+        rawData: {
+          categories: ['Nitelikli Kahve'],
+          attributes: [
+            { name: 'İşleme', terms: [{ name: 'Yıkanmış' }] },
+            { name: 'Kavrum', terms: [{ name: 'Orta Açık' }] },
+          ],
+        },
+      })
+    );
+
+    assert.equal(coffee.process, 'washed');
+    assert.equal(coffee.roast_level, 'medium_light');
+  });
+
+  it('detects Turkish roast levels with dotted characters', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        name: 'Peru Amazonas Açık Kavurma',
+      })
+    );
+
+    assert.equal(coffee.roast_level, 'light');
+  });
+});
+
 function makeRawProduct(overrides: Partial<RawProduct> = {}): RawProduct {
   return {
     externalId: 'ethiopia-test',

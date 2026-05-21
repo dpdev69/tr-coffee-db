@@ -12,6 +12,14 @@ export function ActiveFilterSummary({
 }) {
   const activeLabels = getActiveCoffeeFilterLabels(filters);
   const hasActiveFilters = activeLabels.length > 0;
+  const processFilterHidesUnknown =
+    filters.process?.some((process) => process !== 'unknown') &&
+    !filters.process.includes('unknown');
+  const roastFilterHidesUnknown =
+    filters.roastLevel?.some((roastLevel) => roastLevel !== 'unknown') &&
+    !filters.roastLevel.includes('unknown');
+  const hidesUnclassifiedMetadata =
+    processFilterHidesUnknown || roastFilterHidesUnknown;
 
   return (
     <section className="mb-4 rounded-xl border border-stone-200 bg-stone-50 p-3 sm:mb-6 sm:rounded-2xl sm:p-4">
@@ -28,6 +36,11 @@ export function ActiveFilterSummary({
           {(filters.priceMin != null || filters.priceMax != null) && (
             <p className="mt-2 text-xs text-stone-500">
               Bütçe filtresi, farklı paket boyutlarını aynı zeminde karşılaştırmak için 100 g fiyatını kullanır.
+            </p>
+          )}
+          {hidesUnclassifiedMetadata && (
+            <p className="mt-2 text-xs text-amber-800">
+              İşleme veya kavrum bilgisi eksik kahveler bu filtrede gizlenir. Geniş sonuç için Belirtilmemiş seçeneğini de ekleyin.
             </p>
           )}
         </div>

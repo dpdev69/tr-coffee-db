@@ -180,15 +180,24 @@ async function getRoasterIdsForCities(
 
 export async function getSimilarCoffees(coffee: CoffeeWithRoaster, limit = 4) {
   const supabase = await createClient();
+  const similarityConditions: string[] = [];
+
+  if (coffee.origin_country) {
+    similarityConditions.push(`origin_country.eq.${coffee.origin_country}`);
+  }
+
+  if (coffee.process && coffee.process !== 'unknown') {
+    similarityConditions.push(`process.eq.${coffee.process}`);
+  }
+
+  if (similarityConditions.length === 0) return [];
 
   const { data } = await supabase
     .from('coffees')
     .select('*, roasters!inner(name, slug, city)')
     .eq('is_available', true)
     .neq('id', coffee.id)
-    .or(
-      `origin_country.eq.${coffee.origin_country},process.eq.${coffee.process}`
-    )
+    .or(similarityConditions.join(','))
     .order('click_count', { ascending: false })
     .limit(limit);
 

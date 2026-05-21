@@ -1,14 +1,15 @@
 // Detect roast level from product text and tags
 
+import { tokenRegex } from './text-match.js';
+
 const ROAST_MAP: [RegExp, string][] = [
-  [/\b(orta[\s-]*açık|medium[\s-]*light)\b/i, 'medium_light'],
-  [/\b(orta[\s-]*koyu|medium[\s-]*dark)\b/i, 'medium_dark'],
-  [/\b(filter\s*roast|filter\s*profile|filtre\s*(?:için|icin|kavrum|kavurma)|pour[\s-]*over|omni(?:roast)?|omni)\b/i, 'light'],
-  [/\b(açık\s*kavurma|light\s*roast|light|düşük|açık)\b/i, 'light'],
-  [/\b(espresso\s*roast|espresso\s*kavrum|espresso\s*kavurma|espresso)\b/i, 'medium_dark'],
-  [/\b(orta\s*kavurma|medium\s*roast|medium|orta)\b/i, 'medium'],
-  [/\b(french\s*roast)\b/i, 'dark'],
-  [/\b(koyu\s*kavurma|dark\s*roast|dark|koyu)\b/i, 'dark'],
+  [tokenRegex(String.raw`orta[\s-]*açık|orta[\s-]*acik|medium[\s-]*light`), 'medium_light'],
+  [tokenRegex(String.raw`orta[\s-]*koyu|medium[\s-]*dark`), 'medium_dark'],
+  [tokenRegex(String.raw`filter\s*roast|filter\s*profile|filtre\s*(?:için|icin|kavrum|kavurma)|pour[\s-]*over|omni(?:roast)?|omni`), 'light'],
+  [tokenRegex(String.raw`açık\s*kavurma|acik\s*kavurma|light\s*roast|light|düşük|dusuk|açık|acik`), 'light'],
+  [tokenRegex(String.raw`espresso\s*roast|espresso\s*kavrum|espresso\s*kavurma|espresso`), 'medium_dark'],
+  [tokenRegex(String.raw`orta\s*kavurma|medium\s*roast|medium|orta`), 'medium'],
+  [tokenRegex(String.raw`french\s*roast|koyu\s*kavurma|dark\s*roast|dark|koyu`), 'dark'],
 ];
 
 export function detectRoastLevel(text: string): string {
