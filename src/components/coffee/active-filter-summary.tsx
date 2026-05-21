@@ -14,13 +14,13 @@ export function ActiveFilterSummary({
   const hasActiveFilters = activeLabels.length > 0;
 
   return (
-    <section className="mb-6 rounded-2xl border border-stone-200 bg-stone-50 p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <section className="mb-4 rounded-xl border border-stone-200 bg-stone-50 p-3 sm:mb-6 sm:rounded-2xl sm:p-4">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-stone-900">
             {total} kahve bulundu
           </p>
-          <p className="mt-1 text-sm text-stone-500">
+          <p className="mt-1 hidden text-sm text-stone-500 sm:block">
             {hasActiveFilters
               ? 'Bu liste seçtiğiniz filtrelere ve test tercihlerinize göre daraltıldı.'
               : 'Kataloğu daraltmak için filtreleri kullanın ya da kısa testi çözün.'}
@@ -35,7 +35,7 @@ export function ActiveFilterSummary({
         {hasActiveFilters && (
           <Link
             href="/coffees"
-            className="text-sm font-medium text-amber-700 transition-colors hover:text-amber-800"
+            className="shrink-0 text-sm font-medium text-amber-700 transition-colors hover:text-amber-800"
           >
             Tümünü temizle
           </Link>
@@ -43,7 +43,7 @@ export function ActiveFilterSummary({
       </div>
 
       {hasActiveFilters && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2 sm:mt-4">
           {activeLabels.map((label) => (
             <Tag key={label}>{label}</Tag>
           ))}

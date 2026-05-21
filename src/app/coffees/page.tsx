@@ -39,12 +39,12 @@ export default async function CoffeesPage({
   const params = await searchParams;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <h1 className="text-2xl font-bold text-stone-900">Kahveleri Karşılaştır</h1>
-      <div className="mt-8 flex flex-col gap-8 lg:flex-row">
+      <div className="mt-5 flex flex-col gap-5 lg:mt-8 lg:flex-row lg:gap-8">
         {/* Sidebar */}
         <div className="w-full shrink-0 lg:w-64">
-          <Suspense fallback={<div className="h-96 animate-pulse rounded bg-stone-100" />}>
+          <Suspense fallback={<div className="h-14 animate-pulse rounded bg-stone-100 lg:h-96" />}>
             <FiltersLoader />
           </Suspense>
         </div>
