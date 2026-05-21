@@ -54,9 +54,9 @@ export function SearchInput() {
         ref={inputRef}
         defaultValue={searchParams.get('search') ?? ''}
         name="search"
-        aria-label="Kahve ara"
+        aria-label="Çekirdek ara"
         autoComplete="off"
-        placeholder="Kahve ara…"
+        placeholder="Çekirdek ara…"
         className="w-full rounded-lg border border-stone-300 bg-white py-2 pl-10 pr-4 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
       />
     </form>

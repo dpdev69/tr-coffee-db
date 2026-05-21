@@ -1,6 +1,26 @@
 import Link from 'next/link';
 import { getFeaturedCoffees, getStats } from '@/lib/queries/coffees';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE_NAME,
+  url: SITE_URL.origin,
+  description: SITE_DESCRIPTION,
+  inLanguage: 'tr-TR',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: `${SITE_URL.origin}/coffees?search={search_term_string}`,
+    'query-input': 'required name=search_term_string',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: SITE_NAME,
+    url: SITE_URL.origin,
+  },
+};
 
 export default async function HomePage() {
   let stats = { totalCoffees: 0, totalRoasters: 0, totalOrigins: 0 };
@@ -14,6 +34,10 @@ export default async function HomePage() {
 
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* Hero */}
       <section className="relative overflow-hidden bg-stone-900 px-4 py-24 text-center sm:py-32">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.18),transparent_38%),linear-gradient(135deg,rgba(41,37,36,0.92),rgba(12,10,9,0.98))]" />
@@ -21,20 +45,19 @@ export default async function HomePage() {
         <div className="absolute right-[-10%] top-8 h-48 w-48 rounded-full bg-orange-300/10 blur-3xl" />
         <div className="relative mx-auto max-w-3xl">
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Türkiye&apos;nin En İyi
-            <span className="block text-amber-400">Nitelikli Kahveleri</span>
+            Yeni kahveni
+            <span className="block text-amber-400">20 sekmede arama.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-lg text-stone-300">
-            {stats.totalRoasters || '20+'} kavurucudan, {stats.totalOrigins || '25+'}{' '}
-            farklı kökenden çekirdekleri karşılaştırın. Tat, işleme yöntemi,
-            kavurma seviyesi ve fiyata göre filtreleyin.
+            Türkiye&apos;deki bağımsız kavurucuların güncel çekirdeklerini tek yerde
+            karşılaştır. Köken, işleme, kavrum, tat ve 100 g fiyatıyla hızlıca daralt.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/coffees"
               className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-700"
             >
-              Kahveleri İncele
+              Kahveleri Karşılaştır
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
@@ -43,7 +66,7 @@ export default async function HomePage() {
               href="/quiz"
               className="inline-flex items-center gap-2 rounded-lg border border-stone-600 px-8 py-3 text-sm font-semibold text-stone-300 transition-colors hover:border-stone-400 hover:text-white"
             >
-              Kahvemi Bul
+              Tercihime Göre Bul
             </Link>
           </div>
         </div>
@@ -83,18 +106,18 @@ export default async function HomePage() {
           <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-3">
             <Step
               step="1"
-              title="Göz At ve Filtrele"
-              description="Köken, işleme yöntemi, kavurma seviyesi, tat ya da fiyata göre tüm kavurucular arasında ara."
+              title="Tek Yerde Ara"
+              description="Kavurucu sitelerini tek tek açmadan köken, işleme, kavrum, tat ve demleme yöntemine göre daralt."
             />
             <Step
               step="2"
-              title="Karşılaştır"
-              description="Farklı paket boyutlarını adil biçimde kıyaslamak için 100 g normalize fiyatı gör."
+              title="Adil Karşılaştır"
+              description="250 g, 500 g ya da 1 kg paketleri aynı zeminde görmek için 100 g normalize fiyatı kullan."
             />
             <Step
               step="3"
-              title="Doğrudan Satın Al"
-              description="Kavurucunun sitesine giderek doğrudan satın al. Ödemeyi biz almıyoruz."
+              title="Kavurucudan Al"
+              description="Beğendiğin çekirdeğe karar verince doğrudan kavurucunun sitesine geç. Arada mağaza yok."
             />
           </div>
         </div>

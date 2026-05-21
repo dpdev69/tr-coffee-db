@@ -36,7 +36,7 @@ export function Header() {
             href="/quiz"
             className="text-sm font-medium text-stone-600 transition-colors hover:text-stone-900"
           >
-            Kahvemi Bul
+            Tercihime Göre Bul
           </Link>
         </nav>
 
@@ -93,7 +93,7 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
               className="text-sm font-medium text-stone-700"
             >
-              Kahvemi Bul
+              Tercihime Göre Bul
             </Link>
           </nav>
         </div>

@@ -8,8 +8,8 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-stone-900">TR CoffeeDB</h3>
             <p className="mt-2 text-sm text-stone-500">
-              Türkiye&apos;nin önde gelen kavurucularındaki nitelikli kahveleri keşfedin ve karşılaştırın.
-              Tüm satın almalar doğrudan kavurucuların sitesinde gerçekleşir.
+              Türkiye&apos;deki bağımsız kavurucuların güncel nitelikli kahvelerini
+              tek yerde karşılaştırın. Satın alma doğrudan kavurucuda tamamlanır.
             </p>
           </div>
           <div>
@@ -27,7 +27,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/quiz" className="text-sm text-stone-500 hover:text-stone-700">
-                  Kahve Eşleştirici
+                  Tercihime Göre Bul
                 </Link>
               </li>
             </ul>
@@ -35,13 +35,13 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-stone-900">Hakkında</h3>
             <p className="mt-2 text-sm text-stone-500">
-              Biz bir mağaza değiliz. TR CoffeeDB, bağımsız Türk kavurucularının nitelikli
-              kahvelerini bulmanıza yardımcı olan ücretsiz bir keşif aracıdır.
+              Biz bir mağaza değiliz. TR CoffeeDB, kavurucu siteleri arasında kaybolmadan
+              doğru çekirdeği seçmenize yardımcı olan ücretsiz bir karşılaştırma aracıdır.
             </p>
           </div>
         </div>
         <div className="mt-8 border-t border-stone-200 pt-8 text-center text-xs text-stone-400">
-          TR CoffeeDB &middot; Veriler 48 saatte bir güncellenir
+          TR CoffeeDB &middot; Desteklenen kavurucularda veriler düzenli olarak güncellenir
         </div>
       </div>
     </footer>

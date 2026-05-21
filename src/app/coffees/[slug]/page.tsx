@@ -8,6 +8,7 @@ import { CoffeeGrid } from '@/components/coffee/coffee-grid';
 import { CorrectionReport } from '@/components/correction/correction-report';
 import { Tag } from '@/components/ui/tag';
 import { PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
+import { SITE_NAME } from '@/lib/site';
 
 export async function generateMetadata({
   params,
@@ -20,16 +21,30 @@ export async function generateMetadata({
 
   const title = coffee.name_normalized ?? coffee.name;
   const roaster = coffee.roasters.name;
+  const description = `${roaster} kavurucusundan ${title}. ${
+    coffee.origin_country ? `${coffee.origin_country} kökenli. ` : ''
+  }${coffee.process !== 'unknown' ? `${PROCESS_LABELS[coffee.process] ?? coffee.process} işleme. ` : ''}${
+    coffee.price_per_100g ? `${coffee.price_per_100g.toLocaleString('tr-TR')} TL/100 g. ` : ''
+  }Güncel çekirdekleri TR CoffeeDB'de karşılaştırın.`;
 
   return {
     title: `${title} | ${roaster}`,
-    description: `${roaster} kavurucusundan ${title}. ${
-      coffee.origin_country ? `${coffee.origin_country} kökenli. ` : ''
-    }${coffee.process !== 'unknown' ? `${PROCESS_LABELS[coffee.process] ?? coffee.process} işleme. ` : ''}${
-      coffee.price_amount ? `${coffee.price_amount} TL.` : ''
-    }`,
+    description,
+    alternates: {
+      canonical: `/coffees/${slug}`,
+    },
     openGraph: {
       title: `${title} | ${roaster}`,
+      description,
+      url: `/coffees/${slug}`,
+      siteName: SITE_NAME,
+      images: coffee.image_url ? [coffee.image_url] : [],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | ${roaster}`,
+      description,
       images: coffee.image_url ? [coffee.image_url] : [],
     },
   };

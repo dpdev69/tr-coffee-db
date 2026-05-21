@@ -1,11 +1,28 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getRoasters } from '@/lib/queries/roasters';
+import { SITE_NAME } from '@/lib/site';
+
+const description =
+  'Türkiye’deki bağımsız nitelikli kahve kavurucularını ve güncel çekirdeklerini tek yerden inceleyin.';
 
 export const metadata: Metadata = {
   title: 'Kavurucular',
-  description:
-    'Türkiye genelindeki nitelikli kahve kavurucularını keşfedin. İstanbul, Ankara, İzmir ve daha fazlası.',
+  description,
+  alternates: {
+    canonical: '/roasters',
+  },
+  openGraph: {
+    title: `Kavurucular | ${SITE_NAME}`,
+    description,
+    url: '/roasters',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Kavurucular | ${SITE_NAME}`,
+    description,
+  },
 };
 
 export default async function RoastersPage() {
@@ -21,7 +38,7 @@ export default async function RoastersPage() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-bold text-stone-900">Kavurucular</h1>
       <p className="mt-2 text-sm text-stone-500">
-        Türkiye genelinde {roasters.length} nitelikli kahve kavurucusu
+        Türkiye genelinde takip edilen {roasters.length} bağımsız kavurucu
       </p>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

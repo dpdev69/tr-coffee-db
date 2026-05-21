@@ -22,12 +22,12 @@ export function ActiveFilterSummary({
           </p>
           <p className="mt-1 text-sm text-stone-500">
             {hasActiveFilters
-              ? 'Bu sonuçlar mevcut filtrelerinizi ve test tercihlerinizi yansıtıyor.'
-              : 'Kataloğu daraltmak için filtreleri ya da testi kullanın.'}
+              ? 'Bu liste seçtiğiniz filtrelere ve test tercihlerinize göre daraltıldı.'
+              : 'Kataloğu daraltmak için filtreleri kullanın ya da kısa testi çözün.'}
           </p>
           {(filters.priceMin != null || filters.priceMax != null) && (
             <p className="mt-2 text-xs text-stone-500">
-              Bütçe filtreleri, farklı paket boyutlarını adil biçimde karşılaştırmak için 100 g normalize fiyatı kullanır.
+              Bütçe filtresi, farklı paket boyutlarını aynı zeminde karşılaştırmak için 100 g fiyatını kullanır.
             </p>
           )}
         </div>

@@ -5,6 +5,7 @@ import { getRoasterBySlug } from '@/lib/queries/roasters';
 import { getCoffees } from '@/lib/queries/coffees';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
 import { CorrectionReport } from '@/components/correction/correction-report';
+import { SITE_NAME } from '@/lib/site';
 
 export async function generateMetadata({
   params,
@@ -14,10 +15,29 @@ export async function generateMetadata({
   const { slug } = await params;
   const roaster = await getRoasterBySlug(slug);
   if (!roaster) return { title: 'Kavurucu Bulunamadı' };
+  const roasterLocation = roaster.city ? `${roaster.name}, ${roaster.city}` : roaster.name;
+  const description = `${roasterLocation} kavurucusunun güncel nitelikli kahvelerini inceleyin; fiyat, köken ve tadım bilgileriyle karşılaştırın.`;
 
   return {
     title: roaster.name,
-    description: `${roaster.name}, ${roaster.city} kavurucusunun nitelikli kahvelerini keşfedin ve doğrudan satın alın.`,
+    description,
+    alternates: {
+      canonical: `/roasters/${slug}`,
+    },
+    openGraph: {
+      title: `${roaster.name} | ${SITE_NAME}`,
+      description,
+      url: `/roasters/${slug}`,
+      siteName: SITE_NAME,
+      images: roaster.logo_url ? [roaster.logo_url] : [],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${roaster.name} | ${SITE_NAME}`,
+      description,
+      images: roaster.logo_url ? [roaster.logo_url] : [],
+    },
   };
 }
 

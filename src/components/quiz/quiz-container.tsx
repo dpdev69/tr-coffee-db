@@ -14,7 +14,7 @@ interface QuizState {
 const STEPS = [
   {
     id: 'brew',
-    question: 'Kahveni genelde nasıl demliyorsun?',
+    question: 'Kahveyi genelde nasıl demliyorsun?',
     options: [
       { value: 'espresso', label: 'Espresso' },
       { value: 'filter', label: 'Pour Over / V60' },
@@ -26,7 +26,7 @@ const STEPS = [
   },
   {
     id: 'flavors',
-    question: 'Hangi tatları seviyorsun?',
+    question: 'Fincanda hangi tatları arıyorsun?',
     subtitle: 'İstediğin kadar seçebilirsin',
     options: [
       { value: 'Fruity', label: 'Meyvemsi ve Canlı' },
@@ -40,7 +40,7 @@ const STEPS = [
   },
   {
     id: 'adventure',
-    question: 'Ne kadar yeni tatlar denemek istiyorsun?',
+    question: 'Bugün ne kadar keşif modundasın?',
     options: [
       { value: 'classic', label: 'Klasik ve Tanıdık' },
       { value: 'surprise', label: 'Beni Şaşırt!' },
@@ -49,7 +49,7 @@ const STEPS = [
   },
   {
     id: 'roast',
-    question: 'Kavurma tercihin ne?',
+    question: 'Kavrum tercihin ne?',
     options: [
       { value: 'light', label: 'Açık' },
       { value: 'medium', label: 'Orta' },
@@ -155,17 +155,17 @@ export function QuizContainer() {
           &#10003;
         </div>
         <h2 className="mt-4 text-xl font-bold text-stone-900">
-          Sana uygun kahveleri bulduk!
+          Tercihlerine göre listeyi hazırladık.
         </h2>
         <p className="mt-2 text-stone-500">
-          Tercihlerine göre önerilerimiz hazır.
+          Demleme, tat, kavrum ve bütçe cevapların katalog filtrelerine çevrildi.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
             href={buildFilterUrl()}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-sm font-semibold text-white hover:bg-amber-700"
           >
-            Eşleşmelerimi Gör
+            Kahveleri Karşılaştır
           </Link>
           <button
             onClick={() => {
@@ -174,7 +174,7 @@ export function QuizContainer() {
             }}
             className="inline-flex items-center justify-center rounded-lg border border-stone-300 px-6 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
           >
-            Testi Yeniden Çöz
+            Tercihleri Yeniden Seç
           </button>
         </div>
       </div>

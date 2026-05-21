@@ -7,11 +7,28 @@ import { SidebarFilters } from '@/components/coffee/sidebar-filters';
 import { CoffeeCardSkeleton } from '@/components/ui/skeleton';
 import { Pagination } from '@/components/ui/pagination';
 import { parseCoffeeFilters } from '@/lib/coffee-filters';
+import { SITE_NAME } from '@/lib/site';
+
+const description =
+  'Türkiye’deki bağımsız kavurucuların güncel çekirdeklerini karşılaştırın. Köken, işleme, kavrum, tat, demleme yöntemi ve 100 g fiyatıyla filtreleyin.';
 
 export const metadata: Metadata = {
-  title: 'Kahveler',
-  description:
-    'Türkiye’deki nitelikli kahveleri keşfedin ve filtreleyin. Köken, işleme yöntemi, kavurma seviyesi, tat ve fiyata göre karşılaştırın.',
+  title: 'Kahveleri Karşılaştır',
+  description,
+  alternates: {
+    canonical: '/coffees',
+  },
+  openGraph: {
+    title: `Kahveleri Karşılaştır | ${SITE_NAME}`,
+    description,
+    url: '/coffees',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Kahveleri Karşılaştır | ${SITE_NAME}`,
+    description,
+  },
 };
 
 export default async function CoffeesPage({
@@ -23,7 +40,7 @@ export default async function CoffeesPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-bold text-stone-900">Kahveler</h1>
+      <h1 className="text-2xl font-bold text-stone-900">Kahveleri Karşılaştır</h1>
       <div className="mt-8 flex flex-col gap-8 lg:flex-row">
         {/* Sidebar */}
         <div className="w-full shrink-0 lg:w-64">
