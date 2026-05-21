@@ -71,6 +71,9 @@ export interface RoasterConfig {
   collectionHandle?: string;
   productTypeFilter?: string[];
   tagFilters?: string[];
+  // HTML/structured-data product classification hints for stores whose coffee
+  // products are named only by origin/lot and lack coffee category metadata.
+  coffeeProductKeywords?: string[];
   // WooCommerce-specific
   categoryId?: number;
   // HTML scraping selectors (ikas, ticimax, custom)
@@ -82,6 +85,7 @@ export interface RoasterConfig {
     productImage: string;
     description: string;
     nextPage?: string;
+    unavailableText?: string;
   };
-  structuredDataParser?: 'next-data-products';
+  structuredDataParser?: 'next-data-products' | 'probador-products';
 }

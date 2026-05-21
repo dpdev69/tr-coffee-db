@@ -209,7 +209,7 @@ export const williams: RoasterConfig = {
 };
 
 // ==========================================
-// IKAS ROASTERS (3)
+// IKAS ROASTERS (6)
 // Parsed from __NEXT_DATA__ storefront payloads
 // ==========================================
 
@@ -246,6 +246,93 @@ export const spada: RoasterConfig = {
   structuredDataParser: 'next-data-products',
 };
 
+export const gourme: RoasterConfig = {
+  slug: 'gourme',
+  name: 'Gourme Coffee',
+  websiteUrl: 'https://gourmecoffee.com',
+  shopUrl: 'https://gourmecoffee.com/kahveler',
+  platform: 'ikas',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+  coffeeProductKeywords: [
+    'etiyopya',
+    'burundi',
+    'kolombiya',
+    'honduras',
+    'brezilya',
+    'endonezya',
+    'kenya',
+    'ruanda',
+    'el salvador',
+    'kosta rika',
+  ],
+};
+
+export const hound: RoasterConfig = {
+  slug: 'hound',
+  name: 'Hound Coffee',
+  websiteUrl: 'https://houndcoffee.com',
+  shopUrl: 'https://houndcoffee.com/kahveler',
+  platform: 'ikas',
+  city: 'Ankara',
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+  coffeeProductKeywords: [
+    'costa rica',
+    'kosta rika',
+    'etiyopya',
+    'endonezya',
+    'kolombiya',
+    'pau brasil',
+  ],
+};
+
+export const kernel: RoasterConfig = {
+  slug: 'kernel',
+  name: 'Kernel Coffee',
+  websiteUrl: 'https://kernelcoffee.co',
+  shopUrl: 'https://kernelcoffee.co/kahve-1',
+  platform: 'ikas',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+};
+
+// ==========================================
+// CUSTOM ROASTERS
+// ==========================================
+
+export const kronotrop: RoasterConfig = {
+  slug: 'kronotrop',
+  name: 'Kronotrop',
+  websiteUrl: 'https://kronotrop.com.tr',
+  shopUrl: 'https://kronotrop.com.tr/alisveris/kategori/kahveler',
+  platform: 'custom',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  selectors: {
+    productList: 'li.animationBorder:has(a.product-click)',
+    productLink: 'a.product-click',
+    productName: 'h2',
+    productPrice: 'span.font-windsorRegular',
+    productImage: 'img',
+    description: '',
+    unavailableText: 'Tükendi',
+  },
+};
+
+export const probador: RoasterConfig = {
+  slug: 'probador',
+  name: 'Probador Colectiva',
+  websiteUrl: 'https://probadorcolectiva.com',
+  shopUrl: 'https://probadorcolectiva.com/urunler',
+  platform: 'custom',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  structuredDataParser: 'probador-products',
+};
+
 // ==========================================
 // ALL CONFIGS — used by orchestrator
 // ==========================================
@@ -276,4 +363,10 @@ export const ALL_ROASTER_CONFIGS: RoasterConfig[] = [
   paper,
   story,
   spada,
+  gourme,
+  hound,
+  kernel,
+  // Custom
+  kronotrop,
+  probador,
 ];

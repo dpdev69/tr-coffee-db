@@ -1,6 +1,9 @@
 const EXCLUDED_TITLE_PATTERNS = [
-  /\bfiltre\s*kağıdı\b/i,
+  /\bfiltre\s*kağıdı/i,
+  /\bfiltre\s*k[aâ]ğıdı/i,
+  /filtre\s*k[aâ]ğıdı/i,
   /\bfiltre\s*kagidi\b/i,
+  /\bfiltresi\b/i,
   /\bfilter\s*paper\b/i,
   /\bdripper\b/i,
   /\bchemex\b/i,
