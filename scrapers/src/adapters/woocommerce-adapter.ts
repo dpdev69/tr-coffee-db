@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { createContext, runInContext } from 'node:vm';
 import { BaseScraper } from '../base-scraper.js';
 import { isLikelyCatalogCoffeeProduct } from '../product-classification.js';
 import type { RoasterConfig, RawProduct } from '../types.js';
@@ -24,7 +25,14 @@ interface WooProduct {
   attributes: { id: number; name: string; terms: { id: number; name: string }[] }[];
 }
 
+interface ImunifyChallengeSubmission {
+  action: string;
+  params: Record<string, string | number>;
+}
+
 export class WooCommerceAdapter extends BaseScraper {
+  private challengeCookie: string | null = null;
+
   constructor(config: RoasterConfig) {
     super(config);
   }
@@ -32,27 +40,28 @@ export class WooCommerceAdapter extends BaseScraper {
   async fetchProducts(): Promise<RawProduct[]> {
     const allProducts: RawProduct[] = [];
     let page = 1;
+    let challengeRetried = false;
 
     while (true) {
-      const url = `${this.config.shopUrl}/wp-json/wc/store/v1/products`;
-      const params: Record<string, string | number> = {
-        per_page: 100,
-        page,
-      };
-      if (this.config.categoryId) {
-        params.category = this.config.categoryId;
-      }
-
       try {
-        const { data, headers } = await axios.get<WooProduct[]>(url, {
-          params,
-          timeout: 30000,
-          headers: { 'User-Agent': 'TRCoffeeDB/1.0 (coffee aggregator)' },
-        });
+        const { data, headers } = await this.fetchStoreApiPage(page);
 
-        if (!Array.isArray(data) || data.length === 0) break;
+        if (!Array.isArray(data)) {
+          if (!challengeRetried && this.isImunifyDeniedResponse(data)) {
+            this.challengeCookie = await this.createImunifyChallengeCookie();
+            challengeRetried = true;
+            continue;
+          }
 
-        for (const product of data) {
+          throw new Error(
+            `WooCommerce Store API returned a non-product response: ${this.describeUnexpectedResponse(data)}`
+          );
+        }
+
+        if (data.length === 0) break;
+
+        const products = data as WooProduct[];
+        for (const product of products) {
           if (!this.isCoffeeProduct(product)) continue;
 
           const priceTL = this.normalizePriceToTL(product);
@@ -87,6 +96,12 @@ export class WooCommerceAdapter extends BaseScraper {
         page++;
         await new Promise((r) => setTimeout(r, 1500));
       } catch (error) {
+        if (!challengeRetried && this.isPotentialImunifyError(error)) {
+          this.challengeCookie = await this.createImunifyChallengeCookie();
+          challengeRetried = true;
+          continue;
+        }
+
         // If Store API fails, try legacy WC REST API
         if (page === 1) {
           console.warn(
@@ -103,6 +118,215 @@ export class WooCommerceAdapter extends BaseScraper {
     }
 
     return allProducts;
+  }
+
+  private async fetchStoreApiPage(page: number) {
+    const url = `${this.config.shopUrl}/wp-json/wc/store/v1/products`;
+    const params: Record<string, string | number> = {
+      per_page: 100,
+      page,
+    };
+    if (this.config.categoryId) {
+      params.category = this.config.categoryId;
+    }
+
+    return axios.get<WooProduct[] | unknown>(url, {
+      params,
+      timeout: 30000,
+      headers: this.getRequestHeaders('application/json'),
+    });
+  }
+
+  private async createImunifyChallengeCookie(): Promise<string> {
+    const { data: html } = await axios.get<string>(this.config.shopUrl, {
+      timeout: 30000,
+      responseType: 'text',
+      transformResponse: [(data) => data],
+      headers: this.getRequestHeaders('text/html,application/xhtml+xml'),
+    });
+
+    const submission = this.extractImunifyChallengeSubmission(html);
+    if (!submission) {
+      throw new Error('WooCommerce Store API was blocked, and no Imunify challenge form was found.');
+    }
+
+    const challengeUrl = new URL(submission.action, this.config.shopUrl);
+    for (const [key, value] of Object.entries(submission.params)) {
+      challengeUrl.searchParams.append(key, String(value));
+    }
+
+    const response = await axios.get<string>(challengeUrl.toString(), {
+      timeout: 30000,
+      maxRedirects: 0,
+      validateStatus: (status) => status >= 200 && status < 400,
+      headers: {
+        ...this.getRequestHeaders('text/html,application/xhtml+xml'),
+        Referer: this.config.shopUrl,
+      },
+    });
+
+    const cookie = this.extractCookieHeader(response.headers['set-cookie']);
+    if (!cookie) {
+      throw new Error('Imunify challenge completed without returning a session cookie.');
+    }
+
+    return cookie;
+  }
+
+  private extractImunifyChallengeSubmission(html: string): ImunifyChallengeSubmission | null {
+    if (!html.includes('Please wait while your request is being verified')) return null;
+
+    const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/gi)];
+    const challengeScript = scripts.at(-1)?.[1];
+    if (!challengeScript) return null;
+
+    let submission: ImunifyChallengeSubmission | null = null;
+
+    interface ChallengeElement {
+      tag: string;
+      action?: unknown;
+      name?: unknown;
+      value?: unknown;
+      children: ChallengeElement[];
+      appendChild(child: ChallengeElement): void;
+      submit(): void;
+    }
+
+    function createElement(tag: string): ChallengeElement {
+      return {
+        tag,
+        children: [],
+        appendChild(child: ChallengeElement) {
+          this.children.push(child);
+        },
+        submit() {
+          submission = {
+            action: String(this.action),
+            params: Object.fromEntries(
+              this.children.map((child) => [
+                String(child.name),
+                String(child.value),
+              ])
+            ),
+          };
+        },
+      };
+    }
+
+    function PluginArray() {}
+    function MimeTypeArray() {}
+    function Plugin() {}
+    function MimeType() {}
+
+    class FakeXMLHttpRequest {
+      open(_method: string, requestUrl: string) {
+        const [action, query = ''] = requestUrl.split('?');
+        submission = {
+          action,
+          params: Object.fromEntries(new URLSearchParams(query)),
+        };
+      }
+
+      send() {
+        return undefined;
+      }
+    }
+
+    const plugins: unknown[] = [];
+    const mimeTypes: unknown[] = [];
+    Object.setPrototypeOf(plugins, PluginArray.prototype);
+    Object.setPrototypeOf(mimeTypes, MimeTypeArray.prototype);
+
+    const root = createElement('div');
+    const document = {
+      addEventListener(_event: string, callback: () => void) {
+        callback();
+      },
+      attachEvent(_event: string, callback: () => void) {
+        callback();
+      },
+      createElement,
+      getElementById() {
+        return root;
+      },
+    };
+    const navigator = {
+      userAgent: this.browserUserAgent,
+      appVersion: '5.0',
+      languages: ['en-US', 'en'],
+      language: 'en-US',
+      plugins,
+      mimeTypes,
+    };
+    const window = {
+      navigator,
+      document,
+      outerHeight: 900,
+      outerWidth: 1200,
+      addEventListener: true,
+    };
+
+    const context = createContext({
+      window: { ...window, window },
+      document,
+      navigator,
+      PluginArray,
+      MimeTypeArray,
+      Plugin,
+      MimeType,
+      URLSearchParams,
+      XMLHttpRequest: FakeXMLHttpRequest,
+      setTimeout: (callback: () => void) => callback(),
+    });
+
+    runInContext(challengeScript, context, { timeout: 1000 });
+    return submission;
+  }
+
+  private extractCookieHeader(setCookie: string | string[] | undefined): string | null {
+    if (!setCookie) return null;
+    const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
+    return cookies
+      .map((cookie) => cookie.split(';')[0])
+      .filter(Boolean)
+      .join('; ') || null;
+  }
+
+  private getRequestHeaders(accept: string): Record<string, string> {
+    return {
+      Accept: accept,
+      'User-Agent': this.browserUserAgent,
+      ...(this.challengeCookie ? { Cookie: this.challengeCookie } : {}),
+    };
+  }
+
+  private get browserUserAgent(): string {
+    return 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36';
+  }
+
+  private isImunifyDeniedResponse(data: unknown): boolean {
+    if (!data || typeof data !== 'object') return false;
+    const message = 'message' in data ? String((data as { message?: unknown }).message) : '';
+    return /Imunify360 bot-protection|Access denied/i.test(message);
+  }
+
+  private isPotentialImunifyError(error: unknown): boolean {
+    if (!axios.isAxiosError(error)) return false;
+
+    const status = error.response?.status;
+    const data = error.response?.data;
+    if (status === 415) return true;
+    if (typeof data === 'string') {
+      return /One moment, please|Imunify360|Unsupported Media Type/i.test(data);
+    }
+    return this.isImunifyDeniedResponse(data);
+  }
+
+  private describeUnexpectedResponse(data: unknown): string {
+    if (data && typeof data === 'object' && 'message' in data) {
+      return String((data as { message?: unknown }).message);
+    }
+    return typeof data;
   }
 
   /**
@@ -136,6 +360,35 @@ export class WooCommerceAdapter extends BaseScraper {
   private isCoffeeProduct(product: WooProduct): boolean {
     const categories = product.categories.map((c) => c.name.toLowerCase());
     const tags = product.tags.map((tag) => tag.name);
+    const haystack = [
+      product.name,
+      ...categories,
+      ...tags,
+    ].join(' ').toLowerCase();
+    const excludedCategoryKeywords = [
+      'aksesuar',
+      'barista aksesuar',
+      'demleme araç',
+      'ekipman',
+      'filtre kağıdı',
+      'filtre kagidi',
+      'hediyelik',
+      'kahve öğütücü',
+      'kahve ogutucu',
+      'kozmetik',
+      'temizlik',
+    ];
+    const excludedTextFragments = [
+      'ekme',
+      'icilmeye hazir',
+      'içilmeye hazır',
+      'sise dahil',
+      'şişe dahil',
+      'toptan giris',
+      'toptan giriş',
+      'yesil kahve',
+      'yeşil kahve',
+    ];
 
     if (
       !isLikelyCatalogCoffeeProduct([
@@ -143,6 +396,18 @@ export class WooCommerceAdapter extends BaseScraper {
         ...categories,
         ...tags,
       ])
+    ) {
+      return false;
+    }
+
+    if (excludedTextFragments.some((fragment) => haystack.includes(fragment))) {
+      return false;
+    }
+
+    if (
+      categories.some((cat) =>
+        excludedCategoryKeywords.some((kw) => cat.includes(kw))
+      )
     ) {
       return false;
     }

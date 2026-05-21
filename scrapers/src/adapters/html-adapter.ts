@@ -1,4 +1,5 @@
 import axios from 'axios';
+import vm from 'node:vm';
 import * as cheerio from 'cheerio';
 import { BaseScraper } from '../base-scraper.js';
 import { isLikelyCatalogCoffeeProduct } from '../product-classification.js';
@@ -28,6 +29,73 @@ interface NextDataVariant {
   variantValues?: { name?: string | null }[];
 }
 
+interface ProbadorChallengeSubmission {
+  action: string;
+  fields: Array<{ name: string; value: string }>;
+}
+
+class ChallengeElement {
+  children: ChallengeElement[] = [];
+  action = '';
+  method = '';
+  id = '';
+  name = '';
+  value = '';
+  type = '';
+  style = '';
+
+  constructor(private readonly onSubmit?: (form: ChallengeElement) => void) {}
+
+  appendChild(child: ChallengeElement) {
+    this.children.push(child);
+  }
+
+  submit() {
+    this.onSubmit?.(this);
+  }
+}
+
+export function parseProbadorProducts(html: string, config: RoasterConfig): RawProduct[] {
+  const $ = cheerio.load(html);
+  const uniqueProducts = new Map<string, RawProduct>();
+
+  $('.products-lists .list').each((_, el) => {
+    const $el = $(el);
+    const href = $el.find('a.image[href]').first().attr('href');
+    const name = $el.find('.name').first().text().trim();
+    if (!href || !name) return;
+
+    const productUrl = new URL(href, config.websiteUrl).toString();
+    const description = $el.find('.note').first().text().trim();
+    if (!isProbadorCoffeeProduct(name, description, href)) return;
+
+    const externalId = makeExternalId(productUrl);
+    if (uniqueProducts.has(externalId)) return;
+
+    const imageSrc = $el.find('a.image img').first().attr('src') ?? null;
+    const imageUrl = imageSrc ? new URL(imageSrc, config.websiteUrl).toString() : null;
+    const priceText = $el.find('.variantprice.active .price').first().text().trim()
+      || $el.find('.price').first().text().trim();
+    const stockText = $el.find('.variantprice.active').first().attr('data-stock');
+    const stock = stockText ? Number.parseInt(stockText, 10) : null;
+
+    uniqueProducts.set(externalId, {
+      externalId,
+      name,
+      description,
+      price: parseTurkishPrice(priceText, config),
+      currency: 'TRY',
+      weightGrams: parseWeight($el.text()),
+      imageUrl,
+      productUrl,
+      isAvailable: Number.isFinite(stock) ? (stock as number) > 0 : !$el.text().includes('STOKTA YOK'),
+      tags: $el.find('.tag').text().trim() ? [$el.find('.tag').text().trim()] : [],
+    });
+  });
+
+  return Array.from(uniqueProducts.values());
+}
+
 export class HtmlAdapter extends BaseScraper {
   constructor(config: RoasterConfig) {
     super(config);
@@ -41,6 +109,10 @@ export class HtmlAdapter extends BaseScraper {
   async fetchProducts(): Promise<RawProduct[]> {
     if (this.config.structuredDataParser === 'next-data-products') {
       return this.fetchProductsFromNextData();
+    }
+
+    if (this.config.structuredDataParser === 'probador-products') {
+      return this.fetchProductsFromProbador();
     }
 
     return this.fetchProductsFromSelectors();
@@ -85,6 +157,9 @@ export class HtmlAdapter extends BaseScraper {
               : null;
 
           const weightGrams = this.parseWeight(name);
+          const isAvailable = selectors.unavailableText
+            ? !$el.text().includes(selectors.unavailableText)
+            : true;
 
           allProducts.push({
             externalId: this.makeExternalId(productUrl),
@@ -95,7 +170,7 @@ export class HtmlAdapter extends BaseScraper {
             weightGrams,
             imageUrl,
             productUrl,
-            isAvailable: true, // Assume available if listed
+            isAvailable,
             tags: [],
           });
         } catch {
@@ -120,6 +195,11 @@ export class HtmlAdapter extends BaseScraper {
     }
 
     return allProducts;
+  }
+
+  private async fetchProductsFromProbador(): Promise<RawProduct[]> {
+    const html = await this.fetchProbadorPageHtml(this.config.shopUrl);
+    return parseProbadorProducts(html, this.config);
   }
 
   private async fetchProductsFromNextData(): Promise<RawProduct[]> {
@@ -183,6 +263,50 @@ export class HtmlAdapter extends BaseScraper {
     return html;
   }
 
+  private async fetchProbadorPageHtml(url: string) {
+    const headers = {
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+      Accept: 'text/html,application/xhtml+xml',
+    };
+
+    const firstResponse = await axios.get<string>(url, {
+      timeout: 30000,
+      headers,
+    });
+
+    if (!firstResponse.data.includes('Please wait while your request is being verified')) {
+      return firstResponse.data;
+    }
+
+    const challenge = extractProbadorChallengeSubmission(firstResponse.data);
+    const params = new URLSearchParams();
+    for (const field of challenge.fields) {
+      params.append(field.name, field.value);
+    }
+
+    const challengeUrl = new URL(challenge.action, url);
+    challengeUrl.search = params.toString();
+
+    const challengeResponse = await axios.get<string>(challengeUrl.toString(), {
+      timeout: 30000,
+      headers,
+      maxRedirects: 0,
+      validateStatus: (status) => status >= 200 && status < 400,
+    });
+
+    const cookies = normalizeSetCookieHeader(challengeResponse.headers['set-cookie']);
+    const { data: html } = await axios.get<string>(url, {
+      timeout: 30000,
+      headers: {
+        ...headers,
+        ...(cookies ? { Cookie: cookies } : {}),
+      },
+    });
+
+    return html;
+  }
+
   private collectNextDataProducts(value: unknown, results: NextDataProduct[] = []) {
     if (!value || typeof value !== 'object') return results;
 
@@ -219,15 +343,18 @@ export class HtmlAdapter extends BaseScraper {
       ...categoryNames,
       ...tagNames,
     ];
-
-    if (!isLikelyCatalogCoffeeProduct(parts)) {
-      return false;
-    }
-
     const haystack = parts
       .filter((part): part is string => Boolean(part))
       .join(' ')
       .toLowerCase();
+    const configKeywordMatches = (this.config.coffeeProductKeywords ?? []).some((keyword) =>
+      haystack.includes(keyword.toLowerCase())
+    );
+
+    if (!isLikelyCatalogCoffeeProduct(parts) && !configKeywordMatches) {
+      return false;
+    }
+
     const classificationHaystack = [product.name, ...categoryNames, ...tagNames]
       .filter((part): part is string => Boolean(part))
       .join(' ')
@@ -244,10 +371,9 @@ export class HtmlAdapter extends BaseScraper {
       'grinder',
       'makinesi',
       'machine',
+      'kapsül',
+      'kapsul',
       'kitap',
-      'çikolata',
-      'cikolata',
-      'kakao',
       'seramik',
       'bardak',
       'fincan',
@@ -257,7 +383,7 @@ export class HtmlAdapter extends BaseScraper {
       return false;
     }
 
-    return [
+    const defaultCoffeeKeywords = [
       'kahve',
       'coffee',
       'çekirdek',
@@ -268,7 +394,13 @@ export class HtmlAdapter extends BaseScraper {
       'tek köken',
       'decaf',
       'kafeinsiz',
-    ].some((keyword) => haystack.includes(keyword));
+    ];
+
+    if (defaultCoffeeKeywords.some((keyword) => haystack.includes(keyword))) {
+      return true;
+    }
+
+    return configKeywordMatches;
   }
 
   private pickPreferredVariant(product: NextDataProduct) {
@@ -369,5 +501,186 @@ export class HtmlAdapter extends BaseScraper {
     } catch {
       return url;
     }
+  }
+}
+
+function extractProbadorChallengeSubmission(html: string): ProbadorChallengeSubmission {
+  const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1]);
+  const challengeScript = scripts.at(-1);
+  if (!challengeScript) {
+    throw new Error('[probador] Missing verification challenge script');
+  }
+
+  let submittedForm: ChallengeElement | null = null;
+  const document = {
+    getElementById: () => new ChallengeElement(),
+    createElement: () => new ChallengeElement((form) => {
+      submittedForm = form;
+    }),
+    addEventListener: (_name: string, callback: () => void) => callback(),
+  };
+  const navigator = createProbadorNavigator();
+  const browserWindow = {
+    document,
+    navigator,
+    outerHeight: 900,
+    outerWidth: 1400,
+    addEventListener: () => undefined,
+  };
+  const context = {
+    window: browserWindow,
+    document,
+    navigator,
+    setTimeout: (callback: () => void) => callback(),
+    URLSearchParams,
+    XMLHttpRequest: class {
+      open() {}
+      send() {}
+    },
+    ...createProbadorBrowserConstructors(navigator),
+  };
+
+  vm.runInNewContext(challengeScript, context, { timeout: 1000 });
+
+  const form = submittedForm as ChallengeElement | null;
+  if (!form?.action || form.children.length === 0) {
+    throw new Error('[probador] Could not solve verification challenge');
+  }
+
+  return {
+    action: form.action,
+    fields: form.children
+      .filter((child: ChallengeElement) => child.name)
+      .map((child) => ({ name: child.name, value: child.value })),
+  };
+}
+
+function createProbadorNavigator() {
+  function PluginArray() {}
+  function Plugin() {}
+  function MimeTypeArray() {}
+  function MimeType() {}
+
+  const plugins = [{}];
+  Object.setPrototypeOf(plugins[0], Plugin.prototype);
+  Object.setPrototypeOf(plugins, PluginArray.prototype);
+
+  const mimeTypes = [{}];
+  Object.setPrototypeOf(mimeTypes[0], MimeType.prototype);
+  Object.setPrototypeOf(mimeTypes, MimeTypeArray.prototype);
+
+  return {
+    userAgent:
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+    appVersion: '5.0 (Macintosh)',
+    language: 'en-US',
+    languages: ['en-US', 'en'],
+    plugins,
+    mimeTypes,
+    constructors: {
+      PluginArray,
+      Plugin,
+      MimeTypeArray,
+      MimeType,
+    },
+  };
+}
+
+function createProbadorBrowserConstructors(navigator: ReturnType<typeof createProbadorNavigator>) {
+  return navigator.constructors;
+}
+
+function normalizeSetCookieHeader(setCookie: string[] | string | undefined) {
+  if (!setCookie) return '';
+  const values = Array.isArray(setCookie) ? setCookie : [setCookie];
+  return values.map((cookie) => cookie.split(';')[0]).join('; ');
+}
+
+function isProbadorCoffeeProduct(name: string, description: string, href: string) {
+  const classifierText = `${name} ${href}`;
+  const normalizedClassifierText = normalizeTurkishText(classifierText);
+  if (!isLikelyCatalogCoffeeProduct([classifierText])) return false;
+  if (
+    /(?:\bseti\b|\bsetleri\b|orneklem|kahveler[ıi]?\s+\d|allfaktori|harita|map|huskee|cup|kapak|tabak|degirmen|comandante|rhinowares|espro|delter|mikrofiltre|filtre\s*kagidi|press|stand|aparat)/i.test(
+      normalizedClassifierText
+    )
+  ) {
+    return false;
+  }
+
+  const haystack = normalizeTurkishText(`${name} ${description} ${href}`);
+  return [
+    'kahve',
+    'coffee',
+    'etiyopya',
+    'ethiopia',
+    'kolombiya',
+    'colombia',
+    'kostarika',
+    'costa rica',
+    'peru',
+    'kenya',
+    'guatemala',
+    'honduras',
+    'panama',
+    'el salvador',
+    'brezilya',
+    'brazil',
+    'yıkanmış',
+    'yikanmis',
+    'washed',
+    'dogal',
+    'honey',
+    'finca',
+    'geisha',
+    'gesha',
+    'caturra',
+    'bourbon',
+    'mikrolot',
+    'microlot',
+  ].some((keyword) => haystack.includes(keyword));
+}
+
+function normalizeTurkishText(text: string) {
+  return text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLocaleLowerCase('tr-TR')
+    .replace(/[ıİ]/g, 'i')
+    .replace(/[ğĞ]/g, 'g')
+    .replace(/[üÜ]/g, 'u')
+    .replace(/[şŞ]/g, 's')
+    .replace(/[öÖ]/g, 'o')
+    .replace(/[çÇ]/g, 'c');
+}
+
+function parseTurkishPrice(text: string, config: RoasterConfig): number | null {
+  const cleaned = text
+    .replace(/[^\d,.]/g, '')
+    .replace(/\.(?=\d{3})/g, '')
+    .replace(',', '.');
+
+  const num = Number.parseFloat(cleaned);
+  if (Number.isNaN(num)) return null;
+
+  return config.priceFormat === 'kurus' ? num / 100 : num;
+}
+
+function parseWeight(text: string): number | null {
+  const gMatch = text.match(/(\d+)\s*(?:gr?|gram)\b/i);
+  if (gMatch) return Number.parseInt(gMatch[1], 10);
+  const kgMatch = text.match(/(\d+(?:\.\d+)?)\s*kg\b/i);
+  if (kgMatch) return Math.round(Number.parseFloat(kgMatch[1]) * 1000);
+  return null;
+}
+
+function makeExternalId(url: string): string {
+  try {
+    const path = new URL(url).pathname
+      .replace(/^\/+|\/+$/g, '')
+      .replace(/\//g, '-');
+    return path || url;
+  } catch {
+    return url;
   }
 }
