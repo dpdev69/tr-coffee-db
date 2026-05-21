@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import pg from 'pg';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -62,19 +62,9 @@ const connectionConfigs = [
   })),
 ];
 
-const migrationFiles = [
-  '001_initial_schema.sql',
-  '002_rls_policies.sql',
-  '003_indexes.sql',
-  '004_functions.sql',
-  '005_seed_roasters.sql',
-  '006_deactivate_coffee_sapiens.sql',
-  '007_set_function_search_paths.sql',
-  '008_lock_down_increment_click.sql',
-  '009_redirect_analytics_and_corrections.sql',
-  '010_update_roaster_source_metadata.sql',
-  '011_add_missing_launch_roasters.sql',
-];
+const migrationFiles = readdirSync(migrationsDir)
+  .filter((file) => file.endsWith('.sql'))
+  .sort();
 
 async function tryConnect(config) {
   const client = new pg.Client(config);
