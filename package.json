@@ -8,6 +8,7 @@
     "scrapers:typecheck": "npm --prefix scrapers run typecheck",
     "scrapers:migrate": "npm --prefix scrapers run migrate",
     "scrapers:scrape": "npm --prefix scrapers run scrape --",
+    "test": "tsx --test tests/*.test.ts",
     "check": "npm run lint && npm run typecheck && npm run build && npm run scrapers:typecheck",
     "build": "next build",
     "start": "next start",
@@ -16,7 +17,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.100.1",
-    "next": "16.2.1",
+    "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
@@ -26,8 +27,12 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.1",
+    "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
+    "tsx": "^4.22.3",
     "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
   }
 }

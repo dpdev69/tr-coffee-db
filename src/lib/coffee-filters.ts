@@ -1,70 +1,73 @@
 import {
+  BREW_METHOD_VALUES,
   BREW_METHOD_LABELS,
   FLAVOR_CATEGORIES,
   FLAVOR_CATEGORY_LABELS,
+  PROCESS_VALUES,
   PROCESS_LABELS,
+  ROAST_VALUES,
   ROAST_LABELS,
-  SORT_OPTIONS,
+  SORT_VALUES,
 } from '@/lib/constants/filter-options';
+import {
+  getBooleanParamValue,
+  getClampedPriceParamValue,
+  getEnumArrayParamValue,
+  getFirstSearchParamValue,
+  getPageParamValue,
+  getStringArrayParamValue,
+  normalizeCityFilterValue,
+  normalizeSearchTerm,
+  type SearchParamValue,
+} from '@/lib/filter-contract';
 import type { CoffeeFilters } from '@/lib/queries/coffees';
-
-type SearchParamValue = string | string[] | undefined;
 
 export type CoffeeSearchParams = Record<string, SearchParamValue>;
 
-const SORT_VALUES = new Set<string>(SORT_OPTIONS.map((option) => option.value));
-
-function getFirstValue(value: SearchParamValue): string | undefined {
-  if (Array.isArray(value)) {
-    return value.find((item) => item.trim().length > 0);
-  }
-
-  return value?.trim() ? value.trim() : undefined;
-}
-
-function getArrayValue(value: SearchParamValue): string[] | undefined {
-  if (!value) return undefined;
-
-  const items = (Array.isArray(value) ? value : [value])
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0);
-
-  return items.length > 0 ? [...new Set(items)] : undefined;
-}
-
-function getNumberValue(value: SearchParamValue): number | undefined {
-  const parsed = Number(getFirstValue(value));
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-function getBooleanValue(value: SearchParamValue): boolean | undefined {
-  const normalized = getFirstValue(value)?.toLowerCase();
-
-  if (normalized === 'true' || normalized === '1') return true;
-  if (normalized === 'false' || normalized === '0') return false;
-  return undefined;
-}
+const PROCESS_VALUE_SET = new Set(PROCESS_VALUES);
+const ROAST_VALUE_SET = new Set(ROAST_VALUES);
+const BREW_METHOD_VALUE_SET = new Set(BREW_METHOD_VALUES);
+const FLAVOR_CATEGORY_VALUE_SET = new Set<string>(FLAVOR_CATEGORIES);
+const SORT_VALUE_SET = new Set<string>(SORT_VALUES);
 
 export function parseCoffeeFilters(params: CoffeeSearchParams): CoffeeFilters {
-  const sortValue = getFirstValue(params.sort);
-  const page = getNumberValue(params.page);
+  const sortValue = getFirstSearchParamValue(params.sort);
 
   return {
-    origin: getArrayValue(params.origin),
-    process: getArrayValue(params.process),
-    roastLevel: getArrayValue(params.roastLevel),
-    roaster: getArrayValue(params.roaster),
-    flavorCategory: getArrayValue(params.flavorCategory),
-    brewMethod: getArrayValue(params.brewMethod),
-    singleOrigin: getBooleanValue(params.singleOrigin),
-    priceMin: getNumberValue(params.priceMin),
-    priceMax: getNumberValue(params.priceMax),
-    isDecaf: getBooleanValue(params.isDecaf),
-    search: getFirstValue(params.search),
-    sort: sortValue && SORT_VALUES.has(sortValue) ? (sortValue as CoffeeFilters['sort']) : 'newest',
-    page: page && page > 0 ? page : 1,
+    origin: getStringArrayParamValue(params.origin),
+    process: getEnumArrayParamValue(params.process, PROCESS_VALUE_SET),
+    roastLevel: getEnumArrayParamValue(params.roastLevel, ROAST_VALUE_SET),
+    roaster: getStringArrayParamValue(params.roaster),
+    city: getCityArrayValue(params.city),
+    flavorCategory: getEnumArrayParamValue(params.flavorCategory, FLAVOR_CATEGORY_VALUE_SET),
+    brewMethod: getEnumArrayParamValue(params.brewMethod, BREW_METHOD_VALUE_SET),
+    singleOrigin: getBooleanParamValue(params.singleOrigin),
+    priceMin: getClampedPriceParamValue(params.priceMin),
+    priceMax: getClampedPriceParamValue(params.priceMax),
+    isDecaf: getBooleanParamValue(params.isDecaf),
+    search: normalizeSearchTerm(getFirstSearchParamValue(params.search)),
+    sort: sortValue && SORT_VALUE_SET.has(sortValue) ? (sortValue as CoffeeFilters['sort']) : 'newest',
+    page: getPageParamValue(params.page),
     perPage: 24,
   };
+}
+
+function getCityArrayValue(value: SearchParamValue): string[] | undefined {
+  if (!value) return undefined;
+
+  const seen = new Set<string>();
+  const cities: string[] = [];
+
+  for (const rawItem of Array.isArray(value) ? value : [value]) {
+    const city = normalizeCityFilterValue(rawItem);
+
+    if (city && !seen.has(city)) {
+      seen.add(city);
+      cities.push(city);
+    }
+  }
+
+  return cities.length > 0 ? cities : undefined;
 }
 
 export function getActiveCoffeeFilterLabels(filters: CoffeeFilters): string[] {
@@ -82,6 +85,7 @@ export function getActiveCoffeeFilterLabels(filters: CoffeeFilters): string[] {
     labels.push(`Kavurma: ${ROAST_LABELS[roastLevel] ?? roastLevel}`)
   );
   filters.roaster?.forEach((roaster) => labels.push(`Kavurucu: ${roaster}`));
+  filters.city?.forEach((city) => labels.push(`Şehir: ${city}`));
   filters.flavorCategory?.forEach((flavorCategory) =>
     labels.push(
       `Tat: ${

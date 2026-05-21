@@ -8,6 +8,8 @@ export const PROCESS_LABELS: Record<string, string> = {
   experimental: 'Deneysel',
 };
 
+export const PROCESS_VALUES = Object.keys(PROCESS_LABELS);
+
 export const ROAST_LABELS: Record<string, string> = {
   light: 'Açık',
   medium_light: 'Orta-Açık',
@@ -15,6 +17,8 @@ export const ROAST_LABELS: Record<string, string> = {
   medium_dark: 'Orta-Koyu',
   dark: 'Koyu',
 };
+
+export const ROAST_VALUES = Object.keys(ROAST_LABELS);
 
 export const FLAVOR_CATEGORIES = [
   'Fruity',
@@ -48,9 +52,21 @@ export const BREW_METHOD_LABELS: Record<string, string> = {
   moka_pot: 'Moka Pot',
 };
 
+export const BREW_METHOD_VALUES = Object.keys(BREW_METHOD_LABELS);
+
+export const SORT_VALUES = [
+  'match',
+  'newest',
+  'price_asc',
+  'price_desc',
+  'popular',
+] as const;
+
 export const SORT_OPTIONS = [
   { value: 'newest', label: 'En Yeni' },
   { value: 'price_asc', label: 'Fiyat: Artan' },
   { value: 'price_desc', label: 'Fiyat: Azalan' },
   { value: 'popular', label: 'En Popüler' },
 ] as const;
+
+export type CoffeeSortOption = (typeof SORT_VALUES)[number];

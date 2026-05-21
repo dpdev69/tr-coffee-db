@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getRoasterBySlug } from '@/lib/queries/roasters';
 import { getCoffees } from '@/lib/queries/coffees';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
+import { CorrectionReport } from '@/components/correction/correction-report';
 
 export async function generateMetadata({
   params,
@@ -68,6 +69,11 @@ export default async function RoasterDetailPage({
           </svg>
         </a>
       </div>
+
+      <CorrectionReport
+        roasterId={roaster.id}
+        className="mt-6 border-t border-stone-100 pt-6"
+      />
 
       {/* Coffees grid */}
       <div className="mt-10">

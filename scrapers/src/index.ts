@@ -4,6 +4,19 @@ import { WooCommerceAdapter } from './adapters/woocommerce-adapter.js';
 import { HtmlAdapter } from './adapters/html-adapter.js';
 import { ALL_ROASTER_CONFIGS } from './roasters/configs.js';
 import type { RoasterConfig } from './types.js';
+import type { ScrapeRunResult } from './base-scraper.js';
+
+type OrchestratorResult =
+  | ScrapeRunResult
+  | { slug: string; status: 'skipped'; reason: string }
+  | { slug: string; status: 'failed'; error: string };
+
+function parseTargetSlugs(args: string[]): string[] {
+  return args
+    .flatMap((arg) => arg.split(/[\s,]+/))
+    .map((slug) => slug.trim())
+    .filter(Boolean);
+}
 
 function createScraper(config: RoasterConfig) {
   switch (config.platform) {
@@ -25,7 +38,7 @@ function createScraper(config: RoasterConfig) {
 
 async function main() {
   const startTime = Date.now();
-  const targetSlugs = process.argv.slice(2);
+  const targetSlugs = parseTargetSlugs(process.argv.slice(2));
 
   // Filter configs if specific slugs provided (e.g., `npx tsx src/index.ts petra montag`)
   const configs =
@@ -42,18 +55,22 @@ async function main() {
   console.log(`Roasters: ${configs.map((c) => c.slug).join(', ')}`);
   console.log('---');
 
-  const results: { slug: string; status: string; error?: string }[] = [];
+  const results: OrchestratorResult[] = [];
 
   for (const config of configs) {
     const scraper = createScraper(config);
     if (!scraper) {
-      results.push({ slug: config.slug, status: 'skipped' });
+      results.push({
+        slug: config.slug,
+        status: 'skipped',
+        reason: `Unsupported or unconfigured platform "${config.platform}"`,
+      });
       continue;
     }
 
     try {
-      await scraper.run();
-      results.push({ slug: config.slug, status: 'success' });
+      const result = await scraper.run();
+      results.push(result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       results.push({ slug: config.slug, status: 'failed', error: msg });
@@ -66,7 +83,13 @@ async function main() {
   console.log(`Total time: ${elapsed}s`);
   for (const r of results) {
     const icon = r.status === 'success' ? '+' : r.status === 'skipped' ? '-' : 'x';
-    console.log(`  [${icon}] ${r.slug}: ${r.status}${r.error ? ` (${r.error})` : ''}`);
+    const context =
+      r.status === 'skipped'
+        ? ` (${r.reason})`
+        : 'error' in r && r.error
+          ? ` (${r.error})`
+          : '';
+    console.log(`  [${icon}] ${r.slug}: ${r.status}${context}`);
   }
 
   const failed = results.filter((r) => r.status === 'failed');

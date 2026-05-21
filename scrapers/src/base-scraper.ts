@@ -2,6 +2,18 @@ import { supabase } from './supabase.js';
 import { normalize } from './normalization/index.js';
 import type { RoasterConfig, RawProduct, NormalizedCoffee } from './types.js';
 
+export type ScrapeRunStatus = 'success' | 'failed';
+
+export interface ScrapeRunResult {
+  slug: string;
+  status: ScrapeRunStatus;
+  roasterId: string | null;
+  productsFound: number;
+  productsUpserted: number;
+  durationMs: number;
+  error?: string;
+}
+
 export abstract class BaseScraper {
   protected config: RoasterConfig;
   protected roasterId: string | null = null;
@@ -13,10 +25,10 @@ export abstract class BaseScraper {
   // Platform-specific: override in each adapter
   abstract fetchProducts(): Promise<RawProduct[]>;
 
-  async run(): Promise<void> {
+  async run(): Promise<ScrapeRunResult> {
     const startedAt = new Date().toISOString();
     const startMs = Date.now();
-    let status = 'success';
+    let status: ScrapeRunStatus = 'success';
     let productsFound = 0;
     let productsUpserted = 0;
     let errorMessage: string | null = null;
@@ -49,7 +61,7 @@ export abstract class BaseScraper {
 
     // Log the scrape
     const durationMs = Date.now() - startMs;
-    await supabase.from('scrape_logs').insert({
+    const { error: logError } = await supabase.from('scrape_logs').insert({
       roaster_id: this.roasterId,
       started_at: startedAt,
       completed_at: new Date().toISOString(),
@@ -60,9 +72,28 @@ export abstract class BaseScraper {
       duration_ms: durationMs,
     });
 
+    if (logError) {
+      const message = `Failed to write scrape log: ${logError.message}`;
+      console.error(`[${this.config.slug}] ${message}`);
+      if (errorMessage) {
+        throw new Error(`${errorMessage}; ${message}`);
+      }
+      throw new Error(message);
+    }
+
     console.log(
       `[${this.config.slug}] Done in ${durationMs}ms (${status})`
     );
+
+    return {
+      slug: this.config.slug,
+      status,
+      roasterId: this.roasterId,
+      productsFound,
+      productsUpserted,
+      durationMs,
+      ...(errorMessage ? { error: errorMessage } : {}),
+    };
   }
 
   private async resolveRoasterId(): Promise<string> {

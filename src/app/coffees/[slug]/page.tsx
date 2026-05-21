@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { getCoffeeBySlug, getSimilarCoffees } from '@/lib/queries/coffees';
 import { BuyButton } from '@/components/coffee/buy-button';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
+import { CorrectionReport } from '@/components/correction/correction-report';
 import { Tag } from '@/components/ui/tag';
 import { PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
 
@@ -178,6 +179,12 @@ export default async function CoffeeDetailPage({
               </div>
             </div>
           )}
+
+          <CorrectionReport
+            coffeeId={coffee.id}
+            roasterId={coffee.roaster_id}
+            className="mt-8 border-t border-stone-100 pt-6"
+          />
         </div>
       </div>
 

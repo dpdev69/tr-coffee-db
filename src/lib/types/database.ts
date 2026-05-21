@@ -1,3 +1,11 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export interface Database {
   public: {
     Tables: {
@@ -73,6 +81,36 @@ export interface Database {
         };
         Insert: Omit<Database['public']['Tables']['scrape_logs']['Row'], 'id' | 'created_at'>;
         Update: Partial<Database['public']['Tables']['scrape_logs']['Insert']>;
+      };
+      redirect_events: {
+        Row: {
+          id: string;
+          coffee_id: string;
+          roaster_id: string;
+          source: string;
+          filter_context: Json | null;
+          quiz_context: Json | null;
+          page_path: string;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['redirect_events']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['redirect_events']['Insert']>;
+      };
+      correction_reports: {
+        Row: {
+          id: string;
+          coffee_id: string | null;
+          roaster_id: string | null;
+          issue_type: string;
+          reporter_email: string;
+          message: string;
+          source_path: string;
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['correction_reports']['Row'], 'id' | 'status' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Database['public']['Tables']['correction_reports']['Row'], 'id' | 'created_at' | 'updated_at'>>;
       };
     };
     Functions: {

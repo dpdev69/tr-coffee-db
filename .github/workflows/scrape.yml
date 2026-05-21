@@ -11,19 +11,25 @@ on:
         required: false
         default: ''
 
+permissions:
+  contents: read
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: 'npm'
           cache-dependency-path: scrapers/package-lock.json
 
@@ -31,9 +37,24 @@ jobs:
         working-directory: scrapers
         run: npm ci
 
+      - name: Validate required secrets
+        run: |
+          missing=0
+
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "::error title=Missing repository secret::SUPABASE_URL is required for scheduled scrapes."
+            missing=1
+          fi
+
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::error title=Missing repository secret::SUPABASE_SERVICE_ROLE_KEY is required for scheduled scrapes."
+            missing=1
+          fi
+
+          exit "$missing"
+
       - name: Run scrapers
         working-directory: scrapers
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: npx tsx src/index.ts ${{ github.event.inputs.roasters }}
+          ROASTERS: ${{ github.event.inputs.roasters || '' }}
+        run: npx tsx src/index.ts "$ROASTERS"

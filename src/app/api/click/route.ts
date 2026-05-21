@@ -1,49 +1,84 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+import { validateClickPayload } from '@/lib/api/intake-validation';
 
 export async function POST(request: Request) {
+  let body: unknown;
+
   try {
-    const { coffee_id } = await request.json();
-    if (typeof coffee_id !== 'string' || !UUID_PATTERN.test(coffee_id)) {
-      return NextResponse.json({ error: 'Invalid coffee_id' }, { status: 400 });
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json(
-        { error: 'Click tracking is not configured' },
-        { status: 500 }
-      );
-    }
-
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
-    const { data: coffee, error: coffeeError } = await supabase
-      .from('coffees')
-      .select('id')
-      .eq('id', coffee_id)
-      .eq('is_available', true)
-      .maybeSingle();
-
-    if (coffeeError) {
-      return NextResponse.json({ error: 'Failed to validate coffee' }, { status: 500 });
-    }
-
-    if (!coffee) {
-      return NextResponse.json({ error: 'Coffee not found' }, { status: 404 });
-    }
-
-    const { error: rpcError } = await supabase.rpc('increment_click', { coffee_id });
-    if (rpcError) {
-      return NextResponse.json({ error: 'Failed to track click' }, { status: 500 });
-    }
-
-    return NextResponse.json({ ok: true });
+    body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Failed to track click' }, { status: 500 });
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
+
+  const payload = validateClickPayload(body);
+  if (!payload.ok) {
+    return NextResponse.json({ error: payload.error }, { status: 400 });
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return NextResponse.json(
+      { error: 'Click tracking is not configured' },
+      { status: 500 }
+    );
+  }
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+
+  const { data: coffee, error: coffeeError } = await supabase
+    .from('coffees')
+    .select('id, roaster_id')
+    .eq('id', payload.data.coffee_id)
+    .eq('is_available', true)
+    .maybeSingle();
+
+  if (coffeeError) {
+    console.error('Failed to validate coffee before click tracking', {
+      coffee_id: payload.data.coffee_id,
+      code: coffeeError.code,
+      message: coffeeError.message,
+    });
+    return NextResponse.json({ error: 'Failed to validate coffee' }, { status: 500 });
+  }
+
+  if (!coffee) {
+    return NextResponse.json({ error: 'Coffee not found' }, { status: 404 });
+  }
+
+  const [eventResult, clickResult] = await Promise.all([
+    supabase.from('redirect_events').insert({
+      coffee_id: coffee.id,
+      roaster_id: coffee.roaster_id,
+      source: payload.data.source,
+      filter_context: payload.data.filter_context,
+      quiz_context: payload.data.quiz_context,
+      page_path: payload.data.page_path,
+    }),
+    supabase.rpc('increment_click', { coffee_id: coffee.id }),
+  ]);
+
+  if (eventResult.error) {
+    console.error('Failed to insert redirect event', {
+      coffee_id: coffee.id,
+      roaster_id: coffee.roaster_id,
+      source: payload.data.source,
+      code: eventResult.error.code,
+      message: eventResult.error.message,
+    });
+  }
+
+  if (clickResult.error) {
+    console.error('Failed to increment click count', {
+      coffee_id: coffee.id,
+      code: clickResult.error.code,
+      message: clickResult.error.message,
+    });
+  }
+
+  return NextResponse.json({ ok: true });
 }

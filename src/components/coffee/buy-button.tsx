@@ -15,7 +15,11 @@ export function BuyButton({
       await fetch('/api/click', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coffee_id: coffeeId }),
+        body: JSON.stringify({
+          coffee_id: coffeeId,
+          source: 'coffee_detail',
+          page_path: window.location.pathname,
+        }),
       });
     } catch {
       // Non-blocking — don't prevent redirect if tracking fails

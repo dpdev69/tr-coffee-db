@@ -71,6 +71,7 @@ const migrationFiles = [
   '006_deactivate_coffee_sapiens.sql',
   '007_set_function_search_paths.sql',
   '008_lock_down_increment_click.sql',
+  '009_redirect_analytics_and_corrections.sql',
 ];
 
 async function tryConnect(config) {

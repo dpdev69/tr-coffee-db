@@ -1,10 +1,17 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { CoffeeFreshnessSignal } from '@/components/coffee/coffee-freshness-signal';
 import { Tag } from '@/components/ui/tag';
 import { PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
+import { deriveCoffeeConfidence } from '@/lib/coffee-confidence';
+import type { LatestRoasterScrapeStatus } from '@/lib/coffee-confidence';
 import type { CoffeeWithRoaster } from '@/lib/types/database';
 
-export function CoffeeCard({ coffee }: { coffee: CoffeeWithRoaster }) {
+type CoffeeCardCoffee = CoffeeWithRoaster & {
+  latestRoasterScrape?: LatestRoasterScrapeStatus | null;
+};
+
+export function CoffeeCard({ coffee }: { coffee: CoffeeCardCoffee }) {
   const priceDisplay = coffee.price_amount
     ? `${coffee.price_amount.toLocaleString('tr-TR')} TL`
     : null;
@@ -12,6 +19,10 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeWithRoaster }) {
   const pricePer100g = coffee.price_per_100g
     ? `${coffee.price_per_100g.toLocaleString('tr-TR')} TL/100g`
     : null;
+
+  const confidence = deriveCoffeeConfidence(coffee, coffee.latestRoasterScrape, {
+    staleAfterDays: 7,
+  });
 
   return (
     <Link
@@ -59,6 +70,7 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeWithRoaster }) {
         <h3 className="mt-1 font-semibold leading-tight text-stone-900 line-clamp-2">
           {coffee.name_normalized ?? coffee.name}
         </h3>
+        <CoffeeFreshnessSignal confidence={confidence} />
 
         {/* Origin */}
         {coffee.origin_country && (
