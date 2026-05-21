@@ -43,6 +43,12 @@ export abstract class BaseScraper {
       productsFound = rawProducts.length;
       console.log(`[${this.config.slug}] Found ${productsFound} raw products`);
 
+      if (productsFound === 0) {
+        throw new Error(
+          'Scrape returned zero products; preserving existing availability until the adapter is verified.'
+        );
+      }
+
       // 2. Normalize
       const normalized = rawProducts.map((raw) => normalize(raw));
       console.log(`[${this.config.slug}] Normalized ${normalized.length} products`);
