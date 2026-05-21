@@ -62,10 +62,6 @@ export default async function CoffeeDetailPage({
   const similar = await getSimilarCoffees(coffee, 4);
   const roaster = coffee.roasters as { id: string; name: string; slug: string; city: string; website_url: string; logo_url: string | null };
   const brewRecipes = coffee.brew_recipes ?? [];
-  const completenessBadges = getCompletenessBadges(coffee);
-  const completenessScore = Math.round(
-    (completenessBadges.filter((badge) => badge.available).length / completenessBadges.length) * 100
-  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -80,24 +76,13 @@ export default async function CoffeeDetailPage({
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
         {/* Image */}
-        <div className="relative aspect-square overflow-hidden rounded-2xl bg-stone-100">
-          {coffee.image_url ? (
-            <Image
-              src={coffee.image_url}
-              alt={coffee.name}
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-              priority
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-stone-300">
-              <svg className="h-24 w-24" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z" />
-              </svg>
-            </div>
-          )}
-        </div>
+        <CoffeeImage
+          alt={coffee.name}
+          imageUrl={coffee.image_url}
+          sizes="50vw"
+          className="hidden aspect-square rounded-2xl lg:block"
+          priority
+        />
 
         {/* Details */}
         <div>
@@ -108,7 +93,7 @@ export default async function CoffeeDetailPage({
             {roaster.name} &middot; {roaster.city}
           </Link>
 
-          <h1 className="mt-2 text-3xl font-bold text-stone-900">
+          <h1 className="mt-2 text-2xl font-bold text-stone-900 sm:text-3xl">
             {coffee.name_normalized ?? coffee.name}
           </h1>
 
@@ -119,49 +104,24 @@ export default async function CoffeeDetailPage({
                 {coffee.price_amount.toLocaleString('tr-TR')} TL
               </span>
             )}
-            {coffee.price_per_100g && (
-              <span className="whitespace-nowrap text-sm text-stone-500">
-                {coffee.price_per_100g.toLocaleString('tr-TR')} TL/100g
-              </span>
-            )}
             {coffee.weight_grams && (
               <span className="whitespace-nowrap text-sm text-stone-500">
-                {coffee.weight_grams >= 1000
-                  ? `${(coffee.weight_grams / 1000).toFixed(coffee.weight_grams % 1000 ? 1 : 0)}kg`
-                  : `${coffee.weight_grams}g`}
+                {formatWeight(coffee.weight_grams)}
+              </span>
+            )}
+            {coffee.price_per_100g && (
+              <span className="whitespace-nowrap text-sm text-stone-500">
+                ({coffee.price_per_100g.toLocaleString('tr-TR')} TL / 100 g)
               </span>
             )}
           </div>
 
-          <div className="mt-5 rounded-xl border border-stone-200 bg-stone-50 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-sm font-semibold text-stone-900">Künye doluluğu</h2>
-              <span className="text-sm font-bold text-amber-700">%{completenessScore}</span>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {completenessBadges.map((badge) => (
-                <span
-                  key={badge.label}
-                  className={`rounded-md px-2 py-1 text-xs font-medium ${
-                    badge.available
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-stone-200 text-stone-500'
-                  }`}
-                >
-                  {badge.label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Buy button */}
-          <div className="mt-6">
-            <BuyButton
-              coffeeId={coffee.id}
-              productUrl={coffee.product_url}
-              roasterName={roaster.name}
-            />
-          </div>
+          <CoffeeImage
+            alt={coffee.name}
+            imageUrl={coffee.image_url}
+            sizes="100vw"
+            className="mt-6 aspect-[16/10] rounded-xl lg:hidden"
+          />
 
           {/* Specs table */}
           <div className="mt-8 space-y-4">
@@ -222,61 +182,50 @@ export default async function CoffeeDetailPage({
               {coffee.is_decaf && (
                 <SpecRow label="Dekaf" value="Evet" />
               )}
-              <SpecRow
-                label="Kavurucu"
-                value={
-                  <Link href={`/roasters/${roaster.slug}`} className="text-amber-700 hover:text-amber-800">
-                    {roaster.name}
-                  </Link>
-                }
-              />
-              <SpecRow
-                label="Kaynak"
-                value={
-                  <a
-                    href={coffee.product_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-amber-700 hover:text-amber-800"
-                  >
-                    Kavurucu sayfası
-                  </a>
-                }
-              />
+              {coffee.flavor_notes_normalized.length > 0 && (
+                <SpecRow
+                  label="Tadım notları"
+                  value={
+                    <div className="flex flex-wrap justify-end gap-2">
+                      {coffee.flavor_notes_normalized.map((note) => {
+                        const category = coffee.flavor_categories.find((cat) =>
+                          note.toLowerCase().includes(cat.toLowerCase())
+                        );
+                        return (
+                          <Tag key={note} category={category} size="sm">
+                            {note}
+                          </Tag>
+                        );
+                      })}
+                    </div>
+                  }
+                />
+              )}
+              {coffee.brew_methods.length > 0 && (
+                <SpecRow
+                  label="Demleme uyumu"
+                  value={
+                    <div className="flex flex-wrap justify-end gap-2">
+                      {coffee.brew_methods.map((method) => (
+                        <Tag key={method} size="sm">
+                          {BREW_METHOD_LABELS[method] ?? method}
+                        </Tag>
+                      ))}
+                    </div>
+                  }
+                />
+              )}
             </dl>
           </div>
 
-          {coffee.brew_methods.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold text-stone-900">Demleme Uyumu</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {coffee.brew_methods.map((method) => (
-                  <Tag key={method} size="sm">
-                    {BREW_METHOD_LABELS[method] ?? method}
-                  </Tag>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Flavor notes */}
-          {coffee.flavor_notes_normalized.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold text-stone-900">Tadım Notları</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {coffee.flavor_notes_normalized.map((note) => {
-                  const category = coffee.flavor_categories.find((cat) =>
-                    note.toLowerCase().includes(cat.toLowerCase())
-                  );
-                  return (
-                    <Tag key={note} category={category} size="sm">
-                      {note}
-                    </Tag>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {/* Buy button */}
+          <div className="mt-6">
+            <BuyButton
+              coffeeId={coffee.id}
+              productUrl={coffee.product_url}
+              roasterName={roaster.name}
+            />
+          </div>
 
           {brewRecipes.length > 0 && (
             <div className="mt-8">
@@ -310,6 +259,41 @@ function SpecRow({ label, value }: { label: string; value: React.ReactNode }) {
     <div className="flex justify-between gap-4 py-2.5">
       <dt className="shrink-0 text-sm text-stone-500">{label}</dt>
       <dd className="text-right text-sm font-medium text-stone-900">{value}</dd>
+    </div>
+  );
+}
+
+function CoffeeImage({
+  alt,
+  className,
+  imageUrl,
+  priority = false,
+  sizes,
+}: {
+  alt: string;
+  className: string;
+  imageUrl: string | null;
+  priority?: boolean;
+  sizes: string;
+}) {
+  return (
+    <div className={`relative overflow-hidden bg-stone-100 ${className}`}>
+      {imageUrl ? (
+        <Image
+          src={imageUrl}
+          alt={alt}
+          fill
+          sizes={sizes}
+          className="object-cover"
+          priority={priority}
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center text-stone-300">
+          <svg className="h-16 w-16 sm:h-24 sm:w-24" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21z" />
+          </svg>
+        </div>
+      )}
     </div>
   );
 }
@@ -352,20 +336,6 @@ function RecipeCard({ recipe }: { recipe: CoffeeBrewRecipe }) {
       )}
     </article>
   );
-}
-
-function getCompletenessBadges(coffee: Awaited<ReturnType<typeof getCoffeeBySlug>>) {
-  if (!coffee) return [];
-
-  return [
-    { label: '100g fiyatı var', available: coffee.price_per_100g != null },
-    { label: 'Köken var', available: Boolean(coffee.origin_country) },
-    { label: 'İşleme var', available: coffee.process !== 'unknown' },
-    { label: 'Kavrum var', available: coffee.roast_level !== 'unknown' },
-    { label: 'Tadım notu var', available: coffee.flavor_notes_normalized.length > 0 },
-    { label: 'Demleme var', available: coffee.brew_methods.length > 0 },
-    { label: 'Reçete var', available: (coffee.brew_recipes ?? []).length > 0 },
-  ];
 }
 
 function formatWeight(weightGrams: number) {
