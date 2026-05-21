@@ -30,6 +30,21 @@ const BREW_METHOD_VALUE_SET = new Set(BREW_METHOD_VALUES);
 const FLAVOR_CATEGORY_VALUE_SET = new Set<string>(FLAVOR_CATEGORIES);
 const SORT_VALUE_SET = new Set<string>(SORT_VALUES);
 
+interface FilterRemoval {
+  key: string;
+  value?: string;
+}
+
+interface ActiveCoffeeFilterDefinition {
+  label: string;
+  remove: FilterRemoval[];
+}
+
+export interface ActiveCoffeeFilterChip {
+  label: string;
+  removeHref: string;
+}
+
 export function parseCoffeeFilters(params: CoffeeSearchParams): CoffeeFilters {
   const sortValue = getFirstSearchParamValue(params.sort);
 
@@ -71,51 +86,156 @@ function getCityArrayValue(value: SearchParamValue): string[] | undefined {
 }
 
 export function getActiveCoffeeFilterLabels(filters: CoffeeFilters): string[] {
-  const labels: string[] = [];
+  return getActiveCoffeeFilterDefinitions(filters).map((filter) => filter.label);
+}
+
+export function getActiveCoffeeFilterChips(filters: CoffeeFilters): ActiveCoffeeFilterChip[] {
+  return getActiveCoffeeFilterDefinitions(filters).map((filter) => ({
+    label: filter.label,
+    removeHref: buildCoffeeFiltersUrl(filters, filter.remove),
+  }));
+}
+
+function getActiveCoffeeFilterDefinitions(filters: CoffeeFilters): ActiveCoffeeFilterDefinition[] {
+  const filtersToShow: ActiveCoffeeFilterDefinition[] = [];
 
   if (filters.search) {
-    labels.push(`Arama: ${filters.search}`);
+    filtersToShow.push({
+      label: `Arama: ${filters.search}`,
+      remove: [{ key: 'search' }],
+    });
   }
 
-  filters.origin?.forEach((origin) => labels.push(`Köken: ${origin}`));
+  filters.origin?.forEach((origin) =>
+    filtersToShow.push({
+      label: `Köken: ${origin}`,
+      remove: [{ key: 'origin', value: origin }],
+    })
+  );
   filters.process?.forEach((process) =>
-    labels.push(`İşleme: ${PROCESS_LABELS[process] ?? process}`)
+    filtersToShow.push({
+      label: `İşleme: ${PROCESS_LABELS[process] ?? process}`,
+      remove: [{ key: 'process', value: process }],
+    })
   );
   filters.roastLevel?.forEach((roastLevel) =>
-    labels.push(`Kavurma: ${ROAST_LABELS[roastLevel] ?? roastLevel}`)
+    filtersToShow.push({
+      label: `Kavurma: ${ROAST_LABELS[roastLevel] ?? roastLevel}`,
+      remove: [{ key: 'roastLevel', value: roastLevel }],
+    })
   );
-  filters.roaster?.forEach((roaster) => labels.push(`Kavurucu: ${roaster}`));
-  filters.city?.forEach((city) => labels.push(`Şehir: ${city}`));
+  filters.roaster?.forEach((roaster) =>
+    filtersToShow.push({
+      label: `Kavurucu: ${roaster}`,
+      remove: [{ key: 'roaster', value: roaster }],
+    })
+  );
+  filters.city?.forEach((city) =>
+    filtersToShow.push({
+      label: `Şehir: ${city}`,
+      remove: [{ key: 'city', value: city }],
+    })
+  );
   filters.flavorCategory?.forEach((flavorCategory) =>
-    labels.push(
-      `Tat: ${
+    filtersToShow.push({
+      label: `Tat: ${
         FLAVOR_CATEGORIES.find((category) => category === flavorCategory)
           ? FLAVOR_CATEGORY_LABELS[flavorCategory as keyof typeof FLAVOR_CATEGORY_LABELS]
           : flavorCategory
-      }`
-    )
+      }`,
+      remove: [{ key: 'flavorCategory', value: flavorCategory }],
+    })
   );
   filters.brewMethod?.forEach((brewMethod) =>
-    labels.push(`Demleme: ${BREW_METHOD_LABELS[brewMethod] ?? brewMethod}`)
+    filtersToShow.push({
+      label: `Demleme: ${BREW_METHOD_LABELS[brewMethod] ?? brewMethod}`,
+      remove: [{ key: 'brewMethod', value: brewMethod }],
+    })
   );
 
   if (filters.singleOrigin === true) {
-    labels.push('Yalnızca tek köken');
+    filtersToShow.push({
+      label: 'Yalnızca tek köken',
+      remove: [{ key: 'singleOrigin' }],
+    });
   }
 
   if (filters.isDecaf === true) {
-    labels.push('Sadece dekaf');
+    filtersToShow.push({
+      label: 'Sadece dekaf',
+      remove: [{ key: 'isDecaf' }],
+    });
   }
 
   if (filters.priceMin != null || filters.priceMax != null) {
     if (filters.priceMin != null && filters.priceMax != null) {
-      labels.push(`Bütçe: ${filters.priceMin}-${filters.priceMax} TL/100 g`);
+      filtersToShow.push({
+        label: `Bütçe: ${filters.priceMin}-${filters.priceMax} TL/100 g`,
+        remove: [{ key: 'priceMin' }, { key: 'priceMax' }],
+      });
     } else if (filters.priceMin != null) {
-      labels.push(`Bütçe: ${filters.priceMin}+ TL/100 g`);
+      filtersToShow.push({
+        label: `Bütçe: ${filters.priceMin}+ TL/100 g`,
+        remove: [{ key: 'priceMin' }],
+      });
     } else if (filters.priceMax != null) {
-      labels.push(`Bütçe: en fazla ${filters.priceMax} TL/100 g`);
+      filtersToShow.push({
+        label: `Bütçe: en fazla ${filters.priceMax} TL/100 g`,
+        remove: [{ key: 'priceMax' }],
+      });
     }
   }
 
-  return labels;
+  return filtersToShow;
+}
+
+function buildCoffeeFiltersUrl(filters: CoffeeFilters, removals: FilterRemoval[] = []) {
+  const params = new URLSearchParams();
+  const hasRemoval = (key: string, value?: string) =>
+    removals.some((removal) => {
+      if (removal.key !== key) return false;
+      return removal.value == null || removal.value === value;
+    });
+  const appendArrayFilter = (key: string, values: string[] | undefined) => {
+    values?.forEach((value) => {
+      if (!hasRemoval(key, value)) {
+        params.append(key, value);
+      }
+    });
+  };
+
+  if (filters.search && !hasRemoval('search')) {
+    params.set('search', filters.search);
+  }
+
+  appendArrayFilter('origin', filters.origin);
+  appendArrayFilter('process', filters.process);
+  appendArrayFilter('roastLevel', filters.roastLevel);
+  appendArrayFilter('roaster', filters.roaster);
+  appendArrayFilter('city', filters.city);
+  appendArrayFilter('flavorCategory', filters.flavorCategory);
+  appendArrayFilter('brewMethod', filters.brewMethod);
+
+  if (filters.singleOrigin != null && !hasRemoval('singleOrigin')) {
+    params.set('singleOrigin', String(filters.singleOrigin));
+  }
+
+  if (filters.isDecaf != null && !hasRemoval('isDecaf')) {
+    params.set('isDecaf', String(filters.isDecaf));
+  }
+
+  if (filters.priceMin != null && !hasRemoval('priceMin')) {
+    params.set('priceMin', String(filters.priceMin));
+  }
+
+  if (filters.priceMax != null && !hasRemoval('priceMax')) {
+    params.set('priceMax', String(filters.priceMax));
+  }
+
+  if (filters.sort && filters.sort !== 'newest') {
+    params.set('sort', filters.sort);
+  }
+
+  const query = params.toString();
+  return query ? `/coffees?${query}` : '/coffees';
 }

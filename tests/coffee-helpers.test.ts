@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { parseCoffeeFilters } from '@/lib/coffee-filters';
+import {
+  getActiveCoffeeFilterChips,
+  getActiveCoffeeFilterLabels,
+  parseCoffeeFilters,
+} from '@/lib/coffee-filters';
 
 describe('parseCoffeeFilters', () => {
   it('deduplicates valid repeated values, normalizes text, and ignores invalid enums', () => {
@@ -53,5 +57,47 @@ describe('parseCoffeeFilters', () => {
     assert.equal(filters.city, undefined);
     assert.equal(filters.search, undefined);
     assert.equal(filters.sort, 'price_asc');
+  });
+});
+
+describe('active coffee filter chips', () => {
+  it('keeps legacy labels while generating per-chip removal URLs', () => {
+    const filters = parseCoffeeFilters({
+      search: 'Kenya',
+      roastLevel: ['medium_light', 'medium', 'medium_dark'],
+      flavorCategory: 'Fruity',
+      page: '3',
+      sort: 'popular',
+    });
+
+    assert.deepEqual(getActiveCoffeeFilterLabels(filters), [
+      'Arama: Kenya',
+      'Kavurma: Orta-Açık',
+      'Kavurma: Orta',
+      'Kavurma: Orta-Koyu',
+      'Tat: Meyvemsi',
+    ]);
+
+    const chips = getActiveCoffeeFilterChips(filters);
+    const ortaAcik = chips.find((chip) => chip.label === 'Kavurma: Orta-Açık');
+
+    assert.equal(
+      ortaAcik?.removeHref,
+      '/coffees?search=Kenya&roastLevel=medium&roastLevel=medium_dark&flavorCategory=Fruity&sort=popular'
+    );
+  });
+
+  it('clears both price bounds from the budget chip', () => {
+    const filters = parseCoffeeFilters({
+      brewMethod: 'espresso',
+      priceMin: '120',
+      priceMax: '200',
+      page: '4',
+    });
+
+    const chips = getActiveCoffeeFilterChips(filters);
+    const budget = chips.find((chip) => chip.label === 'Bütçe: 120-200 TL/100 g');
+
+    assert.equal(budget?.removeHref, '/coffees?brewMethod=espresso');
   });
 });

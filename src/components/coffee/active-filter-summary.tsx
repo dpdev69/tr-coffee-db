@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { Tag } from '@/components/ui/tag';
-import { getActiveCoffeeFilterLabels } from '@/lib/coffee-filters';
+import { getActiveCoffeeFilterChips } from '@/lib/coffee-filters';
 import type { CoffeeFilters } from '@/lib/queries/coffees';
 
 export function ActiveFilterSummary({
@@ -10,8 +9,8 @@ export function ActiveFilterSummary({
   filters: CoffeeFilters;
   total: number;
 }) {
-  const activeLabels = getActiveCoffeeFilterLabels(filters);
-  const hasActiveFilters = activeLabels.length > 0;
+  const activeFilterChips = getActiveCoffeeFilterChips(filters);
+  const hasActiveFilters = activeFilterChips.length > 0;
   const processFilterHidesUnknown =
     filters.process?.some((process) => process !== 'unknown') &&
     !filters.process.includes('unknown');
@@ -57,8 +56,22 @@ export function ActiveFilterSummary({
 
       {hasActiveFilters && (
         <div className="mt-3 flex flex-wrap gap-2 sm:mt-4">
-          {activeLabels.map((label) => (
-            <Tag key={label}>{label}</Tag>
+          {activeFilterChips.map((chip) => (
+            <Link
+              key={chip.label}
+              href={chip.removeHref}
+              scroll={false}
+              aria-label={`${chip.label} filtresini kaldır`}
+              className="group inline-flex max-w-full items-center gap-1.5 rounded-full border border-stone-200 bg-stone-100 py-0.5 pl-2 pr-1 text-xs font-medium text-stone-600 transition-colors hover:border-amber-200 hover:bg-amber-50 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+            >
+              <span className="truncate">{chip.label}</span>
+              <span
+                aria-hidden="true"
+                className="grid h-4 w-4 shrink-0 place-items-center rounded-full text-sm leading-none text-stone-400 transition-colors group-hover:bg-amber-100 group-hover:text-amber-800"
+              >
+                ×
+              </span>
+            </Link>
           ))}
         </div>
       )}

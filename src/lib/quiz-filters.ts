@@ -30,8 +30,12 @@ const FLAVOR_EXPLANATIONS: Record<string, string> = {
 
 const ROAST_EXPLANATIONS: Record<string, string> = {
   light: 'Kavrum: Açık kavrum filtresi eklendi.',
-  medium: 'Kavrum: Orta kavrum filtresi eklendi.',
+  medium: 'Kavrum: Orta, orta-açık ve orta-koyu kavrum filtreleri eklendi.',
   dark: 'Kavrum: Koyu kavrum filtresi eklendi.',
+};
+
+const ROAST_FILTER_VALUES: Record<string, string[]> = {
+  medium: ['medium_light', 'medium', 'medium_dark'],
 };
 
 export function buildQuizFilterResult(answers: QuizAnswers): QuizFilterResult {
@@ -49,7 +53,9 @@ export function buildQuizFilterResult(answers: QuizAnswers): QuizFilterResult {
   }
 
   if (answers.roast && answers.roast !== 'any') {
-    params.append('roastLevel', answers.roast);
+    for (const roastLevel of ROAST_FILTER_VALUES[answers.roast] ?? [answers.roast]) {
+      params.append('roastLevel', roastLevel);
+    }
     explanations.push(ROAST_EXPLANATIONS[answers.roast] ?? `Kavrum: ${answers.roast}`);
   }
 

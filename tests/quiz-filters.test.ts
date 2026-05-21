@@ -42,4 +42,22 @@ describe('buildQuizFilterResult', () => {
       'Keşif modu: daha çok ilgi gören kahveler önce gösterilecek.',
     ]);
   });
+
+  it('expands medium roast quiz answers to adjacent medium roast filters', () => {
+    const result = buildQuizFilterResult({
+      brew: null,
+      flavors: [],
+      adventure: null,
+      roast: 'medium',
+      budget: null,
+    });
+
+    assert.equal(
+      result.url,
+      '/coffees?roastLevel=medium_light&roastLevel=medium&roastLevel=medium_dark'
+    );
+    assert.deepEqual(result.explanations, [
+      'Kavrum: Orta, orta-açık ve orta-koyu kavrum filtreleri eklendi.',
+    ]);
+  });
 });
