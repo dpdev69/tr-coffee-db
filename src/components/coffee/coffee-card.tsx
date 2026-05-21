@@ -1,17 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { CoffeeFreshnessSignal } from '@/components/coffee/coffee-freshness-signal';
 import { Tag } from '@/components/ui/tag';
 import { PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
-import { deriveCoffeeConfidence } from '@/lib/coffee-confidence';
-import type { LatestRoasterScrapeStatus } from '@/lib/coffee-confidence';
 import type { CoffeeWithRoaster } from '@/lib/types/database';
 
-type CoffeeCardCoffee = CoffeeWithRoaster & {
-  latestRoasterScrape?: LatestRoasterScrapeStatus | null;
-};
-
-export function CoffeeCard({ coffee }: { coffee: CoffeeCardCoffee }) {
+export function CoffeeCard({ coffee }: { coffee: CoffeeWithRoaster }) {
   const priceDisplay = coffee.price_amount
     ? `${coffee.price_amount.toLocaleString('tr-TR')} TL`
     : null;
@@ -19,10 +12,6 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeCardCoffee }) {
   const pricePer100g = coffee.price_per_100g
     ? `${coffee.price_per_100g.toLocaleString('tr-TR')} TL/100g`
     : null;
-
-  const confidence = deriveCoffeeConfidence(coffee, coffee.latestRoasterScrape, {
-    staleAfterDays: 7,
-  });
 
   return (
     <Link
@@ -70,7 +59,6 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeCardCoffee }) {
         <h3 className="mt-1 font-semibold leading-tight text-stone-900 line-clamp-2">
           {coffee.name_normalized ?? coffee.name}
         </h3>
-        <CoffeeFreshnessSignal confidence={confidence} />
 
         {/* Origin */}
         {coffee.origin_country && (
@@ -96,15 +84,17 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeCardCoffee }) {
         )}
 
         {/* Price */}
-        <div className="mt-3 flex items-baseline gap-2">
+        <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
           {priceDisplay && (
-            <span className="text-lg font-bold text-stone-900">{priceDisplay}</span>
+            <span className="whitespace-nowrap text-lg font-bold text-stone-900">
+              {priceDisplay}
+            </span>
           )}
           {pricePer100g && (
-            <span className="text-xs text-stone-400">{pricePer100g}</span>
+            <span className="whitespace-nowrap text-xs text-stone-400">{pricePer100g}</span>
           )}
           {coffee.weight_grams && (
-            <span className="text-xs text-stone-400">
+            <span className="whitespace-nowrap text-xs text-stone-400">
               {coffee.weight_grams >= 1000
                 ? `${(coffee.weight_grams / 1000).toFixed(coffee.weight_grams % 1000 ? 1 : 0)}kg`
                 : `${coffee.weight_grams}g`}

@@ -61,3 +61,33 @@ describe('parseProbadorProducts', () => {
     assert.equal(products[0].isAvailable, true);
   });
 });
+
+describe('parseCatalogPriceText', () => {
+  it('uses the first visible catalog price from Turkish ranges and sale strings', async () => {
+    const { parseCatalogPriceText } = await import('../scrapers/src/adapters/html-adapter.ts');
+    const config = {
+      slug: 'test-html',
+      name: 'Test HTML',
+      websiteUrl: 'https://example.test',
+      shopUrl: 'https://example.test/shop',
+      platform: 'custom' as const,
+      city: 'Istanbul',
+      priceFormat: 'tl' as const,
+      selectors: {
+        productList: '.product',
+        productLink: 'a',
+        productName: '.title',
+        productPrice: '.price',
+        productImage: 'img',
+        description: '',
+      },
+    };
+
+    assert.equal(parseCatalogPriceText('650,00 ₺ – 3.200,00 ₺', config), 650);
+    assert.equal(
+      parseCatalogPriceText('1.100,00 ₺ – 5.500,00 ₺Fiyat aralığı: 1.100,00 ₺ - 5.500,00 ₺', config),
+      1100
+    );
+    assert.equal(parseCatalogPriceText('₺ 250.00 - ₺ 2,100.00', config), 250);
+  });
+});

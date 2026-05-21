@@ -40,11 +40,12 @@ export function normalize(raw: RawProduct): NormalizedCoffee {
   // Shopify prices come as TL already (e.g., 595.00)
   // WooCommerce prices are already normalized in the adapter
   const priceAmount = raw.price;
+  const weightGrams = trustedPositiveWeight(raw.weightGrams);
 
   // Calculate price per 100g
   const pricePer100g =
-    priceAmount !== null && raw.weightGrams
-      ? Math.round((priceAmount / raw.weightGrams) * 100 * 100) / 100
+    priceAmount !== null && weightGrams !== null
+      ? Math.round((priceAmount / weightGrams) * 100 * 100) / 100
       : null;
 
   // Build normalized name (strip weight/brand info)
@@ -69,7 +70,7 @@ export function normalize(raw: RawProduct): NormalizedCoffee {
     sca_score: scaScore,
     price_amount: priceAmount,
     price_currency: 'TRY',
-    weight_grams: raw.weightGrams,
+    weight_grams: weightGrams,
     price_per_100g: pricePer100g,
     product_url: raw.productUrl,
     image_url: raw.imageUrl,
@@ -77,6 +78,12 @@ export function normalize(raw: RawProduct): NormalizedCoffee {
     is_decaf: isDecaf,
     brew_methods: brewMethods,
   };
+}
+
+function trustedPositiveWeight(weightGrams: number | null): number | null {
+  if (weightGrams === null) return null;
+  if (!Number.isFinite(weightGrams)) return null;
+  return weightGrams > 0 ? weightGrams : null;
 }
 
 function detectVariety(text: string): string | null {

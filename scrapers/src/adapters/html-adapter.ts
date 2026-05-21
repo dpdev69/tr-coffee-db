@@ -144,9 +144,14 @@ export class HtmlAdapter extends BaseScraper {
           const productUrl = href.startsWith('http')
             ? href
             : new URL(href, this.config.shopUrl).toString();
+          const description = selectors.description
+            ? $el.find(selectors.description).text().trim()
+            : '';
+
+          if (!isLikelyCatalogCoffeeProduct([name, description, productUrl])) return;
 
           const priceText = $el.find(selectors.productPrice).text().trim();
-          const price = this.parsePrice(priceText);
+          const price = parseCatalogPriceText(priceText, this.config);
 
           const imageEl = $el.find(selectors.productImage);
           const imageSrc = imageEl.attr('src') || imageEl.attr('data-src') || null;
@@ -164,7 +169,7 @@ export class HtmlAdapter extends BaseScraper {
           allProducts.push({
             externalId: this.makeExternalId(productUrl),
             name,
-            description: '', // Fetched from detail page if needed
+            description,
             price,
             currency: 'TRY',
             weightGrams,
@@ -455,23 +460,6 @@ export class HtmlAdapter extends BaseScraper {
     return null;
   }
 
-  private parsePrice(text: string): number | null {
-    // Handle Turkish price formats: "595,00 TL", "₺595.00", "595 ₺", "595,00"
-    const cleaned = text
-      .replace(/[^\d,.]/g, '')
-      .replace(/\.(?=\d{3})/g, '')  // Remove thousand separators
-      .replace(',', '.');            // Normalize decimal separator
-
-    const num = parseFloat(cleaned);
-    if (isNaN(num)) return null;
-
-    // Apply price format normalization
-    if (this.config.priceFormat === 'kurus') {
-      return num / 100;
-    }
-    return num;
-  }
-
   private parseWeight(text: string): number | null {
     const gMatch = text.match(/(\d+)\s*(?:gr?|gram)\b/i);
     if (gMatch) return parseInt(gMatch[1]);
@@ -654,16 +642,46 @@ function normalizeTurkishText(text: string) {
     .replace(/[çÇ]/g, 'c');
 }
 
-function parseTurkishPrice(text: string, config: RoasterConfig): number | null {
-  const cleaned = text
-    .replace(/[^\d,.]/g, '')
-    .replace(/\.(?=\d{3})/g, '')
-    .replace(',', '.');
+export function parseCatalogPriceText(text: string, config: RoasterConfig): number | null {
+  const compactText = text.replace(/\s+/g, ' ').trim();
+  const firstPriceText = compactText.match(/\d[\d.,]*/)?.[0];
 
-  const num = Number.parseFloat(cleaned);
-  if (Number.isNaN(num)) return null;
+  if (!firstPriceText) return null;
+
+  const num = parseLocalizedPriceNumber(firstPriceText);
+  if (num === null) return null;
 
   return config.priceFormat === 'kurus' ? num / 100 : num;
+}
+
+function parseTurkishPrice(text: string, config: RoasterConfig): number | null {
+  return parseCatalogPriceText(text, config);
+}
+
+function parseLocalizedPriceNumber(text: string): number | null {
+  const cleaned = text.replace(/[^\d,.]/g, '');
+  if (!cleaned) return null;
+
+  const lastComma = cleaned.lastIndexOf(',');
+  const lastDot = cleaned.lastIndexOf('.');
+  let normalized = cleaned;
+
+  if (lastComma >= 0 && lastDot >= 0) {
+    normalized = lastComma > lastDot
+      ? cleaned.replace(/\./g, '').replace(',', '.')
+      : cleaned.replace(/,/g, '');
+  } else if (lastComma >= 0) {
+    normalized = /\d+,\d{1,2}$/.test(cleaned)
+      ? cleaned.replace(',', '.')
+      : cleaned.replace(/,/g, '');
+  } else if (lastDot >= 0) {
+    normalized = /\d+\.\d{1,2}$/.test(cleaned)
+      ? cleaned
+      : cleaned.replace(/\./g, '');
+  }
+
+  const num = Number.parseFloat(normalized);
+  return Number.isFinite(num) ? num : null;
 }
 
 function parseWeight(text: string): number | null {

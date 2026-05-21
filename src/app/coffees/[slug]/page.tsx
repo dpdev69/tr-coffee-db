@@ -93,19 +93,19 @@ export default async function CoffeeDetailPage({
           </h1>
 
           {/* Price */}
-          <div className="mt-4 flex items-baseline gap-3">
+          <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
             {coffee.price_amount && (
-              <span className="text-2xl font-bold text-stone-900">
+              <span className="whitespace-nowrap text-2xl font-bold text-stone-900">
                 {coffee.price_amount.toLocaleString('tr-TR')} TL
               </span>
             )}
             {coffee.price_per_100g && (
-              <span className="text-sm text-stone-500">
+              <span className="whitespace-nowrap text-sm text-stone-500">
                 {coffee.price_per_100g.toLocaleString('tr-TR')} TL/100g
               </span>
             )}
             {coffee.weight_grams && (
-              <span className="text-sm text-stone-500">
+              <span className="whitespace-nowrap text-sm text-stone-500">
                 {coffee.weight_grams >= 1000
                   ? `${(coffee.weight_grams / 1000).toFixed(coffee.weight_grams % 1000 ? 1 : 0)}kg`
                   : `${coffee.weight_grams}g`}

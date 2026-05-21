@@ -1,23 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { deriveCoffeeConfidence } from '@/lib/coffee-confidence';
 import { parseCoffeeFilters } from '@/lib/coffee-filters';
-
-const NOW = '2026-05-21T00:00:00.000Z';
-
-function completeCoffee(overrides = {}) {
-  return {
-    is_available: true,
-    origin_country: 'Colombia',
-    process: 'washed',
-    roast_level: 'medium',
-    price_per_100g: 120,
-    last_scraped_at: null,
-    last_seen_at: '2026-05-19T00:00:00.000Z',
-    ...overrides,
-  };
-}
 
 describe('parseCoffeeFilters', () => {
   it('deduplicates valid repeated values, normalizes text, and ignores invalid enums', () => {
@@ -69,67 +53,5 @@ describe('parseCoffeeFilters', () => {
     assert.equal(filters.city, undefined);
     assert.equal(filters.search, undefined);
     assert.equal(filters.sort, 'price_asc');
-  });
-});
-
-describe('deriveCoffeeConfidence', () => {
-  it('marks a fresh complete coffee with a successful scrape as verified', () => {
-    const confidence = deriveCoffeeConfidence(
-      completeCoffee(),
-      { status: 'success', completed_at: '2026-05-20T00:00:00.000Z' },
-      { now: NOW }
-    );
-
-    assert.equal(confidence.status, 'verified');
-    assert.equal(confidence.isFresh, true);
-    assert.equal(confidence.isComplete, true);
-    assert.deepEqual(confidence.reasons, [
-      'freshness_timestamp_recent',
-      'latest_roaster_scrape_success',
-    ]);
-  });
-
-  it('marks a fresh complete coffee without a successful scrape as recent', () => {
-    const confidence = deriveCoffeeConfidence(completeCoffee(), null, { now: NOW });
-
-    assert.equal(confidence.status, 'recent');
-    assert.equal(confidence.isFresh, true);
-    assert.deepEqual(confidence.reasons, ['freshness_timestamp_recent']);
-  });
-
-  it('marks incomplete metadata as partial even when freshness is recent', () => {
-    const confidence = deriveCoffeeConfidence(
-      completeCoffee({ process: null }),
-      { status: 'partial', products_found: 3 },
-      { now: NOW }
-    );
-
-    assert.equal(confidence.status, 'partial');
-    assert.equal(confidence.isComplete, false);
-    assert.ok(confidence.reasons.includes('metadata_incomplete'));
-    assert.ok(confidence.reasons.includes('latest_roaster_scrape_partial'));
-  });
-
-  it('marks old freshness timestamps as stale', () => {
-    const confidence = deriveCoffeeConfidence(
-      completeCoffee({ last_seen_at: '2026-04-01T00:00:00.000Z' }),
-      { status: 'success' },
-      { now: NOW }
-    );
-
-    assert.equal(confidence.status, 'stale');
-    assert.equal(confidence.isFresh, false);
-    assert.ok(confidence.reasons.includes('freshness_timestamp_stale'));
-  });
-
-  it('marks unavailable coffee as unavailable before freshness checks', () => {
-    const confidence = deriveCoffeeConfidence(
-      completeCoffee({ is_available: false }),
-      { status: 'success' },
-      { now: NOW }
-    );
-
-    assert.equal(confidence.status, 'unavailable');
-    assert.deepEqual(confidence.reasons, ['coffee_unavailable']);
   });
 });

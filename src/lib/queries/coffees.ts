@@ -5,16 +5,7 @@ import {
 } from '@/lib/catalog-rules';
 import { normalizeCityFilterValue, normalizeSearchTerm } from '@/lib/filter-contract';
 import type { CoffeeSortOption } from '@/lib/constants/filter-options';
-import type { LatestRoasterScrapeStatus } from '@/lib/coffee-confidence';
 import type { CoffeeWithRoaster } from '@/lib/types/database';
-
-export type CoffeeWithRoasterScrape = CoffeeWithRoaster & {
-  latestRoasterScrape?: LatestRoasterScrapeStatus | null;
-};
-
-type LatestRoasterScrapeRow = LatestRoasterScrapeStatus & {
-  roaster_id: string | null;
-};
 
 export interface CoffeeFilters {
   origin?: string[];
@@ -135,17 +126,8 @@ export async function getCoffees(filters: CoffeeFilters = {}) {
 
   if (error) throw error;
 
-  const coffees = (data ?? []) as CoffeeWithRoaster[];
-  const latestScrapesByRoasterId = await getLatestRoasterScrapeStatuses(
-    coffees.map((coffee) => coffee.roaster_id),
-    supabase
-  );
-
   return {
-    coffees: coffees.map((coffee) => ({
-      ...coffee,
-      latestRoasterScrape: latestScrapesByRoasterId.get(coffee.roaster_id) ?? null,
-    })) satisfies CoffeeWithRoasterScrape[],
+    coffees: (data ?? []) as CoffeeWithRoaster[],
     total: count ?? 0,
     page,
     perPage,
@@ -194,47 +176,6 @@ async function getRoasterIdsForCities(
       return city ? normalizedCities.has(city) : false;
     })
     .map((roaster) => roaster.id);
-}
-
-async function getLatestRoasterScrapeStatuses(
-  roasterIds: string[],
-  supabase: Awaited<ReturnType<typeof createClient>>
-) {
-  const uniqueRoasterIds = Array.from(new Set(roasterIds));
-  const latestByRoasterId = new Map<string, LatestRoasterScrapeStatus>();
-
-  if (uniqueRoasterIds.length === 0) return latestByRoasterId;
-
-  const { data, error } = await supabase
-    .from('scrape_logs')
-    .select('roaster_id, status, started_at, completed_at, products_found, products_upserted, error_message')
-    .in('roaster_id', uniqueRoasterIds)
-    .order('started_at', { ascending: false });
-
-  if (error) {
-    console.warn('Could not load latest scrape status for coffee confidence', {
-      code: error.code,
-      message: error.message,
-    });
-    return latestByRoasterId;
-  }
-
-  const scrapeLogs = (data ?? []) as LatestRoasterScrapeRow[];
-
-  for (const scrapeLog of scrapeLogs) {
-    if (!scrapeLog.roaster_id || latestByRoasterId.has(scrapeLog.roaster_id)) continue;
-
-    latestByRoasterId.set(scrapeLog.roaster_id, {
-      status: scrapeLog.status,
-      started_at: scrapeLog.started_at,
-      completed_at: scrapeLog.completed_at,
-      products_found: scrapeLog.products_found,
-      products_upserted: scrapeLog.products_upserted,
-      error_message: scrapeLog.error_message,
-    });
-  }
-
-  return latestByRoasterId;
 }
 
 export async function getSimilarCoffees(coffee: CoffeeWithRoaster, limit = 4) {

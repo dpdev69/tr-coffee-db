@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.coffee" },
       { protocol: "https", hostname: "*.co" },
       { protocol: "https", hostname: "*.net" },
+      { protocol: "https", hostname: "*.cloud" },
+      { protocol: "https", hostname: "percdn.com" },
     ],
   },
 };

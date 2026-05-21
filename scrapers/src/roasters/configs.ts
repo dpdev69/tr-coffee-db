@@ -1,7 +1,7 @@
 import type { RoasterConfig } from '../types.js';
 
 // ==========================================
-// SHOPIFY ROASTERS (8) — all prices in TL
+// SHOPIFY ROASTERS (11) — all prices in TL
 // ==========================================
 
 export const petra: RoasterConfig = {
@@ -91,6 +91,38 @@ export const boxx: RoasterConfig = {
   city: 'Istanbul',
   priceFormat: 'tl',
   productTypeFilter: ['specialty', 'kahve', 'coffee'],
+};
+
+export const nullCoffee: RoasterConfig = {
+  slug: 'null-coffee',
+  name: 'Null Coffee Roasters',
+  websiteUrl: 'https://null.coffee',
+  shopUrl: 'https://null.coffee',
+  platform: 'shopify',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  productTypeFilter: ['specialty coffee'],
+};
+
+export const kimma: RoasterConfig = {
+  slug: 'kimma',
+  name: 'Kimma Coffee Roasters',
+  websiteUrl: 'https://kimmacoffee.com',
+  shopUrl: 'https://shop.kimmacoffee.com',
+  platform: 'shopify',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+};
+
+export const cupOfJoy: RoasterConfig = {
+  slug: 'cup-of-joy',
+  name: 'Cup of Joy',
+  websiteUrl: 'https://cupofjoy.com.tr',
+  shopUrl: 'https://cupofjoy.com.tr',
+  platform: 'shopify',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  productTypeFilter: ['kahve'],
 };
 
 // ==========================================
@@ -209,7 +241,7 @@ export const williams: RoasterConfig = {
 };
 
 // ==========================================
-// IKAS ROASTERS (6)
+// IKAS ROASTERS (10)
 // Parsed from __NEXT_DATA__ storefront payloads
 // ==========================================
 
@@ -299,6 +331,83 @@ export const kernel: RoasterConfig = {
   structuredDataParser: 'next-data-products',
 };
 
+export const orkunUstel: RoasterConfig = {
+  slug: 'orkun-ustel',
+  name: 'Orkun Üstel',
+  websiteUrl: 'https://orkunustel.com',
+  shopUrl: 'https://orkunustel.com/nitelikli-kahve',
+  platform: 'ikas',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+  coffeeProductKeywords: [
+    'nitelikli kahve',
+    'filtre',
+    'espresso',
+    'etiyopya',
+    'kenya',
+    'kolombiya',
+    'kosta rika',
+    'peru',
+    'tanzanya',
+    'brezilya',
+  ],
+};
+
+export const calibre: RoasterConfig = {
+  slug: 'calibre',
+  name: 'Calibre Coffee',
+  websiteUrl: 'https://coffeecalibre.com',
+  shopUrl: 'https://coffeecalibre.com',
+  platform: 'ikas',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+  coffeeProductKeywords: [
+    'nitelikli kahve',
+    'kahve',
+    'coffee',
+    'filtre',
+    'espresso',
+    'colombia',
+    'honduras',
+    'panama',
+  ],
+};
+
+export const a4Kahve: RoasterConfig = {
+  slug: 'a4-kahve',
+  name: 'A4 Kahve',
+  websiteUrl: 'https://a4kahve.com',
+  shopUrl: 'https://a4kahve.com',
+  platform: 'ikas',
+  city: 'Unknown',
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+  coffeeProductKeywords: [
+    'kahve',
+    'coffee',
+    'filtre',
+    'espresso',
+    'kosta rika',
+    'peru',
+    'brezilya',
+    'etiyopya',
+  ],
+};
+
+export const tetraN: RoasterConfig = {
+  slug: 'tetra-n',
+  name: 'Tetra N Roastery',
+  websiteUrl: 'https://tetranroastery.com',
+  shopUrl: 'https://tetranroastery.com',
+  platform: 'ikas',
+  city: 'Ankara',
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+  coffeeProductKeywords: ['kahve', 'coffee', 'roastery', 'filtre', 'espresso'],
+};
+
 // ==========================================
 // CUSTOM ROASTERS
 // ==========================================
@@ -333,6 +442,63 @@ export const probador: RoasterConfig = {
   structuredDataParser: 'probador-products',
 };
 
+export const kafeinKultur: RoasterConfig = {
+  slug: 'kafeinkultur',
+  name: 'KafeinKültür',
+  websiteUrl: 'https://www.kafeinkultur.com',
+  shopUrl: 'https://www.kafeinkultur.com/kafeinkultur',
+  platform: 'custom',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  selectors: {
+    productList: '.product-card.default',
+    productLink: 'a.product-title',
+    productName: 'a.product-title',
+    productPrice: '.regular-price',
+    productImage: 'a.thumb img',
+    description: '',
+    unavailableText: 'Stokta yok',
+  },
+};
+
+export const coffeerem: RoasterConfig = {
+  slug: 'coffeerem',
+  name: 'Coffeerem Roastery',
+  websiteUrl: 'https://coffeerem.com',
+  shopUrl: 'https://coffeerem.com/magaza/',
+  platform: 'custom',
+  city: 'Izmir',
+  priceFormat: 'tl',
+  selectors: {
+    productList: '.dt-css-grid .wf-cell',
+    productLink: '.entry-title a',
+    productName: '.entry-title a',
+    productPrice: '.price',
+    productImage: 'a.alignnone img',
+    description: '',
+    unavailableText: 'Stokta yok',
+    nextPage: 'a.next.page-numbers',
+  },
+};
+
+export const coffeeDepartment: RoasterConfig = {
+  slug: 'coffee-department',
+  name: 'Coffee Department',
+  websiteUrl: 'https://coffeedepartment.co',
+  shopUrl: 'https://coffeedepartment.co/kahveler',
+  platform: 'custom',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  selectors: {
+    productList: '.productItem',
+    productLink: '.productName a',
+    productName: '.productName a',
+    productPrice: '.discountPriceSpan',
+    productImage: '.productImage img',
+    description: '.productOnYazi',
+  },
+};
+
 // ==========================================
 // ALL CONFIGS — used by orchestrator
 // ==========================================
@@ -347,6 +513,9 @@ export const ALL_ROASTER_CONFIGS: RoasterConfig[] = [
   homestead,
   nokCoffee,
   boxx,
+  nullCoffee,
+  kimma,
+  cupOfJoy,
   // WooCommerce
   baristocrat,
   coffeeFriendzone,
@@ -366,7 +535,14 @@ export const ALL_ROASTER_CONFIGS: RoasterConfig[] = [
   gourme,
   hound,
   kernel,
+  orkunUstel,
+  calibre,
+  a4Kahve,
+  tetraN,
   // Custom
   kronotrop,
   probador,
+  kafeinKultur,
+  coffeerem,
+  coffeeDepartment,
 ];
