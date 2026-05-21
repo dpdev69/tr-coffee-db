@@ -21,9 +21,12 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      # GitHub-hosted runners are blocked by Sezy's Store API; keep attempting it
-      # while allowing the remaining catalog refresh to complete.
-      ALLOW_ROASTER_FAILURES: sezy
+      # Sezy's Store API blocks GitHub-hosted runner IPs. Scheduled production
+      # refreshes skip it instead of writing a known failed scrape log. Manual
+      # full refreshes still attempt it without failing the whole run; an explicit
+      # `roasters=sezy` dispatch remains a hard probe.
+      SKIP_ROASTERS: ${{ github.event_name == 'schedule' && 'sezy' || '' }}
+      ALLOW_ROASTER_FAILURES: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.roasters == '' && 'sezy' || '' }}
 
     steps:
       - name: Checkout

@@ -1,5 +1,5 @@
 {
-  "researched_at": "2026-03-29",
+  "researched_at": "2026-05-21",
   "roasters": [
     {
       "name": "Petra Coffee",
@@ -288,13 +288,13 @@
     {
       "name": "Ultra Coffee Roastery",
       "slug": "ultra",
-      "url": "https://ultracoffeeroastery.com",
+      "url": "https://ultracoffee.myikas.com",
       "platform": "ikas",
       "api_endpoint": null,
       "api_works": false,
-      "status": "active",
+      "status": "catalog_unavailable",
       "city": "Izmit",
-      "notes": "Ikas platform. Needs HTML scraping. Small micro roaster."
+      "notes": "Official custom domain currently presents a *.myikas.com certificate and fails normal HTTPS validation. The Ikas backing storefront at ultracoffee.myikas.com is live, but its sitemap exposes only pages, embedded product-list data contains no product records, and Storefront GraphQL searchProducts/getProductFilterData returned zero usable products as of 2026-05-21."
     },
     {
       "name": "Spada Coffee",
@@ -310,13 +310,13 @@
     {
       "name": "Caffe Di Toee",
       "slug": "caffe-di-toee",
-      "url": "https://www.caffeditoee.com",
-      "platform": "ticimax",
+      "url": "https://caffeditoee.com",
+      "platform": "ikas",
       "api_endpoint": null,
       "api_works": false,
-      "status": "active",
+      "status": "catalog_unavailable",
       "city": "Ankara",
-      "notes": "Ticimax platform. Needs custom HTML scraping."
+      "notes": "Current live site redirects www to caffeditoee.com and is an Ikas storefront under construction. The previously indexed /cekirdek-kahveler catalog now returns HTTP 404; Ikas searchProducts GraphQL returns INTERNAL_SERVER_ERROR, so no live first-party scrapeable catalog is available as of 2026-05-21."
     },
     {
       "name": "Kronotrop",
@@ -424,9 +424,9 @@
       "platform": "custom",
       "api_endpoint": null,
       "api_works": false,
-      "status": "active",
+      "status": "marketplace_only",
       "city": "Istanbul",
-      "notes": "Custom platform. Page loaded but no standard CMS detected."
+      "notes": "First-party domain grizzlycoffeeroasters.com did not resolve during live checks. Search results show Turkish products on third-party marketplaces Hipicon and Trendyol; a MerchantGenius Shopify result for grizzlycoffeeroasters.com lists USD products and appears unrelated to the Istanbul roaster. Do not implement marketplace scraping without a product decision."
     },
     {
       "name": "3 Cores Coffee",

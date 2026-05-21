@@ -72,6 +72,7 @@ const migrationFiles = [
   '007_set_function_search_paths.sql',
   '008_lock_down_increment_click.sql',
   '009_redirect_analytics_and_corrections.sql',
+  '010_update_roaster_source_metadata.sql',
 ];
 
 async function tryConnect(config) {

@@ -29,10 +29,10 @@ INSERT INTO roasters (slug, name, website_url, shop_url, city, platform) VALUES
   ('kernel', 'Kernel Coffee', 'https://kernelcoffee.co', 'https://kernelcoffee.co', 'Istanbul', 'ikas'),
   ('paper', 'Paper Coffee & Chocolate', 'https://paperroastingcoffee.com', 'https://paperroastingcoffee.com', 'Ankara', 'ikas'),
   ('story', 'Story Coffee Roasters', 'https://storyroasters.com', 'https://storyroasters.com', 'Istanbul', 'ikas'),
-  ('ultra', 'Ultra Coffee Roastery', 'https://ultracoffeeroastery.com', 'https://ultracoffeeroastery.com', 'Izmit', 'ikas'),
+  ('ultra', 'Ultra Coffee Roastery', 'https://ultracoffee.myikas.com', 'https://ultracoffee.myikas.com', 'Izmit', 'ikas'),
   ('spada', 'Spada Coffee', 'https://spadacoffee.com', 'https://spadacoffee.com', 'Istanbul', 'ikas'),
-  -- Ticimax (1)
-  ('caffe-di-toee', 'Caffe Di Toee', 'https://www.caffeditoee.com', 'https://www.caffeditoee.com', 'Ankara', 'ticimax'),
+  -- Ikas, currently no live product catalog
+  ('caffe-di-toee', 'Caffe Di Toee', 'https://caffeditoee.com', 'https://caffeditoee.com', 'Ankara', 'ikas'),
   -- Custom platforms (future phases)
   ('kronotrop', 'Kronotrop', 'https://kronotrop.com.tr', 'https://kronotrop.com.tr', 'Istanbul', 'custom'),
   ('probador', 'Probador Colectiva', 'https://probadorcolectiva.com', 'https://probadorcolectiva.com', 'Istanbul', 'custom'),
