@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { validateClickPayload, validateJsonRequest } from '@/lib/api/intake-validation';
+import { applyPublicCoffeeVisibility } from '@/lib/public-coffee-visibility';
 
 const MAX_CLICK_BODY_BYTES = 16_384;
 
@@ -40,12 +41,14 @@ export async function POST(request: Request) {
     auth: { persistSession: false },
   });
 
-  const { data: coffee, error: coffeeError } = await supabase
+  let coffeeQuery = supabase
     .from('coffees')
     .select('id, roaster_id')
-    .eq('id', payload.data.coffee_id)
-    .eq('is_available', true)
-    .maybeSingle();
+    .eq('id', payload.data.coffee_id);
+  coffeeQuery = applyPublicCoffeeVisibility(coffeeQuery);
+
+  const { data: coffee, error: coffeeError } = await coffeeQuery.maybeSingle();
+  // applyPublicCoffeeVisibility above ensures hidden coffees 404 before analytics writes.
 
   if (coffeeError) {
     console.error('Failed to validate coffee before click tracking', {

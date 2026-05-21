@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { getCurrentCatalogCutoffIso } from '@/lib/catalog-rules';
+import { applyPublicCoffeeVisibility } from '@/lib/public-coffee-visibility';
 import { absoluteUrl } from '@/lib/site';
 import type { Database } from '@/lib/types/database';
 
@@ -58,12 +60,15 @@ async function getCatalogRoutes(): Promise<MetadataRoute.Sitemap> {
         persistSession: false,
       },
     });
+    const currentCutoff = getCurrentCatalogCutoffIso();
 
     const [coffeeResult, roasterResult] = await Promise.all([
-      supabase
-        .from('coffees')
-        .select('slug, updated_at, last_scraped_at')
-        .eq('is_available', true)
+      applyPublicCoffeeVisibility(
+        supabase
+          .from('coffees')
+          .select('slug, updated_at, last_scraped_at'),
+        currentCutoff
+      )
         .order('updated_at', { ascending: false })
         .limit(2000),
       supabase

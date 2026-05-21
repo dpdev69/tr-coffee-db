@@ -1,6 +1,10 @@
 import { supabase } from './supabase.js';
 import { normalize } from './normalization/index.js';
 import type { RoasterConfig, RawProduct, NormalizedCoffee } from './types.js';
+import {
+  classifySpecialtyProduct,
+  type SpecialtyOverride,
+} from './specialty-classification.js';
 
 export type ScrapeRunStatus = 'success' | 'failed';
 
@@ -10,6 +14,9 @@ export interface ScrapeRunResult {
   roasterId: string | null;
   productsFound: number;
   productsUpserted: number;
+  specialtyQualified: number;
+  specialtyRejected: number;
+  specialtyUnclassified: number;
   durationMs: number;
   error?: string;
 }
@@ -31,6 +38,9 @@ export abstract class BaseScraper {
     let status: ScrapeRunStatus = 'success';
     let productsFound = 0;
     let productsUpserted = 0;
+    let specialtyQualified = 0;
+    let specialtyRejected = 0;
+    let specialtyUnclassified = 0;
     let errorMessage: string | null = null;
 
     try {
@@ -49,9 +59,27 @@ export abstract class BaseScraper {
         );
       }
 
-      // 2. Normalize
-      const normalized = rawProducts.map((raw) => normalize(raw));
+      // 2. Normalize and classify specialty suitability
+      const specialtyOverrides = await this.loadSpecialtyOverrides();
+      const normalized = rawProducts.map((raw) => {
+        const coffee = normalize(raw);
+        const classification = classifySpecialtyProduct({
+          raw,
+          normalized: coffee,
+          roasterId: this.roasterId,
+          override: specialtyOverrides.get(coffee.external_id),
+        });
+
+        if (classification.specialty_status === 'specialty') specialtyQualified += 1;
+        if (classification.specialty_status === 'not_specialty') specialtyRejected += 1;
+        if (classification.specialty_status === 'unclassified') specialtyUnclassified += 1;
+
+        return { ...coffee, ...classification };
+      });
       console.log(`[${this.config.slug}] Normalized ${normalized.length} products`);
+      console.log(
+        `[${this.config.slug}] Specialty classification: ${specialtyQualified} qualified, ${specialtyRejected} rejected, ${specialtyUnclassified} unclassified`
+      );
 
       // 3. Upsert to Supabase
       productsUpserted = await this.upsertToSupabase(normalized);
@@ -74,17 +102,42 @@ export abstract class BaseScraper {
       status,
       products_found: productsFound,
       products_upserted: productsUpserted,
+      specialty_qualified: specialtyQualified,
+      specialty_rejected: specialtyRejected,
+      specialty_unclassified: specialtyUnclassified,
       error_message: errorMessage,
       duration_ms: durationMs,
     });
 
     if (logError) {
-      const message = `Failed to write scrape log: ${logError.message}`;
-      console.error(`[${this.config.slug}] ${message}`);
-      if (errorMessage) {
-        throw new Error(`${errorMessage}; ${message}`);
+      if (!this.isMissingSpecialtySchemaError(logError.message)) {
+        const message = `Failed to write scrape log: ${logError.message}`;
+        console.error(`[${this.config.slug}] ${message}`);
+        if (errorMessage) {
+          throw new Error(`${errorMessage}; ${message}`);
+        }
+        throw new Error(message);
       }
-      throw new Error(message);
+
+      const retryError = await this.writeScrapeLogWithoutSpecialtyCounts({
+        roaster_id: this.roasterId,
+        started_at: startedAt,
+        completed_at: new Date().toISOString(),
+        status,
+        products_found: productsFound,
+        products_upserted: productsUpserted,
+        error_message: errorMessage,
+        duration_ms: durationMs,
+      });
+
+      if (retryError) {
+        const message = `Failed to write scrape log: ${logError.message}`;
+        console.error(`[${this.config.slug}] ${message}`);
+        if (errorMessage) {
+          throw new Error(`${errorMessage}; ${message}`);
+        }
+        throw new Error(message);
+      }
     }
 
     console.log(
@@ -97,6 +150,9 @@ export abstract class BaseScraper {
       roasterId: this.roasterId,
       productsFound,
       productsUpserted,
+      specialtyQualified,
+      specialtyRejected,
+      specialtyUnclassified,
       durationMs,
       ...(errorMessage ? { error: errorMessage } : {}),
     };
@@ -153,6 +209,11 @@ export abstract class BaseScraper {
       is_decaf: p.is_decaf,
       brew_methods: p.brew_methods,
       brew_recipes: p.brew_recipes,
+      specialty_status: p.specialty_status,
+      specialty_score: p.specialty_score,
+      specialty_signals: p.specialty_signals,
+      specialty_rejection_reason: p.specialty_rejection_reason,
+      is_public: p.is_public,
       last_scraped_at: new Date().toISOString(),
       last_seen_at: new Date().toISOString(),
     }));
@@ -163,10 +224,88 @@ export abstract class BaseScraper {
       .select();
 
     if (error) {
+      if (this.isMissingSpecialtySchemaError(error.message)) {
+        console.warn(
+          `[${this.config.slug}] Specialty columns are not available yet; retrying coffee upsert without specialty fields.`
+        );
+        return this.upsertRowsWithoutSpecialtyFields(rows);
+      }
+
       throw new Error(`Supabase upsert failed: ${error.message}`);
     }
 
     return count ?? rows.length;
+  }
+
+  private async loadSpecialtyOverrides(): Promise<Map<string, SpecialtyOverride>> {
+    if (!this.roasterId) return new Map();
+
+    const { data, error } = await supabase
+      .from('coffee_specialty_overrides')
+      .select('roaster_id,external_id,override_action,reason')
+      .eq('roaster_id', this.roasterId);
+
+    if (error) {
+      if (this.isMissingSpecialtySchemaError(error.message)) {
+        console.warn(
+          `[${this.config.slug}] Specialty override table is not available yet; continuing without overrides.`
+        );
+        return new Map();
+      }
+      throw new Error(`Failed to load specialty overrides: ${error.message}`);
+    }
+
+    const overrides = new Map<string, SpecialtyOverride>();
+    for (const row of data ?? []) {
+      if (
+        row &&
+        typeof row.external_id === 'string' &&
+        (row.override_action === 'force_include' || row.override_action === 'force_exclude')
+      ) {
+        overrides.set(row.external_id, row as SpecialtyOverride);
+      }
+    }
+
+    return overrides;
+  }
+
+  private async upsertRowsWithoutSpecialtyFields(
+    rows: Array<Record<string, unknown>>
+  ): Promise<number> {
+    const fallbackRows = rows.map((row) => {
+      const fallbackRow = { ...row };
+      delete fallbackRow.specialty_status;
+      delete fallbackRow.specialty_score;
+      delete fallbackRow.specialty_signals;
+      delete fallbackRow.specialty_rejection_reason;
+      delete fallbackRow.is_public;
+      return fallbackRow;
+    });
+
+    const { error, count } = await supabase
+      .from('coffees')
+      .upsert(fallbackRows, { onConflict: 'roaster_id,external_id' })
+      .select();
+
+    if (error) {
+      throw new Error(`Supabase upsert failed: ${error.message}`);
+    }
+
+    return count ?? fallbackRows.length;
+  }
+
+  private async writeScrapeLogWithoutSpecialtyCounts(
+    row: Record<string, unknown>
+  ): Promise<unknown | null> {
+    const { error } = await supabase.from('scrape_logs').insert(row);
+    return error ?? null;
+  }
+
+  private isMissingSpecialtySchemaError(message: string): boolean {
+    return (
+      /specialty_|is_public|coffee_specialty_overrides/i.test(message) &&
+      /schema cache|could not find|does not exist|not find|column .* does not exist|relation .* does not exist/i.test(message)
+    );
   }
 
   private async markStaleProducts(scrapeStartedAt: string): Promise<void> {

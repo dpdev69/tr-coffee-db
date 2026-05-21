@@ -8,6 +8,7 @@ import { CoffeeCardSkeleton } from '@/components/ui/skeleton';
 import { Pagination } from '@/components/ui/pagination';
 import { parseCoffeeFilters } from '@/lib/coffee-filters';
 import { getCurrentCatalogCutoffIso } from '@/lib/catalog-rules';
+import { applyPublicCoffeeVisibility } from '@/lib/public-coffee-visibility';
 import { SITE_NAME } from '@/lib/site';
 
 const description =
@@ -79,12 +80,12 @@ async function FiltersLoader() {
     const currentCutoff = getCurrentCatalogCutoffIso();
 
     const [countryResult, roasterResult] = await Promise.all([
-      supabase
-        .from('coffees')
-        .select('origin_country')
-        .eq('is_available', true)
-        .gte('last_seen_at', currentCutoff)
-        .not('origin_country', 'is', null),
+      applyPublicCoffeeVisibility(
+        supabase
+          .from('coffees')
+          .select('origin_country'),
+        currentCutoff
+      ).not('origin_country', 'is', null),
       supabase
         .from('roasters')
         .select('slug, name')

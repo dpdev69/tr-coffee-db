@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentCatalogCutoffIso } from '@/lib/catalog-rules';
+import { applyPublicCoffeeVisibility } from '@/lib/public-coffee-visibility';
 import type { Roaster } from '@/lib/types/database';
 
 export async function getRoasters() {
@@ -11,11 +12,12 @@ export async function getRoasters() {
     { data: coffees, error: coffeesError },
   ] = await Promise.all([
     supabase.from('roasters').select('*').eq('is_active', true).order('name'),
-    supabase
-      .from('coffees')
-      .select('roaster_id')
-      .eq('is_available', true)
-      .gte('last_seen_at', currentCutoff),
+    applyPublicCoffeeVisibility(
+      supabase
+        .from('coffees')
+        .select('roaster_id'),
+      currentCutoff
+    ),
   ]);
 
   if (roastersError) throw roastersError;

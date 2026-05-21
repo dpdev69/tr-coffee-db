@@ -21,6 +21,10 @@ export interface CoffeeBrewRecipe {
   source_text: string;
 }
 
+export type CoffeeSpecialtyStatus = 'unclassified' | 'specialty' | 'not_specialty';
+export type CoffeeSpecialtyOverrideAction = 'force_include' | 'force_exclude';
+export type RoasterSupportTier = 'unverified' | 'supported' | 'priority' | 'excluded';
+
 export interface Database {
   public: {
     Tables: {
@@ -36,10 +40,13 @@ export interface Database {
           description: string | null;
           platform: string;
           is_active: boolean;
+          support_tier: RoasterSupportTier;
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['roasters']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Insert: Omit<Database['public']['Tables']['roasters']['Row'], 'id' | 'support_tier' | 'created_at' | 'updated_at'> & {
+          support_tier?: RoasterSupportTier;
+        };
         Update: Partial<Database['public']['Tables']['roasters']['Insert']>;
       };
       coffees: {
@@ -65,6 +72,10 @@ export interface Database {
           flavor_notes_normalized: string[];
           flavor_categories: string[];
           sca_score: number | null;
+          specialty_status: CoffeeSpecialtyStatus;
+          specialty_score: number | null;
+          specialty_signals: Json;
+          specialty_rejection_reason: string | null;
           price_amount: number | null;
           price_currency: string;
           weight_grams: number | null;
@@ -73,6 +84,7 @@ export interface Database {
           image_url: string | null;
           is_available: boolean;
           is_decaf: boolean;
+          is_public: boolean;
           brew_methods: string[];
           brew_recipes: CoffeeBrewRecipe[];
           click_count: number;
@@ -81,8 +93,41 @@ export interface Database {
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['coffees']['Row'], 'id' | 'created_at' | 'updated_at' | 'click_count'>;
+        Insert: Omit<
+          Database['public']['Tables']['coffees']['Row'],
+          | 'id'
+          | 'created_at'
+          | 'updated_at'
+          | 'click_count'
+          | 'specialty_status'
+          | 'specialty_score'
+          | 'specialty_signals'
+          | 'specialty_rejection_reason'
+          | 'is_public'
+        > & {
+          specialty_status?: CoffeeSpecialtyStatus;
+          specialty_score?: number | null;
+          specialty_signals?: Json;
+          specialty_rejection_reason?: string | null;
+          is_public?: boolean;
+        };
         Update: Partial<Database['public']['Tables']['coffees']['Insert']>;
+      };
+      coffee_specialty_overrides: {
+        Row: {
+          id: string;
+          roaster_id: string;
+          external_id: string;
+          override_action: CoffeeSpecialtyOverrideAction;
+          reason: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<
+          Database['public']['Tables']['coffee_specialty_overrides']['Row'],
+          'id' | 'created_at' | 'updated_at'
+        >;
+        Update: Partial<Database['public']['Tables']['coffee_specialty_overrides']['Insert']>;
       };
       scrape_logs: {
         Row: {
@@ -93,11 +138,21 @@ export interface Database {
           status: string;
           products_found: number;
           products_upserted: number;
+          specialty_qualified: number;
+          specialty_rejected: number;
+          specialty_unclassified: number;
           error_message: string | null;
           duration_ms: number | null;
           created_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['scrape_logs']['Row'], 'id' | 'created_at'>;
+        Insert: Omit<
+          Database['public']['Tables']['scrape_logs']['Row'],
+          'id' | 'specialty_qualified' | 'specialty_rejected' | 'specialty_unclassified' | 'created_at'
+        > & {
+          specialty_qualified?: number;
+          specialty_rejected?: number;
+          specialty_unclassified?: number;
+        };
         Update: Partial<Database['public']['Tables']['scrape_logs']['Insert']>;
       };
       redirect_events: {

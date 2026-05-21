@@ -68,6 +68,11 @@ export interface NormalizedCoffee {
   is_decaf: boolean;
   brew_methods: string[];
   brew_recipes: BrewRecipe[];
+  specialty_status?: 'specialty' | 'not_specialty' | 'unclassified';
+  specialty_score?: number;
+  specialty_signals?: string[];
+  specialty_rejection_reason?: string | null;
+  is_public?: boolean;
 }
 
 export type Platform = 'shopify' | 'woocommerce' | 'ikas' | 'ticimax' | 'custom';

@@ -1,0 +1,78 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { describe, it } from 'node:test';
+
+describe('public visibility query surfaces', () => {
+  it('gates catalog, detail, similar, featured, search, stats, and roaster counts with the same public coffee rule', () => {
+    const source = readSource('src/lib/queries/coffees.ts');
+    const roasterSource = readSource('src/lib/queries/roasters.ts');
+    const catalogPageSource = readSource('src/app/coffees/page.tsx');
+
+    assertSurfaceUsesPublicGate(source, 'getCoffees', /export async function getCoffees[\s\S]*?export async function getCoffeeBySlug/);
+    assertSurfaceUsesPublicGate(source, 'getCoffeeIdsForSearch', /async function getCoffeeIdsForSearch[\s\S]*?export async function getCoffeeBySlug/);
+    assertSurfaceUsesPublicGate(source, 'getCoffeeBySlug', /export async function getCoffeeBySlug[\s\S]*?async function getRoasterIdsForCities/);
+    assertSurfaceUsesPublicGate(source, 'getSimilarCoffees', /export async function getSimilarCoffees[\s\S]*?export async function getFeaturedCoffees/);
+    assertSurfaceUsesPublicGate(source, 'getFeaturedCoffees', /export async function getFeaturedCoffees[\s\S]*?export async function getStats/);
+    assertSurfaceUsesPublicGate(source, 'getStats coffee counts and origins', /export async function getStats[\s\S]*$/);
+    assertSurfaceUsesPublicGate(roasterSource, 'getRoasters public coffee counts', /export async function getRoasters[\s\S]*?export async function getRoasterBySlug/);
+    assertSurfaceUsesPublicGate(catalogPageSource, 'catalog filter option loader', /async function FiltersLoader[\s\S]*$/);
+  });
+
+  it('gates sitemap coffee routes, roaster routes, and click tracking before exposing public records', () => {
+    assertSurfaceUsesPublicGate(
+      readSource('src/app/sitemap.ts'),
+      'sitemap catalog routes',
+      /async function getCatalogRoutes[\s\S]*$/
+    );
+    assertSurfaceUsesPublicGate(
+      readSource('src/app/api/click/route.ts'),
+      'click tracking coffee validation',
+      /export async function POST[\s\S]*$/
+    );
+  });
+
+  it('keeps latest database function definitions aligned with public visibility when migration 015 defines them', () => {
+    const migrationSource = readSource('supabase/migrations/015_add_specialty_visibility_controls.sql');
+
+    if (/CREATE OR REPLACE FUNCTION\s+get_filter_options/i.test(migrationSource)) {
+      assertSqlUsesPublicGate(migrationSource, 'latest get_filter_options');
+    }
+    if (/CREATE OR REPLACE FUNCTION\s+search_coffees/i.test(migrationSource)) {
+      assertSqlUsesPublicGate(migrationSource, 'latest search_coffees');
+    }
+
+    assert.match(migrationSource, /CREATE INDEX IF NOT EXISTS idx_coffees_public_gate/);
+    assert.match(migrationSource, /WHERE is_public = true/);
+  });
+});
+
+function readSource(path: string) {
+  return readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
+}
+
+function assertSurfaceUsesPublicGate(source: string, label: string, pattern: RegExp) {
+  const match = source.match(pattern);
+  assert.ok(match, `Could not locate ${label} in source`);
+
+  assert.ok(
+    hasPublicVisibilityGate(match[0]),
+    `${label} must apply the shared public coffee visibility gate`
+  );
+}
+
+function hasPublicVisibilityGate(source: string) {
+  return (
+    /\.eq\(['"]is_public['"],\s*true\)/.test(source) ||
+    /\bapplyPublicCoffeeVisibility\b/.test(source) ||
+    /\bPUBLIC_COFFEE_VISIBILITY\b/.test(source)
+  );
+}
+
+function assertSqlUsesPublicGate(source: string, label: string) {
+  assert.match(source, /\bis_public\s*=\s*true\b/i, `${label} must filter to is_public rows`);
+  assert.match(
+    source,
+    /\bspecialty_status\s*=\s*'specialty'/i,
+    `${label} must fail closed to specialty rows`
+  );
+}

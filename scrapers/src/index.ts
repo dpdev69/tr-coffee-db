@@ -102,7 +102,11 @@ async function main() {
         : 'error' in r && r.error
           ? ` (${r.error})`
           : '';
-    console.log(`  [${icon}] ${r.slug}: ${r.status}${context}`);
+    const classification =
+      r.status === 'success'
+        ? ` | specialty ${r.specialtyQualified} qualified / ${r.specialtyRejected} rejected / ${r.specialtyUnclassified} unclassified`
+        : '';
+    console.log(`  [${icon}] ${r.slug}: ${r.status}${classification}${context}`);
   }
 
   const failed = results.filter((r) => r.status === 'failed');
