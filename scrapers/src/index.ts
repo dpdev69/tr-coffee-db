@@ -39,6 +39,9 @@ function createScraper(config: RoasterConfig) {
 async function main() {
   const startTime = Date.now();
   const targetSlugs = parseTargetSlugs(process.argv.slice(2));
+  const allowedFailureSlugs = new Set(
+    parseTargetSlugs([process.env.ALLOW_ROASTER_FAILURES ?? ''])
+  );
 
   // Filter configs if specific slugs provided (e.g., `npx tsx src/index.ts petra montag`)
   const configs =
@@ -95,6 +98,19 @@ async function main() {
   const failed = results.filter((r) => r.status === 'failed');
   if (failed.length > 0) {
     console.log(`\n${failed.length} roaster(s) failed.`);
+    const fatalFailures = failed.filter((r) => !allowedFailureSlugs.has(r.slug));
+    const nonFatalFailures = failed.filter((r) => allowedFailureSlugs.has(r.slug));
+
+    if (nonFatalFailures.length > 0) {
+      console.log(
+        `Allowed non-fatal failures: ${nonFatalFailures.map((r) => r.slug).join(', ')}`
+      );
+    }
+
+    if (fatalFailures.length === 0) {
+      return;
+    }
+
     process.exit(1);
   }
 }

@@ -48,9 +48,14 @@ export class WooCommerceAdapter extends BaseScraper {
 
         if (!Array.isArray(data)) {
           if (!challengeRetried && this.isImunifyDeniedResponse(data)) {
-            this.challengeCookie = await this.createImunifyChallengeCookie();
-            challengeRetried = true;
-            continue;
+            const cookie = await this.tryCreateImunifyChallengeCookie(
+              typeof data === 'string' ? data : undefined
+            );
+            if (cookie) {
+              this.challengeCookie = cookie;
+              challengeRetried = true;
+              continue;
+            }
           }
 
           throw new Error(
@@ -97,9 +102,14 @@ export class WooCommerceAdapter extends BaseScraper {
         await new Promise((r) => setTimeout(r, 1500));
       } catch (error) {
         if (!challengeRetried && this.isPotentialImunifyError(error)) {
-          this.challengeCookie = await this.createImunifyChallengeCookie();
-          challengeRetried = true;
-          continue;
+          const cookie = await this.tryCreateImunifyChallengeCookie(
+            this.extractResponseHtml(error)
+          );
+          if (cookie) {
+            this.challengeCookie = cookie;
+            challengeRetried = true;
+            continue;
+          }
         }
 
         // If Store API fails, try legacy WC REST API
@@ -137,13 +147,25 @@ export class WooCommerceAdapter extends BaseScraper {
     });
   }
 
-  private async createImunifyChallengeCookie(): Promise<string> {
-    const { data: html } = await axios.get<string>(this.config.shopUrl, {
-      timeout: 30000,
-      responseType: 'text',
-      transformResponse: [(data) => data],
-      headers: this.getRequestHeaders('text/html,application/xhtml+xml'),
-    });
+  private async tryCreateImunifyChallengeCookie(challengeHtml?: string): Promise<string | null> {
+    try {
+      return await this.createImunifyChallengeCookie(challengeHtml);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`[${this.config.slug}] Bot challenge retry unavailable: ${message}`);
+      return null;
+    }
+  }
+
+  private async createImunifyChallengeCookie(challengeHtml?: string): Promise<string> {
+    const html =
+      challengeHtml ??
+      (await axios.get<string>(this.config.shopUrl, {
+        timeout: 30000,
+        responseType: 'text',
+        transformResponse: [(data) => data],
+        headers: this.getRequestHeaders('text/html,application/xhtml+xml'),
+      })).data;
 
     const submission = this.extractImunifyChallengeSubmission(html);
     if (!submission) {
@@ -305,9 +327,10 @@ export class WooCommerceAdapter extends BaseScraper {
   }
 
   private isImunifyDeniedResponse(data: unknown): boolean {
+    if (typeof data === 'string') return this.looksLikeBotProtection(data);
     if (!data || typeof data !== 'object') return false;
     const message = 'message' in data ? String((data as { message?: unknown }).message) : '';
-    return /Imunify360 bot-protection|Access denied/i.test(message);
+    return this.looksLikeBotProtection(message);
   }
 
   private isPotentialImunifyError(error: unknown): boolean {
@@ -315,11 +338,20 @@ export class WooCommerceAdapter extends BaseScraper {
 
     const status = error.response?.status;
     const data = error.response?.data;
-    if (status === 415) return true;
-    if (typeof data === 'string') {
-      return /One moment, please|Imunify360|Unsupported Media Type/i.test(data);
-    }
+    if (status && [401, 403, 406, 409, 415, 429, 503].includes(status)) return true;
+    if (typeof data === 'string') return this.looksLikeBotProtection(data);
     return this.isImunifyDeniedResponse(data);
+  }
+
+  private extractResponseHtml(error: unknown): string | undefined {
+    if (!axios.isAxiosError(error)) return undefined;
+    return typeof error.response?.data === 'string' ? error.response.data : undefined;
+  }
+
+  private looksLikeBotProtection(text: string): boolean {
+    return /One moment, please|Please wait while your request is being verified|Imunify360|Unsupported Media Type|Access denied|bot-protection/i.test(
+      text
+    );
   }
 
   private describeUnexpectedResponse(data: unknown): string {

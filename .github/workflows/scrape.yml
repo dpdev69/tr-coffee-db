@@ -21,6 +21,9 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      # GitHub-hosted runners are blocked by Sezy's Store API; keep attempting it
+      # while allowing the remaining catalog refresh to complete.
+      ALLOW_ROASTER_FAILURES: sezy
 
     steps:
       - name: Checkout
