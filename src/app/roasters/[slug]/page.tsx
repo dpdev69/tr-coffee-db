@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { getRoasterBySlug } from '@/lib/queries/roasters';
 import { getCoffees } from '@/lib/queries/coffees';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
-import { CorrectionReport } from '@/components/correction/correction-report';
+import { RoasterAvatar } from '@/components/roaster/roaster-avatar';
 import { SITE_NAME } from '@/lib/site';
 
 export async function generateMetadata({
@@ -68,9 +68,7 @@ export default async function RoasterDetailPage({
 
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-2xl font-bold text-amber-700">
-          {roaster.name.charAt(0)}
-        </div>
+        <RoasterAvatar name={roaster.name} logoUrl={roaster.logo_url} size="lg" />
         <div>
           <h1 className="text-2xl font-bold text-stone-900">{roaster.name}</h1>
           <p className="text-sm text-stone-500">
@@ -89,11 +87,6 @@ export default async function RoasterDetailPage({
           </svg>
         </a>
       </div>
-
-      <CorrectionReport
-        roasterId={roaster.id}
-        className="mt-6 border-t border-stone-100 pt-6"
-      />
 
       {/* Coffees grid */}
       <div className="mt-10">
