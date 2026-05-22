@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import { normalize } from '../scrapers/src/normalization';
 import { isLikelyCatalogCoffeeProduct } from '../scrapers/src/product-classification';
 import { classifySpecialtyProduct } from '../scrapers/src/specialty-classification';
 import type { NormalizedCoffee, RawProduct } from '../scrapers/src/types';
@@ -10,6 +11,19 @@ describe('isLikelyCatalogCoffeeProduct', () => {
     assert.equal(isLikelyCatalogCoffeeProduct(['ABACA Filtre Kağıdı']), false);
     assert.equal(isLikelyCatalogCoffeeProduct(['Cafec Abaca PLUS Filtre Kağıdı-CUP4']), false);
     assert.equal(isLikelyCatalogCoffeeProduct(['Hario V60 02 Dripper Filtresi']), false);
+  });
+
+  it('keeps cacao and chocolate tasting notes from excluding coffee cards', () => {
+    assert.equal(
+      isLikelyCatalogCoffeeProduct([
+        'El Salvador / Shasta / Washed',
+        'Fındık, Pekmez, Kakao',
+        'https://coffeedepartment.co/el-salvador-shasta-washed',
+      ]),
+      true
+    );
+    assert.equal(isLikelyCatalogCoffeeProduct(['Kakao']), false);
+    assert.equal(isLikelyCatalogCoffeeProduct(['Çikolata Bar']), false);
   });
 });
 
@@ -115,6 +129,41 @@ describe('classifySpecialtyProduct', () => {
     assert.equal(result.specialty_status, 'unclassified');
     assert.equal(result.specialty_rejection_reason, 'insufficient_traceability');
     assert.equal(result.is_public, false);
+  });
+
+  it('qualifies structured country, lot, and process titles with sparse cards', () => {
+    const result = classifySpecialtyProduct(
+      makeClassificationInput({
+        raw: {
+          name: 'Brazil / Diamantina / Natural',
+          description: '',
+        },
+        normalized: {
+          name: 'Brazil / Diamantina / Natural',
+          name_normalized: 'Brazil / Diamantina / Natural',
+          origin_country: 'Brazil',
+          process: 'natural',
+        },
+      })
+    );
+
+    assert.equal(result.specialty_status, 'specialty');
+    assert.equal(result.is_public, true);
+    assert.equal(result.specialty_score, 4);
+    assert.ok(result.specialty_signals.includes('structured_single_origin_title'));
+  });
+
+  it('recognizes compact Turkish Costa Rica spelling for origin parsing', () => {
+    const raw = makeClassificationInput({
+      raw: {
+        name: 'LAS LAJAS CATUAI CATURRA RED HONEY, KOSTARIKA',
+        description: '',
+      },
+    }).raw;
+
+    const normalized = normalize(raw);
+
+    assert.equal(normalized.origin_country, 'Costa Rica');
   });
 
   it('applies force-include overrides deterministically', () => {

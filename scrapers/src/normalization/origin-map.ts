@@ -6,7 +6,7 @@ const COUNTRY_MAP: [RegExp, string][] = [
   [/\b(brezilya|brazil|brazilian|brasil)\b/i, 'Brazil'],
   [/\b(kenya|kenyan)\b/i, 'Kenya'],
   [/\b(guatemala|guatemalan)\b/i, 'Guatemala'],
-  [/\b(kosta\s*rika|costa\s*rica)\b/i, 'Costa Rica'],
+  [/\b(kosta\s*rika|kostarika|costa\s*rica)\b/i, 'Costa Rica'],
   [/\b(panama|panamanian)\b/i, 'Panama'],
   [/\b(peru|peruvian)\b/i, 'Peru'],
   [/\b(honduras|honduran)\b/i, 'Honduras'],

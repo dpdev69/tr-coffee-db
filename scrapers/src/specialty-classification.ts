@@ -72,6 +72,12 @@ const TRACEABILITY_PATTERNS = [
   /\bnano\s*lot\b/i,
 ];
 
+const STRUCTURED_ORIGIN_TITLE_COUNTRY_PATTERN =
+  /\b(?:etiyopya|ethiopia|ethiopian|kolombiya|colombia|colombian|brezilya|brazil|brazilian|brasil|kenya|kenyan|guatemala|guatemalan|kosta\s*rika|kostarika|costa\s*rica|panama|panamanian|peru|peruvian|honduras|honduran|el\s*salvador|salvadoran|meksika|mexico|mexican|endonezya|indonesia|indonesian|sumatra|rwanda|ruanda|rwandan|burundi|burundian|tanzanya|tanzania|tanzanian|uganda|ugandan|nikaragua|nicaragua|bolivya|bolivia|ekvador|ecuador|hindistan|india|indian|yemen|yemeni|kongo|congo|drc|dominik|dominican|küba|cuba|papua|png|çin|china|yunnan|myanmar|burma|vietnam)\b/i;
+
+const STRUCTURED_ORIGIN_TITLE_PROCESS_PATTERN =
+  /\b(?:anaerobic|anaerobik|karbonik|carbonic|experimental|deneysel|semi[\s-]*washed|wet[\s-]*hulled|honey|pulped\s*natural|washed|yikanmis|natural|natürel|naturel|dogal)\b/i;
+
 export function classifySpecialtyProduct(
   input: SpecialtyClassificationInput
 ): SpecialtyClassification {
@@ -143,6 +149,11 @@ export function classifySpecialtyProduct(
     signals.push('specialty_language');
   }
 
+  if (hasStructuredSingleOriginTitle(raw, normalized)) {
+    score += 3;
+    signals.push('structured_single_origin_title');
+  }
+
   if (TRACEABILITY_PATTERNS.some((pattern) => pattern.test(text))) {
     score += 2;
     signals.push('traceable_lot_language');
@@ -162,13 +173,19 @@ export function classifySpecialtyProduct(
     return rejected(score, [...uniqueSignals, 'reject:origin_country_only'], 'origin_country_only');
   }
 
+  const hasKnownOrigin = Boolean(normalized.origin_country);
+  const hasKnownProcess = normalized.process !== 'unknown';
+  const hasStructuredOriginTitle = uniqueSignals.includes('structured_single_origin_title');
+  const hasFullMetadata =
+    (Boolean(normalized.origin_region) || Boolean(normalized.origin_farm)) &&
+    (normalized.flavor_notes_normalized.length > 0 || normalized.sca_score !== null);
+
   const traceableEnough =
     score >= QUALIFIED_SCORE ||
     (score >= TRACEABLE_SCORE &&
-      Boolean(normalized.origin_country) &&
-      (Boolean(normalized.origin_region) || Boolean(normalized.origin_farm)) &&
-      normalized.process !== 'unknown' &&
-      (normalized.flavor_notes_normalized.length > 0 || normalized.sca_score !== null));
+      hasKnownOrigin &&
+      hasKnownProcess &&
+      (hasFullMetadata || hasStructuredOriginTitle));
 
   if (traceableEnough) {
     return {
@@ -271,6 +288,30 @@ function isBroadCatalogEntry(titleText: string, evidence: string): boolean {
   return !/\b(?:single\s+origin|tek\s+orijin|microlot|micro\s*lot|finca|farm|producer|üretici|uretici)\b/i.test(
     evidence
   );
+}
+
+function hasStructuredSingleOriginTitle(
+  raw: RawProduct,
+  normalized: NormalizedCoffee
+): boolean {
+  if (!normalized.origin_country || normalized.process === 'unknown') return false;
+
+  return [raw.name, normalized.name, normalized.name_normalized]
+    .filter((title): title is string => Boolean(title))
+    .some((title) => {
+      const segments = title.split('/').map((segment) => segment.trim()).filter(Boolean);
+      if (segments.length < 3) return false;
+
+      const originSegment = segments[0];
+      const lotSegments = segments.slice(1, -1).join(' ');
+      const processSegment = segments[segments.length - 1];
+
+      return (
+        STRUCTURED_ORIGIN_TITLE_COUNTRY_PATTERN.test(originSegment) &&
+        /[a-zçğıöşü]{2,}/i.test(lotSegments) &&
+        STRUCTURED_ORIGIN_TITLE_PROCESS_PATTERN.test(processSegment)
+      );
+    });
 }
 
 function isCountryOnlyWeakMetadata(

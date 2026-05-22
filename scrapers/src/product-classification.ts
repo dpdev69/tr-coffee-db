@@ -1,4 +1,4 @@
-const EXCLUDED_TITLE_PATTERNS = [
+const EXCLUDED_ANYWHERE_PATTERNS = [
   /\bfiltre\s*kağıdı/i,
   /\bfiltre\s*k[aâ]ğıdı/i,
   /filtre\s*k[aâ]ğıdı/i,
@@ -54,9 +54,6 @@ const EXCLUDED_TITLE_PATTERNS = [
   /\bcanta\b/i,
   /\bçuval[ıi]?\b/i,
   /\bcuval[ıi]?\b/i,
-  /\bçikolata\b/i,
-  /\bcikolata\b/i,
-  /\bkakao\b/i,
   /\badventure\s*box\b/i,
   /\bfull\s*collection\b/i,
   /\btoptan\s*giriş\b/i,
@@ -70,11 +67,21 @@ const EXCLUDED_TITLE_PATTERNS = [
   /\bcig\s*yesil\s*(?:kahve\s*)?cekirdek\b/i,
 ];
 
-export function isLikelyCatalogCoffeeProduct(parts: Array<string | null | undefined>) {
-  const haystack = parts
-    .filter((part): part is string => Boolean(part))
-    .join(' ')
-    .toLowerCase();
+const EXCLUDED_PRODUCT_NAME_PATTERNS = [
+  /çikolata/i,
+  /\bcikolata\b/i,
+  /\bkakao\b/i,
+];
 
-  return !EXCLUDED_TITLE_PATTERNS.some((pattern) => pattern.test(haystack));
+export function isLikelyCatalogCoffeeProduct(parts: Array<string | null | undefined>) {
+  const normalizedParts = parts
+    .filter((part): part is string => Boolean(part))
+    .map((part) => part.toLowerCase());
+  const productName = normalizedParts[0] ?? '';
+  const haystack = normalizedParts.join(' ');
+
+  return (
+    !EXCLUDED_ANYWHERE_PATTERNS.some((pattern) => pattern.test(haystack)) &&
+    !EXCLUDED_PRODUCT_NAME_PATTERNS.some((pattern) => pattern.test(productName))
+  );
 }
