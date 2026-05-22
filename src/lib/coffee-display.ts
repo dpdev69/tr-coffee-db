@@ -1,14 +1,25 @@
+const TURKEY_TIME_ZONE = 'Europe/Istanbul';
+const DAY_IN_MS = 86_400_000;
+const turkeyDateFormatter = new Intl.DateTimeFormat('en-US', {
+  day: '2-digit',
+  month: '2-digit',
+  timeZone: TURKEY_TIME_ZONE,
+  year: 'numeric',
+});
+
 export function formatVerifiedAt(value: string | null, now = new Date()) {
   if (!value) return 'Doğrulama bekliyor';
 
   const verifiedAt = new Date(value);
   if (Number.isNaN(verifiedAt.getTime())) return 'Doğrulama bekliyor';
 
-  const startOfToday = startOfDay(now);
-  const startOfVerifiedDay = startOfDay(verifiedAt);
+  const startOfToday = startOfTurkeyDay(now);
+  const startOfVerifiedDay = startOfTurkeyDay(verifiedAt);
+  if (startOfToday === null || startOfVerifiedDay === null) return 'Doğrulama bekliyor';
+
   const daysAgo = Math.max(
     0,
-    Math.floor((startOfToday.getTime() - startOfVerifiedDay.getTime()) / 86_400_000)
+    Math.floor((startOfToday - startOfVerifiedDay) / DAY_IN_MS)
   );
 
   if (daysAgo === 0) return 'Bugün doğrulandı';
@@ -32,6 +43,13 @@ export function formatPackageWeight(weightGrams: number) {
     : `${weightGrams} g`;
 }
 
-function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+function startOfTurkeyDay(date: Date) {
+  const parts = turkeyDateFormatter.formatToParts(date);
+  const year = parts.find((part) => part.type === 'year')?.value;
+  const month = parts.find((part) => part.type === 'month')?.value;
+  const day = parts.find((part) => part.type === 'day')?.value;
+
+  if (!year || !month || !day) return null;
+
+  return Date.UTC(Number(year), Number(month) - 1, Number(day));
 }
