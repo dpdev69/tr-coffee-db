@@ -162,6 +162,8 @@ export class HtmlAdapter extends BaseScraper {
 
           const priceText = $el.find(selectors.productPrice).text().trim();
           const price = parseCatalogPriceText(priceText, this.config);
+          const externalId = this.makeExternalId(productUrl);
+          if (allProducts.some((product) => product.externalId === externalId)) return;
 
           const imageEl = $el.find(selectors.productImage);
           const imageSrc = imageEl.attr('data-lazyloadsrc')
@@ -180,7 +182,7 @@ export class HtmlAdapter extends BaseScraper {
             : true;
 
           allProducts.push({
-            externalId: this.makeExternalId(productUrl),
+            externalId,
             name,
             description,
             price,
