@@ -26,23 +26,7 @@ export interface SpecialtyClassification {
   is_public: boolean;
 }
 
-const QUALIFIED_SCORE = 5;
-const TRACEABLE_SCORE = 4;
-
-const COUNTRY_ONLY_NAMES = [
-  'brasil',
-  'brazil',
-  'colombia',
-  'kolombiya',
-  'costa rica',
-  'ethiopia',
-  'etiyopya',
-  'guatemala',
-  'honduras',
-  'kenya',
-  'peru',
-  'rwanda',
-];
+const CATALOG_COFFEE_SIGNAL = 'catalog_coffee';
 
 const GENERIC_BLEND_PATTERNS = [
   /\bblend\b/i,
@@ -92,7 +76,7 @@ export function classifySpecialtyProduct(
   const text = evidenceText(raw, normalized);
   const titleText = [raw.name, normalized.name, normalized.name_normalized].join(' ');
 
-  if (!isLikelyCatalogCoffeeProduct([raw.name, raw.description, ...(raw.tags ?? [])])) {
+  if (!isLikelyCatalogCoffeeProduct([raw.name, ...(raw.tags ?? [])])) {
     return rejected(0, ['reject:non-coffee-or-bundle'], 'non_coffee_or_bundle');
   }
 
@@ -161,48 +145,20 @@ export function classifySpecialtyProduct(
 
   const uniqueSignals = [...new Set(signals)];
 
-  if (isGenericBlend(titleText, text) && score < QUALIFIED_SCORE + 1) {
+  if (isGenericBlendTitle(titleText)) {
     return rejected(score, [...uniqueSignals, 'reject:generic_blend'], 'generic_blend');
   }
 
-  if (isBroadCatalogEntry(titleText, text) && score < QUALIFIED_SCORE) {
+  if (isBroadCatalogEntry(titleText, normalized)) {
     return rejected(score, [...uniqueSignals, 'reject:broad_catalog_entry'], 'broad_catalog_entry');
   }
 
-  if (isCountryOnlyWeakMetadata(normalized, titleText)) {
-    return rejected(score, [...uniqueSignals, 'reject:origin_country_only'], 'origin_country_only');
-  }
-
-  const hasKnownOrigin = Boolean(normalized.origin_country);
-  const hasKnownProcess = normalized.process !== 'unknown';
-  const hasStructuredOriginTitle = uniqueSignals.includes('structured_single_origin_title');
-  const hasFullMetadata =
-    (Boolean(normalized.origin_region) || Boolean(normalized.origin_farm)) &&
-    (normalized.flavor_notes_normalized.length > 0 || normalized.sca_score !== null);
-
-  const traceableEnough =
-    score >= QUALIFIED_SCORE ||
-    (score >= TRACEABLE_SCORE &&
-      hasKnownOrigin &&
-      hasKnownProcess &&
-      (hasFullMetadata || hasStructuredOriginTitle));
-
-  if (traceableEnough) {
-    return {
-      specialty_status: 'specialty',
-      specialty_score: score,
-      specialty_signals: uniqueSignals,
-      specialty_rejection_reason: null,
-      is_public: true,
-    };
-  }
-
   return {
-    specialty_status: uniqueSignals.length > 0 ? 'unclassified' : 'not_specialty',
+    specialty_status: 'specialty',
     specialty_score: score,
-    specialty_signals: uniqueSignals,
-    specialty_rejection_reason: uniqueSignals.length > 0 ? 'insufficient_traceability' : 'no_specialty_evidence',
-    is_public: false,
+    specialty_signals: uniqueSignals.length > 0 ? uniqueSignals : [CATALOG_COFFEE_SIGNAL],
+    specialty_rejection_reason: null,
+    is_public: true,
   };
 }
 
@@ -279,14 +235,21 @@ function collectRawDataText(value: unknown, output: string[] = [], depth = 0): s
   return output;
 }
 
-function isGenericBlend(titleText: string, evidence: string): boolean {
-  return GENERIC_BLEND_PATTERNS.some((pattern) => pattern.test(`${titleText} ${evidence}`));
+function isGenericBlendTitle(titleText: string): boolean {
+  return GENERIC_BLEND_PATTERNS.some((pattern) => pattern.test(titleText));
 }
 
-function isBroadCatalogEntry(titleText: string, evidence: string): boolean {
+function isBroadCatalogEntry(
+  titleText: string,
+  normalized: NormalizedCoffee
+): boolean {
+  if (normalized.origin_country || normalized.origin_region || normalized.origin_farm) {
+    return false;
+  }
+
   if (!BROAD_CATALOG_PATTERNS.some((pattern) => pattern.test(titleText))) return false;
   return !/\b(?:single\s+origin|tek\s+orijin|microlot|micro\s*lot|finca|farm|producer|üretici|uretici)\b/i.test(
-    evidence
+    titleText
   );
 }
 
@@ -312,30 +275,6 @@ function hasStructuredSingleOriginTitle(
         STRUCTURED_ORIGIN_TITLE_PROCESS_PATTERN.test(processSegment)
       );
     });
-}
-
-function isCountryOnlyWeakMetadata(
-  normalized: NormalizedCoffee,
-  titleText: string
-): boolean {
-  if (!normalized.origin_country || normalized.origin_region || normalized.origin_farm) {
-    return false;
-  }
-
-  const simpleTitle = titleText
-    .toLowerCase()
-    .replace(/[^a-zçğıöşü\s]/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  return COUNTRY_ONLY_NAMES.some((country) => {
-    const countryPattern = new RegExp(`\\b${escapeRegExp(country)}\\b`, 'g');
-    return simpleTitle.replace(countryPattern, '').trim() === '';
-  });
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function rejected(

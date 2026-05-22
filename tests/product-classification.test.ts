@@ -24,6 +24,7 @@ describe('isLikelyCatalogCoffeeProduct', () => {
     );
     assert.equal(isLikelyCatalogCoffeeProduct(['Kakao']), false);
     assert.equal(isLikelyCatalogCoffeeProduct(['Çikolata Bar']), false);
+    assert.equal(isLikelyCatalogCoffeeProduct(['PAU BRASIL (K.Vişne, Bdem, Bitter Çikolata)']), true);
   });
 });
 
@@ -91,7 +92,7 @@ describe('classifySpecialtyProduct', () => {
     assert.equal(result.specialty_rejection_reason, 'generic_blend');
   });
 
-  it('rejects country-only weak metadata', () => {
+  it('publishes country-only coffee instead of treating sparse metadata as a failure', () => {
     const result = classifySpecialtyProduct(
       makeClassificationInput({
         raw: {
@@ -107,11 +108,12 @@ describe('classifySpecialtyProduct', () => {
       })
     );
 
-    assert.equal(result.specialty_status, 'not_specialty');
-    assert.equal(result.specialty_rejection_reason, 'origin_country_only');
+    assert.equal(result.specialty_status, 'specialty');
+    assert.equal(result.specialty_rejection_reason, null);
+    assert.equal(result.is_public, true);
   });
 
-  it('keeps weak specialty hints unclassified instead of public', () => {
+  it('publishes likely coffee even when specialty evidence is sparse', () => {
     const result = classifySpecialtyProduct(
       makeClassificationInput({
         raw: {
@@ -126,9 +128,45 @@ describe('classifySpecialtyProduct', () => {
       })
     );
 
-    assert.equal(result.specialty_status, 'unclassified');
-    assert.equal(result.specialty_rejection_reason, 'insufficient_traceability');
-    assert.equal(result.is_public, false);
+    assert.equal(result.specialty_status, 'specialty');
+    assert.equal(result.specialty_rejection_reason, null);
+    assert.equal(result.is_public, true);
+  });
+
+  it('rejects broad non-origin catalog entries but keeps origin espresso variants public', () => {
+    const genericEspresso = classifySpecialtyProduct(
+      makeClassificationInput({
+        raw: {
+          name: 'ORDI NO:1 / ESPRESSO',
+          description: 'Classic espresso profile.',
+        },
+        normalized: {
+          name: 'ORDI NO:1 / ESPRESSO',
+          name_normalized: 'ORDI NO:1 / ESPRESSO',
+          process: 'unknown',
+        },
+      })
+    );
+
+    const originEspresso = classifySpecialtyProduct(
+      makeClassificationInput({
+        raw: {
+          name: 'Etiyopya Hambela Espresso',
+          description: 'Espresso roast.',
+        },
+        normalized: {
+          name: 'Etiyopya Hambela Espresso',
+          name_normalized: 'Etiyopya Hambela Espresso',
+          origin_country: 'Ethiopia',
+          process: 'unknown',
+        },
+      })
+    );
+
+    assert.equal(genericEspresso.specialty_status, 'not_specialty');
+    assert.equal(genericEspresso.specialty_rejection_reason, 'broad_catalog_entry');
+    assert.equal(originEspresso.specialty_status, 'specialty');
+    assert.equal(originEspresso.is_public, true);
   });
 
   it('qualifies structured country, lot, and process titles with sparse cards', () => {

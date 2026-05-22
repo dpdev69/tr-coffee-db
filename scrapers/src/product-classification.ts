@@ -68,9 +68,8 @@ const EXCLUDED_ANYWHERE_PATTERNS = [
 ];
 
 const EXCLUDED_PRODUCT_NAME_PATTERNS = [
-  /çikolata/i,
-  /\bcikolata\b/i,
-  /\bkakao\b/i,
+  /^(?:kakao|çikolata|cikolata)(?:\s+(?:bar|tablet|tozu|nibs?))?$/i,
+  /(?:^|\s)(?:kakao|çikolata|cikolata)\s+(?:bar|tablet|tozu|nibs?)\b/i,
 ];
 
 export function isLikelyCatalogCoffeeProduct(parts: Array<string | null | undefined>) {
