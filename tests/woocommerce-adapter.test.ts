@@ -5,6 +5,37 @@ process.env.SUPABASE_URL = process.env.SUPABASE_URL ?? 'https://example.supabase
 process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'test-service-key';
 
 describe('WooCommerceAdapter', () => {
+  it('keeps WooCommerce short descriptions so roast profile metadata reaches normalization', async () => {
+    const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
+    const { WooCommerceAdapter } = await import('../scrapers/src/adapters/woocommerce-adapter.ts');
+    const { normalize } = await import('../scrapers/src/normalization/index.ts');
+    const originalGet = axios.get.bind(axios);
+
+    try {
+      axios.get = (async () => ({
+        data: [
+          makeWooProduct({
+            name: 'Brazil Yellow Bourbon – Espresso',
+            categories: ['Espresso Kahveler', 'KAHVELER'],
+            description: '<p>Long origin story without an explicit roast label.</p>',
+            shortDescription: '<p><strong>Kavurma profili: Espresso</strong></p>',
+          }),
+        ],
+        headers: { 'x-wp-totalpages': '1' },
+      })) as typeof axios.get;
+
+      const adapter = new WooCommerceAdapter(makeConfig());
+      const products = await adapter.fetchProducts();
+      const coffee = normalize(products[0]);
+
+      assert.match(products[0].description, /Long origin story/);
+      assert.match(products[0].description, /Kavurma profili: Espresso/);
+      assert.equal(coffee.roast_level, 'medium_dark');
+    } finally {
+      axios.get = originalGet;
+    }
+  });
+
   it('retries Store API product discovery with an Imunify challenge cookie', async () => {
     const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
     const { WooCommerceAdapter } = await import('../scrapers/src/adapters/woocommerce-adapter.ts');
@@ -207,6 +238,8 @@ function makeWooProduct({
   variation = '',
   variations = [],
   attributes = [],
+  description = '',
+  shortDescription = '',
 }: {
   id?: number;
   name: string;
@@ -216,6 +249,8 @@ function makeWooProduct({
   variation?: string;
   variations?: Array<{ id: number; attributes: { name: string; value: string }[] }>;
   attributes?: Array<{ id: number; name: string; terms: { id: number; name: string; slug: string }[] }>;
+  description?: string;
+  shortDescription?: string;
 }) {
   return {
     id: id ?? Math.floor(Math.random() * 100000),
@@ -226,8 +261,8 @@ function makeWooProduct({
     variation,
     permalink: `https://example.test/product/${encodeURIComponent(name)}`,
     sku: '',
-    short_description: '',
-    description: '',
+    short_description: shortDescription,
+    description,
     on_sale: false,
     prices: {
       price,

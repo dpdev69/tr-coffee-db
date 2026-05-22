@@ -88,9 +88,7 @@ export class WooCommerceAdapter extends BaseScraper {
           allProducts.push({
             externalId: String(product.id),
             name: this.decodeHtmlEntities(product.name),
-            description: this.stripHtml(
-              product.description || product.short_description || ''
-            ),
+            description: this.buildDescription(product),
             price: comparablePackage.priceTL,
             currency: 'TRY',
             weightGrams: comparablePackage.weightGrams,
@@ -624,6 +622,14 @@ export class WooCommerceAdapter extends BaseScraper {
       .replace(/&amp;/g, '&')
       .replace(/&#?\w+;/g, '')
       .trim();
+  }
+
+  private buildDescription(product: WooProduct): string {
+    const parts = [product.description, product.short_description]
+      .map((html) => this.stripHtml(html || ''))
+      .filter(Boolean);
+
+    return [...new Set(parts)].join('\n\n');
   }
 
   private decodeHtmlEntities(text: string): string {

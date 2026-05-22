@@ -13,6 +13,21 @@ describe('isLikelyCatalogCoffeeProduct', () => {
     assert.equal(isLikelyCatalogCoffeeProduct(['Hario V60 02 Dripper Filtresi']), false);
   });
 
+  it('excludes education, equipment, and campaign products before price normalization', () => {
+    assert.equal(isLikelyCatalogCoffeeProduct(['Q Grader: Sertifikasyon Programı (6 Gün)']), false);
+    assert.equal(isLikelyCatalogCoffeeProduct(['AeroPress']), false);
+    assert.equal(isLikelyCatalogCoffeeProduct(['Kinu M47']), false);
+    assert.equal(isLikelyCatalogCoffeeProduct(['Kenya + Fındık Kampanyası']), false);
+    assert.equal(
+      isLikelyCatalogCoffeeProduct(['Kahve Aboneliği 250 Gr. Haftalık Gönderim 6’lı Paket']),
+      false
+    );
+    assert.equal(
+      isLikelyCatalogCoffeeProduct(['Brazil Santos Fine Cup Çiğ Yeşil Çekirdek 1kg']),
+      false
+    );
+  });
+
   it('keeps cacao and chocolate tasting notes from excluding coffee cards', () => {
     assert.equal(
       isLikelyCatalogCoffeeProduct([

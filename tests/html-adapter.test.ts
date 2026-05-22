@@ -85,6 +85,13 @@ describe('parsePackageWeight', () => {
     assert.equal(parsePackageWeight('4 x 250gr'), 1000);
     assert.equal(parsePackageWeight('0,5 kg'), 500);
   });
+
+  it('does not read Turkish words that start with g as gram units', async () => {
+    const { parsePackageWeight } = await import('../scrapers/src/adapters/package-selection.ts');
+
+    assert.equal(parsePackageWeight('Q Grader Sertifikasyon Programı (6 Gün)'), null);
+    assert.equal(parsePackageWeight('Kurs: 2 Gün'), null);
+  });
 });
 
 describe('parseProductPagePackageSelection', () => {

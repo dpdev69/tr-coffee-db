@@ -1,12 +1,15 @@
 const COMPARISON_TARGET_GRAMS = 250;
+const GRAM_UNIT_PATTERN = String.raw`(?:grams?|gr\.?|g\.?)(?![\p{L}])`;
+const KG_UNIT_PATTERN = String.raw`(?:kg|kilogram)(?![\p{L}])`;
+const WEIGHT_UNIT_PATTERN = String.raw`(?:${GRAM_UNIT_PATTERN}|${KG_UNIT_PATTERN})`;
 
 export function parsePackageWeight(text: string): number | null {
   const multiPackMatch = text.match(
-    /(\d+)\s*-?\s*[x×]\s*-?\s*(\d+(?:[.,]\d+)?)\s*(?:gr?|gram|kg)\b/i
+    new RegExp(String.raw`(\d+)\s*-?\s*[x×]\s*-?\s*(\d+(?:[.,]\d+)?)\s*${WEIGHT_UNIT_PATTERN}`, 'iu')
   );
   if (multiPackMatch) {
     const count = Number.parseInt(multiPackMatch[1], 10);
-    const unit = multiPackMatch[0].toLowerCase().includes('kg') ? 1000 : 1;
+    const unit = /(?:kg|kilogram)/i.test(multiPackMatch[0]) ? 1000 : 1;
     const unitWeight = unit === 1000
       ? parseLocalizedDecimalNumber(multiPackMatch[2])
       : parseLocalizedWeightNumber(multiPackMatch[2]);
@@ -15,10 +18,14 @@ export function parsePackageWeight(text: string): number | null {
     }
   }
 
-  const gMatch = text.match(/(\d+(?:[.,]\d+)?)\s*(?:gr?|gram)\b/i);
+  const gMatch = text.match(
+    new RegExp(String.raw`(\d+(?:[.,]\d+)?)\s*${GRAM_UNIT_PATTERN}`, 'iu')
+  );
   if (gMatch) return Math.round(parseLocalizedWeightNumber(gMatch[1]) ?? 0) || null;
 
-  const kgMatch = text.match(/(\d+(?:[.,]\d+)?)\s*kg\b/i);
+  const kgMatch = text.match(
+    new RegExp(String.raw`(\d+(?:[.,]\d+)?)\s*${KG_UNIT_PATTERN}`, 'iu')
+  );
   if (kgMatch) {
     const weight = parseLocalizedDecimalNumber(kgMatch[1]);
     return weight == null ? null : Math.round(weight * 1000);
