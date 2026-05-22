@@ -119,25 +119,31 @@ export default async function HomePage() {
 
       {/* How it works */}
       <section className="bg-stone-50 px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-2xl font-bold text-stone-900">Nasıl Çalışır</h2>
-          <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-3">
+        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[0.8fr_1.4fr] lg:items-start">
+          <div>
+            <h2 className="text-2xl font-bold text-stone-900">Nasıl Çalışır</h2>
+            <p className="mt-3 max-w-sm text-sm leading-6 text-stone-500">
+              Katalog verisini sadeleştirir, fiyatı aynı zemine çeker ve satın almayı
+              kavurucuya bırakır.
+            </p>
+          </div>
+          <ol className="divide-y divide-stone-200 border-y border-stone-200">
             <Step
-              step="1"
+              step="01"
               title="Tek Yerde Ara"
               description="Kavurucu sitelerini tek tek açmadan köken, işleme, kavrum, tat ve demleme yöntemine göre daralt."
             />
             <Step
-              step="2"
+              step="02"
               title="Adil Karşılaştır"
               description="250 g, 500 g ya da 1 kg paketleri aynı zeminde görmek için 100 g normalize fiyatı kullan."
             />
             <Step
-              step="3"
+              step="03"
               title="Kavurucudan Al"
               description="Beğendiğin çekirdeğe karar verince doğrudan kavurucunun sitesine geç. Arada mağaza yok."
             />
-          </div>
+          </ol>
         </div>
       </section>
     </div>
@@ -167,12 +173,14 @@ function Step({
   description: string;
 }) {
   return (
-    <div>
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-sm font-bold text-amber-700">
+    <li className="grid gap-3 py-5 sm:grid-cols-[4rem_1fr] sm:gap-6">
+      <div className="text-sm font-bold tabular-nums text-amber-700">
         {step}
       </div>
-      <h3 className="mt-4 font-semibold text-stone-900">{title}</h3>
-      <p className="mt-2 text-sm text-stone-500">{description}</p>
-    </div>
+      <div>
+        <h3 className="font-semibold text-stone-900">{title}</h3>
+        <p className="mt-1 text-sm leading-6 text-stone-500">{description}</p>
+      </div>
+    </li>
   );
 }
