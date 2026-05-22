@@ -12,6 +12,16 @@ const PROCESS_MAP: [RegExp, string][] = [
   [tokenRegex(String.raw`natural|natürel|naturel|doğal|dogal|kuru\s*işlem|kuru\s*islem`), 'natural'],
 ];
 
+const STANDALONE_PROCESS_MAP: [RegExp, string][] = [
+  [/^(?:anaerobic|anaerobik|karbonik\s*maserasyon|karbonik|carbonic)$/iu, 'anaerobic'],
+  [/^(?:experimental|deneysel|double\s*fermentation|extended\s*fermentation|lactic|thermal\s*shock)$/iu, 'experimental'],
+  [/^(?:semi[\s-]*washed|yarı\s*yıkanmış|yari\s*yikanmis|yarı\s*yıkama|yari\s*yikama)$/iu, 'semi_washed'],
+  [/^(?:wet[\s-]*hulled|giling\s*basah)$/iu, 'wet_hulled'],
+  [/^(?:honey|bal\s*işlem|bal\s*islem|pulped\s*natural)$/iu, 'honey'],
+  [/^(?:washed|yıkanmış|yikanmis|fully\s*washed)$/iu, 'washed'],
+  [/^(?:natural|natürel|naturel|doğal|dogal|kuru\s*işlem|kuru\s*islem)$/iu, 'natural'],
+];
+
 export function detectProcess(text: string): { process: string; processDetail: string | null } {
   for (const [regex, process] of PROCESS_MAP) {
     const match = text.match(regex);
@@ -19,5 +29,17 @@ export function detectProcess(text: string): { process: string; processDetail: s
       return { process, processDetail: matchedToken(match) };
     }
   }
+  return { process: 'unknown', processDetail: null };
+}
+
+export function detectStandaloneProcess(text: string): { process: string; processDetail: string | null } {
+  const normalized = text.replace(/\s+/g, ' ').trim();
+
+  for (const [regex, process] of STANDALONE_PROCESS_MAP) {
+    if (regex.test(normalized)) {
+      return { process, processDetail: normalized };
+    }
+  }
+
   return { process: 'unknown', processDetail: null };
 }

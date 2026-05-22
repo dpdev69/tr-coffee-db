@@ -450,6 +450,7 @@ export const kafeinKultur: RoasterConfig = {
   platform: 'custom',
   city: 'Istanbul',
   priceFormat: 'tl',
+  derivePackageFromProductPage: true,
   selectors: {
     productList: '.product-card.default',
     productLink: 'a.product-title',
@@ -469,6 +470,7 @@ export const coffeerem: RoasterConfig = {
   platform: 'custom',
   city: 'Izmir',
   priceFormat: 'tl',
+  derivePackageFromProductPage: true,
   selectors: {
     productList: '.dt-css-grid .wf-cell',
     productLink: '.entry-title a',
@@ -489,6 +491,7 @@ export const coffeeDepartment: RoasterConfig = {
   platform: 'custom',
   city: 'Istanbul',
   priceFormat: 'tl',
+  derivePackageFromProductPage: true,
   selectors: {
     productList: '.productItem',
     productLink: '.productName a',
@@ -496,6 +499,46 @@ export const coffeeDepartment: RoasterConfig = {
     productPrice: '.discountPriceSpan',
     productImage: '.productImage img',
     description: '.productOnYazi',
+  },
+};
+
+export const milestones: RoasterConfig = {
+  slug: 'milestones',
+  name: 'Milestones Coffee',
+  websiteUrl: 'https://milestonescoffee.com',
+  shopUrl: 'https://milestonescoffee.com/kategori/kahveler-57/',
+  platform: 'custom',
+  city: 'Manisa',
+  priceFormat: 'tl',
+  derivePackageFromProductPage: true,
+  selectors: {
+    productList: '.product-wrapper.row > .product-wrap',
+    productLink: 'h3.product-name a',
+    productName: 'h3.product-name a',
+    productPrice: '.product-price',
+    productImage: '.product-media img',
+    description: '',
+    unavailableText: 'Tükendi',
+  },
+};
+
+export const choCoffee: RoasterConfig = {
+  slug: 'cho-coffee',
+  name: 'Cho Coffee Roastery',
+  websiteUrl: 'https://chocoffeeroastery.com',
+  shopUrl: 'https://chocoffeeroastery.com/tr/kahve',
+  platform: 'custom',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+  derivePackageFromProductPage: true,
+  selectors: {
+    productList: '.product-item',
+    productLink: '.product-title a',
+    productName: '.product-title a',
+    productPrice: '.price.actual-price',
+    productImage: '.picture img.picture-img',
+    description: '.description',
+    unavailableText: 'SOULD OUT',
   },
 };
 
@@ -545,4 +588,6 @@ export const ALL_ROASTER_CONFIGS: RoasterConfig[] = [
   kafeinKultur,
   coffeerem,
   coffeeDepartment,
+  milestones,
+  choCoffee,
 ];

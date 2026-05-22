@@ -1,8 +1,8 @@
 import type { RawProduct, NormalizedCoffee } from '../types.js';
 import { matchFlavorNotes } from './flavor-map.js';
-import { detectProcess } from './process-map.js';
+import { detectProcess, detectStandaloneProcess } from './process-map.js';
 import { detectOrigin } from './origin-map.js';
-import { detectRoastLevel } from './roast-level-map.js';
+import { detectRoastLevel, detectStandaloneRoastLevel } from './roast-level-map.js';
 import { extractBrewRecipes } from './brew-recipes.js';
 
 export function normalize(raw: RawProduct): NormalizedCoffee {
@@ -18,10 +18,9 @@ export function normalize(raw: RawProduct): NormalizedCoffee {
   const origin = detectOrigin(allText);
 
   // Process detection
-  const { process, processDetail } = detectProcess(allText);
+  const { process, processDetail } = detectProcessFromRawProduct(raw, allText);
 
-  // Roast level detection
-  const roastLevel = detectRoastLevel(allText);
+  const roastLevel = detectRoastLevelFromRawProduct(raw, allText);
 
   // Flavor extraction
   const { notes, categories } = matchFlavorNotes(allText);
@@ -123,6 +122,86 @@ function collectRawDataText(
   }
 
   return output;
+}
+
+function detectRoastLevelFromRawProduct(raw: RawProduct, allText: string): string {
+  for (const candidate of collectLabeledTextCandidates(raw.rawData, /\b(kavrum|kavurma|roast)\b/i)) {
+    const detected = detectStandaloneRoastLevel(candidate);
+    if (detected !== 'unknown') return detected;
+  }
+
+  return detectRoastLevel(allText);
+}
+
+function detectProcessFromRawProduct(
+  raw: RawProduct,
+  allText: string
+): { process: string; processDetail: string | null } {
+  for (const candidate of collectLabeledTextCandidates(
+    raw.rawData,
+    /\b(işleme|isleme|process|processing|proses)\b/i
+  )) {
+    const detected = detectStandaloneProcess(candidate);
+    if (detected.process !== 'unknown') return detected;
+  }
+
+  return detectProcess(allText);
+}
+
+function collectLabeledTextCandidates(
+  value: unknown,
+  labelPattern: RegExp,
+  output: string[] = []
+): string[] {
+  if (value == null || output.length >= 30) return output;
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectLabeledTextCandidates(item, labelPattern, output);
+    }
+    return output;
+  }
+
+  if (typeof value !== 'object') return output;
+
+  const record = value as Record<string, unknown>;
+  const fieldName = [record.name, record.label, record.key]
+    .filter((item): item is string => typeof item === 'string')
+    .join(' ');
+
+  if (labelPattern.test(fieldName)) {
+    collectTextLeaves(record.value, output);
+    collectTextLeaves(record.values, output);
+    collectTextLeaves(record.term, output);
+    collectTextLeaves(record.terms, output);
+  }
+
+  for (const nested of Object.values(record)) {
+    collectLabeledTextCandidates(nested, labelPattern, output);
+  }
+
+  return output;
+}
+
+function collectTextLeaves(value: unknown, output: string[]): void {
+  if (value == null || output.length >= 30) return;
+
+  if (typeof value === 'string') {
+    const text = value.trim();
+    if (text) output.push(text);
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) collectTextLeaves(item, output);
+    return;
+  }
+
+  if (typeof value === 'object') {
+    for (const nested of Object.values(value)) {
+      collectTextLeaves(nested, output);
+    }
+  }
 }
 
 function detectVariety(text: string): string | null {

@@ -71,6 +71,119 @@ describe('WooCommerceAdapter', () => {
       axios.get = originalGet;
     }
   });
+
+  it('uses the retail comparison variation instead of the first weight term for price per 100g', async () => {
+    const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
+    const { WooCommerceAdapter } = await import('../scrapers/src/adapters/woocommerce-adapter.ts');
+    const originalGet = axios.get.bind(axios);
+
+    try {
+      axios.get = (async (url: string) => {
+        if (url.endsWith('/wp-json/wc/store/v1/products/2501')) {
+          return {
+            data: makeWooProduct({
+              id: 2501,
+              name: 'Brazil Yellow Bourbon',
+              categories: ['Kahveler'],
+              price: '39000',
+              minorUnit: 2,
+              variation: 'Gramaj: 250gr, Öğütülme Şekli: Çekirdek',
+            }),
+            headers: {},
+          };
+        }
+
+        return {
+          data: [
+            makeWooProduct({
+              name: 'Brazil Yellow Bourbon',
+              categories: ['Kahveler'],
+              price: '39000',
+              minorUnit: 2,
+              attributes: [
+                makeAttribute('Gramaj', ['1000gr', '250gr', '4 x 250gr.']),
+                makeAttribute('Öğütülme Şekli', ['Çekirdek', 'Espresso']),
+              ],
+              variations: [
+                makeVariation(1001, '4-x-250gr'),
+                makeVariation(2501, '250gr'),
+                makeVariation(1000, '1000gr'),
+              ],
+            }),
+          ],
+          headers: { 'x-wp-totalpages': '1' },
+        };
+      }) as typeof axios.get;
+
+      const adapter = new WooCommerceAdapter(makeConfig());
+      const products = await adapter.fetchProducts();
+
+      assert.equal(products.length, 1);
+      assert.equal(products[0].price, 390);
+      assert.equal(products[0].weightGrams, 250);
+    } finally {
+      axios.get = originalGet;
+    }
+  });
+
+  it('falls through to the next preferred variation instead of mixing parent price with selected weight', async () => {
+    const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
+    const { WooCommerceAdapter } = await import('../scrapers/src/adapters/woocommerce-adapter.ts');
+    const originalGet = axios.get.bind(axios);
+
+    try {
+      axios.get = (async (url: string) => {
+        if (url.endsWith('/wp-json/wc/store/v1/products/2501')) {
+          throw new Error('variation unavailable');
+        }
+
+        if (url.endsWith('/wp-json/wc/store/v1/products/1001')) {
+          throw new Error('variation unavailable');
+        }
+
+        if (url.endsWith('/wp-json/wc/store/v1/products/5001')) {
+          return {
+            data: makeWooProduct({
+              id: 5001,
+              name: 'Costa Rica Honey',
+              categories: ['Kahveler'],
+              price: '65000',
+              minorUnit: 2,
+              variation: 'Gramaj: 500gr, Öğütülme Şekli: Çekirdek',
+            }),
+            headers: {},
+          };
+        }
+
+        return {
+          data: [
+            makeWooProduct({
+              name: 'Costa Rica Honey',
+              categories: ['Kahveler'],
+              price: '25000',
+              minorUnit: 2,
+              attributes: [makeAttribute('Gramaj', ['100gr', '250gr', '500gr'])],
+              variations: [
+                makeVariation(1001, '100gr'),
+                makeVariation(2501, '250gr'),
+                makeVariation(5001, '500gr'),
+              ],
+            }),
+          ],
+          headers: { 'x-wp-totalpages': '1' },
+        };
+      }) as typeof axios.get;
+
+      const adapter = new WooCommerceAdapter(makeConfig());
+      const products = await adapter.fetchProducts();
+
+      assert.equal(products.length, 1);
+      assert.equal(products[0].price, 650);
+      assert.equal(products[0].weightGrams, 500);
+    } finally {
+      axios.get = originalGet;
+    }
+  });
 });
 
 function makeConfig() {
@@ -86,32 +199,44 @@ function makeConfig() {
 }
 
 function makeWooProduct({
+  id,
   name,
   categories,
+  price = '500',
+  minorUnit = 0,
+  variation = '',
+  variations = [],
+  attributes = [],
 }: {
+  id?: number;
   name: string;
   categories: string[];
+  price?: string;
+  minorUnit?: number;
+  variation?: string;
+  variations?: Array<{ id: number; attributes: { name: string; value: string }[] }>;
+  attributes?: Array<{ id: number; name: string; terms: { id: number; name: string; slug: string }[] }>;
 }) {
   return {
-    id: Math.floor(Math.random() * 100000),
+    id: id ?? Math.floor(Math.random() * 100000),
     name,
     slug: name.toLowerCase().replace(/\s+/g, '-'),
     parent: 0,
     type: 'simple',
-    variation: '',
+    variation,
     permalink: `https://example.test/product/${encodeURIComponent(name)}`,
     sku: '',
     short_description: '',
     description: '',
     on_sale: false,
     prices: {
-      price: '500',
-      regular_price: '500',
-      sale_price: '500',
+      price,
+      regular_price: price,
+      sale_price: price,
       price_range: null,
       currency_code: 'TRY',
       currency_symbol: '₺',
-      currency_minor_unit: 0,
+      currency_minor_unit: minorUnit,
       currency_decimal_separator: ',',
       currency_thousand_separator: '.',
       currency_prefix: '',
@@ -126,7 +251,29 @@ function makeWooProduct({
     tags: [],
     is_purchasable: true,
     is_in_stock: true,
-    variations: [],
-    attributes: [],
+    variations,
+    attributes,
+  };
+}
+
+function makeAttribute(name: string, terms: string[]) {
+  return {
+    id: Math.floor(Math.random() * 1000),
+    name,
+    terms: terms.map((term, index) => ({
+      id: index + 1,
+      name: term,
+      slug: term.toLowerCase().replace(/\s+/g, '-'),
+    })),
+  };
+}
+
+function makeVariation(id: number, gramaj: string) {
+  return {
+    id,
+    attributes: [
+      { name: 'Gramaj', value: gramaj },
+      { name: 'Öğütülme Şekli', value: 'cekirdek' },
+    ],
   };
 }

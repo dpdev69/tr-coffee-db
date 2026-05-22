@@ -48,6 +48,28 @@ describe('normalize coffee metadata', () => {
     assert.equal(coffee.process_detail, 'Yıkanmış');
   });
 
+  it('detects uppercase Turkish origin names with dotted characters', () => {
+    const colombia = normalize(
+      makeRawProduct({
+        name: 'FINCA PORVENIR TABI YIKANMIŞ, KOLOMBİYA',
+      })
+    );
+    const ethiopia = normalize(
+      makeRawProduct({
+        name: 'CHELCHELE DOĞAL, ETİYOPYA',
+      })
+    );
+    const costaRica = normalize(
+      makeRawProduct({
+        name: 'LAS LAJAS CATUAI CATURRA RED HONEY, KOSTARİKA',
+      })
+    );
+
+    assert.equal(colombia.origin_country, 'Colombia');
+    assert.equal(ethiopia.origin_country, 'Ethiopia');
+    assert.equal(costaRica.origin_country, 'Costa Rica');
+  });
+
   it('prefers specific fermentation process over generic natural or washed words', () => {
     const naturalAnaerobic = normalize(
       makeRawProduct({
@@ -84,6 +106,24 @@ describe('normalize coffee metadata', () => {
     assert.equal(coffee.roast_level, 'medium_light');
   });
 
+  it('prefers structured process attributes over lower-confidence catalog text', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        name: 'Kolombiya Monteblanco',
+        description: 'Natural kahveler koleksiyonundan seçki.',
+        rawData: {
+          categories: ['Natural Kahveler'],
+          attributes: [
+            { name: 'İşleme', terms: [{ name: 'Yıkanmış' }] },
+          ],
+        },
+      })
+    );
+
+    assert.equal(coffee.process, 'washed');
+    assert.equal(coffee.process_detail, 'Yıkanmış');
+  });
+
   it('detects Turkish roast levels with dotted characters', () => {
     const coffee = normalize(
       makeRawProduct({
@@ -92,6 +132,73 @@ describe('normalize coffee metadata', () => {
     );
 
     assert.equal(coffee.roast_level, 'light');
+  });
+
+  it('detects açık-orta roast phrasing as medium-light', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        description: 'Bu kahveyi açık–orta kavrum tercih ettik.',
+      })
+    );
+
+    assert.equal(coffee.roast_level, 'medium_light');
+  });
+
+  it('prefers explicit roast labels over filter brew-method wording', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        description: 'Filtre için uygundur. Kavrum: Orta.',
+      })
+    );
+
+    assert.equal(coffee.roast_level, 'medium');
+    assert.deepEqual(coffee.brew_methods, ['filter']);
+  });
+
+  it('keeps filter and espresso profile wording out of roast inference', () => {
+    const filterCoffee = normalize(
+      makeRawProduct({
+        name: 'Example Filtre',
+        description: 'Filtre için uygundur.',
+      })
+    );
+    const espressoCoffee = normalize(
+      makeRawProduct({
+        name: 'Example Espresso',
+        description: 'Espresso için uygundur.',
+      })
+    );
+
+    assert.equal(filterCoffee.roast_level, 'unknown');
+    assert.deepEqual(filterCoffee.brew_methods, ['filter']);
+    assert.equal(espressoCoffee.roast_level, 'unknown');
+    assert.deepEqual(espressoCoffee.brew_methods, ['espresso']);
+  });
+
+  it('detects explicit filter and espresso roast profile labels', () => {
+    const filterRoast = normalize(
+      makeRawProduct({
+        description: 'Roast Profile: Filter.',
+      })
+    );
+    const espressoRoast = normalize(
+      makeRawProduct({
+        description: 'Kavrum: Espresso.',
+      })
+    );
+
+    assert.equal(filterRoast.roast_level, 'medium_light');
+    assert.equal(espressoRoast.roast_level, 'medium_dark');
+  });
+
+  it('does not treat grinder guidance as a medium roast signal', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        description: 'Demleme Reçetesi V60: Kahve 16 g, Su 250 ml. Öğütüm orta-ince.',
+      })
+    );
+
+    assert.equal(coffee.roast_level, 'unknown');
   });
 
   it('extracts only high-confidence product-page brew recipes', () => {

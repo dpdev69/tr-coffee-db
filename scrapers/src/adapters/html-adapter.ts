@@ -4,6 +4,7 @@ import * as cheerio from 'cheerio';
 import { BaseScraper } from '../base-scraper.js';
 import { isLikelyCatalogCoffeeProduct } from '../product-classification.js';
 import type { RoasterConfig, RawProduct } from '../types.js';
+import { comparePackageWeightPreference, parsePackageWeight } from './package-selection.js';
 
 interface NextDataProduct {
   metaData?: {
@@ -32,6 +33,14 @@ interface NextDataVariant {
 interface ProbadorChallengeSubmission {
   action: string;
   fields: Array<{ name: string; value: string }>;
+}
+
+interface DetailPackageSelection {
+  weightGrams: number;
+  price: number | null;
+  label: string;
+  text: string;
+  isAvailable: boolean;
 }
 
 class ChallengeElement {
@@ -85,7 +94,7 @@ export function parseProbadorProducts(html: string, config: RoasterConfig): RawP
       description,
       price: parseTurkishPrice(priceText, config),
       currency: 'TRY',
-      weightGrams: parseWeight($el.text()),
+      weightGrams: parsePackageWeight($el.text()),
       imageUrl,
       productUrl,
       isAvailable: Number.isFinite(stock) ? (stock as number) > 0 : !$el.text().includes('STOKTA YOK'),
@@ -131,6 +140,7 @@ export class HtmlAdapter extends BaseScraper {
 
       const html = await this.fetchPageHtml(currentUrl);
       const $ = cheerio.load(html);
+      const documentBaseUrl: string = $('base[href]').first().attr('href') ?? currentUrl;
       const productElements = $(selectors.productList);
 
       productElements.each((_, el) => {
@@ -143,7 +153,7 @@ export class HtmlAdapter extends BaseScraper {
           const href = linkEl.attr('href') || '';
           const productUrl = href.startsWith('http')
             ? href
-            : new URL(href, this.config.shopUrl).toString();
+            : new URL(href, documentBaseUrl).toString();
           const description = selectors.description
             ? $el.find(selectors.description).text().trim()
             : '';
@@ -154,14 +164,17 @@ export class HtmlAdapter extends BaseScraper {
           const price = parseCatalogPriceText(priceText, this.config);
 
           const imageEl = $el.find(selectors.productImage);
-          const imageSrc = imageEl.attr('src') || imageEl.attr('data-src') || null;
+          const imageSrc = imageEl.attr('data-lazyloadsrc')
+            || imageEl.attr('data-src')
+            || imageEl.attr('src')
+            || null;
           const imageUrl = imageSrc && imageSrc.startsWith('http')
             ? imageSrc
             : imageSrc
-              ? new URL(imageSrc, this.config.shopUrl).toString()
+              ? new URL(imageSrc, documentBaseUrl).toString()
               : null;
 
-          const weightGrams = this.parseWeight(name);
+          const weightGrams = parsePackageWeight(`${name} ${$el.text()}`);
           const isAvailable = selectors.unavailableText
             ? !$el.text().includes(selectors.unavailableText)
             : true;
@@ -189,7 +202,7 @@ export class HtmlAdapter extends BaseScraper {
         currentUrl = nextLink
           ? nextLink.startsWith('http')
             ? nextLink
-            : new URL(nextLink, this.config.shopUrl).toString()
+            : new URL(nextLink, documentBaseUrl).toString()
           : null;
       } else {
         currentUrl = null;
@@ -199,12 +212,71 @@ export class HtmlAdapter extends BaseScraper {
       await new Promise((r) => setTimeout(r, 2000));
     }
 
-    return allProducts;
+    if (!this.config.derivePackageFromProductPage) {
+      return allProducts;
+    }
+
+    return this.enrichProductsWithProductPagePackages(allProducts);
   }
 
   private async fetchProductsFromProbador(): Promise<RawProduct[]> {
     const html = await this.fetchProbadorPageHtml(this.config.shopUrl);
     return parseProbadorProducts(html, this.config);
+  }
+
+  private async enrichProductsWithProductPagePackages(products: RawProduct[]) {
+    const enrichedProducts: RawProduct[] = [];
+
+    for (const product of products) {
+      try {
+        const html = await this.fetchPageHtml(product.productUrl);
+        const productPageMetadata = parseProductPageMetadata(html);
+        const packageSelection = parseProductPagePackageSelection(
+          html,
+          this.config,
+          product.price
+        );
+
+        enrichedProducts.push({
+          ...product,
+          description: [product.description, productPageMetadata.description]
+            .filter(Boolean)
+            .join(' '),
+          ...(packageSelection
+            ? {
+                price: packageSelection.price,
+                weightGrams: packageSelection.weightGrams,
+                isAvailable: product.isAvailable && packageSelection.isAvailable,
+              }
+            : {}),
+          rawData: {
+            ...product.rawData,
+            ...(productPageMetadata.attributes.length > 0
+              ? { attributes: productPageMetadata.attributes }
+              : {}),
+            ...(packageSelection
+              ? {
+                  packageSelection: {
+                    label: packageSelection.label,
+                    price: packageSelection.price,
+                    weightGrams: packageSelection.weightGrams,
+                  },
+                }
+              : {}),
+          },
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(
+          `[${this.config.slug}] Could not read package options for ${product.productUrl}: ${message}`
+        );
+        enrichedProducts.push(product);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
+    return enrichedProducts;
   }
 
   private async fetchProductsFromNextData(): Promise<RawProduct[]> {
@@ -241,7 +313,7 @@ export class HtmlAdapter extends BaseScraper {
         description: this.stripHtml(product.description || product.shortDescription || ''),
         price: this.extractNextDataPrice(variant),
         currency: 'TRY',
-        weightGrams: this.parseWeight(`${product.name} ${variantText}`),
+        weightGrams: parsePackageWeight(`${product.name} ${variantText}`),
         imageUrl: null,
         productUrl: new URL(`/${slug}`, this.config.websiteUrl).toString(),
         isAvailable: this.isVariantAvailable(variant),
@@ -422,7 +494,8 @@ export class HtmlAdapter extends BaseScraper {
         return {
           variant,
           isAvailable: this.isVariantAvailable(variant),
-          weightGrams: this.parseWeight(`${product.name} ${variantText}`) ?? Number.POSITIVE_INFINITY,
+          weightGrams: parsePackageWeight(`${product.name} ${variantText}`),
+          text: `${product.name} ${variantText}`,
           price: this.extractNextDataPrice(variant) ?? Number.POSITIVE_INFINITY,
         };
       })
@@ -430,9 +503,13 @@ export class HtmlAdapter extends BaseScraper {
         if (left.isAvailable !== right.isAvailable) {
           return left.isAvailable ? -1 : 1;
         }
-        if (left.weightGrams !== right.weightGrams) {
-          return left.weightGrams - right.weightGrams;
-        }
+        const weightPreference = comparePackageWeightPreference(
+          left.weightGrams,
+          left.text,
+          right.weightGrams,
+          right.text
+        );
+        if (weightPreference !== 0) return weightPreference;
         return left.price - right.price;
       })[0]?.variant ?? null;
   }
@@ -460,14 +537,6 @@ export class HtmlAdapter extends BaseScraper {
     return null;
   }
 
-  private parseWeight(text: string): number | null {
-    const gMatch = text.match(/(\d+)\s*(?:gr?|gram)\b/i);
-    if (gMatch) return parseInt(gMatch[1]);
-    const kgMatch = text.match(/(\d+(?:\.\d+)?)\s*kg\b/i);
-    if (kgMatch) return Math.round(parseFloat(kgMatch[1]) * 1000);
-    return null;
-  }
-
   private stripHtml(html: string) {
     return html
       .replace(/<br\s*\/?>/gi, '\n')
@@ -490,6 +559,242 @@ export class HtmlAdapter extends BaseScraper {
       return url;
     }
   }
+}
+
+export function parseProductPagePackageSelection(
+  html: string,
+  config: RoasterConfig,
+  fallbackBasePrice: number | null
+): DetailPackageSelection | null {
+  const $ = cheerio.load(html);
+  const basePrice = parseProductPageBasePrice($, config) ?? fallbackBasePrice;
+  const candidates = [
+    ...extractAnchorPackageOptions($, config, basePrice),
+    ...extractDefinitionListPackageOptions($, config, basePrice),
+  ];
+
+  return candidates
+    .filter((candidate) => candidate.weightGrams != null)
+    .sort((left, right) => {
+      if (left.isAvailable !== right.isAvailable) {
+        return left.isAvailable ? -1 : 1;
+      }
+
+      const weightPreference = comparePackageWeightPreference(
+        left.weightGrams,
+        left.text,
+        right.weightGrams,
+        right.text
+      );
+      if (weightPreference !== 0) return weightPreference;
+
+      return (left.price ?? Number.POSITIVE_INFINITY)
+        - (right.price ?? Number.POSITIVE_INFINITY);
+    })[0] ?? null;
+}
+
+export function parseProductPageMetadata(html: string) {
+  const $ = cheerio.load(html);
+  const attributes = [
+    ...extractDetailTableAttributes($),
+    ...extractColonListAttributes($),
+  ];
+  const description = [
+    ...attributes.map((attribute) => `${attribute.name}: ${attribute.terms[0]?.name ?? ''}`),
+    ...[
+      '.short-description',
+      '.product-short-desc',
+      '.full-description',
+      '#product-tab-description',
+      '#tab-description',
+      '.woocommerce-Tabs-panel--description',
+      '.urunTabAlt',
+    ].map((selector) => cleanText($(selector).first().text())),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .slice(0, 5000);
+
+  return { attributes, description };
+}
+
+function extractDetailTableAttributes($: ReturnType<typeof cheerio.load>) {
+  return $('tr')
+    .map((_, row) => {
+      const cells = $(row).find('td');
+      if (cells.length < 2) return null;
+
+      const name = cleanText(cells.first().text());
+      const value = cleanText(cells.eq(1).text());
+      if (!name || !value) return null;
+
+      return {
+        name,
+        terms: [{ name: value }],
+      };
+    })
+    .get();
+}
+
+function extractColonListAttributes($: ReturnType<typeof cheerio.load>) {
+  const containers = [
+    '#product-tab-description',
+    '#tab-description',
+    '.woocommerce-Tabs-panel--description',
+    '.urunTabAlt',
+  ].join(',');
+
+  return $(containers)
+    .find('li, p')
+    .map((_, item) => {
+      const text = cleanText($(item).text());
+      const match = text.match(/^([^:：]{2,45})[:：]\s*(.{1,220})$/u);
+      if (!match) return null;
+
+      const name = match[1].trim();
+      const value = match[2].trim();
+      if (!name || !value) return null;
+
+      return {
+        name,
+        terms: [{ name: value }],
+      };
+    })
+    .get();
+}
+
+function parseProductPageBasePrice(
+  $: ReturnType<typeof cheerio.load>,
+  config: RoasterConfig
+) {
+  const selectors = [
+    '.product-prices-box .product-price',
+    '.product-price .new-price[data-guncel-fiyat]',
+    '.product-price .new-price',
+    '.product-essential .product-price',
+    '.product-info .product-price',
+    '.product-price',
+  ];
+
+  for (const selector of selectors) {
+    const element = $(selector).first();
+    const attrPrice = element.attr('data-guncel-fiyat');
+    const textPrice = element.text().trim();
+    const price = parseCatalogPriceText(attrPrice || textPrice, config);
+    if (price != null) return price;
+  }
+
+  return null;
+}
+
+function extractAnchorPackageOptions(
+  $: ReturnType<typeof cheerio.load>,
+  config: RoasterConfig,
+  basePrice: number | null
+): DetailPackageSelection[] {
+  const options: DetailPackageSelection[] = [];
+
+  $('.product-variations a, .product-size-swatch a, a.size').each((_, option) => {
+    const element = $(option);
+    const label = element.text().replace(/\s+/g, ' ').trim();
+    const weightGrams = parsePackageOptionWeight(label);
+    if (weightGrams == null) return;
+
+    const explicitPriceText = element.attr('data-fiyat')
+      || element.attr('data-price')
+      || element.attr('data-option-price')
+      || '';
+    const explicitPrice = explicitPriceText.trim()
+      ? parseCatalogPriceText(explicitPriceText, config)
+      : null;
+    const stockText = element.attr('data-stok');
+    const stock = stockText ? Number.parseInt(stockText, 10) : null;
+    const isAvailable = !element.hasClass('nostok') && (stock == null || stock > 0);
+
+    options.push({
+      weightGrams,
+      price: explicitPrice ?? basePrice,
+      label,
+      text: label,
+      isAvailable,
+    });
+  });
+
+  return options;
+}
+
+function extractDefinitionListPackageOptions(
+  $: ReturnType<typeof cheerio.load>,
+  config: RoasterConfig,
+  basePrice: number | null
+): DetailPackageSelection[] {
+  const options: DetailPackageSelection[] = [];
+
+  $('dt').each((_, term) => {
+    const label = $(term).text().replace(/\s+/g, ' ').trim();
+    if (!/gramaj/i.test(normalizeTurkishText(label))) return;
+
+    const rawOptions = $(term).next('dd').find('label').map((_, optionLabel) => {
+      const element = $(optionLabel);
+      const text = element.text().replace(/\s+/g, ' ').trim();
+      const weightGrams = parsePackageOptionWeight(text);
+      if (weightGrams == null) return null;
+
+      const priceDelta = parseBracketPriceDelta(text, config);
+      const input = $(`#${element.attr('for') ?? ''}`);
+      const isAvailable = !input.attr('disabled') && !element.closest('li').hasClass('disabled');
+
+      return {
+        weightGrams,
+        priceDelta,
+        label: text,
+        text,
+        isAvailable,
+      };
+    }).get();
+    const hasBasePricedOption = rawOptions.some((option) => option.priceDelta == null);
+
+    for (const option of rawOptions) {
+      options.push({
+        weightGrams: option.weightGrams,
+        price: option.priceDelta == null
+          ? basePrice
+          : hasBasePricedOption && basePrice != null
+            ? basePrice + option.priceDelta
+            : option.priceDelta,
+        label: option.label,
+        text: option.text,
+        isAvailable: option.isAvailable,
+      });
+    }
+  });
+
+  return options;
+}
+
+function parsePackageOptionWeight(text: string) {
+  const withoutPrice = text.replace(/\[[^\]]+\]/g, ' ');
+  const explicitWeight = parsePackageWeight(withoutPrice);
+  if (explicitWeight != null) return explicitWeight;
+
+  const standaloneGrams = withoutPrice.match(/(?:^|\s)(100|150|200|250|350|500|1000)(?:\s|$)/i);
+  if (!standaloneGrams) return null;
+
+  return Number.parseInt(standaloneGrams[1], 10);
+}
+
+function parseBracketPriceDelta(text: string, config: RoasterConfig) {
+  const match = text.match(/\[\s*([+-])?\s*(?:₺|TL)?\s*([\d.,]+)\s*(?:TL)?\s*\]/i);
+  if (!match) return null;
+
+  const price = parseCatalogPriceText(match[2], config);
+  if (price == null) return null;
+
+  return match[1] === '-' ? -price : price;
+}
+
+function cleanText(text: string) {
+  return text.replace(/\s+/g, ' ').trim();
 }
 
 function extractProbadorChallengeSubmission(html: string): ProbadorChallengeSubmission {
@@ -682,14 +987,6 @@ function parseLocalizedPriceNumber(text: string): number | null {
 
   const num = Number.parseFloat(normalized);
   return Number.isFinite(num) ? num : null;
-}
-
-function parseWeight(text: string): number | null {
-  const gMatch = text.match(/(\d+)\s*(?:gr?|gram)\b/i);
-  if (gMatch) return Number.parseInt(gMatch[1], 10);
-  const kgMatch = text.match(/(\d+(?:\.\d+)?)\s*kg\b/i);
-  if (kgMatch) return Math.round(Number.parseFloat(kgMatch[1]) * 1000);
-  return null;
 }
 
 function makeExternalId(url: string): string {

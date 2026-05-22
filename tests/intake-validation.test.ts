@@ -3,12 +3,10 @@ import { describe, it } from 'node:test';
 
 import {
   validateClickPayload,
-  validateCorrectionPayload,
   validateJsonRequest,
 } from '@/lib/api/intake-validation';
 
 const UUID = '11111111-1111-4111-8111-111111111111';
-const OTHER_UUID = '22222222-2222-4222-8222-222222222222';
 
 describe('validateJsonRequest', () => {
   it('accepts same-origin JSON requests within the size limit', () => {
@@ -123,83 +121,3 @@ function makeRequest(headers: Record<string, string>) {
     headers,
   });
 }
-
-describe('validateCorrectionPayload', () => {
-  it('accepts a valid correction and normalizes email and optional ids', () => {
-    const result = validateCorrectionPayload({
-      issue_type: 'stale_price',
-      reporter_email: '  Person@Example.COM ',
-      message: 'Price changed.',
-      source_path: '/coffees/ethiopia-natural',
-      coffee_id: UUID.toUpperCase(),
-      roaster_id: '',
-    });
-
-    assert.equal(result.ok, true);
-    if (!result.ok || result.spam) return;
-
-    assert.equal(result.data.reporter_email, 'person@example.com');
-    assert.equal(result.data.coffee_id, UUID);
-    assert.equal(result.data.roaster_id, null);
-  });
-
-  it('returns spam for honeypot submissions before validating required fields', () => {
-    assert.deepEqual(validateCorrectionPayload({ website: 'https://bot.test' }), {
-      ok: true,
-      spam: true,
-    });
-  });
-
-  it('rejects invalid correction fields and message boundaries', () => {
-    assert.deepEqual(
-      validateCorrectionPayload({
-        issue_type: 'not_allowed',
-        reporter_email: 'person@example.com',
-        message: 'Bad type.',
-        source_path: '/coffees',
-      }),
-      { ok: false, error: 'Invalid issue_type' }
-    );
-
-    assert.deepEqual(
-      validateCorrectionPayload({
-        issue_type: 'other',
-        reporter_email: 'not-an-email',
-        message: 'Bad email.',
-        source_path: '/coffees',
-      }),
-      { ok: false, error: 'Invalid reporter_email' }
-    );
-
-    assert.deepEqual(
-      validateCorrectionPayload({
-        issue_type: 'other',
-        reporter_email: 'person@example.com',
-        message: 'x'.repeat(2001),
-        source_path: '/coffees',
-      }),
-      { ok: false, error: 'Invalid message' }
-    );
-
-    assert.deepEqual(
-      validateCorrectionPayload({
-        issue_type: 'other',
-        reporter_email: 'person@example.com',
-        message: 'Bad path.',
-        source_path: '/admin',
-      }),
-      { ok: false, error: 'Invalid source_path' }
-    );
-
-    assert.deepEqual(
-      validateCorrectionPayload({
-        issue_type: 'other',
-        reporter_email: 'person@example.com',
-        message: 'Bad uuid.',
-        source_path: '/coffees',
-        roaster_id: OTHER_UUID.replace('4', '9'),
-      }),
-      { ok: false, error: 'Invalid roaster_id' }
-    );
-  });
-});

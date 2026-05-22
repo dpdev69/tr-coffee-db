@@ -24,9 +24,9 @@ const COUNTRY_MAP: [RegExp, string][] = [
   [/\b(yemen|yemeni)\b/i, 'Yemen'],
   [/\b(kongo|congo|drc)\b/i, 'DR Congo'],
   [/\b(dominik|dominican)\b/i, 'Dominican Republic'],
-  [/\b(küba|cuba)\b/i, 'Cuba'],
+  [/\b(kuba|cuba)\b/i, 'Cuba'],
   [/\b(papua|png)\b/i, 'Papua New Guinea'],
-  [/\b(çin|china|yunnan)\b/i, 'China'],
+  [/\b(cin|china|yunnan)\b/i, 'China'],
   [/\b(myanmar|burma)\b/i, 'Myanmar'],
   [/\b(vietnam)\b/i, 'Vietnam'],
   [/\b(geisha|gesha)\b/i, 'Panama'], // Gesha often = Panama
@@ -69,18 +69,19 @@ export function detectOrigin(text: string): {
   altitude: string | null;
   farm: string | null;
 } {
+  const searchText = normalizeForMetadataSearch(text);
   let country: string | null = null;
   let region: string | null = null;
 
   for (const [regex, name] of COUNTRY_MAP) {
-    if (regex.test(text)) {
+    if (regex.test(searchText)) {
       country = name;
       break;
     }
   }
 
   for (const [regex, name] of REGION_PATTERNS) {
-    if (regex.test(text)) {
+    if (regex.test(searchText)) {
       region = name;
       break;
     }
@@ -95,4 +96,29 @@ export function detectOrigin(text: string): {
   const farm = farmMatch ? farmMatch[1].trim() : null;
 
   return { country, region, altitude, farm };
+}
+
+function normalizeForMetadataSearch(text: string): string {
+  return text
+    .replace(/ı/g, 'i')
+    .replace(/İ/g, 'I')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[çğöşü]/g, (char) => {
+      switch (char) {
+        case 'ç':
+          return 'c';
+        case 'ğ':
+          return 'g';
+        case 'ö':
+          return 'o';
+        case 'ş':
+          return 's';
+        case 'ü':
+          return 'u';
+        default:
+          return char;
+      }
+    });
 }

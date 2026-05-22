@@ -3,11 +3,14 @@ import { createContext, runInContext } from 'node:vm';
 import { BaseScraper } from '../base-scraper.js';
 import { isLikelyCatalogCoffeeProduct } from '../product-classification.js';
 import type { RoasterConfig, RawProduct } from '../types.js';
+import { comparePackageWeightPreference, parsePackageWeight } from './package-selection.js';
 
 interface WooProduct {
   id: number;
   name: string;
   slug: string;
+  type?: string;
+  variation?: string;
   permalink: string;
   description: string;
   short_description: string;
@@ -21,13 +24,24 @@ interface WooProduct {
   tags: { id: number; name: string; slug: string }[];
   is_purchasable: boolean;
   is_in_stock: boolean;
-  variations: unknown[];
+  variations: WooVariationReference[];
   attributes: { id: number; name: string; terms: { id: number; name: string }[] }[];
 }
 
 interface ImunifyChallengeSubmission {
   action: string;
   params: Record<string, string | number>;
+}
+
+interface WooVariationReference {
+  id: number;
+  attributes: { name: string; value: string }[];
+}
+
+interface ComparablePackage {
+  priceTL: number | null;
+  weightGrams: number | null;
+  isAvailable: boolean;
 }
 
 export class WooCommerceAdapter extends BaseScraper {
@@ -69,8 +83,7 @@ export class WooCommerceAdapter extends BaseScraper {
         for (const product of products) {
           if (!this.isCoffeeProduct(product)) continue;
 
-          const priceTL = this.normalizePriceToTL(product);
-          const weightGrams = this.extractWeight(product);
+          const comparablePackage = await this.getComparablePackage(product);
 
           allProducts.push({
             externalId: String(product.id),
@@ -78,12 +91,12 @@ export class WooCommerceAdapter extends BaseScraper {
             description: this.stripHtml(
               product.description || product.short_description || ''
             ),
-            price: priceTL,
+            price: comparablePackage.priceTL,
             currency: 'TRY',
-            weightGrams,
+            weightGrams: comparablePackage.weightGrams,
             imageUrl: product.images[0]?.src || null,
             productUrl: product.permalink,
-            isAvailable: product.is_in_stock,
+            isAvailable: comparablePackage.isAvailable,
             tags: product.tags.map((t) => t.name),
             rawData: {
               categories: product.categories.map((c) => c.name),
@@ -389,6 +402,83 @@ export class WooCommerceAdapter extends BaseScraper {
     return numericPrice;
   }
 
+  private async getComparablePackage(product: WooProduct): Promise<ComparablePackage> {
+    const variations = this.getPreferredVariationCandidates(product);
+    if (variations.length === 0) {
+      return {
+        priceTL: this.normalizePriceToTL(product),
+        weightGrams: this.extractPreferredWeight(product),
+        isAvailable: product.is_in_stock,
+      };
+    }
+
+    let firstUnavailablePackage: ComparablePackage | null = null;
+
+    for (const candidate of variations) {
+      try {
+        const detail = await this.fetchProductById(candidate.variation.id);
+        const comparablePackage = {
+          priceTL: this.normalizePriceToTL(detail),
+          weightGrams: this.extractWeightFromVariationDetail(detail) ?? candidate.weightGrams,
+          isAvailable: detail.is_in_stock,
+        };
+
+        if (comparablePackage.isAvailable) {
+          return comparablePackage;
+        }
+
+        firstUnavailablePackage ??= comparablePackage;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(
+          `[${this.config.slug}] Failed to fetch variation ${candidate.variation.id}; trying next package: ${message}`
+        );
+      }
+    }
+
+    if (firstUnavailablePackage) {
+      return firstUnavailablePackage;
+    }
+
+    console.warn(
+      `[${this.config.slug}] Failed to fetch all variation details; omitting weight to avoid misleading price-per-100g.`
+    );
+    return {
+      priceTL: this.normalizePriceToTL(product),
+      weightGrams: null,
+      isAvailable: product.is_in_stock,
+    };
+  }
+
+  private async fetchProductById(productId: number): Promise<WooProduct> {
+    const url = `${this.config.shopUrl}/wp-json/wc/store/v1/products/${productId}`;
+    const { data } = await axios.get<WooProduct>(url, {
+      timeout: 30000,
+      headers: this.getRequestHeaders('application/json'),
+    });
+
+    return data;
+  }
+
+  private getPreferredVariationCandidates(product: WooProduct) {
+    return (product.variations ?? [])
+      .filter((variation) => variation && typeof variation.id === 'number')
+      .map((variation) => ({
+        variation,
+        text: this.getVariationText(variation),
+        weightGrams: this.extractVariationWeight(variation),
+      }))
+      .filter((candidate) => candidate.weightGrams != null)
+      .sort((left, right) =>
+        comparePackageWeightPreference(
+          left.weightGrams,
+          left.text,
+          right.weightGrams,
+          right.text
+        )
+      );
+  }
+
   private isCoffeeProduct(product: WooProduct): boolean {
     const categories = product.categories.map((c) => c.name.toLowerCase());
     const tags = product.tags.map((tag) => tag.name);
@@ -458,28 +548,66 @@ export class WooCommerceAdapter extends BaseScraper {
     return true;
   }
 
-  private extractWeight(product: WooProduct): number | null {
-    // Try attributes
-    for (const attr of product.attributes || []) {
-      if (
-        attr.name.toLowerCase().includes('ağırlık') ||
-        attr.name.toLowerCase().includes('gram') ||
-        attr.name.toLowerCase().includes('weight')
-      ) {
-        const term = attr.terms[0];
-        if (term) return this.parseWeight(term.name);
-      }
+  private extractPreferredWeight(product: WooProduct): number | null {
+    const weights = (product.attributes || [])
+      .filter((attr) => this.isWeightAttribute(attr.name))
+      .flatMap((attr) =>
+        attr.terms.map((term) => ({
+          text: term.name,
+          weightGrams: parsePackageWeight(term.name),
+        }))
+      )
+      .filter((candidate) => candidate.weightGrams != null);
+
+    if (weights.length > 0) {
+      return weights
+        .sort((left, right) =>
+          comparePackageWeightPreference(
+            left.weightGrams,
+            left.text,
+            right.weightGrams,
+            right.text
+          )
+        )[0].weightGrams;
     }
-    // Try product name
-    return this.parseWeight(product.name);
+
+    return parsePackageWeight(product.name);
   }
 
-  private parseWeight(text: string): number | null {
-    const gMatch = text.match(/(\d+)\s*(?:gr?|gram)\b/i);
-    if (gMatch) return parseInt(gMatch[1]);
-    const kgMatch = text.match(/(\d+(?:\.\d+)?)\s*kg\b/i);
-    if (kgMatch) return Math.round(parseFloat(kgMatch[1]) * 1000);
-    return null;
+  private extractVariationWeight(variation: WooVariationReference): number | null {
+    for (const attr of variation.attributes || []) {
+      if (this.isWeightAttribute(attr.name)) {
+        const weight = parsePackageWeight(attr.value);
+        if (weight) return weight;
+      }
+    }
+
+    return parsePackageWeight(this.getVariationText(variation));
+  }
+
+  private extractWeightFromVariationDetail(product: WooProduct): number | null {
+    if (product.variation) {
+      const weight = parsePackageWeight(product.variation);
+      if (weight) return weight;
+    }
+
+    return this.extractPreferredWeight(product);
+  }
+
+  private getVariationText(variation: WooVariationReference): string {
+    return (variation.attributes || [])
+      .map((attr) => `${attr.name} ${attr.value}`)
+      .join(' ');
+  }
+
+  private isWeightAttribute(name: string): boolean {
+    const normalized = name.toLowerCase();
+    return (
+      normalized.includes('ağırlık') ||
+      normalized.includes('agirlik') ||
+      normalized.includes('gram') ||
+      normalized.includes('weight')
+    );
   }
 
   private async fetchFromLegacyApi(): Promise<RawProduct[]> {

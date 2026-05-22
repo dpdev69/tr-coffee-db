@@ -65,23 +65,7 @@ describe('parseProbadorProducts', () => {
 describe('parseCatalogPriceText', () => {
   it('uses the first visible catalog price from Turkish ranges and sale strings', async () => {
     const { parseCatalogPriceText } = await import('../scrapers/src/adapters/html-adapter.ts');
-    const config = {
-      slug: 'test-html',
-      name: 'Test HTML',
-      websiteUrl: 'https://example.test',
-      shopUrl: 'https://example.test/shop',
-      platform: 'custom' as const,
-      city: 'Istanbul',
-      priceFormat: 'tl' as const,
-      selectors: {
-        productList: '.product',
-        productLink: 'a',
-        productName: '.title',
-        productPrice: '.price',
-        productImage: 'img',
-        description: '',
-      },
-    };
+    const config = makeCustomConfig();
 
     assert.equal(parseCatalogPriceText('650,00 ₺ – 3.200,00 ₺', config), 650);
     assert.equal(
@@ -91,3 +75,130 @@ describe('parseCatalogPriceText', () => {
     assert.equal(parseCatalogPriceText('₺ 250.00 - ₺ 2,100.00', config), 250);
   });
 });
+
+describe('parsePackageWeight', () => {
+  it('treats Turkish thousands separators in gram values as thousands', async () => {
+    const { parsePackageWeight } = await import('../scrapers/src/adapters/package-selection.ts');
+
+    assert.equal(parsePackageWeight('1.000 gr'), 1000);
+    assert.equal(parsePackageWeight('1,000 gr'), 1000);
+    assert.equal(parsePackageWeight('4 x 250gr'), 1000);
+    assert.equal(parsePackageWeight('0,5 kg'), 500);
+  });
+});
+
+describe('parseProductPagePackageSelection', () => {
+  it('uses absolute product-page package prices when no base package option exists', async () => {
+    const { parseProductPagePackageSelection } = await import('../scrapers/src/adapters/html-adapter.ts');
+
+    const selected = parseProductPagePackageSelection(
+      `
+        <div class="product-price"><span>₺300,00</span></div>
+        <div class="attributes">
+          <dl>
+            <dt><label>GRAMAJ</label></dt>
+            <dd>
+              <ul>
+                <li><input id="w250" type="radio"><label for="w250">250 Gr [+₺450,00]</label></li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+      `,
+      makeCustomConfig(),
+      300
+    );
+
+    assert.equal(selected?.price, 450);
+    assert.equal(selected?.weightGrams, 250);
+  });
+
+  it('adds product-page package deltas when a base package option is present', async () => {
+    const { parseProductPagePackageSelection } = await import('../scrapers/src/adapters/html-adapter.ts');
+
+    const selected = parseProductPagePackageSelection(
+      `
+        <div class="product-price"><span>₺200,00</span></div>
+        <div class="attributes">
+          <dl>
+            <dt><label>GRAMAJ</label></dt>
+            <dd>
+              <ul>
+                <li><input id="w100" type="radio"><label for="w100">100 Gr</label></li>
+                <li><input id="w250" type="radio"><label for="w250">250 Gr [+₺300,00]</label></li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+      `,
+      makeCustomConfig(),
+      200
+    );
+
+    assert.equal(selected?.price, 500);
+    assert.equal(selected?.weightGrams, 250);
+  });
+});
+
+describe('parseProductPageMetadata', () => {
+  it('extracts structured product detail rows for normalization', async () => {
+    const { parseProductPageMetadata } = await import('../scrapers/src/adapters/html-adapter.ts');
+
+    const metadata = parseProductPageMetadata(`
+      <div id="product-tab-description">
+        <table>
+          <tr><td>Menşe ülke</td><td>Kosta Rika</td></tr>
+          <tr><td>İşleme yöntemi</td><td>Yıkanmış</td></tr>
+          <tr><td>Kavurma Derecesi</td><td>Light</td></tr>
+        </table>
+        Pürüzsüz tatlı çok temiz bir yıkanmış.
+      </div>
+    `);
+
+    assert.deepEqual(metadata.attributes, [
+      { name: 'Menşe ülke', terms: [{ name: 'Kosta Rika' }] },
+      { name: 'İşleme yöntemi', terms: [{ name: 'Yıkanmış' }] },
+      { name: 'Kavurma Derecesi', terms: [{ name: 'Light' }] },
+    ]);
+    assert.match(metadata.description, /Menşe ülke: Kosta Rika/);
+    assert.match(metadata.description, /Pürüzsüz tatlı/);
+  });
+
+  it('extracts colon-delimited product details from list-based pages', async () => {
+    const { parseProductPageMetadata } = await import('../scrapers/src/adapters/html-adapter.ts');
+
+    const metadata = parseProductPageMetadata(`
+      <div class="woocommerce-Tabs-panel--description">
+        <ul>
+          <li><strong>Ülke: Colombia</strong></li>
+          <li><strong>İşlem: Honey & Wine Yeast</strong></li>
+        </ul>
+      </div>
+    `);
+
+    assert.deepEqual(metadata.attributes, [
+      { name: 'Ülke', terms: [{ name: 'Colombia' }] },
+      { name: 'İşlem', terms: [{ name: 'Honey & Wine Yeast' }] },
+    ]);
+  });
+});
+
+function makeCustomConfig() {
+  return {
+    slug: 'test-html',
+    name: 'Test HTML',
+    websiteUrl: 'https://example.test',
+    shopUrl: 'https://example.test/shop',
+    platform: 'custom' as const,
+    city: 'Istanbul',
+    priceFormat: 'tl' as const,
+    selectors: {
+      productList: '.product',
+      productLink: 'a',
+      productName: '.title',
+      productPrice: '.price',
+      productImage: 'img',
+      description: '',
+    },
+  };
+}

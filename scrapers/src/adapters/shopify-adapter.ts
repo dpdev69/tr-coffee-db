@@ -2,6 +2,7 @@ import axios from 'axios';
 import { BaseScraper } from '../base-scraper.js';
 import { isLikelyCatalogCoffeeProduct } from '../product-classification.js';
 import type { RoasterConfig, RawProduct } from '../types.js';
+import { comparePackageWeightPreference, parsePackageWeight } from './package-selection.js';
 
 interface ShopifyProduct {
   id: number;
@@ -62,7 +63,7 @@ export class ShopifyAdapter extends BaseScraper {
             id: String(v.id),
             title: v.title,
             price: parseFloat(v.price),
-            weightGrams: v.grams || this.parseWeightFromTitle(v.title),
+            weightGrams: v.grams || parsePackageWeight(v.title),
             isAvailable: v.available,
           })),
           tags: product.tags,
@@ -116,7 +117,22 @@ export class ShopifyAdapter extends BaseScraper {
     // Prefer the smallest available variant (typically 250g)
     const available = variants.filter((v) => v.available);
     const pool = available.length > 0 ? available : variants;
-    return pool.sort((a, b) => parseFloat(a.price) - parseFloat(b.price))[0];
+    return pool
+      .map((variant) => ({
+        variant,
+        weightGrams: this.extractVariantWeight(variant),
+        text: variant.title,
+      }))
+      .sort((a, b) => {
+        const weightPreference = comparePackageWeightPreference(
+          a.weightGrams,
+          a.text,
+          b.weightGrams,
+          b.text
+        );
+        if (weightPreference !== 0) return weightPreference;
+        return parseFloat(a.variant.price) - parseFloat(b.variant.price);
+      })[0]?.variant ?? null;
   }
 
   private extractWeight(
@@ -127,20 +143,16 @@ export class ShopifyAdapter extends BaseScraper {
     if (variant?.grams && variant.grams > 0) return variant.grams;
     // Try parsing from variant title
     if (variant?.title) {
-      const w = this.parseWeightFromTitle(variant.title);
+      const w = parsePackageWeight(variant.title);
       if (w) return w;
     }
     // Try parsing from product title
-    return this.parseWeightFromTitle(product.title);
+    return parsePackageWeight(product.title);
   }
 
-  private parseWeightFromTitle(title: string): number | null {
-    // Match patterns like "250g", "250 g", "1kg", "1 kg"
-    const gMatch = title.match(/(\d+)\s*(?:gr?|gram)\b/i);
-    if (gMatch) return parseInt(gMatch[1]);
-    const kgMatch = title.match(/(\d+(?:\.\d+)?)\s*kg\b/i);
-    if (kgMatch) return Math.round(parseFloat(kgMatch[1]) * 1000);
-    return null;
+  private extractVariantWeight(variant: ShopifyProduct['variants'][0]): number | null {
+    if (variant.grams && variant.grams > 0) return variant.grams;
+    return parsePackageWeight(variant.title);
   }
 
   private stripHtml(html: string): string {

@@ -37,15 +37,6 @@ const QUIZ_ADVENTURES = new Set(['classic', 'surprise']);
 const QUIZ_ROASTS = new Set(['light', 'medium', 'dark', 'any']);
 const QUIZ_BUDGETS = new Set(['low', 'mid', 'high', 'any']);
 
-export const CORRECTION_ISSUE_TYPES = new Set([
-  'stale_price',
-  'broken_link',
-  'unavailable_product',
-  'wrong_metadata',
-  'missing_product',
-  'other',
-]);
-
 type ValidationResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };
@@ -61,20 +52,6 @@ export interface ClickPayload {
   quiz_context: JsonObject | null;
   page_path: string;
 }
-
-export interface CorrectionPayload {
-  issue_type: string;
-  reporter_email: string;
-  message: string;
-  source_path: string;
-  coffee_id: string | null;
-  roaster_id: string | null;
-}
-
-export type CorrectionValidationResult =
-  | { ok: true; spam: false; data: CorrectionPayload }
-  | { ok: true; spam: true }
-  | { ok: false; error: string };
 
 export function validateJsonRequest(
   request: Request,
@@ -129,51 +106,6 @@ export function validateClickPayload(input: unknown): ValidationResult<ClickPayl
       filter_context: filterContext.data,
       quiz_context: quizContext.data,
       page_path: pagePath.data,
-    },
-  };
-}
-
-export function validateCorrectionPayload(input: unknown): CorrectionValidationResult {
-  if (!isRecord(input)) {
-    return { ok: false, error: 'Invalid request body' };
-  }
-
-  if (hasHoneypotValue(input)) {
-    return { ok: true, spam: true };
-  }
-
-  const issueType = readRequiredAllowlistedString(
-    input.issue_type,
-    CORRECTION_ISSUE_TYPES,
-    'issue_type'
-  );
-  if (!issueType.ok) return issueType;
-
-  const reporterEmail = readReporterEmail(input.reporter_email);
-  if (!reporterEmail.ok) return reporterEmail;
-
-  const message = readRequiredString(input.message, 'message', 1, 2000);
-  if (!message.ok) return message;
-
-  const sourcePath = readRequiredPath(input.source_path, 'source_path');
-  if (!sourcePath.ok) return sourcePath;
-
-  const coffeeId = readOptionalUuid(input.coffee_id, 'coffee_id');
-  if (!coffeeId.ok) return coffeeId;
-
-  const roasterId = readOptionalUuid(input.roaster_id, 'roaster_id');
-  if (!roasterId.ok) return roasterId;
-
-  return {
-    ok: true,
-    spam: false,
-    data: {
-      issue_type: issueType.data,
-      reporter_email: reporterEmail.data,
-      message: message.data,
-      source_path: sourcePath.data,
-      coffee_id: coffeeId.data,
-      roaster_id: roasterId.data,
     },
   };
 }
@@ -297,11 +229,6 @@ function readRequiredUuid(input: unknown, field: string): ValidationResult<strin
   return { ok: true, data: input.toLowerCase() };
 }
 
-function readOptionalUuid(input: unknown, field: string): ValidationResult<string | null> {
-  if (input == null || input === '') return { ok: true, data: null };
-  return readRequiredUuid(input, field);
-}
-
 function readRequiredAllowlistedString(
   input: unknown,
   allowed: Set<string>,
@@ -346,18 +273,6 @@ function readRequiredString(
   }
 
   return { ok: true, data: value };
-}
-
-function readReporterEmail(input: unknown): ValidationResult<string> {
-  const value = readRequiredString(input, 'reporter_email', 3, 254);
-  if (!value.ok) return value;
-
-  const email = value.data.toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { ok: false, error: 'Invalid reporter_email' };
-  }
-
-  return { ok: true, data: email };
 }
 
 function readRequiredPath(input: unknown, field: string): ValidationResult<string> {
@@ -441,15 +356,6 @@ function readBoundedInteger(
   }
 
   return result;
-}
-
-function hasHoneypotValue(input: Record<string, unknown>) {
-  const honeypotFields = ['website', 'company', 'honeypot'];
-
-  return honeypotFields.some((field) => {
-    const value = input[field];
-    return typeof value === 'string' && value.trim().length > 0;
-  });
 }
 
 function isAllowedPath(path: string) {

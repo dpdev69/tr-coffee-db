@@ -8,6 +8,7 @@
     "scrapers:typecheck": "npm --prefix scrapers run typecheck",
     "scrapers:migrate": "npm --prefix scrapers run migrate",
     "scrapers:scrape": "npm --prefix scrapers run scrape --",
+    "audit:metadata": "tsx scripts/audit-catalog-metadata.ts",
     "test": "tsx --test tests/*.test.ts",
     "check": "npm run lint && npm run typecheck && npm run build && npm run scrapers:typecheck",
     "build": "next build",
