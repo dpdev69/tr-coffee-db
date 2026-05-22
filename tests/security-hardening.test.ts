@@ -1,0 +1,94 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { describe, it } from 'node:test';
+
+import {
+  collectTrustedHosts,
+  normalizeTrustedHttpUrl,
+} from '../shared/trusted-url.ts';
+
+describe('trusted URL policy', () => {
+  it('allows only http(s) URLs on trusted hosts without embedded credentials', () => {
+    const allowedHosts = collectTrustedHosts([
+      'https://example.test/shop',
+      'https://shop.example.test',
+    ]);
+
+    assert.equal(
+      normalizeTrustedHttpUrl('/coffee', {
+        allowedHosts,
+        baseUrl: 'https://example.test/catalog',
+      }),
+      'https://example.test/coffee'
+    );
+    assert.equal(
+      normalizeTrustedHttpUrl('https://shop.example.test/coffee', { allowedHosts }),
+      'https://shop.example.test/coffee'
+    );
+
+    assert.equal(
+      normalizeTrustedHttpUrl('javascript:alert(1)', {
+        allowedHosts,
+        baseUrl: 'https://example.test/catalog',
+      }),
+      null
+    );
+    assert.equal(
+      normalizeTrustedHttpUrl('data:text/html,pwned', {
+        allowedHosts,
+        baseUrl: 'https://example.test/catalog',
+      }),
+      null
+    );
+    assert.equal(
+      normalizeTrustedHttpUrl('//evil.example/coffee', {
+        allowedHosts,
+        baseUrl: 'https://example.test/catalog',
+      }),
+      null
+    );
+    assert.equal(
+      normalizeTrustedHttpUrl('https://user:pass@example.test/coffee', { allowedHosts }),
+      null
+    );
+  });
+});
+
+describe('security hardening guardrails', () => {
+  it('keeps public URL database constraints in the latest migration', () => {
+    const migration = readFileSync('supabase/migrations/017_constrain_public_urls.sql', 'utf8');
+
+    assert.match(migration, /coffees_product_url_http_check/);
+    assert.match(migration, /coffees_image_url_http_check/);
+    assert.match(migration, /\^https\?\:\/\/\[\^\/\?\#\[:space:\]@\]\+/);
+    assert.match(migration, /\[\^\/\?\#\]\*@/);
+  });
+
+  it('keeps migration TLS verification enabled', () => {
+    const migrationRunner = readFileSync('scrapers/run-migrations.mjs', 'utf8');
+
+    assert.doesNotMatch(migrationRunner, /rejectUnauthorized:\s*false/);
+    assert.match(migrationRunner, /rejectUnauthorized:\s*true/);
+    assert.match(migrationRunner, /validateSupabaseDbHost/);
+    assert.match(migrationRunner, /\.pooler\.supabase\.com/);
+  });
+
+  it('keeps the browser sink guarded by the trusted URL policy', () => {
+    const buyButton = readFileSync('src/components/coffee/buy-button.tsx', 'utf8');
+    const detailPage = readFileSync('src/app/coffees/[slug]/page.tsx', 'utf8');
+
+    assert.match(buyButton, /normalizeTrustedHttpUrl/);
+    assert.match(buyButton, /isTrustedHttpUrl/);
+    assert.match(detailPage, /collectTrustedHosts/);
+    assert.match(detailPage, /allowedHosts=\{productUrlHosts\}/);
+  });
+
+  it('adds local secret-scanning and ownership policy files', () => {
+    const gitleaks = readFileSync('.gitleaks.toml', 'utf8');
+    const codeowners = readFileSync('.github/CODEOWNERS', 'utf8');
+
+    assert.match(gitleaks, /useDefault = true/);
+    assert.match(codeowners, /\.github\/workflows\//);
+    assert.match(codeowners, /supabase\/migrations\//);
+  });
+});

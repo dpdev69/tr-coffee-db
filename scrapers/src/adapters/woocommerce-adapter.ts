@@ -3,6 +3,10 @@ import { createContext, runInContext } from 'node:vm';
 import { BaseScraper } from '../base-scraper.js';
 import { isLikelyCatalogCoffeeProduct } from '../product-classification.js';
 import type { RoasterConfig, RawProduct } from '../types.js';
+import {
+  normalizeRoasterImageUrl,
+  normalizeRoasterProductUrl,
+} from '../url-policy.js';
 import { comparePackageWeightPreference, parsePackageWeight } from './package-selection.js';
 
 interface WooProduct {
@@ -84,6 +88,8 @@ export class WooCommerceAdapter extends BaseScraper {
           if (!this.isCoffeeProduct(product)) continue;
 
           const comparablePackage = await this.getComparablePackage(product);
+          const productUrl = normalizeRoasterProductUrl(product.permalink, this.config);
+          if (!productUrl) continue;
 
           allProducts.push({
             externalId: String(product.id),
@@ -92,8 +98,8 @@ export class WooCommerceAdapter extends BaseScraper {
             price: comparablePackage.priceTL,
             currency: 'TRY',
             weightGrams: comparablePackage.weightGrams,
-            imageUrl: product.images[0]?.src || null,
-            productUrl: product.permalink,
+            imageUrl: normalizeRoasterImageUrl(product.images[0]?.src, this.config),
+            productUrl,
             isAvailable: comparablePackage.isAvailable,
             tags: product.tags.map((t) => t.name),
             rawData: {

@@ -191,7 +191,7 @@ export async function getCoffeeBySlug(slug: string) {
 
   let query = supabase
     .from('coffees')
-    .select('*, roasters!inner(id, name, slug, city, website_url, logo_url)')
+    .select('*, roasters!inner(id, name, slug, city, website_url, shop_url, logo_url)')
     .eq('slug', slug);
 
   query = applyPublicCoffeeVisibility(query);
@@ -201,7 +201,7 @@ export async function getCoffeeBySlug(slug: string) {
   if (error) throw error;
   if (!data) return null;
   return data as CoffeeWithRoaster & {
-    roasters: { id: string; website_url: string; logo_url: string | null };
+    roasters: { id: string; website_url: string; shop_url: string; logo_url: string | null };
   };
 }
 

@@ -1,15 +1,27 @@
 'use client';
 
+import { isTrustedHttpUrl, normalizeTrustedHttpUrl } from '@/lib/trusted-url';
+
 export function BuyButton({
+  allowedHosts,
   coffeeId,
   productUrl,
   roasterName,
 }: {
+  allowedHosts: string[];
   coffeeId: string;
   productUrl: string;
   roasterName: string;
 }) {
+  const canOpenProductUrl = isTrustedHttpUrl(productUrl, { allowedHosts });
+
   async function handleClick() {
+    const safeProductUrl = normalizeTrustedHttpUrl(productUrl, { allowedHosts });
+    if (!safeProductUrl) {
+      console.error('Blocked unsafe product URL', { coffeeId, roasterName });
+      return;
+    }
+
     // Track click
     try {
       await fetch('/api/click', {
@@ -26,7 +38,7 @@ export function BuyButton({
     }
 
     // Build UTM URL
-    const url = new URL(productUrl);
+    const url = new URL(safeProductUrl);
     url.searchParams.set('utm_source', 'trcoffeedb');
     url.searchParams.set('utm_medium', 'referral');
 
@@ -35,10 +47,13 @@ export function BuyButton({
 
   return (
     <button
+      disabled={!canOpenProductUrl}
       onClick={handleClick}
-      className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-amber-700 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+      className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-amber-700 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-600"
     >
-      <span>{roasterName} sitesine git</span>
+      <span>
+        {canOpenProductUrl ? `${roasterName} sitesine git` : 'Bağlantı doğrulanamadı'}
+      </span>
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
       </svg>

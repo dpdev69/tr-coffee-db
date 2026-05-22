@@ -1,0 +1,6 @@
+# Security-sensitive project surfaces.
+/.github/workflows/ @dpdev69
+/supabase/migrations/ @dpdev69
+/scrapers/run-migrations.mjs @dpdev69
+/scrapers/src/supabase.ts @dpdev69
+/src/app/api/ @dpdev69

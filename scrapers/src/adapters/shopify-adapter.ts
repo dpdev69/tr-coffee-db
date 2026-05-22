@@ -2,6 +2,10 @@ import axios from 'axios';
 import { BaseScraper } from '../base-scraper.js';
 import { isLikelyCatalogCoffeeProduct } from '../product-classification.js';
 import type { RoasterConfig, RawProduct } from '../types.js';
+import {
+  normalizeRoasterImageUrl,
+  normalizeRoasterProductUrl,
+} from '../url-policy.js';
 import { comparePackageWeightPreference, parsePackageWeight } from './package-selection.js';
 
 interface ShopifyProduct {
@@ -47,6 +51,12 @@ export class ShopifyAdapter extends BaseScraper {
 
         const variant = this.pickBestVariant(product.variants);
         const weightGrams = this.extractWeight(variant, product);
+        const productUrl = normalizeRoasterProductUrl(
+          `/products/${product.handle}`,
+          this.config,
+          this.config.shopUrl
+        );
+        if (!productUrl) continue;
 
         allProducts.push({
           externalId: String(product.id),
@@ -56,8 +66,8 @@ export class ShopifyAdapter extends BaseScraper {
           price: variant ? parseFloat(variant.price) : null,
           currency: 'TRY',
           weightGrams,
-          imageUrl: product.images[0]?.src || null,
-          productUrl: `${this.config.shopUrl}/products/${product.handle}`,
+          imageUrl: normalizeRoasterImageUrl(product.images[0]?.src, this.config),
+          productUrl,
           isAvailable: product.variants.some((v) => v.available),
           variants: product.variants.map((v) => ({
             id: String(v.id),

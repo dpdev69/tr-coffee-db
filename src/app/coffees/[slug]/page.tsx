@@ -10,6 +10,7 @@ import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { BREW_METHOD_LABELS, PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
 import { formatPackageWeight, formatVerifiedAt, getSourceHost } from '@/lib/coffee-display';
 import { SITE_NAME } from '@/lib/site';
+import { collectTrustedHosts } from '@/lib/trusted-url';
 import type { CoffeeBrewRecipe } from '@/lib/types/database';
 
 export async function generateMetadata({
@@ -108,10 +109,19 @@ export default async function CoffeeDetailPage({
       slug,
     });
   }
-  const roaster = coffee.roasters as { id: string; name: string; slug: string; city: string; website_url: string; logo_url: string | null };
+  const roaster = coffee.roasters as {
+    id: string;
+    name: string;
+    slug: string;
+    city: string;
+    website_url: string;
+    shop_url: string;
+    logo_url: string | null;
+  };
   const brewRecipes = coffee.brew_recipes ?? [];
   const sourceHost = getSourceHost(coffee.product_url);
   const verifiedAt = formatVerifiedAt(coffee.last_seen_at);
+  const productUrlHosts = collectTrustedHosts([roaster.website_url, roaster.shop_url]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -276,6 +286,7 @@ export default async function CoffeeDetailPage({
           {/* Buy button */}
           <div className="mt-6">
             <BuyButton
+              allowedHosts={productUrlHosts}
               coffeeId={coffee.id}
               productUrl={coffee.product_url}
               roasterName={roaster.name}

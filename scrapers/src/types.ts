@@ -98,6 +98,8 @@ export interface RoasterConfig {
   // HTML/structured-data product classification hints for stores whose coffee
   // products are named only by origin/lot and lack coffee category metadata.
   coffeeProductKeywords?: string[];
+  trustedProductHosts?: string[];
+  trustedImageHosts?: string[];
   // Selector-based stores often show the minimum package price on catalog cards.
   // When enabled, fetch each product page and choose the retail comparison pack.
   derivePackageFromProductPage?: boolean;

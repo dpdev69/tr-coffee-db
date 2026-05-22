@@ -44,6 +44,8 @@ Use the checked-in [`.nvmrc`](.nvmrc) to align local and CI Node versions.
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `DB_PASSWORD`
+   - `SUPABASE_DB_SSL_CA_FILE` pointing to the Server root certificate from
+     Supabase Database Settings when running migrations over the pooler
 
 4. Run database migrations:
 
@@ -76,6 +78,9 @@ npm run scrapers:scrape -- --roaster <slug>
 ## Scraper Workflow
 
 - Use `npm run scrapers:migrate` to apply the SQL files in [`supabase/migrations`](supabase/migrations).
+- Migration connections verify TLS certificates. If your pooler connection reports a
+  self-signed certificate chain, download the Server root certificate from Supabase
+  Database Settings and set `SUPABASE_DB_SSL_CA_FILE` to its absolute path.
 - Use `npm run scrapers:scrape` to run all configured scrapers.
 - Use `npm run scrapers:scrape -- --roaster <slug>` when you only want one roaster.
 - GitHub Actions also runs [`.github/workflows/scrape.yml`](.github/workflows/scrape.yml) on a schedule or manual dispatch.

@@ -60,6 +60,99 @@ describe('parseProbadorProducts', () => {
     assert.equal(products[0].weightGrams, 250);
     assert.equal(products[0].isAvailable, true);
   });
+
+  it('drops unsafe product and image URLs from Probador-style HTML', async () => {
+    const { parseProbadorProducts } = await import('../scrapers/src/adapters/html-adapter.ts');
+
+    const products = parseProbadorProducts(
+      `
+      <div class="products-lists">
+        <div class="list">
+          <a class="image" href="javascript:alert(document.domain)">
+            <img src="data:text/html,pwned">
+            <div class="name">ETİYOPYA YIKANMIŞ KAHVE</div>
+            <div class="note">çiçeksi, narenciye</div>
+          </a>
+          <div class="variantprice active" data-stock="12">
+            <div class="price">₺745,00</div>
+          </div>
+        </div>
+        <div class="list">
+          <a class="image" href="//evil.example/phish">
+            <div class="name">KOLOMBİYA NATURAL KAHVE</div>
+            <div class="note">meyvemsi</div>
+          </a>
+          <div class="variantprice active" data-stock="12">
+            <div class="price">₺700,00</div>
+          </div>
+        </div>
+      </div>
+      `,
+      {
+        slug: 'probador',
+        name: 'Probador Colectiva',
+        websiteUrl: 'https://probadorcolectiva.com',
+        shopUrl: 'https://probadorcolectiva.com/urunler',
+        platform: 'custom',
+        city: 'Istanbul',
+        priceFormat: 'tl',
+        structuredDataParser: 'probador-products',
+      }
+    );
+
+    assert.deepEqual(products, []);
+  });
+});
+
+describe('HtmlAdapter URL policy', () => {
+  it('ignores malicious base tags, unsafe schemes, and off-roaster product links', async () => {
+    const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
+    const { HtmlAdapter } = await import('../scrapers/src/adapters/html-adapter.ts');
+    const originalGet = axios.get.bind(axios);
+
+    try {
+      axios.get = (async () => ({
+        data: `
+          <base href="https://evil.example/">
+          <div class="product">
+            <a class="title" href="javascript:alert(1)">Ethiopia Washed Coffee</a>
+            <span class="price">₺500,00</span>
+            <img src="https://evil.example/coffee.jpg">
+          </div>
+          <div class="product">
+            <a class="title" href="//evil.example/phish">Colombia Natural Coffee</a>
+            <span class="price">₺550,00</span>
+            <img src="/coffee.jpg">
+          </div>
+          <div class="product">
+            <a class="title" href="/safe-coffee">Kenya Washed Coffee</a>
+            <span class="price">₺600,00</span>
+            <img src="data:text/html,pwned">
+          </div>
+          <a class="next" href="//evil.example/page-2">Next</a>
+        `,
+        headers: {},
+      })) as typeof axios.get;
+
+      const adapter = new HtmlAdapter({
+        ...makeCustomConfig(),
+        selectors: {
+          ...makeCustomConfig().selectors,
+          productLink: 'a.title',
+          productName: 'a.title',
+          nextPage: 'a.next',
+        },
+      });
+
+      const products = await adapter.fetchProducts();
+
+      assert.equal(products.length, 1);
+      assert.equal(products[0].productUrl, 'https://example.test/safe-coffee');
+      assert.equal(products[0].imageUrl, null);
+    } finally {
+      axios.get = originalGet;
+    }
+  });
 });
 
 describe('parseCatalogPriceText', () => {

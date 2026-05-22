@@ -4,6 +4,10 @@ import * as cheerio from 'cheerio';
 import { BaseScraper } from '../base-scraper.js';
 import { isLikelyCatalogCoffeeProduct } from '../product-classification.js';
 import type { RoasterConfig, RawProduct } from '../types.js';
+import {
+  normalizeRoasterImageUrl,
+  normalizeRoasterProductUrl,
+} from '../url-policy.js';
 import { comparePackageWeightPreference, parsePackageWeight } from './package-selection.js';
 
 interface NextDataProduct {
@@ -74,7 +78,9 @@ export function parseProbadorProducts(html: string, config: RoasterConfig): RawP
     const name = $el.find('.name').first().text().trim();
     if (!href || !name) return;
 
-    const productUrl = new URL(href, config.websiteUrl).toString();
+    const productUrl = normalizeRoasterProductUrl(href, config, config.websiteUrl);
+    if (!productUrl) return;
+
     const description = $el.find('.note').first().text().trim();
     if (!isProbadorCoffeeProduct(name, description, href)) return;
 
@@ -82,7 +88,7 @@ export function parseProbadorProducts(html: string, config: RoasterConfig): RawP
     if (uniqueProducts.has(externalId)) return;
 
     const imageSrc = $el.find('a.image img').first().attr('src') ?? null;
-    const imageUrl = imageSrc ? new URL(imageSrc, config.websiteUrl).toString() : null;
+    const imageUrl = normalizeRoasterImageUrl(imageSrc, config, config.websiteUrl);
     const priceText = $el.find('.variantprice.active .price').first().text().trim()
       || $el.find('.price').first().text().trim();
     const stockText = $el.find('.variantprice.active').first().attr('data-stock');
@@ -140,7 +146,9 @@ export class HtmlAdapter extends BaseScraper {
 
       const html = await this.fetchPageHtml(currentUrl);
       const $ = cheerio.load(html);
-      const documentBaseUrl: string = $('base[href]').first().attr('href') ?? currentUrl;
+      const documentBaseUrl =
+        normalizeRoasterProductUrl($('base[href]').first().attr('href'), this.config, currentUrl)
+        ?? currentUrl;
       const productElements = $(selectors.productList);
 
       productElements.each((_, el) => {
@@ -151,9 +159,9 @@ export class HtmlAdapter extends BaseScraper {
 
           const linkEl = $el.find(selectors.productLink);
           const href = linkEl.attr('href') || '';
-          const productUrl = href.startsWith('http')
-            ? href
-            : new URL(href, documentBaseUrl).toString();
+          const productUrl = normalizeRoasterProductUrl(href, this.config, documentBaseUrl);
+          if (!productUrl) return;
+
           const description = selectors.description
             ? $el.find(selectors.description).text().trim()
             : '';
@@ -170,11 +178,7 @@ export class HtmlAdapter extends BaseScraper {
             || imageEl.attr('data-src')
             || imageEl.attr('src')
             || null;
-          const imageUrl = imageSrc && imageSrc.startsWith('http')
-            ? imageSrc
-            : imageSrc
-              ? new URL(imageSrc, documentBaseUrl).toString()
-              : null;
+          const imageUrl = normalizeRoasterImageUrl(imageSrc, this.config, documentBaseUrl);
 
           const weightGrams = parsePackageWeight(`${name} ${$el.text()}`);
           const isAvailable = selectors.unavailableText
@@ -201,11 +205,7 @@ export class HtmlAdapter extends BaseScraper {
       // Check for next page
       if (selectors.nextPage) {
         const nextLink = $(selectors.nextPage).attr('href');
-        currentUrl = nextLink
-          ? nextLink.startsWith('http')
-            ? nextLink
-            : new URL(nextLink, documentBaseUrl).toString()
-          : null;
+        currentUrl = normalizeRoasterProductUrl(nextLink, this.config, documentBaseUrl);
       } else {
         currentUrl = null;
       }

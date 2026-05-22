@@ -1,0 +1,18 @@
+title = "TR CoffeeDB secret scanning"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documented placeholders and generated lockfiles"
+paths = [
+  '''package-lock\.json$''',
+  '''scrapers/package-lock\.json$'''
+]
+regexes = [
+  '''your-project-ref''',
+  '''your-service-role-key''',
+  '''your-db-password''',
+  '''optional-explicit-db-host''',
+  '''test-service-key'''
+]
