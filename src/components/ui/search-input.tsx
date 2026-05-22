@@ -59,11 +59,11 @@ export function SearchInput({ onSearch }: { onSearch?: () => void }) {
             submitSearch();
           }
         }}
-        className="w-full rounded-lg border border-stone-300 bg-white py-2 pl-10 pr-11 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+        className="h-11 w-full rounded-lg border border-stone-300 bg-white pl-10 pr-14 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
       />
       <button
         type="submit"
-        className="absolute right-1.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900"
+        className="absolute right-0 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-r-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900"
         aria-label="Aramayı uygula"
       >
         <svg

@@ -106,7 +106,7 @@ export default async function HomePage() {
             <h2 className="text-2xl font-bold text-stone-900">Yeni Eklenenler</h2>
             <Link
               href="/coffees"
-              className="text-sm font-medium text-amber-700 hover:text-amber-800"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-amber-700 hover:text-amber-800"
             >
               Tümünü Gör &rarr;
             </Link>

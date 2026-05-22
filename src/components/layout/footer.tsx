@@ -14,19 +14,19 @@ export function Footer() {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-stone-900">Keşfet</h3>
-            <ul className="mt-2 space-y-2">
+            <ul className="mt-2">
               <li>
-                <Link href="/coffees" className="text-sm text-stone-500 hover:text-stone-700">
+                <Link href="/coffees" className="inline-flex min-h-11 items-center text-sm text-stone-500 hover:text-stone-700">
                   Tüm Kahveler
                 </Link>
               </li>
               <li>
-                <Link href="/roasters" className="text-sm text-stone-500 hover:text-stone-700">
+                <Link href="/roasters" className="inline-flex min-h-11 items-center text-sm text-stone-500 hover:text-stone-700">
                   Kavurucular
                 </Link>
               </li>
               <li>
-                <Link href="/quiz" className="text-sm text-stone-500 hover:text-stone-700">
+                <Link href="/quiz" className="inline-flex min-h-11 items-center text-sm text-stone-500 hover:text-stone-700">
                   Tercihime Göre Bul
                 </Link>
               </li>

@@ -11,7 +11,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-stone-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex min-h-11 items-center gap-2">
           <span className="text-xl font-bold tracking-tight text-stone-900">
             TR Coffee
             <span className="text-amber-700">DB</span>
@@ -19,22 +19,22 @@ export function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-2 md:flex">
           <Link
             href="/coffees"
-            className="text-sm font-medium text-stone-600 transition-colors hover:text-stone-900"
+            className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-50 hover:text-stone-900"
           >
             Kahveler
           </Link>
           <Link
             href="/roasters"
-            className="text-sm font-medium text-stone-600 transition-colors hover:text-stone-900"
+            className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-50 hover:text-stone-900"
           >
             Kavurucular
           </Link>
           <Link
             href="/quiz"
-            className="text-sm font-medium text-stone-600 transition-colors hover:text-stone-900"
+            className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-50 hover:text-stone-900"
           >
             Tercihime Göre Bul
           </Link>
@@ -50,7 +50,7 @@ export function Header() {
         {/* Mobile menu button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="inline-flex items-center justify-center rounded-md p-2 text-stone-600 hover:bg-stone-100 md:hidden"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-stone-600 hover:bg-stone-100 md:hidden"
           aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
         >
           {mobileMenuOpen ? (
@@ -73,25 +73,25 @@ export function Header() {
               <SearchInput onSearch={() => setMobileMenuOpen(false)} />
             </Suspense>
           </div>
-          <nav className="flex flex-col gap-3">
+          <nav className="flex flex-col gap-1">
             <Link
               href="/coffees"
               onClick={() => setMobileMenuOpen(false)}
-              className="text-sm font-medium text-stone-700"
+              className="inline-flex min-h-11 items-center rounded-md px-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
             >
               Kahveleri İncele
             </Link>
             <Link
               href="/roasters"
               onClick={() => setMobileMenuOpen(false)}
-              className="text-sm font-medium text-stone-700"
+              className="inline-flex min-h-11 items-center rounded-md px-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
             >
               Kavurucular
             </Link>
             <Link
               href="/quiz"
               onClick={() => setMobileMenuOpen(false)}
-              className="text-sm font-medium text-stone-700"
+              className="inline-flex min-h-11 items-center rounded-md px-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
             >
               Tercihime Göre Bul
             </Link>
