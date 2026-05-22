@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import { unstable_rethrow } from 'next/navigation';
 import { getFeaturedCoffees, getStats } from '@/lib/queries/coffees';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
+import { DataSourceNotice } from '@/components/ui/data-source-notice';
 
 const structuredData = {
   '@context': 'https://schema.org',
@@ -25,11 +27,16 @@ const structuredData = {
 export default async function HomePage() {
   let stats = { totalCoffees: 0, totalRoasters: 0, totalOrigins: 0 };
   let featured: Awaited<ReturnType<typeof getFeaturedCoffees>> = [];
+  let catalogUnavailable = false;
 
   try {
     [stats, featured] = await Promise.all([getStats(), getFeaturedCoffees(6)]);
-  } catch {
-    // Supabase not configured yet — render static content
+  } catch (error) {
+    unstable_rethrow(error);
+    catalogUnavailable = true;
+    console.error('Homepage catalog summary failed to load', {
+      error: getErrorMessage(error),
+    });
   }
 
   return (
@@ -74,11 +81,22 @@ export default async function HomePage() {
 
       {/* Stats */}
       <section className="border-b border-stone-200 bg-stone-50">
-        <div className="mx-auto grid max-w-4xl grid-cols-3 divide-x divide-stone-200 py-8">
-          <StatBlock number={stats.totalCoffees || '100+'} label="Kahve" />
-          <StatBlock number={stats.totalRoasters || '20+'} label="Kavurucu" />
-          <StatBlock number={stats.totalOrigins || '25+'} label="Köken" />
-        </div>
+        {catalogUnavailable ? (
+          <div className="mx-auto max-w-4xl px-4 py-8">
+            <DataSourceNotice
+              title="Canlı katalog sayıları şu an yüklenemiyor."
+              message="Katalog veri kaynağına ulaşamadık, bu yüzden tahmini sayı göstermiyoruz. Güncel kahve ve kavurucu sayıları bağlantı düzeldiğinde yeniden görünür."
+              actionHref="/coffees"
+              actionLabel="Kataloğu tekrar dene"
+            />
+          </div>
+        ) : (
+          <div className="mx-auto grid max-w-4xl grid-cols-3 divide-x divide-stone-200 py-8">
+            <StatBlock number={stats.totalCoffees} label="Kahve" />
+            <StatBlock number={stats.totalRoasters} label="Kavurucu" />
+            <StatBlock number={stats.totalOrigins} label="Köken" />
+          </div>
+        )}
       </section>
 
       {/* Featured */}
@@ -124,6 +142,10 @@ export default async function HomePage() {
       </section>
     </div>
   );
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function StatBlock({ number, label }: { number: number | string; label: string }) {

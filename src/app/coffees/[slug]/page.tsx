@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, unstable_rethrow } from 'next/navigation';
 import { getCoffeeBySlug, getSimilarCoffees } from '@/lib/queries/coffees';
 import { BuyButton } from '@/components/coffee/buy-button';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
 import { Tag } from '@/components/ui/tag';
+import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { BREW_METHOD_LABELS, PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
 import { formatPackageWeight, formatVerifiedAt, getSourceHost } from '@/lib/coffee-display';
 import { SITE_NAME } from '@/lib/site';
@@ -17,7 +18,22 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const coffee = await getCoffeeBySlug(slug);
+  let coffee: Awaited<ReturnType<typeof getCoffeeBySlug>>;
+
+  try {
+    coffee = await getCoffeeBySlug(slug);
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error('Coffee metadata failed to load', {
+      error: getErrorMessage(error),
+      slug,
+    });
+    return {
+      title: 'Kahve Detayları Geçici Olarak Yüklenemiyor',
+      description: 'Bu kahvenin güncel detaylarını şu an doğrulayamıyoruz.',
+    };
+  }
+
   if (!coffee) return { title: 'Kahve Bulunamadı' };
 
   const title = coffee.name_normalized ?? coffee.name;
@@ -57,10 +73,41 @@ export default async function CoffeeDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const coffee = await getCoffeeBySlug(slug);
+  let coffee: Awaited<ReturnType<typeof getCoffeeBySlug>>;
+
+  try {
+    coffee = await getCoffeeBySlug(slug);
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error('Coffee detail failed to load', {
+      error: getErrorMessage(error),
+      slug,
+    });
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+        <DataSourceNotice
+          title="Kahve detayı geçici olarak yüklenemiyor."
+          message="Veri kaynağına şu an ulaşamadık. Bu kahvenin olmadığı anlamına gelmez; güncel detayları doğrulayamıyoruz."
+          actionHref="/coffees"
+          actionLabel="Kahve kataloğuna dön"
+        />
+      </div>
+    );
+  }
+
   if (!coffee) notFound();
 
-  const similar = await getSimilarCoffees(coffee, 4);
+  let similar: Awaited<ReturnType<typeof getSimilarCoffees>> = [];
+  try {
+    similar = await getSimilarCoffees(coffee, 4);
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error('Similar coffees failed to load', {
+      coffee_id: coffee.id,
+      error: getErrorMessage(error),
+      slug,
+    });
+  }
   const roaster = coffee.roasters as { id: string; name: string; slug: string; city: string; website_url: string; logo_url: string | null };
   const brewRecipes = coffee.brew_recipes ?? [];
   const sourceHost = getSourceHost(coffee.product_url);
@@ -260,6 +307,10 @@ export default async function CoffeeDetailPage({
       )}
     </div>
   );
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function SpecRow({ label, value }: { label: string; value: React.ReactNode }) {

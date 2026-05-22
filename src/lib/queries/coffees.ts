@@ -196,9 +196,10 @@ export async function getCoffeeBySlug(slug: string) {
 
   query = applyPublicCoffeeVisibility(query);
 
-  const { data, error } = await query.single();
+  const { data, error } = await query.maybeSingle();
 
-  if (error) return null;
+  if (error) throw error;
+  if (!data) return null;
   return data as CoffeeWithRoaster & {
     roasters: { id: string; website_url: string; logo_url: string | null };
   };

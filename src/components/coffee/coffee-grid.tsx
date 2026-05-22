@@ -22,7 +22,7 @@ export function CoffeeGrid({ coffees }: { coffees: CoffeeWithRoaster[] }) {
         <CoffeeCard
           key={coffee.id}
           coffee={coffee}
-          imageLoading={index < 4 ? 'eager' : 'lazy'}
+          imageLoading={index < 8 ? 'eager' : 'lazy'}
         />
       ))}
     </div>
