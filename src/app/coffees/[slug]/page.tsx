@@ -7,6 +7,7 @@ import { BuyButton } from '@/components/coffee/buy-button';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
 import { Tag } from '@/components/ui/tag';
 import { BREW_METHOD_LABELS, PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
+import { formatPackageWeight, formatVerifiedAt, getSourceHost } from '@/lib/coffee-display';
 import { SITE_NAME } from '@/lib/site';
 import type { CoffeeBrewRecipe } from '@/lib/types/database';
 
@@ -62,6 +63,8 @@ export default async function CoffeeDetailPage({
   const similar = await getSimilarCoffees(coffee, 4);
   const roaster = coffee.roasters as { id: string; name: string; slug: string; city: string; website_url: string; logo_url: string | null };
   const brewRecipes = coffee.brew_recipes ?? [];
+  const sourceHost = getSourceHost(coffee.product_url);
+  const verifiedAt = formatVerifiedAt(coffee.last_seen_at);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -106,7 +109,7 @@ export default async function CoffeeDetailPage({
             )}
             {coffee.weight_grams && (
               <span className="whitespace-nowrap text-sm text-stone-500">
-                {formatWeight(coffee.weight_grams)}
+                {formatPackageWeight(coffee.weight_grams)}
               </span>
             )}
             {coffee.price_per_100g && (
@@ -119,8 +122,9 @@ export default async function CoffeeDetailPage({
           <CoffeeImage
             alt={coffee.name}
             imageUrl={coffee.image_url}
-            sizes="100vw"
+            sizes="(max-width: 1023px) calc(100vw - 2rem), 1px"
             className="mt-6 aspect-[16/10] rounded-xl lg:hidden"
+            priority
           />
 
           {/* Specs table */}
@@ -128,7 +132,7 @@ export default async function CoffeeDetailPage({
             <h2 className="text-lg font-semibold text-stone-900">Detaylar</h2>
             <dl className="divide-y divide-stone-100">
               {coffee.weight_grams && (
-                <SpecRow label="Paket" value={formatWeight(coffee.weight_grams)} />
+                <SpecRow label="Paket" value={formatPackageWeight(coffee.weight_grams)} />
               )}
               {coffee.price_per_100g && (
                 <SpecRow
@@ -137,6 +141,10 @@ export default async function CoffeeDetailPage({
                 />
               )}
               <SpecRow label="Stok" value={coffee.is_available ? 'Stokta görünüyor' : 'Stokta yok'} />
+              <SpecRow label="Doğrulama" value={verifiedAt} />
+              {sourceHost && (
+                <SpecRow label="Kaynak" value={sourceHost} />
+              )}
               {coffee.origin_country && (
                 <SpecRow label="Köken" value={
                   [coffee.origin_country, coffee.origin_region].filter(Boolean).join(', ')
@@ -285,7 +293,7 @@ function CoffeeImage({
           fill
           sizes={sizes}
           className="object-cover"
-          priority={priority}
+          loading={priority ? 'eager' : 'lazy'}
         />
       ) : (
         <div className="flex h-full items-center justify-center text-stone-300">
@@ -336,10 +344,4 @@ function RecipeCard({ recipe }: { recipe: CoffeeBrewRecipe }) {
       )}
     </article>
   );
-}
-
-function formatWeight(weightGrams: number) {
-  return weightGrams >= 1000
-    ? `${(weightGrams / 1000).toFixed(weightGrams % 1000 ? 1 : 0)} kg`
-    : `${weightGrams} g`;
 }

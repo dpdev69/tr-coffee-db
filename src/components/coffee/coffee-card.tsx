@@ -2,9 +2,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Tag } from '@/components/ui/tag';
 import { PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
+import { formatPackageWeight, formatVerifiedAt, getSourceHost } from '@/lib/coffee-display';
 import type { CoffeeWithRoaster } from '@/lib/types/database';
 
-export function CoffeeCard({ coffee }: { coffee: CoffeeWithRoaster }) {
+export function CoffeeCard({
+  coffee,
+  imageLoading = 'lazy',
+}: {
+  coffee: CoffeeWithRoaster;
+  imageLoading?: 'eager' | 'lazy';
+}) {
   const priceDisplay = coffee.price_amount
     ? `${coffee.price_amount.toLocaleString('tr-TR')} TL`
     : null;
@@ -12,6 +19,8 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeWithRoaster }) {
   const pricePer100g = coffee.price_per_100g
     ? `${coffee.price_per_100g.toLocaleString('tr-TR')} TL/100g`
     : null;
+  const sourceHost = getSourceHost(coffee.product_url);
+  const verifiedAt = formatVerifiedAt(coffee.last_seen_at);
 
   return (
     <Link
@@ -26,6 +35,7 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeWithRoaster }) {
             alt={coffee.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            loading={imageLoading}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
@@ -95,12 +105,13 @@ export function CoffeeCard({ coffee }: { coffee: CoffeeWithRoaster }) {
           )}
           {coffee.weight_grams && (
             <span className="whitespace-nowrap text-xs text-stone-400">
-              {coffee.weight_grams >= 1000
-                ? `${(coffee.weight_grams / 1000).toFixed(coffee.weight_grams % 1000 ? 1 : 0)}kg`
-                : `${coffee.weight_grams}g`}
+              {formatPackageWeight(coffee.weight_grams)}
             </span>
           )}
         </div>
+        <p className="mt-2 truncate text-[11px] text-stone-400">
+          {sourceHost ? `${verifiedAt} · ${sourceHost}` : verifiedAt}
+        </p>
       </div>
     </Link>
   );

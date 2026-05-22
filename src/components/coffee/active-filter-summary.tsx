@@ -30,7 +30,7 @@ export function ActiveFilterSummary({
           <p className="mt-1 hidden text-sm text-stone-500 sm:block">
             {hasActiveFilters
               ? 'Bu liste seçtiğiniz filtrelere ve test tercihlerinize göre daraltıldı.'
-              : 'Kataloğu daraltmak için filtreleri kullanın ya da kısa testi çözün.'}
+              : 'Katalog stokta görünen, yayına açık specialty kahvelerle sınırlıdır.'}
           </p>
           {(filters.priceMin != null || filters.priceMax != null) && (
             <p className="mt-2 text-xs text-stone-500">

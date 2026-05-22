@@ -15,6 +15,7 @@ const imageHosts = [
   "coffeemamma.com.tr",
   "coffeemolecule.com",
   "coffeerem.com",
+  "chocoffeeroastery.com",
   "cupofjoy.com.tr",
   "daphnecoffee.co",
   "gourmecoffee.com",
@@ -25,6 +26,7 @@ const imageHosts = [
   "kimmacoffee.com",
   "kronotrop.com.tr",
   "media.kafeinkultur.com",
+  "milestonescoffee.com",
   "montagcoffee.com",
   "nokcoffee.com",
   "null.coffee",
@@ -51,7 +53,6 @@ const imageHosts = [
   "www.coffeesapiens.com",
   "www.kafeinkultur.com",
   "www.kronotrop.com.tr",
-  "www.nokcoffee.com",
 ] as const;
 
 const contentSecurityPolicy = [

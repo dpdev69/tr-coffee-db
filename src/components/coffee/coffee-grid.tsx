@@ -18,8 +18,12 @@ export function CoffeeGrid({ coffees }: { coffees: CoffeeWithRoaster[] }) {
 
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {coffees.map((coffee) => (
-        <CoffeeCard key={coffee.id} coffee={coffee} />
+      {coffees.map((coffee, index) => (
+        <CoffeeCard
+          key={coffee.id}
+          coffee={coffee}
+          imageLoading={index < 4 ? 'eager' : 'lazy'}
+        />
       ))}
     </div>
   );
