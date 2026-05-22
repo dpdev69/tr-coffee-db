@@ -6,50 +6,57 @@ import { buildQuizFilterResult } from '@/lib/quiz-filters';
 describe('buildQuizFilterResult', () => {
   it('maps all quiz answers to catalog filters and explanations', () => {
     const result = buildQuizFilterResult({
-      brew: 'filter',
-      flavors: ['Fruity', 'Floral'],
-      adventure: 'surprise',
-      roast: 'light',
-      budget: 'mid',
+      brewMethod: ['filter'],
+      flavorCategory: ['Fruity', 'Floral'],
+      process: ['washed'],
+      roastLevel: ['light'],
+      pricePer100g: '120_200',
     });
 
     assert.equal(
       result.url,
-      '/coffees?brewMethod=filter&flavorCategory=Fruity&flavorCategory=Floral&roastLevel=light&priceMin=120&priceMax=200&sort=newest'
+      '/coffees?brewMethod=filter&flavorCategory=Fruity&flavorCategory=Floral&process=washed&roastLevel=light&priceMin=120&priceMax=200'
     );
     assert.deepEqual(result.explanations, [
-      'Demleme: Filter / V60 filtresi eklendi.',
-      'Tat: Meyvemsi kahveler öne alındı.',
-      'Tat: Çiçeksi notlar öne alındı.',
-      'Kavrum: Açık kavrum filtresi eklendi.',
-      'Bütçe: 250 g için 300-500 TL, 120-200 TL/100 g aralığına çevrildi.',
-      'Keşif modu: daha yeni eklenen kahveler önce gösterilecek.',
+      'Demleme uyumu: Filter / Pour Over.',
+      'Tat kategorisi: Meyvemsi, Çiçeksi.',
+      'İşleme: Yıkanmış.',
+      'Kavurma seviyesi: Açık.',
+      'Bütçe: 120-200 TL/100 g aralığı.',
     ]);
+    assert.deepEqual(result.filters, {
+      brewMethod: ['filter'],
+      flavorCategory: ['Fruity', 'Floral'],
+      process: ['washed'],
+      roastLevel: ['light'],
+      priceMin: 120,
+      priceMax: 200,
+    });
   });
 
   it('keeps optional preferences from adding fake filters', () => {
     const result = buildQuizFilterResult({
-      brew: null,
-      flavors: [],
-      adventure: 'classic',
-      roast: 'any',
-      budget: 'any',
+      brewMethod: [],
+      flavorCategory: [],
+      process: [],
+      roastLevel: [],
+      pricePer100g: 'any',
     });
 
-    assert.equal(result.url, '/coffees?sort=popular');
+    assert.equal(result.url, '/coffees');
     assert.deepEqual(result.explanations, [
       'Bütçe: fiyat sınırı eklenmedi.',
-      'Keşif modu: daha çok ilgi gören kahveler önce gösterilecek.',
     ]);
+    assert.deepEqual(result.filters, {});
   });
 
-  it('expands medium roast quiz answers to adjacent medium roast filters', () => {
+  it('keeps roast answers aligned to exact catalog roast_level values', () => {
     const result = buildQuizFilterResult({
-      brew: null,
-      flavors: [],
-      adventure: null,
-      roast: 'medium',
-      budget: null,
+      brewMethod: [],
+      flavorCategory: [],
+      process: [],
+      roastLevel: ['medium_light', 'medium', 'medium_dark'],
+      pricePer100g: null,
     });
 
     assert.equal(
@@ -57,7 +64,29 @@ describe('buildQuizFilterResult', () => {
       '/coffees?roastLevel=medium_light&roastLevel=medium&roastLevel=medium_dark'
     );
     assert.deepEqual(result.explanations, [
-      'Kavrum: Orta, orta-açık ve orta-koyu kavrum filtreleri eklendi.',
+      'Kavurma seviyesi: Orta-Açık, Orta, Orta-Koyu.',
     ]);
+  });
+
+  it('dedupes selections and ignores unsupported catalog values', () => {
+    const result = buildQuizFilterResult({
+      brewMethod: ['filter', 'filter', 'unknown-brew'],
+      flavorCategory: ['Fruity', 'Unknown'],
+      process: ['experimental', 'unknown'],
+      roastLevel: ['medium', 'unknown'],
+      pricePer100g: 'under_120',
+    });
+
+    assert.equal(
+      result.url,
+      '/coffees?brewMethod=filter&flavorCategory=Fruity&process=experimental&roastLevel=medium&priceMax=120'
+    );
+    assert.deepEqual(result.filters, {
+      brewMethod: ['filter'],
+      flavorCategory: ['Fruity'],
+      process: ['experimental'],
+      roastLevel: ['medium'],
+      priceMax: 120,
+    });
   });
 });

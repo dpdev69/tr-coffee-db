@@ -1,3 +1,11 @@
+import {
+  BREW_METHOD_VALUES,
+  FLAVOR_CATEGORIES,
+  PROCESS_VALUES,
+  ROAST_VALUES,
+  SORT_VALUES,
+} from '@/lib/constants/filter-options';
+
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
 export type JsonObject = { [key: string]: JsonValue };
@@ -13,26 +21,11 @@ const REDIRECT_SOURCES = new Set([
   'roaster_page',
 ]);
 
-const FILTER_SORTS = new Set(['match', 'price_asc', 'price_desc', 'newest', 'popular']);
-const QUIZ_BREWS = new Set([
-  'espresso',
-  'filter',
-  'french_press',
-  'aeropress',
-  'turkish',
-  'cold_brew',
-  'moka_pot',
-]);
-const QUIZ_FLAVORS = new Set([
-  'Fruity',
-  'Floral',
-  'Chocolate',
-  'Sweet',
-  'Nutty',
-  'Spicy',
-  'Roasted',
-  'Herbal',
-]);
+const FILTER_SORTS = new Set<string>(SORT_VALUES);
+const QUIZ_BREWS = new Set(BREW_METHOD_VALUES);
+const QUIZ_FLAVORS = new Set<string>(FLAVOR_CATEGORIES);
+const QUIZ_PROCESSES = new Set(PROCESS_VALUES.filter((value) => value !== 'unknown'));
+const QUIZ_ROAST_LEVELS = new Set(ROAST_VALUES.filter((value) => value !== 'unknown'));
 const QUIZ_ADVENTURES = new Set(['classic', 'surprise']);
 const QUIZ_ROASTS = new Set(['light', 'medium', 'dark', 'any']);
 const QUIZ_BUDGETS = new Set(['low', 'mid', 'high', 'any']);
@@ -183,6 +176,43 @@ function readOptionalQuizContext(input: unknown): ValidationResult<JsonObject | 
 
   for (const [key, value] of Object.entries(input)) {
     switch (key) {
+      case 'brewMethod': {
+        const brewMethods = readAllowlistedStringArray(value, QUIZ_BREWS, key);
+        if (!brewMethods.ok) return brewMethods;
+        context[key] = brewMethods.data;
+        break;
+      }
+      case 'flavorCategory': {
+        const flavorCategories = readAllowlistedStringArray(value, QUIZ_FLAVORS, key);
+        if (!flavorCategories.ok) return flavorCategories;
+        context[key] = flavorCategories.data;
+        break;
+      }
+      case 'process': {
+        const processes = readAllowlistedStringArray(value, QUIZ_PROCESSES, key);
+        if (!processes.ok) return processes;
+        context[key] = processes.data;
+        break;
+      }
+      case 'roastLevel': {
+        const roastLevels = readAllowlistedStringArray(value, QUIZ_ROAST_LEVELS, key);
+        if (!roastLevels.ok) return roastLevels;
+        context[key] = roastLevels.data;
+        break;
+      }
+      case 'priceMin':
+      case 'priceMax': {
+        const numberValue = readBoundedNumber(value, key, 0, 5000);
+        if (!numberValue.ok) return numberValue;
+        context[key] = numberValue.data;
+        break;
+      }
+      case 'sort': {
+        const sort = readRequiredAllowlistedString(value, FILTER_SORTS, key);
+        if (!sort.ok) return sort;
+        context[key] = sort.data;
+        break;
+      }
       case 'brew': {
         const brew = readOptionalAllowlistedString(value, QUIZ_BREWS, key);
         if (!brew.ok) return brew;

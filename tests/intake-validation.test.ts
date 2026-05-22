@@ -65,11 +65,12 @@ describe('validateClickPayload', () => {
         perPage: 100,
       },
       quiz_context: {
-        brew: 'filter',
-        flavors: ['Fruity', 'Chocolate'],
-        adventure: 'classic',
-        roast: 'any',
-        budget: 'mid',
+        brewMethod: ['filter'],
+        flavorCategory: ['Fruity', 'Chocolate'],
+        process: ['washed'],
+        roastLevel: ['medium_light', 'medium'],
+        priceMin: 120,
+        priceMax: 200,
       },
     });
 
@@ -79,7 +80,8 @@ describe('validateClickPayload', () => {
     assert.equal(result.data.coffee_id, UUID);
     assert.equal(result.data.source, 'catalog_card');
     assert.deepEqual(result.data.filter_context?.origin, ['Ethiopia']);
-    assert.deepEqual(result.data.quiz_context?.flavors, ['Fruity', 'Chocolate']);
+    assert.deepEqual(result.data.quiz_context?.flavorCategory, ['Fruity', 'Chocolate']);
+    assert.deepEqual(result.data.quiz_context?.roastLevel, ['medium_light', 'medium']);
   });
 
   it('rejects invalid source, path, and context boundaries', () => {
@@ -108,9 +110,9 @@ describe('validateClickPayload', () => {
         coffee_id: UUID,
         source: 'catalog_card',
         page_path: '/coffees',
-        quiz_context: { flavors: ['Fruity', 'Unknown'] },
+        quiz_context: { flavorCategory: ['Fruity', 'Unknown'] },
       }),
-      { ok: false, error: 'Invalid flavors' }
+      { ok: false, error: 'Invalid flavorCategory' }
     );
   });
 });

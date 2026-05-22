@@ -1,127 +1,86 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { buildQuizFilterResult, type QuizAnswers } from '@/lib/quiz-filters';
-
-type QuizState = QuizAnswers;
-
-const STEPS = [
-  {
-    id: 'brew',
-    question: 'Kahveyi genelde nasıl demliyorsun?',
-    options: [
-      { value: 'espresso', label: 'Espresso' },
-      { value: 'filter', label: 'Pour Over / V60' },
-      { value: 'french_press', label: 'French Press' },
-      { value: 'aeropress', label: 'Aeropress' },
-      { value: 'turkish', label: 'Türk Kahvesi (Cezve)' },
-    ],
-    multi: false,
-  },
-  {
-    id: 'flavors',
-    question: 'Fincanda hangi tatları arıyorsun?',
-    subtitle: 'İstediğin kadar seçebilirsin',
-    options: [
-      { value: 'Fruity', label: 'Meyvemsi ve Canlı' },
-      { value: 'Chocolate', label: 'Çikolatalı' },
-      { value: 'Nutty', label: 'Kuruyemişsi ve Yumuşak' },
-      { value: 'Floral', label: 'Çiçeksi' },
-      { value: 'Sweet', label: 'Karamelimsi ve Tatlı' },
-      { value: 'Spicy', label: 'Baharatlı ve Yoğun' },
-    ],
-    multi: true,
-  },
-  {
-    id: 'adventure',
-    question: 'Bugün ne kadar keşif modundasın?',
-    options: [
-      { value: 'classic', label: 'Klasik ve Tanıdık' },
-      { value: 'surprise', label: 'Beni Şaşırt!' },
-    ],
-    multi: false,
-  },
-  {
-    id: 'roast',
-    question: 'Kavrum tercihin ne?',
-    options: [
-      { value: 'light', label: 'Açık' },
-      { value: 'medium', label: 'Orta' },
-      { value: 'dark', label: 'Koyu' },
-      { value: 'any', label: 'Fark etmez' },
-    ],
-    multi: false,
-  },
-  {
-    id: 'budget',
-    question: '250 g için bütçen ne kadar?',
-    options: [
-      { value: 'low', label: '300 TL altı' },
-      { value: 'mid', label: '300 - 500 TL' },
-      { value: 'high', label: '500 TL ve üzeri' },
-      { value: 'any', label: 'Sınır yok' },
-    ],
-    multi: false,
-  },
-];
+import {
+  buildQuizFilterResult,
+  createInitialQuizAnswers,
+  QUIZ_STEPS,
+  type QuizAnswers,
+  type QuizArrayAnswerKey,
+  type QuizPricePer100g,
+  type QuizStep,
+} from '@/lib/quiz-filters';
 
 export function QuizContainer() {
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<QuizState>({
-    brew: null,
-    flavors: [],
-    adventure: null,
-    roast: null,
-    budget: null,
-  });
+  const [stepIndex, setStepIndex] = useState(0);
+  const [answers, setAnswers] = useState<QuizAnswers>(createInitialQuizAnswers);
 
-  const current = STEPS[step];
-  const isLastStep = step === STEPS.length - 1;
-  const isComplete = step >= STEPS.length;
-  const result = buildQuizFilterResult(answers);
+  const isComplete = stepIndex >= QUIZ_STEPS.length;
+  const current = QUIZ_STEPS[Math.min(stepIndex, QUIZ_STEPS.length - 1)];
+  const isLastStep = stepIndex === QUIZ_STEPS.length - 1;
+  const result = useMemo(() => buildQuizFilterResult(answers), [answers]);
+  const selectedValues = getSelectedValues(current, answers);
+  const selectedCount = selectedValues.length;
 
-  function selectOption(value: string) {
-    const id = current.id as keyof QuizState;
+  function toggleOption(value: string) {
+    if (current.selection === 'multiple') {
+      const key = current.id;
 
-    if (current.multi) {
       setAnswers((prev) => {
-        const arr = prev[id] as string[];
-        const next = arr.includes(value)
-          ? arr.filter((v) => v !== value)
-          : [...arr, value];
-        return { ...prev, [id]: next };
+        const nextValues = prev[key].includes(value)
+          ? prev[key].filter((item) => item !== value)
+          : [...prev[key], value];
+
+        return { ...prev, [key]: nextValues };
       });
-    } else {
-      setAnswers((prev) => ({ ...prev, [id]: value }));
-      advanceStep();
+      return;
     }
+
+    setAnswers((prev) => ({
+      ...prev,
+      pricePer100g:
+        prev.pricePer100g === value ? null : (value as QuizPricePer100g),
+    }));
   }
 
   function advanceStep() {
     if (isLastStep) {
-      setStep(STEPS.length);
+      setStepIndex(QUIZ_STEPS.length);
     } else {
-      setStep((s) => s + 1);
+      setStepIndex((index) => index + 1);
     }
+  }
+
+  function resetCurrentStep() {
+    if (current.selection === 'multiple') {
+      setAnswers((prev) => ({ ...prev, [current.id]: [] }));
+    } else {
+      setAnswers((prev) => ({ ...prev, pricePer100g: null }));
+    }
+  }
+
+  function resetQuiz() {
+    setStepIndex(0);
+    setAnswers(createInitialQuizAnswers());
   }
 
   if (isComplete) {
     return (
-      <div className="text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-2xl">
-          &#10003;
+      <div className="rounded-2xl border border-stone-200 bg-white p-5 text-center shadow-sm sm:p-8">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-700">
+          <CheckIcon />
         </div>
         <h2 className="mt-4 text-xl font-bold text-stone-900">
           Tercihlerine göre listeyi hazırladık.
         </h2>
         <p className="mt-2 text-stone-500">
-          Demleme, tat, kavrum ve bütçe cevapların katalog filtrelerine çevrildi.
+          Seçimlerin doğrudan katalog filtrelerine çevrildi.
         </p>
         {result.explanations.length > 0 && (
           <div className="mx-auto mt-5 max-w-xl rounded-xl border border-stone-200 bg-stone-50 p-4 text-left">
             <h3 className="text-sm font-semibold text-stone-900">
-              Tercihler filtrelere nasıl çevrildi?
+              Uygulanacak filtreler
             </h3>
             <ul className="mt-3 space-y-2 text-sm text-stone-600">
               {result.explanations.map((item) => (
@@ -133,18 +92,22 @@ export function QuizContainer() {
             </ul>
           </div>
         )}
+        {result.explanations.length === 0 && (
+          <p className="mx-auto mt-5 max-w-xl rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-600">
+            Filtre seçmedin; katalogdaki tüm güncel kahveleri göstereceğiz.
+          </p>
+        )}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
             href={result.url}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-600 px-6 py-3 text-sm font-semibold text-white hover:bg-amber-700"
           >
             Kahveleri Göster
+            <ArrowRightIcon />
           </Link>
           <button
-            onClick={() => {
-              setStep(0);
-              setAnswers({ brew: null, flavors: [], adventure: null, roast: null, budget: null });
-            }}
+            type="button"
+            onClick={resetQuiz}
             className="inline-flex items-center justify-center rounded-lg border border-stone-300 px-6 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
           >
             Tercihleri Yeniden Seç
@@ -154,70 +117,173 @@ export function QuizContainer() {
     );
   }
 
-  const selectedValue = current.multi
-    ? (answers[current.id as keyof QuizState] as string[])
-    : answers[current.id as keyof QuizState];
-
   return (
-    <div>
-      {/* Progress */}
-      <div className="mb-8 flex gap-1">
-        {STEPS.map((_, i) => (
-          <div
-            key={i}
-            className={`h-1.5 flex-1 rounded-full ${
-              i <= step ? 'bg-amber-500' : 'bg-stone-200'
-            }`}
-          />
-        ))}
+    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="mb-7">
+        <div className="flex items-center justify-between gap-4 text-xs font-semibold uppercase tracking-wide text-stone-400">
+          <span>
+            Soru {stepIndex + 1} / {QUIZ_STEPS.length}
+          </span>
+          <span>{selectedCount > 0 ? `${selectedCount} seçim` : 'Opsiyonel'}</span>
+        </div>
+        <div className="mt-3 flex gap-1">
+          {QUIZ_STEPS.map((stepItem, index) => (
+            <div
+              key={stepItem.id}
+              className={`h-1.5 flex-1 rounded-full ${
+                index <= stepIndex ? 'bg-amber-500' : 'bg-stone-200'
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
       <h2 className="text-xl font-bold text-stone-900">{current.question}</h2>
-      {current.subtitle && (
-        <p className="mt-1 text-sm text-stone-500">{current.subtitle}</p>
-      )}
+      <p className="mt-2 text-sm leading-6 text-stone-500">{current.helper}</p>
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {current.options.map((opt) => {
-          const isSelected = current.multi
-            ? (selectedValue as string[]).includes(opt.value)
-            : selectedValue === opt.value;
+          const isSelected = selectedValues.includes(opt.value);
 
           return (
             <button
+              type="button"
               key={opt.value}
-              onClick={() => selectOption(opt.value)}
-              className={`rounded-xl border-2 px-5 py-4 text-left text-sm font-medium transition-colors ${
+              onClick={() => toggleOption(opt.value)}
+              aria-pressed={isSelected}
+              className={`flex min-h-[96px] items-start gap-3 rounded-xl border px-4 py-4 text-left transition-colors ${
                 isSelected
-                  ? 'border-amber-500 bg-amber-50 text-amber-800'
-                  : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300'
+                  ? 'border-amber-500 bg-amber-50 text-amber-900 shadow-sm'
+                  : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300 hover:bg-stone-50'
               }`}
             >
-              {opt.label}
+              <span
+                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                  isSelected
+                    ? 'border-amber-500 bg-amber-500 text-white'
+                    : 'border-stone-300 bg-white text-transparent'
+                }`}
+                aria-hidden="true"
+              >
+                <SmallCheckIcon />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold leading-5">{opt.label}</span>
+                {opt.description && (
+                  <span className="mt-1 block text-xs leading-5 text-stone-500">
+                    {opt.description}
+                  </span>
+                )}
+              </span>
             </button>
           );
         })}
       </div>
 
-      {/* Navigation */}
-      <div className="mt-8 flex justify-between">
-        <button
-          onClick={() => setStep((s) => Math.max(0, s - 1))}
-          disabled={step === 0}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-40"
-        >
-          Geri
-        </button>
-        {current.multi && (
+      <div className="mt-5 flex min-h-8 items-center justify-between gap-3 text-sm">
+        <span className="text-stone-500">
+          {selectedCount > 0
+            ? `${selectedCount} seçim eklendi`
+            : 'Seçim yapmadan devam edebilirsin'}
+        </span>
+        {selectedCount > 0 && (
           <button
-            onClick={advanceStep}
-            disabled={current.multi && (selectedValue as string[]).length === 0}
-            className="rounded-lg bg-amber-600 px-6 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-40"
+            type="button"
+            onClick={resetCurrentStep}
+            className="font-medium text-amber-700 hover:text-amber-800"
           >
-            {isLastStep ? 'Sonuçları Gör' : 'İleri'}
+            Bu adımı temizle
           </button>
         )}
       </div>
+
+      <div className="mt-8 flex justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
+          disabled={stepIndex === 0}
+          className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ArrowLeftIcon />
+          Geri
+        </button>
+        <button
+          type="button"
+          onClick={advanceStep}
+          className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-6 py-2 text-sm font-semibold text-white hover:bg-amber-700"
+        >
+          {isLastStep ? 'Sonuçları Gör' : 'İleri'}
+          <ArrowRightIcon />
+        </button>
+      </div>
     </div>
+  );
+}
+
+function getSelectedValues(step: QuizStep, answers: QuizAnswers) {
+  if (step.selection === 'multiple') {
+    return answers[step.id as QuizArrayAnswerKey];
+  }
+
+  return answers.pricePer100g ? [answers.pricePer100g] : [];
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      className="h-7 w-7"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth="2"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="m5 13 4 4L19 7" />
+    </svg>
+  );
+}
+
+function SmallCheckIcon() {
+  return (
+    <svg
+      className="h-3.5 w-3.5"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth="3"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="m5 13 4 4L19 7" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth="2"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+    </svg>
+  );
+}
+
+function ArrowLeftIcon() {
+  return (
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth="2"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m6 6-6-6 6-6" />
+    </svg>
   );
 }
