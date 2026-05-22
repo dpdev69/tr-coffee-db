@@ -33,11 +33,11 @@ export function Pagination({
   }
 
   return (
-    <nav className="mt-10 flex items-center justify-center gap-1">
+    <nav className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
       <button
         onClick={() => goToPage(currentPage - 1)}
         disabled={currentPage <= 1}
-        className="rounded-lg px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-40 disabled:hover:bg-transparent"
+        className="inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-40 disabled:hover:bg-transparent"
       >
         Önceki
       </button>
@@ -50,7 +50,7 @@ export function Pagination({
           <button
             key={page}
             onClick={() => goToPage(page)}
-            className={`rounded-lg px-3 py-2 text-sm font-medium ${
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-3 text-sm font-medium ${
               page === currentPage
                 ? 'bg-amber-100 text-amber-800'
                 : 'text-stone-600 hover:bg-stone-100'
@@ -63,7 +63,7 @@ export function Pagination({
       <button
         onClick={() => goToPage(currentPage + 1)}
         disabled={currentPage >= totalPages}
-        className="rounded-lg px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-40 disabled:hover:bg-transparent"
+        className="inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-40 disabled:hover:bg-transparent"
       >
         Sonraki
       </button>
