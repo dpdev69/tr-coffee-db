@@ -66,6 +66,30 @@
 
 ## Product
 
+### Strengthen homepage brand and hero art direction
+
+**What:** Replace the current competent-but-generic dark hero treatment with a more ownable TR CoffeeDB first viewport, ideally with a real coffee/catalog visual anchor and a less default type system.
+
+**Why:** The current homepage communicates the job clearly, but it still feels like a polished template. A stronger brand-first hero would make the product more memorable without changing the core comparison workflow.
+
+**Context:** Deferred from `/design-review` on `main`, 2026-05-23. The pass removed the generic three-step section and improved touch targets, but broader identity work needs deliberate taste and asset direction.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** Brand/visual direction decision
+
+### Reduce catalog filter density on desktop
+
+**What:** Make the desktop catalog sidebar easier to scan, likely with collapsible groups, better group rhythm, and clearer “currently narrowing by” feedback.
+
+**Why:** The catalog works, but the left rail is a long wall of controls. Users comparing many coffees need dense power, but they also need confidence that they are changing the right filter.
+
+**Context:** Deferred from `/design-review` on `main`, 2026-05-23. Mobile filter drawer is functional and has no horizontal scroll; this is a desktop scanability issue, not a correctness bug.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** Filter usage data or explicit UX direction
+
 ### Explore editorial curation or featured picks
 
 **What:** Test a lightweight editorial layer for notable coffees, value picks, or fresh arrivals.
