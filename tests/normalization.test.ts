@@ -70,6 +70,17 @@ describe('normalize coffee metadata', () => {
     assert.equal(costaRica.origin_country, 'Costa Rica');
   });
 
+  it('uses the earliest country mention so title origin beats later descriptive comparisons', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        name: 'Brezilya Santuario Sul Geisha',
+        description: 'Kolombiya, Kosta Rika ve Ruanda lotları kadar canlı bir Brezilya kahvesi.',
+      })
+    );
+
+    assert.equal(coffee.origin_country, 'Brazil');
+  });
+
   it('prefers specific fermentation process over generic natural or washed words', () => {
     const naturalAnaerobic = normalize(
       makeRawProduct({

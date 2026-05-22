@@ -70,13 +70,14 @@ export function detectOrigin(text: string): {
   farm: string | null;
 } {
   const searchText = normalizeForMetadataSearch(text);
-  let country: string | null = null;
+  let countryMatch: { country: string; index: number } | null = null;
   let region: string | null = null;
 
   for (const [regex, name] of COUNTRY_MAP) {
-    if (regex.test(searchText)) {
-      country = name;
-      break;
+    const match = regex.exec(searchText);
+    if (!match) continue;
+    if (countryMatch === null || match.index < countryMatch.index) {
+      countryMatch = { country: name, index: match.index };
     }
   }
 
@@ -95,7 +96,7 @@ export function detectOrigin(text: string): {
   const farmMatch = text.match(/(?:finca|farm|çiftlik|estate|station)\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+?)(?:\s*[-,.|]|\s*$)/i);
   const farm = farmMatch ? farmMatch[1].trim() : null;
 
-  return { country, region, altitude, farm };
+  return { country: countryMatch?.country ?? null, region, altitude, farm };
 }
 
 function normalizeForMetadataSearch(text: string): string {

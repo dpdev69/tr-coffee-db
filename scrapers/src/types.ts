@@ -101,6 +101,7 @@ export interface RoasterConfig {
   // Selector-based stores often show the minimum package price on catalog cards.
   // When enabled, fetch each product page and choose the retail comparison pack.
   derivePackageFromProductPage?: boolean;
+  deriveMetadataFromProductPage?: boolean;
   // WooCommerce-specific
   categoryId?: number;
   // HTML scraping selectors (ikas, ticimax, custom)

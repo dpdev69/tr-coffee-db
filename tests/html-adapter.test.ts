@@ -153,6 +153,7 @@ describe('parseProductPageMetadata', () => {
         </table>
         Pürüzsüz tatlı çok temiz bir yıkanmış.
       </div>
+      <meta name="description" content="Kosta Rika honey işlem kahve">
     `);
 
     assert.deepEqual(metadata.attributes, [
@@ -161,7 +162,7 @@ describe('parseProductPageMetadata', () => {
       { name: 'Kavurma Derecesi', terms: [{ name: 'Light' }] },
     ]);
     assert.match(metadata.description, /Menşe ülke: Kosta Rika/);
-    assert.match(metadata.description, /Pürüzsüz tatlı/);
+    assert.match(metadata.description, /Kosta Rika honey işlem kahve/);
   });
 
   it('extracts colon-delimited product details from list-based pages', async () => {

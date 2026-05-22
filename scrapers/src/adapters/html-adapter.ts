@@ -232,7 +232,9 @@ export class HtmlAdapter extends BaseScraper {
     for (const product of products) {
       try {
         const html = await this.fetchPageHtml(product.productUrl);
-        const productPageMetadata = parseProductPageMetadata(html);
+        const productPageMetadata = this.config.deriveMetadataFromProductPage === false
+          ? { attributes: [], description: '' }
+          : parseProductPageMetadata(html);
         const packageSelection = parseProductPagePackageSelection(
           html,
           this.config,
@@ -603,11 +605,11 @@ export function parseProductPageMetadata(html: string) {
   ];
   const description = [
     ...attributes.map((attribute) => `${attribute.name}: ${attribute.terms[0]?.name ?? ''}`),
+    ...extractMetaDescriptions($),
     ...[
       '.short-description',
       '.product-short-desc',
       '.full-description',
-      '#product-tab-description',
       '#tab-description',
       '.woocommerce-Tabs-panel--description',
       '.urunTabAlt',
@@ -636,6 +638,13 @@ function extractDetailTableAttributes($: ReturnType<typeof cheerio.load>) {
       };
     })
     .get();
+}
+
+function extractMetaDescriptions($: ReturnType<typeof cheerio.load>) {
+  return $('meta[name="description"], meta[property="og:description"], meta[property="twitter:description"]')
+    .map((_, meta) => cleanText($(meta).attr('content') ?? ''))
+    .get()
+    .filter(Boolean);
 }
 
 function extractColonListAttributes($: ReturnType<typeof cheerio.load>) {
