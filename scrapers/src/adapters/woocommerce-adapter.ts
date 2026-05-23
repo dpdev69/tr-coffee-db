@@ -39,7 +39,7 @@ interface ImunifyChallengeSubmission {
 
 interface WooVariationReference {
   id: number;
-  attributes: { name: string; value: string }[];
+  attributes: { name: string; value: string | null }[];
 }
 
 interface ComparablePackage {
@@ -558,7 +558,7 @@ export class WooCommerceAdapter extends BaseScraper {
       .flatMap((attr) =>
         attr.terms.map((term) => ({
           text: term.name,
-          weightGrams: parsePackageWeight(term.name),
+          weightGrams: this.parseWeightAttributeValue(term.name),
         }))
       )
       .filter((candidate) => candidate.weightGrams != null);
@@ -581,7 +581,9 @@ export class WooCommerceAdapter extends BaseScraper {
   private extractVariationWeight(variation: WooVariationReference): number | null {
     for (const attr of variation.attributes || []) {
       if (this.isWeightAttribute(attr.name)) {
-        const weight = parsePackageWeight(attr.value);
+        const weight = typeof attr.value === 'string'
+          ? this.parseWeightAttributeValue(attr.value)
+          : null;
         if (weight) return weight;
       }
     }
@@ -600,7 +602,7 @@ export class WooCommerceAdapter extends BaseScraper {
 
   private getVariationText(variation: WooVariationReference): string {
     return (variation.attributes || [])
-      .map((attr) => `${attr.name} ${attr.value}`)
+      .map((attr) => [attr.name, attr.value].filter(Boolean).join(' '))
       .join(' ');
   }
 
@@ -612,6 +614,17 @@ export class WooCommerceAdapter extends BaseScraper {
       normalized.includes('gram') ||
       normalized.includes('weight')
     );
+  }
+
+  private parseWeightAttributeValue(text: string): number | null {
+    const parsed = parsePackageWeight(text);
+    if (parsed) return parsed;
+
+    const bareGrams = text.trim().match(/^\d+$/);
+    if (!bareGrams) return null;
+
+    const value = Number.parseInt(bareGrams[0], 10);
+    return Number.isFinite(value) && value > 0 ? value : null;
   }
 
   private async fetchFromLegacyApi(): Promise<RawProduct[]> {

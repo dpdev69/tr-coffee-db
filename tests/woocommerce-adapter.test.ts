@@ -215,6 +215,46 @@ describe('WooCommerceAdapter', () => {
       axios.get = originalGet;
     }
   });
+
+  it('tolerates WooCommerce variation attributes with null values', async () => {
+    const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
+    const { WooCommerceAdapter } = await import('../scrapers/src/adapters/woocommerce-adapter.ts');
+    const originalGet = axios.get.bind(axios);
+
+    try {
+      axios.get = (async () => ({
+        data: [
+          makeWooProduct({
+            name: 'Espresso Kahve / Kolombiya',
+            categories: ['Espresso', 'Filtre Kahve'],
+            price: '33500',
+            minorUnit: 2,
+            attributes: [makeAttribute('Ağırlık', ['1000'])],
+            variations: [
+              {
+                id: 2765,
+                attributes: [
+                  { name: 'Ağırlık', value: null },
+                  { name: 'Öğütme', value: null },
+                ],
+              },
+            ],
+          }),
+        ],
+        headers: { 'x-wp-totalpages': '1' },
+      })) as typeof axios.get;
+
+      const adapter = new WooCommerceAdapter(makeConfig());
+      const products = await adapter.fetchProducts();
+
+      assert.equal(products.length, 1);
+      assert.equal(products[0].name, 'Espresso Kahve / Kolombiya');
+      assert.equal(products[0].price, 335);
+      assert.equal(products[0].weightGrams, 1000);
+    } finally {
+      axios.get = originalGet;
+    }
+  });
 });
 
 function makeConfig() {
@@ -247,7 +287,7 @@ function makeWooProduct({
   price?: string;
   minorUnit?: number;
   variation?: string;
-  variations?: Array<{ id: number; attributes: { name: string; value: string }[] }>;
+  variations?: Array<{ id: number; attributes: { name: string; value: string | null }[] }>;
   attributes?: Array<{ id: number; name: string; terms: { id: number; name: string; slug: string }[] }>;
   description?: string;
   shortDescription?: string;
