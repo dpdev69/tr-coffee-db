@@ -6,6 +6,7 @@ import type { RoasterConfig } from './types.js';
 
 const TRUSTED_IMAGE_HOSTS = [
   'cdn.shopify.com',
+  'cdn.myikas.com',
   'media.kafeinkultur.com',
   'static.ticimax.cloud',
 ] as const;

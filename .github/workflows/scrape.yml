@@ -37,7 +37,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: 'npm'
-          cache-dependency-path: scrapers/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            scrapers/package-lock.json
 
       - name: Install scraper dependencies
         working-directory: scrapers
@@ -64,3 +66,16 @@ jobs:
         env:
           ROASTERS: ${{ github.event.inputs.roasters || '' }}
         run: npx tsx src/index.ts "$ROASTERS"
+
+      - name: Install audit dependencies
+        run: npm ci
+
+      - name: Audit image health
+        env:
+          AUDIT_IMAGES_MAX_MISSING_COFFEES: ${{ vars.AUDIT_IMAGES_MAX_MISSING_COFFEES || 20 }}
+          AUDIT_IMAGES_MAX_MISSING_COFFEE_RATIO: ${{ vars.AUDIT_IMAGES_MAX_MISSING_COFFEE_RATIO || 0.08 }}
+          AUDIT_IMAGES_MAX_MISSING_ROASTER_LOGOS: ${{ vars.AUDIT_IMAGES_MAX_MISSING_ROASTER_LOGOS || 0 }}
+          AUDIT_IMAGES_MAX_OPTIMIZER_FAILURES: ${{ vars.AUDIT_IMAGES_MAX_OPTIMIZER_FAILURES || 0 }}
+          AUDIT_IMAGES_OPTIMIZER_LIMIT: ${{ vars.AUDIT_IMAGES_OPTIMIZER_LIMIT || 250 }}
+          AUDIT_IMAGES_SITE_URL: ${{ vars.AUDIT_IMAGES_SITE_URL || vars.NEXT_PUBLIC_SITE_URL || 'https://tr-coffee-db.vercel.app' }}
+        run: npm run audit:images

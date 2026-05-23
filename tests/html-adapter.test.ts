@@ -155,6 +155,122 @@ describe('HtmlAdapter URL policy', () => {
   });
 });
 
+describe('HtmlAdapter next-data structured images', () => {
+  it('builds IKAS CDN images from __NEXT_DATA__ variant image IDs', async () => {
+    const products = await fetchNextDataProductsWithHtml(`
+      <script id="__NEXT_DATA__" type="application/json">
+        ${JSON.stringify(makeNextDataPayload({
+          configJson: {
+            cdnUrl: 'https://cdn.myikas.com/',
+            merchantSettings: { merchantId: 'merchant-123' },
+          },
+          variantImages: [
+            {
+              imageId: 'secondary-image',
+              isMain: false,
+              isVideo: false,
+              order: 2,
+            },
+            {
+              imageId: 'main-image',
+              isMain: true,
+              isVideo: false,
+              order: 1,
+            },
+          ],
+        }))}
+      </script>
+    `);
+
+    assert.equal(products.length, 1);
+    assert.equal(
+      products[0].imageUrl,
+      'https://cdn.myikas.com/images/merchant-123/main-image/image_1080.webp'
+    );
+  });
+
+  it('uses a trusted IKAS CDN image from JSON-LD ItemList products', async () => {
+    const products = await fetchNextDataProductsWithHtml(`
+      <script id="__NEXT_DATA__" type="application/json">
+        ${JSON.stringify(makeNextDataPayload())}
+      </script>
+      <script type="application/ld+json">
+        ${JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              item: {
+                '@type': 'Product',
+                name: 'Colombia Filter Coffee',
+                url: 'https://example.test/products/colombia-filter-coffee',
+                image: [
+                  'https://cdn.myikas.com/images/colombia-filter-coffee.jpg',
+                ],
+              },
+            },
+          ],
+        })}
+      </script>
+    `);
+
+    assert.equal(products.length, 1);
+    assert.equal(
+      products[0].imageUrl,
+      'https://cdn.myikas.com/images/colombia-filter-coffee.jpg'
+    );
+  });
+
+  it('ignores untrusted JSON-LD image hosts', async () => {
+    const products = await fetchNextDataProductsWithHtml(`
+      <script id="__NEXT_DATA__" type="application/json">
+        ${JSON.stringify(makeNextDataPayload())}
+      </script>
+      <script type="application/ld+json">
+        ${JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: 'Colombia Filter Coffee',
+          url: 'https://example.test/colombia-filter-coffee',
+          image: 'https://evil.example/colombia-filter-coffee.jpg',
+        })}
+      </script>
+    `);
+
+    assert.equal(products.length, 1);
+    assert.equal(products[0].imageUrl, null);
+  });
+
+  it('uses trusted IKAS product-card images from rendered srcsets', async () => {
+    const products = await fetchNextDataProductsWithHtml(`
+      <a href="/products/colombia-filter-coffee">
+        <img
+          alt="Colombia Filter Coffee main variant image"
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+          style="background-image:url(&quot;https://cdn.myikas.com/images/store/image-id/10/colombia.webp&quot;)"
+        >
+        <noscript>
+          <img
+            alt="Colombia Filter Coffee main variant image"
+            srcSet="https://cdn.myikas.com/images/store/image-id/180/colombia.webp 180w, https://cdn.myikas.com/images/store/image-id/1080/colombia.webp 1080w"
+          >
+        </noscript>
+      </a>
+      <script id="__NEXT_DATA__" type="application/json">
+        ${JSON.stringify(makeNextDataPayload())}
+      </script>
+    `);
+
+    assert.equal(products.length, 1);
+    assert.equal(
+      products[0].imageUrl,
+      'https://cdn.myikas.com/images/store/image-id/1080/colombia.webp'
+    );
+  });
+});
+
 describe('parseCatalogPriceText', () => {
   it('uses the first visible catalog price from Turkish ranges and sale strings', async () => {
     const { parseCatalogPriceText } = await import('../scrapers/src/adapters/html-adapter.ts');
@@ -302,4 +418,69 @@ function makeCustomConfig() {
       description: '',
     },
   };
+}
+
+function makeNextDataConfig() {
+  return {
+    slug: 'test-ikas',
+    name: 'Test IKAS',
+    websiteUrl: 'https://example.test',
+    shopUrl: 'https://example.test/kahve',
+    platform: 'ikas' as const,
+    city: 'Istanbul',
+    priceFormat: 'tl' as const,
+    structuredDataParser: 'next-data-products' as const,
+  };
+}
+
+function makeNextDataPayload({
+  configJson = {},
+  variantImages = [],
+}: {
+  configJson?: Record<string, unknown>;
+  variantImages?: Array<Record<string, unknown>>;
+} = {}) {
+  return {
+    props: {
+      pageProps: {
+        configJson,
+        productList: [
+          {
+            name: 'Colombia Filter Coffee',
+            description: 'Fresh roasted kahve',
+            metaData: { slug: 'colombia-filter-coffee' },
+            categories: [{ name: 'Kahve' }],
+            tags: [],
+            variants: [
+              {
+                isActive: true,
+                stock: 4,
+                prices: [{ sellPrice: 650 }],
+                variantValues: [{ name: '250 Gr' }],
+                images: variantImages,
+              },
+            ],
+          },
+        ],
+      },
+    },
+  };
+}
+
+async function fetchNextDataProductsWithHtml(html: string) {
+  const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
+  const { HtmlAdapter } = await import('../scrapers/src/adapters/html-adapter.ts');
+  const originalGet = axios.get.bind(axios);
+
+  try {
+    axios.get = (async () => ({
+      data: html,
+      headers: {},
+    })) as typeof axios.get;
+
+    const adapter = new HtmlAdapter(makeNextDataConfig());
+    return adapter.fetchProducts();
+  } finally {
+    axios.get = originalGet;
+  }
 }

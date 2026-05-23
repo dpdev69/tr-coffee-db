@@ -32,6 +32,30 @@ interface NextDataVariant {
     sellPrice?: number | null;
   }[];
   variantValues?: { name?: string | null }[];
+  images?: NextDataVariantImage[];
+}
+
+interface NextDataVariantImage {
+  imageId?: string | null;
+  isMain?: boolean | null;
+  isVideo?: boolean | null;
+  order?: number | null;
+  image?: {
+    id?: string | null;
+    isVideo?: boolean | null;
+  } | null;
+}
+
+interface StructuredProductImage {
+  name: string | null;
+  urls: string[];
+  slugs: string[];
+  images: string[];
+}
+
+interface IkasImageContext {
+  cdnUrl: string;
+  merchantId: string;
 }
 
 interface ProbadorChallengeSubmission {
@@ -294,6 +318,11 @@ export class HtmlAdapter extends BaseScraper {
 
     const parsed = JSON.parse(nextData);
     const products = this.collectNextDataProducts(parsed);
+    const ikasImageContext = this.extractIkasImageContext(parsed);
+    const structuredProductImages = [
+      ...this.collectStructuredProductImages($, this.config.shopUrl),
+      ...this.collectHtmlProductImages($, this.config.shopUrl),
+    ];
     const uniqueProducts = new Map<string, RawProduct>();
 
     for (const product of products) {
@@ -310,6 +339,10 @@ export class HtmlAdapter extends BaseScraper {
         .map((value) => value.name?.trim())
         .filter((value): value is string => Boolean(value))
         .join(' ');
+      const productUrl = new URL(`/${slug}`, this.config.websiteUrl).toString();
+      const imageUrl =
+        this.findNextDataProductImageUrl(product, variant, ikasImageContext)
+        ?? this.findStructuredProductImageUrl(product, productUrl, structuredProductImages);
 
       uniqueProducts.set(slug, {
         externalId: slug,
@@ -318,8 +351,8 @@ export class HtmlAdapter extends BaseScraper {
         price: this.extractNextDataPrice(variant),
         currency: 'TRY',
         weightGrams: parsePackageWeight(`${product.name} ${variantText}`),
-        imageUrl: null,
-        productUrl: new URL(`/${slug}`, this.config.websiteUrl).toString(),
+        imageUrl,
+        productUrl,
         isAvailable: this.isVariantAvailable(variant),
         tags: tagNames,
         rawData: {
@@ -330,6 +363,378 @@ export class HtmlAdapter extends BaseScraper {
     }
 
     return Array.from(uniqueProducts.values());
+  }
+
+  private extractIkasImageContext(value: unknown): IkasImageContext | null {
+    if (!value || typeof value !== 'object') return null;
+
+    const configJson = (((value as Record<string, unknown>).props as Record<string, unknown> | undefined)
+      ?.pageProps as Record<string, unknown> | undefined)?.configJson as
+      | Record<string, unknown>
+      | undefined;
+    const merchantSettings = configJson?.merchantSettings as Record<string, unknown> | undefined;
+    const rawCdnUrl = typeof configJson?.cdnUrl === 'string' ? configJson.cdnUrl : null;
+    const rawMerchantId =
+      typeof merchantSettings?.merchantId === 'string' ? merchantSettings.merchantId : null;
+
+    if (!rawCdnUrl || !rawMerchantId) return null;
+
+    try {
+      return {
+        cdnUrl: new URL(rawCdnUrl).toString().replace(/\/+$/, ''),
+        merchantId: rawMerchantId,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  private findNextDataProductImageUrl(
+    product: NextDataProduct,
+    preferredVariant: NextDataVariant,
+    imageContext: IkasImageContext | null
+  ) {
+    if (!imageContext) return null;
+
+    const variantImages = [
+      ...(preferredVariant.images ?? []),
+      ...(product.variants ?? []).flatMap((variant) => variant.images ?? []),
+    ];
+    const imageId = variantImages
+      .filter((image) => image.isVideo !== true && image.image?.isVideo !== true)
+      .sort((left, right) => {
+        if (left.isMain !== right.isMain) return left.isMain ? -1 : 1;
+        return (left.order ?? Number.POSITIVE_INFINITY)
+          - (right.order ?? Number.POSITIVE_INFINITY);
+      })
+      .map((image) => image.imageId ?? image.image?.id ?? null)
+      .find((id): id is string => Boolean(id?.trim()));
+
+    if (!imageId) return null;
+
+    const imageUrl = `${imageContext.cdnUrl}/images/${imageContext.merchantId}/${imageId}/image_1080.webp`;
+    return normalizeRoasterImageUrl(imageUrl, this.config, this.config.shopUrl);
+  }
+
+  private collectHtmlProductImages(
+    $: ReturnType<typeof cheerio.load>,
+    documentBaseUrl: string
+  ) {
+    const products: StructuredProductImage[] = [];
+
+    $('img').each((_, el) => {
+      const imageUrls = this.extractImageElementUrls($, el)
+        .filter((url) => !this.isNonProductIkasImage(url));
+      if (imageUrls.length === 0) return;
+
+      const alt = $(el).attr('alt')?.trim() || null;
+      const name = this.cleanProductImageAltText(alt);
+      const rawProductUrl = $(el).closest('a[href]').attr('href') ?? null;
+      const productUrl = normalizeRoasterProductUrl(rawProductUrl, this.config, documentBaseUrl);
+      const slugs = productUrl ? this.productUrlMatchKeys(productUrl) : [];
+
+      if (!name && slugs.length === 0) return;
+
+      products.push({
+        name,
+        urls: productUrl ? [productUrl] : [],
+        slugs: [...new Set(slugs)],
+        images: imageUrls,
+      });
+    });
+
+    return products;
+  }
+
+  private collectStructuredProductImages(
+    $: ReturnType<typeof cheerio.load>,
+    documentBaseUrl: string
+  ) {
+    const products: StructuredProductImage[] = [];
+
+    $('script[type="application/ld+json"]').each((_, el) => {
+      try {
+        const text = $(el).contents().text().trim();
+        if (!text) return;
+
+        const parsed = JSON.parse(text);
+        products.push(...this.extractStructuredProductImages(parsed, documentBaseUrl));
+      } catch {
+        // Structured data is useful enrichment, but it should never fail the catalog scrape.
+      }
+    });
+
+    return products;
+  }
+
+  private extractStructuredProductImages(
+    value: unknown,
+    documentBaseUrl: string,
+    results: StructuredProductImage[] = []
+  ) {
+    if (!value || typeof value !== 'object') return results;
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        this.extractStructuredProductImages(item, documentBaseUrl, results);
+      }
+      return results;
+    }
+
+    const record = value as Record<string, unknown>;
+    const type = record['@type'];
+    const typeValues = Array.isArray(type) ? type : [type];
+
+    if (typeValues.some((item) => item === 'Product')) {
+      const product = this.readStructuredProductImage(record, documentBaseUrl);
+      if (product) results.push(product);
+    }
+
+    if (typeValues.some((item) => item === 'ItemList')) {
+      this.extractStructuredProductImages(record.itemListElement, documentBaseUrl, results);
+    }
+
+    if (record.item && typeof record.item === 'object') {
+      this.extractStructuredProductImages(record.item, documentBaseUrl, results);
+    }
+
+    if (record['@graph']) {
+      this.extractStructuredProductImages(record['@graph'], documentBaseUrl, results);
+    }
+
+    return results;
+  }
+
+  private readStructuredProductImage(
+    product: Record<string, unknown>,
+    documentBaseUrl: string
+  ): StructuredProductImage | null {
+    const images = this.extractStructuredImageValues(product.image);
+    if (images.length === 0) return null;
+
+    const name = typeof product.name === 'string' ? product.name.trim() : null;
+    const rawUrls = [
+      product.url,
+      product['@id'],
+      typeof product.offers === 'object' && product.offers
+        ? (product.offers as Record<string, unknown>).url
+        : null,
+    ].filter((url): url is string => typeof url === 'string' && url.trim().length > 0);
+    const urls = rawUrls
+      .map((url) => normalizeRoasterProductUrl(url, this.config, documentBaseUrl))
+      .filter((url): url is string => Boolean(url));
+    const slugs = [
+      ...urls.flatMap((url) => this.productUrlMatchKeys(url)),
+      ...rawUrls.map((url) => this.normalizeSlugMatchKey(url)),
+    ].filter((slug): slug is string => Boolean(slug));
+
+    return {
+      name,
+      urls,
+      slugs: [...new Set(slugs)],
+      images,
+    };
+  }
+
+  private extractStructuredImageValues(value: unknown): string[] {
+    if (typeof value === 'string') return [value];
+    if (!Array.isArray(value)) return [];
+
+    return value.filter((item): item is string => typeof item === 'string');
+  }
+
+  private extractImageElementUrls(
+    $: ReturnType<typeof cheerio.load>,
+    el: Parameters<ReturnType<typeof cheerio.load>>[0]
+  ) {
+    const element = $(el);
+    const urls = [
+      ...this.parseImageSrcSet(element.attr('srcset') ?? element.attr('data-srcset') ?? ''),
+      element.attr('data-lazyloadsrc'),
+      element.attr('data-src'),
+      element.attr('src'),
+      ...this.parseCssImageUrls(element.attr('style') ?? ''),
+      ...this.extractNearbyNoscriptImageUrls($, el),
+    ];
+
+    return [...new Set(
+      urls
+        .map((url) => url?.trim())
+        .filter(
+          (url): url is string =>
+            typeof url === 'string' && url.length > 0 && !url.startsWith('data:')
+        )
+    )];
+  }
+
+  private extractNearbyNoscriptImageUrls(
+    $: ReturnType<typeof cheerio.load>,
+    el: Parameters<ReturnType<typeof cheerio.load>>[0]
+  ) {
+    const element = $(el);
+    const htmlSnippets = [
+      ...element.nextAll('noscript').map((_, node) => $(node).html() ?? '').get(),
+      ...element.parent().find('noscript').map((_, node) => $(node).html() ?? '').get(),
+    ].filter(Boolean);
+    const urls: string[] = [];
+
+    for (const html of htmlSnippets) {
+      const fragment = cheerio.load(html);
+      fragment('img').each((_, image) => {
+        const imageElement = fragment(image);
+        urls.push(
+          ...this.parseImageSrcSet(
+            imageElement.attr('srcset') ?? imageElement.attr('data-srcset') ?? ''
+          ),
+          ...[
+            imageElement.attr('data-lazyloadsrc'),
+            imageElement.attr('data-src'),
+            imageElement.attr('src'),
+          ].filter((url): url is string => typeof url === 'string'),
+          ...this.parseCssImageUrls(imageElement.attr('style') ?? '')
+        );
+      });
+    }
+
+    return urls;
+  }
+
+  private parseImageSrcSet(srcSet: string) {
+    return srcSet
+      .split(',')
+      .map((candidate) => {
+        const [url = '', descriptor] = candidate.trim().split(/\s+/, 2);
+        const width = descriptor?.endsWith('w')
+          ? Number.parseInt(descriptor, 10)
+          : 0;
+
+        return { url, width: Number.isFinite(width) ? width : 0 };
+      })
+      .filter((candidate): candidate is { url: string; width: number } => Boolean(candidate.url))
+      .sort((left, right) => right.width - left.width)
+      .map((candidate) => candidate.url);
+  }
+
+  private parseCssImageUrls(style: string) {
+    return [...style.matchAll(/url\(([^)]+)\)/gi)]
+      .map((match) => match[1].trim().replace(/^['"]|['"]$/g, ''))
+      .map((url) => url.replace(/&quot;/g, '').replace(/^['"]|['"]$/g, ''))
+      .filter(Boolean);
+  }
+
+  private cleanProductImageAltText(value: string | null) {
+    const normalized = value
+      ?.replace(/\bmain\s+variant\s+image\b/gi, ' ')
+      .replace(/\bvariant\s+image\b/gi, ' ')
+      .replace(/\bimage\b/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return normalized || null;
+  }
+
+  private isNonProductIkasImage(url: string) {
+    return /\/images\/theme-images\//i.test(url) || /\/videos\//i.test(url);
+  }
+
+  private findStructuredProductImageUrl(
+    product: NextDataProduct,
+    productUrl: string,
+    structuredProducts: StructuredProductImage[]
+  ) {
+    const productKeys = new Set([
+      ...this.productUrlMatchKeys(productUrl),
+      this.normalizeSlugMatchKey(product.metaData?.slug ?? null),
+    ].filter((key): key is string => Boolean(key)));
+    const nameKey = this.normalizeNameMatchKey(product.name);
+    const strongMatches = structuredProducts.filter((structuredProduct) =>
+      structuredProduct.slugs.some((slug) => productKeys.has(slug))
+    );
+    const nameMatches = strongMatches.length > 0
+      ? []
+      : structuredProducts.filter(
+          (structuredProduct) =>
+            nameKey && this.normalizeNameMatchKey(structuredProduct.name) === nameKey
+        );
+
+    const imageCandidates = this.sortImageCandidatesBySize(
+      [...strongMatches, ...nameMatches].flatMap((structuredProduct) => structuredProduct.images)
+    );
+
+    for (const image of imageCandidates) {
+      const normalizedImage = normalizeRoasterImageUrl(image, this.config, this.config.shopUrl);
+      if (normalizedImage) return normalizedImage;
+    }
+
+    return null;
+  }
+
+  private sortImageCandidatesBySize(images: string[]) {
+    return [...new Set(images)].sort((left, right) =>
+      this.extractImageCandidateSize(right) - this.extractImageCandidateSize(left)
+    );
+  }
+
+  private extractImageCandidateSize(url: string) {
+    const imageNameSize = url.match(/image_(\d+)\./i);
+    if (imageNameSize) return Number.parseInt(imageNameSize[1], 10);
+
+    const pathSize = url.match(/\/(\d+)\/[^/]+$/);
+    if (pathSize) return Number.parseInt(pathSize[1], 10);
+
+    return 0;
+  }
+
+  private productUrlMatchKeys(url: string) {
+    try {
+      const parsed = new URL(url);
+      return [
+        this.normalizePathMatchKey(parsed.pathname),
+        this.normalizeSlugMatchKey(parsed.pathname.split('/').filter(Boolean).at(-1) ?? null),
+      ].filter((key): key is string => Boolean(key));
+    } catch {
+      return [];
+    }
+  }
+
+  private normalizePathMatchKey(path: string | null | undefined) {
+    if (!path) return null;
+
+    const normalized = path
+      .split('/')
+      .map((part) => this.normalizeSlugMatchKey(part))
+      .filter(Boolean)
+      .join('/');
+
+    return normalized || null;
+  }
+
+  private normalizeSlugMatchKey(value: string | null | undefined) {
+    const slug = value?.split(/[?#]/, 1)[0]?.split('/').filter(Boolean).at(-1);
+    if (!slug) return null;
+
+    return this.normalizeNameMatchKey(slug.replace(/[-_]+/g, ' '));
+  }
+
+  private normalizeNameMatchKey(value: string | null | undefined) {
+    if (!value) return null;
+
+    const normalized = value
+      .toLocaleLowerCase('tr-TR')
+      .replace(/[ıİ]/g, 'i')
+      .replace(/[ğĞ]/g, 'g')
+      .replace(/[üÜ]/g, 'u')
+      .replace(/[şŞ]/g, 's')
+      .replace(/[öÖ]/g, 'o')
+      .replace(/[çÇ]/g, 'c')
+      .normalize('NFKD')
+      .replace(/\p{Diacritic}/gu, '')
+      .replace(/&/g, ' and ')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+      .replace(/\s+/g, ' ');
+
+    return normalized || null;
   }
 
   private async fetchPageHtml(url: string) {
