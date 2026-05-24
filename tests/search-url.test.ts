@@ -25,6 +25,17 @@ describe('buildGlobalSearchUrl', () => {
     );
   });
 
+  it('drops deprecated public price range params when preserving catalog filters', () => {
+    assert.equal(
+      buildGlobalSearchUrl({
+        pathname: '/coffees',
+        currentQuery: 'origin=Kenya&priceMin=120&priceMax=200&page=2',
+        nextSearch: 'espresso',
+      }),
+      '/coffees?origin=Kenya&search=espresso'
+    );
+  });
+
   it('clears search when the submitted query is empty', () => {
     assert.equal(
       buildGlobalSearchUrl({

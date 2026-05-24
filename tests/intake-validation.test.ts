@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  parseLimitedJsonBody,
   validateClickPayload,
   validateJsonRequest,
 } from '@/lib/api/intake-validation';
@@ -45,6 +46,42 @@ describe('validateJsonRequest', () => {
       ),
       { ok: false, error: 'Request body too large', status: 413 }
     );
+  });
+});
+
+describe('parseLimitedJsonBody', () => {
+  it('rejects oversized bodies even when content-length is absent', async () => {
+    const request = new Request('https://tr-coffee-db.vercel.app/api/click', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ value: 'x'.repeat(32) }),
+    });
+
+    const result = await parseLimitedJsonBody(request, 16);
+
+    assert.deepEqual(result, {
+      ok: false,
+      error: 'Request body too large',
+      status: 413,
+    });
+  });
+
+  it('parses valid JSON bodies inside the byte limit', async () => {
+    const request = new Request('https://tr-coffee-db.vercel.app/api/click', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ ok: true }),
+    });
+
+    const result = await parseLimitedJsonBody(request, 64);
+
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.deepEqual(result.data, { ok: true });
   });
 });
 

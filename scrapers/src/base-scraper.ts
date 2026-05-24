@@ -178,6 +178,10 @@ export abstract class BaseScraper {
   ): Promise<number> {
     if (!this.roasterId || products.length === 0) return 0;
 
+    const existingMetadata = await this.loadExistingCoffeeMetadata(
+      products.map((product) => product.external_id)
+    );
+
     const rows = products.map((p) => ({
       roaster_id: this.roasterId,
       slug: this.makeSlug(p.name, this.config.slug),
@@ -189,9 +193,15 @@ export abstract class BaseScraper {
       origin_farm: p.origin_farm,
       origin_altitude: p.origin_altitude,
       origin_producer: p.origin_producer,
-      process: p.process,
-      process_detail: p.process_detail,
-      roast_level: p.roast_level,
+      process: this.preserveKnownEnum(p.process, existingMetadata.get(p.external_id)?.process),
+      process_detail:
+        p.process !== 'unknown'
+          ? p.process_detail
+          : existingMetadata.get(p.external_id)?.process_detail ?? p.process_detail,
+      roast_level: this.preserveKnownEnum(
+        p.roast_level,
+        existingMetadata.get(p.external_id)?.roast_level
+      ),
       variety: p.variety,
       harvest_year: p.harvest_year,
       roast_date: p.roast_date,
@@ -235,6 +245,57 @@ export abstract class BaseScraper {
     }
 
     return count ?? rows.length;
+  }
+
+  private async loadExistingCoffeeMetadata(externalIds: string[]) {
+    const metadata = new Map<
+      string,
+      {
+        process: string | null;
+        process_detail: string | null;
+        roast_level: string | null;
+      }
+    >();
+
+    if (!this.roasterId || externalIds.length === 0) return metadata;
+
+    const uniqueExternalIds = Array.from(new Set(externalIds));
+    const pageSize = 200;
+
+    for (let index = 0; index < uniqueExternalIds.length; index += pageSize) {
+      const batch = uniqueExternalIds.slice(index, index + pageSize);
+      const { data, error } = await supabase
+        .from('coffees')
+        .select('external_id, process, process_detail, roast_level')
+        .eq('roaster_id', this.roasterId)
+        .in('external_id', batch);
+
+      if (error) {
+        console.warn(
+          `[${this.config.slug}] Failed to load existing coffee metadata:`,
+          error.message
+        );
+        continue;
+      }
+
+      for (const row of data ?? []) {
+        if (row.external_id) {
+          metadata.set(row.external_id, {
+            process: row.process,
+            process_detail: row.process_detail,
+            roast_level: row.roast_level,
+          });
+        }
+      }
+    }
+
+    return metadata;
+  }
+
+  private preserveKnownEnum(nextValue: string, existingValue: string | null | undefined) {
+    if (nextValue !== 'unknown') return nextValue;
+    if (existingValue && existingValue !== 'unknown') return existingValue;
+    return nextValue;
   }
 
   private async loadSpecialtyOverrides(): Promise<Map<string, SpecialtyOverride>> {

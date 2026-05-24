@@ -26,7 +26,7 @@ describe('parseCoffeeFilters', () => {
 
     assert.deepEqual(filters.origin, ['Colombia', 'Ethiopia']);
     assert.deepEqual(filters.process, ['washed', 'natural']);
-    assert.deepEqual(filters.roastLevel, ['dark', 'unknown', 'medium']);
+    assert.deepEqual(filters.roastLevel, ['dark', 'medium']);
     assert.deepEqual(filters.roaster, ['Kronotrop']);
     assert.deepEqual(filters.city, ['istanbul', 'izmir']);
     assert.deepEqual(filters.flavorCategory, ['Fruity', 'Chocolate']);
@@ -39,7 +39,7 @@ describe('parseCoffeeFilters', () => {
     assert.equal(filters.perPage, 24);
   });
 
-  it('clamps price boundaries and falls back for empty or invalid inputs', () => {
+  it('ignores deprecated public price range params', () => {
     const filters = parseCoffeeFilters({
       priceMin: '-10',
       priceMax: '6000',
@@ -50,13 +50,23 @@ describe('parseCoffeeFilters', () => {
       sort: 'price_asc',
     });
 
-    assert.equal(filters.priceMin, 0);
-    assert.equal(filters.priceMax, 5000);
+    assert.equal(filters.priceMin, undefined);
+    assert.equal(filters.priceMax, undefined);
     assert.equal(filters.page, 1);
     assert.equal(filters.process, undefined);
     assert.equal(filters.city, undefined);
     assert.equal(filters.search, undefined);
     assert.equal(filters.sort, 'price_asc');
+  });
+
+  it('drops missing-metadata sentinels from public filters', () => {
+    const filters = parseCoffeeFilters({
+      process: ['washed', 'unknown'],
+      roastLevel: ['medium', 'unknown'],
+    });
+
+    assert.deepEqual(filters.process, ['washed']);
+    assert.deepEqual(filters.roastLevel, ['medium']);
   });
 });
 
@@ -87,7 +97,7 @@ describe('active coffee filter chips', () => {
     );
   });
 
-  it('clears both price bounds from the budget chip', () => {
+  it('does not expose deprecated price bounds as active chips', () => {
     const filters = parseCoffeeFilters({
       brewMethod: 'espresso',
       priceMin: '120',
@@ -95,9 +105,21 @@ describe('active coffee filter chips', () => {
       page: '4',
     });
 
-    const chips = getActiveCoffeeFilterChips(filters);
-    const budget = chips.find((chip) => chip.label === 'Bütçe: 120-200 TL/100 g');
+    assert.deepEqual(
+      getActiveCoffeeFilterLabels(filters),
+      ['Demleme: Espresso']
+    );
+  });
 
-    assert.equal(budget?.removeHref, '/coffees?brewMethod=espresso');
+  it('does not expose missing-metadata sentinels as active chips', () => {
+    const filters = parseCoffeeFilters({
+      process: ['washed', 'unknown'],
+      roastLevel: ['medium', 'unknown'],
+    });
+
+    assert.deepEqual(getActiveCoffeeFilterLabels(filters), [
+      'İşleme: Yıkanmış',
+      'Kavurma: Orta',
+    ]);
   });
 });

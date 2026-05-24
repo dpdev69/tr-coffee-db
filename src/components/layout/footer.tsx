@@ -2,48 +2,59 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-stone-200 bg-stone-50">
+    <footer className="mt-auto border-t border-[#1f1d1b]/10 bg-white text-[#1f1d1b]">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+        <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr_1fr_1fr]">
           <div>
-            <h3 className="text-sm font-semibold text-stone-900">TR CoffeeDB</h3>
-            <p className="mt-2 text-sm text-stone-500">
+            <h2 className="font-display text-4xl leading-none">TR CoffeeDB</h2>
+            <p className="mt-4 max-w-sm text-sm leading-6 text-[#5d5853]">
               Türkiye&apos;deki bağımsız kavurucuların güncel nitelikli kahvelerini
-              tek yerde karşılaştırın. Satın alma doğrudan kavurucuda tamamlanır.
+              tek yerde keşfet. Biz mağaza değiliz; karar vermeyi kolaylaştıran
+              ücretsiz bir rehberiz.
             </p>
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-stone-900">Keşfet</h3>
-            <ul className="mt-2">
-              <li>
-                <Link href="/coffees" className="inline-flex min-h-11 items-center text-sm text-stone-500 hover:text-stone-700">
-                  Tüm Kahveler
-                </Link>
-              </li>
-              <li>
-                <Link href="/roasters" className="inline-flex min-h-11 items-center text-sm text-stone-500 hover:text-stone-700">
-                  Kavurucular
-                </Link>
-              </li>
-              <li>
-                <Link href="/quiz" className="inline-flex min-h-11 items-center text-sm text-stone-500 hover:text-stone-700">
-                  Tercihime Göre Bul
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-stone-900">Hakkında</h3>
-            <p className="mt-2 text-sm text-stone-500">
-              Biz bir mağaza değiliz. TR CoffeeDB, kavurucu siteleri arasında kaybolmadan
-              doğru çekirdeği seçmenize yardımcı olan ücretsiz bir karşılaştırma aracıdır.
+          <FooterGroup title="Keşfet">
+            <FooterLink href="/coffees">Kahveler</FooterLink>
+            <FooterLink href="/roasters">Kavurucular</FooterLink>
+            <FooterLink href="/quiz">Kahve Bul</FooterLink>
+          </FooterGroup>
+          <FooterGroup title="Nasıl Kullanılır">
+            <p className="text-sm leading-6 text-[#5d5853]">
+              Köken, işleme, kavrum, demleme ve kavurucunun verdiği fiyatla bak.
+              Beğendiğin çekirdekte kavurucunun kendi sitesine geç.
             </p>
-          </div>
+          </FooterGroup>
+          <FooterGroup title="Güven">
+            <FooterLink href="/privacy">Gizlilik</FooterLink>
+            <FooterLink href="/terms">Kullanım Şartları</FooterLink>
+          </FooterGroup>
         </div>
-        <div className="mt-8 border-t border-stone-200 pt-8 text-center text-xs text-stone-400">
-          TR CoffeeDB &middot; Desteklenen kavurucularda veriler düzenli olarak güncellenir
+        <div className="mt-10 border-t border-[#1f1d1b]/10 pt-6 text-xs font-semibold uppercase tracking-[0.18em] text-[#1f1d1b]/45">
+          Desteklenen kavurucularda veriler düzenli olarak güncellenir.
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7c3a20]">
+        {title}
+      </h3>
+      <div className="mt-4 grid gap-1">{children}</div>
+    </div>
+  );
+}
+
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex min-h-10 items-center text-sm font-semibold text-[#1f1d1b]/75 transition-colors hover:text-[#1f1d1b] hover:underline hover:underline-offset-4"
+    >
+      {children}
+    </Link>
   );
 }

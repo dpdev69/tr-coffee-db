@@ -198,7 +198,6 @@ export interface Database {
           processes: string[];
           roast_levels: string[];
           roasters: { id: string; name: string; slug: string }[];
-          price_range: { min: number; max: number };
           total_coffees: number;
         };
       };

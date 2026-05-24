@@ -38,6 +38,10 @@ type RequestValidationResult =
   | { ok: true }
   | { ok: false; error: string; status: number };
 
+type JsonBodyValidationResult =
+  | { ok: true; data: unknown }
+  | { ok: false; error: string; status: number };
+
 export interface ClickPayload {
   coffee_id: string;
   source: string;
@@ -69,6 +73,29 @@ export function validateJsonRequest(
   }
 
   return { ok: true };
+}
+
+export async function parseLimitedJsonBody(
+  request: Request,
+  maxBodyBytes: number
+): Promise<JsonBodyValidationResult> {
+  let bodyText: string;
+
+  try {
+    bodyText = await request.text();
+  } catch {
+    return { ok: false, error: 'Invalid request body', status: 400 };
+  }
+
+  if (new TextEncoder().encode(bodyText).byteLength > maxBodyBytes) {
+    return { ok: false, error: 'Request body too large', status: 413 };
+  }
+
+  try {
+    return { ok: true, data: JSON.parse(bodyText) };
+  } catch {
+    return { ok: false, error: 'Invalid request body', status: 400 };
+  }
 }
 
 export function validateClickPayload(input: unknown): ValidationResult<ClickPayload> {

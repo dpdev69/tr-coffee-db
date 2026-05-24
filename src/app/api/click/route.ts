@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { validateClickPayload, validateJsonRequest } from '@/lib/api/intake-validation';
+import {
+  parseLimitedJsonBody,
+  validateClickPayload,
+  validateJsonRequest,
+} from '@/lib/api/intake-validation';
 import { applyPublicCoffeeVisibility } from '@/lib/public-coffee-visibility';
 
 const MAX_CLICK_BODY_BYTES = 16_384;
@@ -14,15 +18,15 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: unknown;
-
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  const body = await parseLimitedJsonBody(request, MAX_CLICK_BODY_BYTES);
+  if (!body.ok) {
+    return NextResponse.json(
+      { error: body.error },
+      { status: body.status }
+    );
   }
 
-  const payload = validateClickPayload(body);
+  const payload = validateClickPayload(body.data);
   if (!payload.ok) {
     return NextResponse.json({ error: payload.error }, { status: 400 });
   }

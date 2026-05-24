@@ -2,7 +2,7 @@
 
 import { tokenRegex } from './text-match.js';
 
-const ROAST_LABEL = String.raw`(?:kavrum|kavurma|roast)(?:\s*(?:profili|profile|seviyesi|level|derecesi))?`;
+const ROAST_LABEL = String.raw`(?:kavrum|kavurma|kavrulma|roast)(?:\s*(?:profili|profile|seviyesi|level|derecesi))?`;
 
 const LABELED_ROAST_MAP: [RegExp, string][] = [
   [tokenRegex(String.raw`${ROAST_LABEL}\s*[:\-]?\s*(?:filtre|filter)`), 'medium_light'],
@@ -16,6 +16,7 @@ const LABELED_ROAST_MAP: [RegExp, string][] = [
 ];
 
 const PHRASE_ROAST_MAP: [RegExp, string][] = [
+  [tokenRegex(String.raw`(?:dark|koyu)\s*(?:filtre|filter|espresso|kahve)`), 'dark'],
   [tokenRegex(String.raw`(?:filtre|filter)\s*roast|(?:filtre|filter)\s*kavrum(?:u)?`), 'medium_light'],
   [tokenRegex(String.raw`espresso\s*roast|espresso\s*kavrum(?:u)?`), 'medium_dark'],
   [tokenRegex(String.raw`açık[\s–-]*orta\s*(?:kavrum|kavurma)|acik[\s–-]*orta\s*(?:kavrum|kavurma)|light[\s–-]*medium\s*roast`), 'medium_light'],
@@ -27,6 +28,8 @@ const PHRASE_ROAST_MAP: [RegExp, string][] = [
 ];
 
 const STANDALONE_ROAST_MAP: [RegExp, string][] = [
+  [/^(?:filtre|filter)$/iu, 'medium_light'],
+  [/^(?:espresso)$/iu, 'medium_dark'],
   [/^(?:açık[\s–-]*orta|acik[\s–-]*orta|light[\s–-]*medium)$/iu, 'medium_light'],
   [/^(?:orta[\s-]*açık|orta[\s-]*acik|medium[\s-]*light)$/iu, 'medium_light'],
   [/^(?:orta[\s-]*koyu|medium[\s-]*dark)$/iu, 'medium_dark'],
@@ -41,6 +44,8 @@ export function detectRoastLevel(text: string): string {
       return level;
     }
   }
+  const agtronLevel = detectAgtronRoastLevel(text);
+  if (agtronLevel !== 'unknown') return agtronLevel;
   return 'unknown';
 }
 
@@ -54,4 +59,20 @@ export function detectStandaloneRoastLevel(text: string): string {
   }
 
   return 'unknown';
+}
+
+function detectAgtronRoastLevel(text: string): string {
+  const match =
+    text.match(/\b(?:agtron|kavrulma\s+seviyesi)\D{0,24}(\d{2,3})\b/i) ??
+    text.match(/\b(\d{2,3})\s*agtron\b/i);
+  if (!match) return 'unknown';
+
+  const value = Number.parseInt(match[1], 10);
+  if (!Number.isFinite(value)) return 'unknown';
+
+  if (value >= 85) return 'light';
+  if (value >= 75) return 'medium_light';
+  if (value >= 65) return 'medium';
+  if (value >= 55) return 'medium_dark';
+  return 'dark';
 }

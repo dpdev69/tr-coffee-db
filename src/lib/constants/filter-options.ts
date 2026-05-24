@@ -6,7 +6,7 @@ export const PROCESS_LABELS: Record<string, string> = {
   semi_washed: 'Yarı Yıkanmış',
   wet_hulled: 'Islak Kabuk Soyma',
   experimental: 'Deneysel',
-  unknown: 'Belirtilmemiş',
+  unknown: 'Unknown',
 };
 
 export const PROCESS_VALUES = Object.keys(PROCESS_LABELS);
@@ -17,7 +17,7 @@ export const ROAST_LABELS: Record<string, string> = {
   medium: 'Orta',
   medium_dark: 'Orta-Koyu',
   dark: 'Koyu',
-  unknown: 'Belirtilmemiş',
+  unknown: 'Unknown',
 };
 
 export const ROAST_VALUES = Object.keys(ROAST_LABELS);

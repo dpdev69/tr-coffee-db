@@ -11,7 +11,6 @@ import {
 } from '@/lib/constants/filter-options';
 import {
   getBooleanParamValue,
-  getClampedPriceParamValue,
   getEnumArrayParamValue,
   getFirstSearchParamValue,
   getPageParamValue,
@@ -24,8 +23,8 @@ import type { CoffeeFilters } from '@/lib/queries/coffees';
 
 export type CoffeeSearchParams = Record<string, SearchParamValue>;
 
-const PROCESS_VALUE_SET = new Set(PROCESS_VALUES);
-const ROAST_VALUE_SET = new Set(ROAST_VALUES);
+const PROCESS_VALUE_SET = new Set(PROCESS_VALUES.filter((value) => value !== 'unknown'));
+const ROAST_VALUE_SET = new Set(ROAST_VALUES.filter((value) => value !== 'unknown'));
 const BREW_METHOD_VALUE_SET = new Set(BREW_METHOD_VALUES);
 const FLAVOR_CATEGORY_VALUE_SET = new Set<string>(FLAVOR_CATEGORIES);
 const SORT_VALUE_SET = new Set<string>(SORT_VALUES);
@@ -57,8 +56,6 @@ export function parseCoffeeFilters(params: CoffeeSearchParams): CoffeeFilters {
     flavorCategory: getEnumArrayParamValue(params.flavorCategory, FLAVOR_CATEGORY_VALUE_SET),
     brewMethod: getEnumArrayParamValue(params.brewMethod, BREW_METHOD_VALUE_SET),
     singleOrigin: getBooleanParamValue(params.singleOrigin),
-    priceMin: getClampedPriceParamValue(params.priceMin),
-    priceMax: getClampedPriceParamValue(params.priceMax),
     isDecaf: getBooleanParamValue(params.isDecaf),
     search: normalizeSearchTerm(getFirstSearchParamValue(params.search)),
     sort: sortValue && SORT_VALUE_SET.has(sortValue) ? (sortValue as CoffeeFilters['sort']) : 'newest',
@@ -167,25 +164,6 @@ function getActiveCoffeeFilterDefinitions(filters: CoffeeFilters): ActiveCoffeeF
     });
   }
 
-  if (filters.priceMin != null || filters.priceMax != null) {
-    if (filters.priceMin != null && filters.priceMax != null) {
-      filtersToShow.push({
-        label: `Bütçe: ${filters.priceMin}-${filters.priceMax} TL/100 g`,
-        remove: [{ key: 'priceMin' }, { key: 'priceMax' }],
-      });
-    } else if (filters.priceMin != null) {
-      filtersToShow.push({
-        label: `Bütçe: ${filters.priceMin}+ TL/100 g`,
-        remove: [{ key: 'priceMin' }],
-      });
-    } else if (filters.priceMax != null) {
-      filtersToShow.push({
-        label: `Bütçe: en fazla ${filters.priceMax} TL/100 g`,
-        remove: [{ key: 'priceMax' }],
-      });
-    }
-  }
-
   return filtersToShow;
 }
 
@@ -222,14 +200,6 @@ function buildCoffeeFiltersUrl(filters: CoffeeFilters, removals: FilterRemoval[]
 
   if (filters.isDecaf != null && !hasRemoval('isDecaf')) {
     params.set('isDecaf', String(filters.isDecaf));
-  }
-
-  if (filters.priceMin != null && !hasRemoval('priceMin')) {
-    params.set('priceMin', String(filters.priceMin));
-  }
-
-  if (filters.priceMax != null && !hasRemoval('priceMax')) {
-    params.set('priceMax', String(filters.priceMax));
   }
 
   if (filters.sort && filters.sort !== 'newest') {

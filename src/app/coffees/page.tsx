@@ -14,23 +14,23 @@ import { SITE_NAME } from '@/lib/site';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 
 const description =
-  'Türkiye’deki bağımsız kavurucuların güncel çekirdeklerini karşılaştırın. Köken, işleme, kavrum, tat, demleme yöntemi ve 100 g fiyatıyla filtreleyin.';
+  'Türkiye’deki bağımsız kavurucuların güncel çekirdeklerini keşfedin. Köken, işleme, kavrum, tat, demleme yöntemi ve kavurucunun verdiği fiyatla filtreleyin.';
 
 export const metadata: Metadata = {
-  title: 'Kahveleri Karşılaştır',
+  title: 'Kahve Kataloğu',
   description,
   alternates: {
     canonical: '/coffees',
   },
   openGraph: {
-    title: `Kahveleri Karşılaştır | ${SITE_NAME}`,
+    title: `Kahve Kataloğu | ${SITE_NAME}`,
     description,
     url: '/coffees',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: `Kahveleri Karşılaştır | ${SITE_NAME}`,
+    title: `Kahve Kataloğu | ${SITE_NAME}`,
     description,
   },
 };
@@ -43,8 +43,19 @@ export default async function CoffeesPage({
   const params = await searchParams;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      <h1 className="text-2xl font-bold text-stone-900">Kahveleri Karşılaştır</h1>
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+      <div className="mb-7 max-w-3xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
+          Kahve kataloğu
+        </p>
+        <h1 className="mt-3 font-display text-5xl leading-none text-[#1f1d1b]">
+          Güncel çekirdekleri tara.
+        </h1>
+        <p className="mt-4 text-sm leading-6 text-[#5d5853] sm:text-base">
+          Köken, işleme, kavrum, demleme yöntemi ve kavurucunun verdiği fiyatla
+          sana yakın kahveleri hızlıca daralt.
+        </p>
+      </div>
       <div className="mt-5 flex flex-col gap-5 lg:mt-8 lg:flex-row lg:gap-8">
         {/* Sidebar */}
         <div className="w-full shrink-0 lg:w-64">

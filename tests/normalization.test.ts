@@ -135,6 +135,23 @@ describe('normalize coffee metadata', () => {
     assert.equal(coffee.process_detail, 'Yıkanmış');
   });
 
+  it('reads alternate Turkish process labels from structured metadata', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        name: 'Kolombiya Monteblanco',
+        description: '',
+        rawData: {
+          specs: [
+            { name: 'İşlem', value: 'Natürel' },
+          ],
+        },
+      })
+    );
+
+    assert.equal(coffee.process, 'natural');
+    assert.equal(coffee.process_detail, 'Natürel');
+  });
+
   it('detects Turkish roast levels with dotted characters', () => {
     const coffee = normalize(
       makeRawProduct({
@@ -169,13 +186,13 @@ describe('normalize coffee metadata', () => {
   it('keeps filter and espresso profile wording out of roast inference', () => {
     const filterCoffee = normalize(
       makeRawProduct({
-        name: 'Example Filtre',
+        name: 'Example Coffee',
         description: 'Filtre için uygundur.',
       })
     );
     const espressoCoffee = normalize(
       makeRawProduct({
-        name: 'Example Espresso',
+        name: 'Example Coffee',
         description: 'Espresso için uygundur.',
       })
     );
@@ -200,6 +217,62 @@ describe('normalize coffee metadata', () => {
 
     assert.equal(filterRoast.roast_level, 'medium_light');
     assert.equal(espressoRoast.roast_level, 'medium_dark');
+  });
+
+  it('reads standalone profile metadata when the field label is explicit', () => {
+    const filterProfile = normalize(
+      makeRawProduct({
+        rawData: {
+          attributes: [
+            { name: 'Profil', value: 'Filtre' },
+          ],
+        },
+      })
+    );
+    const espressoProfile = normalize(
+      makeRawProduct({
+        rawData: {
+          attributes: [
+            { name: 'Profile', value: 'Espresso' },
+          ],
+        },
+      })
+    );
+
+    assert.equal(filterProfile.roast_level, 'medium_light');
+    assert.equal(espressoProfile.roast_level, 'medium_dark');
+  });
+
+  it('derives roast profile from product taxonomy when roasters publish it there', () => {
+    const filterCoffee = normalize(
+      makeRawProduct({
+        rawData: { product_type: 'Filtre Kahve' },
+      })
+    );
+    const espressoCoffee = normalize(
+      makeRawProduct({
+        rawData: { categories: [{ name: 'Espressolar' }] },
+      })
+    );
+    const omniCoffee = normalize(
+      makeRawProduct({
+        tags: ['Espresso', 'Filtre'],
+      })
+    );
+
+    assert.equal(filterCoffee.roast_level, 'medium_light');
+    assert.equal(espressoCoffee.roast_level, 'medium_dark');
+    assert.equal(omniCoffee.roast_level, 'medium');
+  });
+
+  it('maps Agtron roast readings to catalog roast levels', () => {
+    const coffee = normalize(
+      makeRawProduct({
+        description: 'Kavrulma Seviyesi 105 Agtron (v.1)',
+      })
+    );
+
+    assert.equal(coffee.roast_level, 'light');
   });
 
   it('does not treat grinder guidance as a medium roast signal', () => {

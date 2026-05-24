@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'TR CoffeeDB - Nitelikli Kahve Karşılaştırma';
+export const alt = 'TR CoffeeDB - Nitelikli Kahve Rehberi';
 
 export const size = {
   width: 1200,
@@ -15,8 +15,8 @@ export default function Image() {
       <div
         style={{
           alignItems: 'center',
-          background: 'linear-gradient(135deg, #1c1917 0%, #292524 48%, #0c0a09 100%)',
-          color: '#fafaf9',
+          background: '#fffdf8',
+          color: '#1f1d1b',
           display: 'flex',
           height: '100%',
           justifyContent: 'center',
@@ -34,7 +34,7 @@ export default function Image() {
         >
           <div
             style={{
-              color: '#f59e0b',
+              color: '#7c3a20',
               fontSize: 34,
               fontWeight: 800,
               letterSpacing: 0,
@@ -46,25 +46,41 @@ export default function Image() {
             style={{
               display: 'flex',
               flexDirection: 'column',
-              fontSize: 86,
-              fontWeight: 900,
+              fontFamily: 'Georgia, Times New Roman, serif',
+              fontSize: 92,
+              fontWeight: 500,
               letterSpacing: 0,
               lineHeight: 0.96,
             }}
           >
             <span>Yeni kahveni</span>
-            <span style={{ color: '#fbbf24' }}>20 sekmede arama.</span>
+            <span>kolayca bul.</span>
           </div>
           <div
             style={{
-              color: '#d6d3d1',
+              color: '#5d5853',
               display: 'flex',
               fontSize: 32,
               lineHeight: 1.32,
               maxWidth: 820,
             }}
           >
-            Türkiye&apos;deki nitelikli kahveleri güncel veri ve 100 g fiyatıyla karşılaştır.
+            Türkiye&apos;deki nitelikli kahveleri güncel veri ve tarafsız filtrelerle keşfet.
+          </div>
+          <div
+            style={{
+              alignSelf: 'flex-start',
+              background: '#ecff64',
+              border: '2px solid #1f1d1b',
+              borderRadius: 18,
+              color: '#1f1d1b',
+              display: 'flex',
+              fontSize: 28,
+              fontWeight: 800,
+              padding: '18px 24px',
+            }}
+          >
+            Kavurucunun fiyatıyla bak
           </div>
         </div>
       </div>

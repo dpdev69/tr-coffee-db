@@ -16,19 +16,15 @@ export function CoffeeCard({
     ? `${coffee.price_amount.toLocaleString('tr-TR')} TL`
     : null;
 
-  const pricePer100g = coffee.price_per_100g
-    ? `${coffee.price_per_100g.toLocaleString('tr-TR')} TL/100g`
-    : null;
   const sourceHost = getSourceHost(coffee.product_url);
   const verifiedAt = formatVerifiedAt(coffee.last_seen_at);
 
   return (
     <Link
       href={`/coffees/${coffee.slug}`}
-      className="group overflow-hidden rounded-xl border border-stone-200 bg-white transition-shadow hover:shadow-lg"
+      className="group overflow-hidden rounded-[22px] border border-[#1f1d1b]/10 bg-white transition-colors hover:border-[#1f1d1b]/25"
     >
-      {/* Image */}
-      <div className="relative aspect-square overflow-hidden bg-stone-100">
+      <div className="relative m-3 aspect-square overflow-hidden rounded-[18px] bg-[#f2eadf]">
         {coffee.image_url ? (
           <Image
             src={coffee.image_url}
@@ -36,46 +32,42 @@ export function CoffeeCard({
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             loading={imageLoading}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         ) : (
           <CoffeeImagePlaceholder label={coffee.roasters.name} />
         )}
 
-        {/* Badges */}
-        <div className="absolute left-2 top-2 flex flex-wrap gap-1">
+        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
           {coffee.process !== 'unknown' && (
-            <span className="rounded-md bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-stone-800 shadow-sm backdrop-blur-sm">
+            <span className="rounded-md bg-white/95 px-2 py-1 text-[11px] font-semibold text-[#1f1d1b] shadow-sm backdrop-blur-sm">
               {PROCESS_LABELS[coffee.process] ?? coffee.process}
             </span>
           )}
           {coffee.roast_level !== 'unknown' && (
-            <span className="rounded-md bg-amber-100/90 px-2 py-0.5 text-[11px] font-semibold text-amber-800 shadow-sm backdrop-blur-sm">
+            <span className="rounded-md bg-[#ecff64]/95 px-2 py-1 text-[11px] font-semibold text-[#1f1d1b] shadow-sm backdrop-blur-sm">
               {ROAST_LABELS[coffee.roast_level] ?? coffee.roast_level}
             </span>
           )}
         </div>
       </div>
 
-      {/* Details */}
-      <div className="p-4">
-        <p className="text-xs font-medium text-amber-700">
+      <div className="px-4 pb-4 pt-1">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7c3a20]">
           {coffee.roasters.name}
         </p>
-        <h3 className="mt-1 font-semibold leading-tight text-stone-900 line-clamp-2">
+        <h3 className="mt-2 font-display text-2xl leading-none text-[#1f1d1b] line-clamp-2">
           {coffee.name_normalized ?? coffee.name}
         </h3>
 
-        {/* Origin */}
         {coffee.origin_country && (
-          <p className="mt-1 text-xs text-stone-500">
+          <p className="mt-2 text-xs text-[#5d5853]">
             {coffee.origin_region
               ? `${coffee.origin_region}, ${coffee.origin_country}`
               : coffee.origin_country}
           </p>
         )}
 
-        {/* Flavor tags */}
         {coffee.flavor_notes_normalized.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {coffee.flavor_notes_normalized.slice(0, 3).map((note) => (
@@ -89,23 +81,19 @@ export function CoffeeCard({
           </div>
         )}
 
-        {/* Price */}
         <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
           {priceDisplay && (
-            <span className="whitespace-nowrap text-lg font-bold text-stone-900">
+            <span className="whitespace-nowrap text-lg font-bold text-[#1f1d1b]">
               {priceDisplay}
             </span>
           )}
-          {pricePer100g && (
-            <span className="whitespace-nowrap text-xs text-stone-400">{pricePer100g}</span>
-          )}
           {coffee.weight_grams && (
-            <span className="whitespace-nowrap text-xs text-stone-400">
+            <span className="whitespace-nowrap text-xs text-[#5d5853]">
               {formatPackageWeight(coffee.weight_grams)}
             </span>
           )}
         </div>
-        <p className="mt-2 truncate text-[11px] text-stone-400">
+        <p className="mt-2 truncate text-[11px] text-[#5d5853]/70">
           {sourceHost ? `${verifiedAt} · ${sourceHost}` : verifiedAt}
         </p>
       </div>
@@ -115,11 +103,11 @@ export function CoffeeCard({
 
 function CoffeeImagePlaceholder({ label }: { label: string }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center bg-amber-50 px-4 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full border border-amber-200 bg-white text-lg font-bold text-amber-800 shadow-sm">
+    <div className="flex h-full flex-col items-center justify-center bg-[#f2eadf] px-4 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#1f1d1b]/15 bg-white text-lg font-bold text-[#1f1d1b] shadow-sm">
         {getInitials(label)}
       </div>
-      <span className="mt-3 text-xs font-medium text-stone-500">Görsel bekleniyor</span>
+      <span className="mt-3 text-xs font-medium text-[#5d5853]">Görsel bekleniyor</span>
     </div>
   );
 }

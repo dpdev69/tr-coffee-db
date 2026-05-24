@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
-import { getFeaturedCoffees, getStats } from '@/lib/queries/coffees';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
+import { getFeaturedCoffees, getStats } from '@/lib/queries/coffees';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/site';
 
 const structuredData = {
   '@context': 'https://schema.org',
@@ -40,49 +40,47 @@ export default async function HomePage() {
   }
 
   return (
-    <div>
+    <div className="bg-[#fffdf8] text-[#1f1d1b]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-stone-900 px-4 py-24 text-center sm:py-32">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.18),transparent_38%),linear-gradient(135deg,rgba(41,37,36,0.92),rgba(12,10,9,0.98))]" />
-        <div className="absolute inset-y-0 left-[-8%] w-1/3 rounded-full bg-amber-500/10 blur-3xl" />
-        <div className="absolute right-[-10%] top-8 h-48 w-48 rounded-full bg-orange-300/10 blur-3xl" />
-        <div className="relative mx-auto max-w-3xl">
-          <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            Yeni kahveni
-            <span className="block text-amber-400">20 sekmede arama.</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-stone-300">
-            Türkiye&apos;deki bağımsız kavurucuların güncel çekirdeklerini tek yerde
-            karşılaştır. Köken, işleme, kavrum, tat ve 100 g fiyatıyla hızlıca daralt.
-          </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              href="/coffees"
-              className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-700"
-            >
-              Kahveleri Karşılaştır
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </Link>
-            <Link
-              href="/quiz"
-              className="inline-flex items-center gap-2 rounded-lg border border-stone-600 px-8 py-3 text-sm font-semibold text-stone-300 transition-colors hover:border-stone-400 hover:text-white"
-            >
-              Tercihime Göre Bul
-            </Link>
+
+      <section className="overflow-hidden bg-white px-4 pb-10 pt-12 sm:px-6 sm:pt-16 lg:px-8 lg:pb-14">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
+              Türkiye&apos;nin kahve rehberi
+            </p>
+            <h1 className="mt-5 font-display text-5xl leading-[0.94] text-[#1f1d1b] sm:text-6xl lg:text-7xl">
+              Yeni kahveni kolayca bul.
+            </h1>
+            <p className="mt-6 max-w-xl text-base leading-7 text-[#5d5853] sm:text-lg">
+              Bağımsız kavurucuların güncel çekirdeklerini tek ekranda gör; köken,
+              işleme, kavrum, tat notu ve kavurucunun verdiği fiyatla kararını hızlandır.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/quiz"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg bg-[#1f1d1b] px-7 text-sm font-semibold text-white transition-colors hover:bg-black"
+              >
+                Kahve Bul
+              </Link>
+              <Link
+                href="/coffees"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg border border-[#1f1d1b] bg-white px-7 text-sm font-semibold text-[#1f1d1b] transition-colors hover:bg-[#f6f1e8]"
+              >
+                Kataloğa Bak
+              </Link>
+            </div>
           </div>
+          <HeroPreview />
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="border-b border-stone-200 bg-stone-50">
+      <section className="border-y border-[#1f1d1b]/15 bg-[#ecff64] px-4 py-8 sm:px-6 lg:px-8">
         {catalogUnavailable ? (
-          <div className="mx-auto max-w-4xl px-4 py-8">
+          <div className="mx-auto max-w-4xl">
             <DataSourceNotice
               title="Canlı katalog sayıları şu an yüklenemiyor."
               message="Katalog veri kaynağına ulaşamadık, bu yüzden tahmini sayı göstermiyoruz. Güncel kahve ve kavurucu sayıları bağlantı düzeldiğinde yeniden görünür."
@@ -91,24 +89,114 @@ export default async function HomePage() {
             />
           </div>
         ) : (
-          <div className="mx-auto grid max-w-4xl grid-cols-3 divide-x divide-stone-200 py-8">
-            <StatBlock number={stats.totalCoffees} label="Kahve" />
-            <StatBlock number={stats.totalRoasters} label="Kavurucu" />
-            <StatBlock number={stats.totalOrigins} label="Köken" />
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.72fr_1fr] lg:items-center">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#1f1d1b]/70">
+                Nasıl işliyor?
+              </p>
+              <h2 className="mt-2 font-display text-4xl leading-none text-[#1f1d1b]">
+                Üç adımda daha net seçim.
+              </h2>
+              <div className="mt-7 grid grid-cols-3 gap-5">
+                <StatBlock number={stats.totalCoffees} label="kahve" />
+                <StatBlock number={stats.totalRoasters} label="kavurucu" />
+                <StatBlock number={stats.totalOrigins} label="köken" />
+              </div>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-3 sm:divide-x sm:divide-[#1f1d1b]/20">
+              <Step
+                step="01"
+                title="Kataloğa Bak"
+                description="Kavurucu siteleri arasında kaybolmadan güncel çekirdekleri tara."
+              />
+              <Step
+                step="02"
+                title="Fiyatı olduğu gibi gör"
+                description="Kavurucunun verdiği paket fiyatını değiştirmeden gösteririz."
+              />
+              <Step
+                step="03"
+                title="Kavurucuya Git"
+                description="Beğendiğin kahvede doğrudan kavurucunun sitesine geç."
+              />
+            </div>
           </div>
         )}
       </section>
 
-      {/* Featured */}
+      <section className="bg-[#fffdf8] px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1fr] lg:items-center">
+          <FeatureGraphic />
+          <div className="max-w-xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
+              Kahve eşleştirici
+            </p>
+            <h2 className="mt-4 font-display text-4xl leading-[0.98] text-[#1f1d1b] sm:text-5xl">
+              Damak tadına göre kısa liste çıkar.
+            </h2>
+            <p className="mt-5 text-base leading-7 text-[#5d5853]">
+              Demleme yöntemin, sevdiğin tat ailesi ve kavrum tercihinle uyumlu
+              kahveleri gerçek katalog filtrelerine çeviriyoruz.
+            </p>
+            <Link
+              href="/quiz"
+              className="mt-7 inline-flex min-h-12 items-center justify-center rounded-lg bg-[#1f1d1b] px-7 text-sm font-semibold text-white transition-colors hover:bg-black"
+            >
+              Kısa Testi Aç
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-[#1f1d1b]/10 bg-white px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
+              Keşif yolları
+            </p>
+            <h2 className="mt-4 font-display text-4xl leading-[0.98] text-[#1f1d1b] sm:text-5xl">
+              İster filtrele, ister hızlıca eşleş.
+            </h2>
+          </div>
+          <div className="mt-9 grid gap-5 md:grid-cols-3">
+            <PathCard
+              href="/coffees"
+              eyebrow="Katalog"
+              title="Tüm kahveleri tara"
+              description="Köken, işleme, kavrum ve demleme tercihlerine göre daralt."
+            />
+            <PathCard
+              href="/quiz"
+              eyebrow="Test"
+              title="Damak tadına göre bul"
+              description="Birkaç seçimle katalog içinde sana yakın çekirdekleri aç."
+            />
+            <PathCard
+              href="/roasters"
+              eyebrow="Kavurucular"
+              title="Markaları incele"
+              description="Aktif kavurucuları ve her birinin güncel kahvelerini gör."
+            />
+          </div>
+        </div>
+      </section>
+
       {featured.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-2xl font-bold text-stone-900">Yeni Eklenenler</h2>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
+                Yeni gelenler
+              </p>
+              <h2 className="mt-3 font-display text-4xl leading-none text-[#1f1d1b]">
+                Katalogdaki son çekirdekler.
+              </h2>
+            </div>
             <Link
               href="/coffees"
-              className="inline-flex min-h-11 items-center text-sm font-medium text-amber-700 hover:text-amber-800"
+              className="inline-flex min-h-11 items-center text-sm font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
             >
-              Tümünü Gör &rarr;
+              Tümünü gör
             </Link>
           </div>
           <div className="mt-8">
@@ -116,36 +204,6 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-
-      {/* How it works */}
-      <section className="bg-stone-50 px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[0.8fr_1.4fr] lg:items-start">
-          <div>
-            <h2 className="text-2xl font-bold text-stone-900">Nasıl Çalışır</h2>
-            <p className="mt-3 max-w-sm text-sm leading-6 text-stone-500">
-              Katalog verisini sadeleştirir, fiyatı aynı zemine çeker ve satın almayı
-              kavurucuya bırakır.
-            </p>
-          </div>
-          <ol className="divide-y divide-stone-200 border-y border-stone-200">
-            <Step
-              step="01"
-              title="Tek Yerde Ara"
-              description="Kavurucu sitelerini tek tek açmadan köken, işleme, kavrum, tat ve demleme yöntemine göre daralt."
-            />
-            <Step
-              step="02"
-              title="Adil Karşılaştır"
-              description="250 g, 500 g ya da 1 kg paketleri aynı zeminde görmek için 100 g normalize fiyatı kullan."
-            />
-            <Step
-              step="03"
-              title="Kavurucudan Al"
-              description="Beğendiğin çekirdeğe karar verince doğrudan kavurucunun sitesine geç. Arada mağaza yok."
-            />
-          </ol>
-        </div>
-      </section>
     </div>
   );
 }
@@ -156,10 +214,113 @@ function getErrorMessage(error: unknown) {
 
 function StatBlock({ number, label }: { number: number | string; label: string }) {
   return (
-    <div className="px-4 text-center">
-      <div className="text-3xl font-bold text-stone-900">{number}</div>
-      <div className="mt-1 text-sm text-stone-500">{label}</div>
+    <div>
+      <div className="font-display text-3xl leading-none text-[#1f1d1b]">{number}</div>
+      <div className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#1f1d1b]/55">
+        {label}
+      </div>
     </div>
+  );
+}
+
+function HeroPreview() {
+  return (
+    <div className="relative mx-auto w-full max-w-xl lg:max-w-none">
+      <div className="relative aspect-[1.04] overflow-hidden rounded-[28px] border border-[#1f1d1b]/10 bg-[#f2eadf] p-6">
+        <div className="grid h-full grid-rows-[1fr_auto]">
+          <div className="grid grid-cols-2 gap-3">
+            <PreviewTile label="Köken" value="Brezilya, Etiyopya, Kolombiya" />
+            <PreviewTile label="İşleme" value="Yıkanmış, Natürel, Honey" accent />
+            <PreviewTile label="Kavrum" value="Açık, Orta, Koyu" accent />
+            <PreviewTile label="Tat" value="Meyvemsi, Çikolata, Çiçeksi" />
+          </div>
+          <div className="mt-6 rounded-2xl bg-[#1f1d1b] p-5 text-white">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/60">
+              Tarafsız katalog
+            </p>
+            <p className="mt-3 font-display text-3xl leading-none sm:text-4xl">
+              Kavurucu seçmeden önce tabloyu netleştir.
+            </p>
+            <p className="mt-4 text-sm font-semibold leading-5 text-white/70">
+              Mağaza değiliz; doğru çekirdeğe yol gösteririz.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PreviewTile({
+  accent = false,
+  label,
+  value,
+}: {
+  accent?: boolean;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className={`rounded-2xl border border-[#1f1d1b]/10 p-4 ${accent ? 'bg-[#ecff64]' : 'bg-white'}`}>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7c3a20]">
+        {label}
+      </p>
+      <p className="mt-3 text-sm font-semibold leading-5 text-[#1f1d1b]">{value}</p>
+    </div>
+  );
+}
+
+function FeatureGraphic() {
+  return (
+    <div className="relative aspect-[1.05] overflow-hidden rounded-[28px] border border-[#1f1d1b]/10 bg-white p-7">
+      <div className="flex h-full flex-col justify-between rounded-[22px] bg-[#f2eadf] p-6">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
+            Filtre akışı
+          </p>
+          <h3 className="mt-4 font-display text-5xl leading-none text-[#1f1d1b]">
+            Seç, daralt, kavurucuya git.
+          </h3>
+        </div>
+        <div className="grid gap-3">
+          {['Demleme yöntemi', 'Tat ailesi', 'İşleme', 'Kavrum'].map((item) => (
+            <div key={item} className="flex items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-semibold text-[#1f1d1b]">
+              <span>{item}</span>
+              <span className="h-3 w-3 rounded-full bg-[#ecff64]" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PathCard({
+  href,
+  eyebrow,
+  title,
+  description,
+}: {
+  href: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex min-h-56 flex-col justify-between rounded-[24px] border border-[#1f1d1b]/12 bg-[#fffdf8] p-6 transition-colors hover:bg-[#f6f1e8]"
+    >
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#7c3a20]">
+          {eyebrow}
+        </p>
+        <h3 className="mt-4 font-display text-3xl leading-none text-[#1f1d1b]">
+          {title}
+        </h3>
+      </div>
+      <p className="mt-8 text-sm leading-6 text-[#5d5853]">{description}</p>
+    </Link>
   );
 }
 
@@ -173,14 +334,14 @@ function Step({
   description: string;
 }) {
   return (
-    <li className="grid gap-3 py-5 sm:grid-cols-[4rem_1fr] sm:gap-6">
-      <div className="text-sm font-bold tabular-nums text-amber-700">
+    <div className="sm:px-6 sm:first:pl-0">
+      <div className="text-sm font-bold tabular-nums text-[#1f1d1b]/55">
         {step}
       </div>
       <div>
-        <h3 className="font-semibold text-stone-900">{title}</h3>
-        <p className="mt-1 text-sm leading-6 text-stone-500">{description}</p>
+        <h3 className="mt-3 text-base font-semibold text-[#1f1d1b]">{title}</h3>
+        <p className="mt-2 text-sm leading-6 text-[#1f1d1b]/70">{description}</p>
       </div>
-    </li>
+    </div>
   );
 }

@@ -14,14 +14,14 @@ export function DataSourceNotice({
   return (
     <section
       role="alert"
-      className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-left"
+      className="rounded-2xl border border-[#1f1d1b]/15 bg-[#f6f1e8] p-4 text-left"
     >
-      <p className="text-sm font-semibold text-amber-950">{title}</p>
-      <p className="mt-1 text-sm leading-6 text-amber-900">{message}</p>
+      <p className="text-sm font-semibold text-[#1f1d1b]">{title}</p>
+      <p className="mt-1 text-sm leading-6 text-[#5d5853]">{message}</p>
       {actionHref && actionLabel && (
         <Link
           href={actionHref}
-          className="mt-3 inline-flex text-sm font-semibold text-amber-800 transition-colors hover:text-amber-950"
+          className="mt-3 inline-flex text-sm font-semibold text-[#1f1d1b] underline-offset-4 transition-colors hover:underline"
         >
           {actionLabel}
         </Link>

@@ -4,33 +4,29 @@ import { describe, it } from 'node:test';
 import { buildQuizFilterResult } from '@/lib/quiz-filters';
 
 describe('buildQuizFilterResult', () => {
-  it('maps all quiz answers to catalog filters and explanations', () => {
+  it('maps all quiz answers to catalog filters and explanations without price buckets', () => {
     const result = buildQuizFilterResult({
       brewMethod: ['filter'],
       flavorCategory: ['Fruity', 'Floral'],
       process: ['washed'],
       roastLevel: ['light'],
-      pricePer100g: '120_200',
     });
 
     assert.equal(
       result.url,
-      '/coffees?brewMethod=filter&flavorCategory=Fruity&flavorCategory=Floral&process=washed&roastLevel=light&priceMin=120&priceMax=200'
+      '/coffees?brewMethod=filter&flavorCategory=Fruity&flavorCategory=Floral&process=washed&roastLevel=light'
     );
     assert.deepEqual(result.explanations, [
       'Demleme uyumu: Filter / Pour Over.',
       'Tat kategorisi: Meyvemsi, Çiçeksi.',
       'İşleme: Yıkanmış.',
       'Kavurma seviyesi: Açık.',
-      'Bütçe: 120-200 TL/100 g aralığı.',
     ]);
     assert.deepEqual(result.filters, {
       brewMethod: ['filter'],
       flavorCategory: ['Fruity', 'Floral'],
       process: ['washed'],
       roastLevel: ['light'],
-      priceMin: 120,
-      priceMax: 200,
     });
   });
 
@@ -40,13 +36,10 @@ describe('buildQuizFilterResult', () => {
       flavorCategory: [],
       process: [],
       roastLevel: [],
-      pricePer100g: 'any',
     });
 
     assert.equal(result.url, '/coffees');
-    assert.deepEqual(result.explanations, [
-      'Bütçe: fiyat sınırı eklenmedi.',
-    ]);
+    assert.deepEqual(result.explanations, []);
     assert.deepEqual(result.filters, {});
   });
 
@@ -56,7 +49,6 @@ describe('buildQuizFilterResult', () => {
       flavorCategory: [],
       process: [],
       roastLevel: ['medium_light', 'medium', 'medium_dark'],
-      pricePer100g: null,
     });
 
     assert.equal(
@@ -74,19 +66,17 @@ describe('buildQuizFilterResult', () => {
       flavorCategory: ['Fruity', 'Unknown'],
       process: ['experimental', 'unknown'],
       roastLevel: ['medium', 'unknown'],
-      pricePer100g: 'under_120',
     });
 
     assert.equal(
       result.url,
-      '/coffees?brewMethod=filter&flavorCategory=Fruity&process=experimental&roastLevel=medium&priceMax=120'
+      '/coffees?brewMethod=filter&flavorCategory=Fruity&process=experimental&roastLevel=medium'
     );
     assert.deepEqual(result.filters, {
       brewMethod: ['filter'],
       flavorCategory: ['Fruity'],
       process: ['experimental'],
       roastLevel: ['medium'],
-      priceMax: 120,
     });
   });
 });

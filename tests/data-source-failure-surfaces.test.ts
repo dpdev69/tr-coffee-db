@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 const catalogPageSource = readFileSync('src/app/coffees/page.tsx', 'utf8');
 const coffeeDetailSource = readFileSync('src/app/coffees/[slug]/page.tsx', 'utf8');
 const homepageSource = readFileSync('src/app/page.tsx', 'utf8');
+const roastersPageSource = readFileSync('src/app/roasters/page.tsx', 'utf8');
 const coffeeQueriesSource = readFileSync('src/lib/queries/coffees.ts', 'utf8');
 const todosSource = readFileSync('TODOS.md', 'utf8');
 
@@ -26,6 +27,12 @@ describe('data-source failure surfaces', () => {
     assert.match(coffeeDetailSource, /Coffee detail failed to load/);
     assert.match(coffeeQueriesSource, /\.maybeSingle\(\)/);
     assert.match(coffeeQueriesSource, /if \(error\) throw error/);
+  });
+
+  it('keeps roaster outages separate from empty roaster states', () => {
+    assert.match(roastersPageSource, /Kavurucu listesi geçici olarak yüklenemiyor\./);
+    assert.match(roastersPageSource, /Roaster list failed to load/);
+    assert.match(roastersPageSource, /Bu sıfır kavurucu olduğu anlamına gelmez/);
   });
 
   it('records deferred CEO-review work in the TODO ledger', () => {

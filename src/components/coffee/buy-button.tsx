@@ -49,7 +49,7 @@ export function BuyButton({
     <button
       disabled={!canOpenProductUrl}
       onClick={handleClick}
-      className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-amber-700 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-600"
+      className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#1f1d1b] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-black focus:outline-none focus:ring-2 focus:ring-[#1f1d1b] focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-[#d8d1c7] disabled:text-[#5d5853]"
     >
       <span>
         {canOpenProductUrl ? `${roasterName} sitesine git` : 'Bağlantı doğrulanamadı'}

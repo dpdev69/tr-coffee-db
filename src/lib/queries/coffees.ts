@@ -19,7 +19,9 @@ export interface CoffeeFilters {
   flavorCategory?: string[];
   brewMethod?: string[];
   singleOrigin?: boolean;
+  /** Deprecated public filter. Kept so stale URLs and analytics payloads can be parsed without applying a comparison price filter. */
   priceMin?: number;
+  /** Deprecated public filter. Kept so stale URLs and analytics payloads can be parsed without applying a comparison price filter. */
   priceMax?: number;
   isDecaf?: boolean;
   search?: string;
@@ -103,12 +105,6 @@ export async function getCoffees(filters: CoffeeFilters = {}) {
       query = query.not('name', 'ilike', pattern);
     }
   }
-  if (filters.priceMin != null) {
-    query = query.gte('price_per_100g', filters.priceMin);
-  }
-  if (filters.priceMax != null) {
-    query = query.lte('price_per_100g', filters.priceMax);
-  }
   if (filters.isDecaf != null) {
     query = query.eq('is_decaf', filters.isDecaf);
   }
@@ -120,10 +116,10 @@ export async function getCoffees(filters: CoffeeFilters = {}) {
         .order('created_at', { ascending: false });
       break;
     case 'price_asc':
-      query = query.order('price_per_100g', { ascending: true, nullsFirst: false });
+      query = query.order('price_amount', { ascending: true, nullsFirst: false });
       break;
     case 'price_desc':
-      query = query.order('price_per_100g', { ascending: false, nullsFirst: false });
+      query = query.order('price_amount', { ascending: false, nullsFirst: false });
       break;
     case 'popular':
       query = query.order('click_count', { ascending: false });

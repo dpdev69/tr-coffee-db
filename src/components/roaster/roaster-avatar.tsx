@@ -24,7 +24,7 @@ export function RoasterAvatar({
 
   return (
     <div
-      className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-stone-200 bg-white text-center font-bold text-amber-700 shadow-sm ${sizeClasses[size]}`}
+      className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#1f1d1b]/10 bg-white text-center font-bold text-[#1f1d1b] ${sizeClasses[size]}`}
       aria-hidden="true"
     >
       {showLogo ? (
@@ -36,7 +36,7 @@ export function RoasterAvatar({
           onError={() => setFailedLogoUrl(logoUrl)}
         />
       ) : (
-        <span className="flex h-full w-full items-center justify-center bg-amber-50">
+        <span className="flex h-full w-full items-center justify-center bg-[#ecff64]">
           {initial}
         </span>
       )}

@@ -26,6 +26,13 @@ describe('isLikelyCatalogCoffeeProduct', () => {
       isLikelyCatalogCoffeeProduct(['Brazil Santos Fine Cup Çiğ Yeşil Çekirdek 1kg']),
       false
     );
+    assert.equal(isLikelyCatalogCoffeeProduct(['Origami Air S']), false);
+    assert.equal(isLikelyCatalogCoffeeProduct(['SCA Barista: Foundation + Intermediate']), false);
+    assert.equal(isLikelyCatalogCoffeeProduct(['Consultancy & Retakes']), false);
+    assert.equal(isLikelyCatalogCoffeeProduct(['Peak Water / Kahve Suyu']), false);
+    assert.equal(isLikelyCatalogCoffeeProduct(['Cold Brew Black & Strong Cam Şişe 200 Ml.']), false);
+    assert.equal(isLikelyCatalogCoffeeProduct(['Wastepresso & Candle + Friends Kahve Posalı Mum']), false);
+    assert.equal(isLikelyCatalogCoffeeProduct(['Aşırı Kolay Cold Brew']), false);
   });
 
   it('keeps cacao and chocolate tasting notes from excluding coffee cards', () => {
@@ -87,6 +94,33 @@ describe('classifySpecialtyProduct', () => {
     assert.equal(result.specialty_status, 'not_specialty');
     assert.equal(result.specialty_rejection_reason, 'non_coffee_or_bundle');
     assert.equal(result.is_public, false);
+  });
+
+  it('rejects stale non-bean catalog entries that previously looked like coffee', () => {
+    for (const name of [
+      'Baristocrat Sample Box',
+      'Origami Air S',
+      'SCA Roasting: Foundation + Intermediate',
+      'Cold Brew Black & Strong Cam Şişe 200 Ml.',
+      'Wastepresso & Candle + Friends Kahve Posalı Mum',
+      'Aşırı Kolay Cold Brew',
+    ]) {
+      const result = classifySpecialtyProduct(
+        makeClassificationInput({
+          raw: { name },
+          normalized: {
+            name,
+            name_normalized: name,
+            origin_country: null,
+            process: 'unknown',
+          },
+        })
+      );
+
+      assert.equal(result.specialty_status, 'not_specialty', name);
+      assert.equal(result.specialty_rejection_reason, 'non_coffee_or_bundle', name);
+      assert.equal(result.is_public, false, name);
+    }
   });
 
   it('rejects generic blends without strong traceability', () => {

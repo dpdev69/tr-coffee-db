@@ -37,13 +37,13 @@ export function Pagination({
       <button
         onClick={() => goToPage(currentPage - 1)}
         disabled={currentPage <= 1}
-        className="inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-40 disabled:hover:bg-transparent"
+        className="inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-sm font-semibold text-[#1f1d1b]/70 hover:bg-[#f6f1e8] disabled:opacity-40 disabled:hover:bg-transparent"
       >
         Önceki
       </button>
       {pages.map((page, i) =>
         page === '…' ? (
-          <span key={`dots-${i}`} className="px-2 text-stone-400">
+          <span key={`dots-${i}`} className="px-2 text-[#1f1d1b]/40">
             …
           </span>
         ) : (
@@ -52,8 +52,8 @@ export function Pagination({
             onClick={() => goToPage(page)}
             className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-3 text-sm font-medium ${
               page === currentPage
-                ? 'bg-amber-100 text-amber-800'
-                : 'text-stone-600 hover:bg-stone-100'
+                ? 'bg-[#ecff64] text-[#1f1d1b]'
+                : 'text-[#1f1d1b]/70 hover:bg-[#f6f1e8]'
             }`}
           >
             {page}
@@ -63,7 +63,7 @@ export function Pagination({
       <button
         onClick={() => goToPage(currentPage + 1)}
         disabled={currentPage >= totalPages}
-        className="inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-40 disabled:hover:bg-transparent"
+        className="inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-sm font-semibold text-[#1f1d1b]/70 hover:bg-[#f6f1e8] disabled:opacity-40 disabled:hover:bg-transparent"
       >
         Sonraki
       </button>

@@ -170,6 +170,139 @@ describe('BaseScraper failure semantics', () => {
       supabase.from = originalFrom;
     }
   });
+
+  it('preserves known process and roast metadata when a sparse scrape cannot redetect it', async () => {
+    const { supabase } = await import('../scrapers/src/supabase.ts');
+    const { BaseScraper } = await import('../scrapers/src/base-scraper.ts');
+    const originalFrom = supabase.from.bind(supabase);
+    const upsertedRows: Array<Record<string, unknown>> = [];
+
+    try {
+      supabase.from = ((table: string) => {
+        if (table === 'roasters') {
+          return {
+            select() {
+              return {
+                eq() {
+                  return {
+                    async single() {
+                      return { data: { id: 'roaster-1' }, error: null };
+                    },
+                  };
+                },
+              };
+            },
+          };
+        }
+
+        if (table === 'coffee_specialty_overrides') {
+          return {
+            select() {
+              return {
+                eq() {
+                  return { data: [], error: null };
+                },
+              };
+            },
+          };
+        }
+
+        if (table === 'coffees') {
+          return {
+            select(columns: string) {
+              assert.equal(columns, 'external_id, process, process_detail, roast_level');
+              return {
+                eq() {
+                  return {
+                    in() {
+                      return {
+                        data: [
+                          {
+                            external_id: 'product-1',
+                            process: 'washed',
+                            process_detail: 'Yıkanmış',
+                            roast_level: 'medium_light',
+                          },
+                        ],
+                        error: null,
+                      };
+                    },
+                  };
+                },
+              };
+            },
+            upsert(rows: Array<Record<string, unknown>>) {
+              upsertedRows.push(...rows);
+              return {
+                select() {
+                  return { error: null, count: rows.length };
+                },
+              };
+            },
+            update() {
+              return {
+                eq() {
+                  return this;
+                },
+                lt() {
+                  return { error: null };
+                },
+              };
+            },
+          };
+        }
+
+        if (table === 'scrape_logs') {
+          return {
+            async insert() {
+              return { error: null };
+            },
+          };
+        }
+
+        throw new Error(`Unexpected table: ${table}`);
+      }) as typeof supabase.from;
+
+      class SparseScraper extends BaseScraper {
+        async fetchProducts() {
+          return [
+            {
+              externalId: 'product-1',
+              name: 'Colombia Sparse Coffee',
+              description: 'Single origin coffee with caramel notes.',
+              price: 500,
+              currency: 'TRY',
+              weightGrams: 250,
+              imageUrl: null,
+              productUrl: 'https://example.test/products/colombia-sparse-coffee',
+              isAvailable: true,
+              tags: [],
+            },
+          ];
+        }
+      }
+
+      const scraper = new SparseScraper({
+        slug: 'test-roaster',
+        name: 'Test Roaster',
+        platform: 'custom',
+        websiteUrl: 'https://example.test',
+        shopUrl: 'https://example.test',
+        city: 'Istanbul',
+        priceFormat: 'tl',
+      });
+
+      const result = await scraper.run();
+
+      assert.equal(result.status, 'success');
+      assert.equal(upsertedRows.length, 1);
+      assert.equal(upsertedRows[0].process, 'washed');
+      assert.equal(upsertedRows[0].process_detail, 'Yıkanmış');
+      assert.equal(upsertedRows[0].roast_level, 'medium_light');
+    } finally {
+      supabase.from = originalFrom;
+    }
+  });
 });
 
 function pickLogFields(log: unknown) {

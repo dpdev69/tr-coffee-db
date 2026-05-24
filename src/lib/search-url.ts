@@ -21,6 +21,8 @@ export function buildGlobalSearchUrl({
     params.delete('search');
   }
 
+  params.delete('priceMin');
+  params.delete('priceMax');
   params.delete('page');
 
   const query = params.toString();

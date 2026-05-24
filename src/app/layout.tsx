@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: SITE_URL,
   applicationName: SITE_NAME,
   title: {
-    default: "TR CoffeeDB - Nitelikli Kahve Karşılaştırma",
+    default: "TR CoffeeDB - Nitelikli Kahve Rehberi",
     template: "%s | TR CoffeeDB",
   },
   description: SITE_DESCRIPTION,
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: "TR CoffeeDB - Nitelikli Kahve Karşılaştırma",
+    title: "TR CoffeeDB - Nitelikli Kahve Rehberi",
     description: SITE_DESCRIPTION,
     url: '/',
     siteName: SITE_NAME,
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "TR CoffeeDB - Nitelikli Kahve Karşılaştırma",
+    title: "TR CoffeeDB - Nitelikli Kahve Rehberi",
     description: SITE_DESCRIPTION,
   },
   robots: {
@@ -64,7 +64,7 @@ export default function RootLayout({
       lang="tr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-white font-sans text-stone-900">
+      <body className="flex min-h-full flex-col bg-[#fffdf8] font-sans text-[#1f1d1b]">
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

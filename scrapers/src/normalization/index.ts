@@ -125,12 +125,73 @@ function collectRawDataText(
 }
 
 function detectRoastLevelFromRawProduct(raw: RawProduct, allText: string): string {
-  for (const candidate of collectLabeledTextCandidates(raw.rawData, /\b(kavrum|kavurma|roast)\b/i)) {
+  for (const candidate of collectLabeledTextCandidates(
+    raw.rawData,
+    /\b(kavrum|kavurma|kavrulma|roast|profil|profile)\b/i
+  )) {
     const detected = detectStandaloneRoastLevel(candidate);
     if (detected !== 'unknown') return detected;
   }
 
-  return detectRoastLevel(allText);
+  const detectedFromText = detectRoastLevel(allText);
+  if (detectedFromText !== 'unknown') return detectedFromText;
+
+  return detectRoastProfileFromTaxonomy(raw);
+}
+
+function detectRoastProfileFromTaxonomy(raw: RawProduct): string {
+  const taxonomyText = collectTaxonomyText(raw).join(' ').toLocaleLowerCase('tr-TR');
+  if (!taxonomyText) return 'unknown';
+
+  if (/\b(?:dark|koyu)\b/i.test(taxonomyText)) return 'dark';
+
+  const hasEspresso = /\bespresso(?:ya)?\b|\bespressolar\b/i.test(taxonomyText);
+  const hasFilter =
+    /\bfiltre(?:ye)?\b|\bfilter\b|\bpour\s*over\b|\bv60\b/i.test(taxonomyText);
+  const hasTurkish = /\bt[üu]rk\s+kahvesi\b|\bturk\s+kahvesi\b/i.test(taxonomyText);
+
+  if (hasEspresso && hasFilter) return 'medium';
+  if (hasEspresso || hasTurkish) return 'medium_dark';
+  if (hasFilter) return 'medium_light';
+
+  return 'unknown';
+}
+
+function collectTaxonomyText(raw: RawProduct): string[] {
+  const output = [
+    raw.name,
+    ...(raw.tags ?? []),
+    ...collectNamedRawDataText(raw.rawData, new Set(['product_type', 'categories', 'category'])),
+  ];
+
+  return output.filter((item): item is string => Boolean(item?.trim()));
+}
+
+function collectNamedRawDataText(
+  value: unknown,
+  allowedKeys: ReadonlySet<string>,
+  output: string[] = []
+): string[] {
+  if (value == null || output.length >= 50) return output;
+
+  if (Array.isArray(value)) {
+    for (const item of value) collectNamedRawDataText(item, allowedKeys, output);
+    return output;
+  }
+
+  if (typeof value !== 'object') return output;
+
+  const record = value as Record<string, unknown>;
+  for (const [key, nested] of Object.entries(record)) {
+    if (allowedKeys.has(key)) {
+      collectTextLeaves(nested, output);
+      continue;
+    }
+
+    collectNamedRawDataText(nested, allowedKeys, output);
+  }
+
+  return output;
 }
 
 function detectProcessFromRawProduct(
@@ -139,7 +200,7 @@ function detectProcessFromRawProduct(
 ): { process: string; processDetail: string | null } {
   for (const candidate of collectLabeledTextCandidates(
     raw.rawData,
-    /\b(işleme|isleme|process|processing|proses)\b/i
+    /\b(işlem|islem|işleme|isleme|process|processing|proses)\b/i
   )) {
     const detected = detectStandaloneProcess(candidate);
     if (detected.process !== 'unknown') return detected;

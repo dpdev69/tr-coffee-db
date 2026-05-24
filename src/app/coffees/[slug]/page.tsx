@@ -42,8 +42,8 @@ export async function generateMetadata({
   const description = `${roaster} kavurucusundan ${title}. ${
     coffee.origin_country ? `${coffee.origin_country} kökenli. ` : ''
   }${coffee.process !== 'unknown' ? `${PROCESS_LABELS[coffee.process] ?? coffee.process} işleme. ` : ''}${
-    coffee.price_per_100g ? `${coffee.price_per_100g.toLocaleString('tr-TR')} TL/100 g. ` : ''
-  }Güncel çekirdekleri TR CoffeeDB'de karşılaştırın.`;
+    coffee.price_amount ? `${coffee.price_amount.toLocaleString('tr-TR')} TL. ` : ''
+  }Güncel çekirdekleri TR CoffeeDB'de keşfedin.`;
 
   return {
     title: `${title} | ${roaster}`,
@@ -124,54 +124,45 @@ export default async function CoffeeDetailPage({
   const productUrlHosts = collectTrustedHosts([roaster.website_url, roaster.shop_url]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Breadcrumb */}
-      <nav className="mb-6 text-sm text-stone-500">
-        <Link href="/coffees" className="hover:text-stone-700">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+      <nav className="mb-6 text-sm text-[#5d5853]">
+        <Link href="/coffees" className="hover:text-[#1f1d1b]">
           Kahveler
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-stone-900">{coffee.name_normalized ?? coffee.name}</span>
+        <span className="text-[#1f1d1b]">{coffee.name_normalized ?? coffee.name}</span>
       </nav>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-        {/* Image */}
         <CoffeeImage
           alt={coffee.name}
           imageUrl={coffee.image_url}
           sizes="50vw"
-          className="hidden aspect-square rounded-2xl lg:block"
+          className="hidden aspect-square rounded-[28px] lg:block"
           priority
         />
 
-        {/* Details */}
         <div>
           <Link
             href={`/roasters/${roaster.slug}`}
-            className="text-sm font-medium text-amber-700 hover:text-amber-800"
+            className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7c3a20] hover:text-[#1f1d1b]"
           >
             {roaster.name} &middot; {roaster.city}
           </Link>
 
-          <h1 className="mt-2 text-2xl font-bold text-stone-900 sm:text-3xl">
+          <h1 className="mt-3 font-display text-5xl leading-none text-[#1f1d1b]">
             {coffee.name_normalized ?? coffee.name}
           </h1>
 
-          {/* Price */}
           <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
             {coffee.price_amount && (
-              <span className="whitespace-nowrap text-2xl font-bold text-stone-900">
+              <span className="whitespace-nowrap text-2xl font-bold text-[#1f1d1b]">
                 {coffee.price_amount.toLocaleString('tr-TR')} TL
               </span>
             )}
             {coffee.weight_grams && (
-              <span className="whitespace-nowrap text-sm text-stone-500">
+              <span className="whitespace-nowrap text-sm text-[#5d5853]">
                 {formatPackageWeight(coffee.weight_grams)}
-              </span>
-            )}
-            {coffee.price_per_100g && (
-              <span className="whitespace-nowrap text-sm text-stone-500">
-                ({coffee.price_per_100g.toLocaleString('tr-TR')} TL / 100 g)
               </span>
             )}
           </div>
@@ -180,22 +171,15 @@ export default async function CoffeeDetailPage({
             alt={coffee.name}
             imageUrl={coffee.image_url}
             sizes="(max-width: 1023px) calc(100vw - 2rem), 1px"
-            className="mt-6 aspect-[16/10] rounded-xl lg:hidden"
+            className="mt-6 aspect-[16/10] rounded-[22px] lg:hidden"
             priority
           />
 
-          {/* Specs table */}
           <div className="mt-8 space-y-4">
-            <h2 className="text-lg font-semibold text-stone-900">Detaylar</h2>
-            <dl className="divide-y divide-stone-100">
+            <h2 className="text-lg font-semibold text-[#1f1d1b]">Detaylar</h2>
+            <dl className="divide-y divide-[#1f1d1b]/10 border-y border-[#1f1d1b]/10">
               {coffee.weight_grams && (
                 <SpecRow label="Paket" value={formatPackageWeight(coffee.weight_grams)} />
-              )}
-              {coffee.price_per_100g && (
-                <SpecRow
-                  label="100 g fiyatı"
-                  value={`${coffee.price_per_100g.toLocaleString('tr-TR')} TL/100 g`}
-                />
               )}
               <SpecRow label="Stok" value={coffee.is_available ? 'Stokta görünüyor' : 'Stokta yok'} />
               <SpecRow label="Doğrulama" value={verifiedAt} />
@@ -283,7 +267,6 @@ export default async function CoffeeDetailPage({
             </dl>
           </div>
 
-          {/* Buy button */}
           <div className="mt-6">
             <BuyButton
               allowedHosts={productUrlHosts}
@@ -295,7 +278,7 @@ export default async function CoffeeDetailPage({
 
           {brewRecipes.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-lg font-semibold text-stone-900">Kavurucudan Öneri</h2>
+              <h2 className="text-lg font-semibold text-[#1f1d1b]">Kavurucudan Öneri</h2>
               <div className="mt-3 space-y-3">
                 {brewRecipes.map((recipe, index) => (
                   <RecipeCard key={`${recipe.method}-${index}`} recipe={recipe} />
@@ -307,10 +290,9 @@ export default async function CoffeeDetailPage({
         </div>
       </div>
 
-      {/* Similar coffees */}
       {similar.length > 0 && (
         <section className="mt-16">
-          <h2 className="text-xl font-bold text-stone-900">Benzer Kahveler</h2>
+          <h2 className="font-display text-4xl leading-none text-[#1f1d1b]">Benzer Kahveler</h2>
           <div className="mt-6">
             <CoffeeGrid coffees={similar} />
           </div>
@@ -327,8 +309,8 @@ function getErrorMessage(error: unknown) {
 function SpecRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex justify-between gap-4 py-2.5">
-      <dt className="shrink-0 text-sm text-stone-500">{label}</dt>
-      <dd className="text-right text-sm font-medium text-stone-900">{value}</dd>
+      <dt className="shrink-0 text-sm text-[#5d5853]">{label}</dt>
+      <dd className="text-right text-sm font-medium text-[#1f1d1b]">{value}</dd>
     </div>
   );
 }
@@ -347,7 +329,7 @@ function CoffeeImage({
   sizes: string;
 }) {
   return (
-    <div className={`relative overflow-hidden bg-stone-100 ${className}`}>
+    <div className={`relative overflow-hidden bg-[#f2eadf] ${className}`}>
       {imageUrl ? (
         <Image
           src={imageUrl}
@@ -358,11 +340,11 @@ function CoffeeImage({
           loading={priority ? 'eager' : 'lazy'}
         />
       ) : (
-        <div className="flex h-full flex-col items-center justify-center bg-amber-50 px-6 text-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full border border-amber-200 bg-white text-2xl font-bold text-amber-800 shadow-sm">
+        <div className="flex h-full flex-col items-center justify-center bg-[#f2eadf] px-6 text-center">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[#1f1d1b]/15 bg-white text-2xl font-bold text-[#1f1d1b] shadow-sm">
             {getImageInitials(alt)}
           </div>
-          <span className="mt-4 text-sm font-medium text-stone-500">Görsel bekleniyor</span>
+          <span className="mt-4 text-sm font-medium text-[#5d5853]">Görsel bekleniyor</span>
         </div>
       )}
     </div>
@@ -393,10 +375,10 @@ function RecipeCard({ recipe }: { recipe: CoffeeBrewRecipe }) {
   ].filter((field): field is [string, string] => Boolean(field));
 
   return (
-    <article className="rounded-xl border border-stone-200 bg-white p-4">
+    <article className="rounded-2xl border border-[#1f1d1b]/10 bg-white p-4">
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-sm font-bold text-stone-900">{recipe.method}</h3>
-        <span className="rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
+        <h3 className="text-sm font-bold text-[#1f1d1b]">{recipe.method}</h3>
+        <span className="rounded-md bg-[#ecff64] px-2 py-1 text-xs font-medium text-[#1f1d1b]">
           Kavurucu sayfasından
         </span>
       </div>
@@ -404,14 +386,14 @@ function RecipeCard({ recipe }: { recipe: CoffeeBrewRecipe }) {
         <dl className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {fields.map(([label, value]) => (
             <div key={label}>
-              <dt className="text-xs text-stone-500">{label}</dt>
-              <dd className="text-sm font-medium text-stone-900">{value}</dd>
+              <dt className="text-xs text-[#5d5853]">{label}</dt>
+              <dd className="text-sm font-medium text-[#1f1d1b]">{value}</dd>
             </div>
           ))}
         </dl>
       )}
       {recipe.steps.length > 0 && (
-        <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-stone-600">
+        <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-[#5d5853]">
           {recipe.steps.map((step) => (
             <li key={step}>{step}</li>
           ))}

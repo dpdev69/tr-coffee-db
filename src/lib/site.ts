@@ -1,17 +1,17 @@
 export const SITE_NAME = 'TR CoffeeDB';
 
 export const SITE_DESCRIPTION =
-  "Türkiye'deki bağımsız kavurucuların güncel nitelikli kahvelerini tek yerde karşılaştırın. Köken, işleme, kavrum, tat ve 100 g fiyatıyla filtreleyin; satın alma doğrudan kavurucuda tamamlanır.";
+  "Türkiye'deki bağımsız kavurucuların güncel nitelikli kahvelerini tek yerde keşfedin. Köken, işleme, kavrum, tat notu ve kavurucunun verdiği fiyatla filtreleyin; beğendiğiniz çekirdekte kavurucunun sitesine geçin.";
 
 export const SITE_KEYWORDS = [
   'nitelikli kahve',
   'Türkiye kahve kavurucuları',
-  'kahve karşılaştırma',
+  'kahve keşif rehberi',
   'kahve çekirdeği',
   'bağımsız kavurucu',
   'specialty coffee Turkey',
   'kahve fiyati',
-  '100 g kahve fiyati',
+  'kahve katalog fiyati',
 ];
 
 export const SITE_URL = getSiteUrl();

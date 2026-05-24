@@ -11,14 +11,12 @@ import {
 import type { CoffeeFilters } from '@/lib/queries/coffees';
 
 export type QuizArrayAnswerKey = 'brewMethod' | 'flavorCategory' | 'process' | 'roastLevel';
-export type QuizPricePer100g = 'under_120' | '120_200' | 'over_200' | 'any';
 
 export interface QuizAnswers {
   brewMethod: string[];
   flavorCategory: string[];
   process: string[];
   roastLevel: string[];
-  pricePer100g: QuizPricePer100g | null;
 }
 
 export interface QuizFilterResult {
@@ -42,28 +40,16 @@ interface QuizStepBase {
 }
 
 export type QuizStep =
-  | (QuizStepBase & {
-      id: QuizArrayAnswerKey;
-      selection: 'multiple';
-    })
-  | (QuizStepBase & {
-      id: 'pricePer100g';
-      selection: 'single';
-    });
+  QuizStepBase & {
+    id: QuizArrayAnswerKey;
+    selection: 'multiple';
+  };
 
 interface ArrayFilterSpec {
   key: QuizArrayAnswerKey;
   explanationLabel: string;
   labels: Record<string, string>;
   allowedValues: ReadonlySet<string>;
-}
-
-interface PriceBucket {
-  label: string;
-  description: string;
-  priceMin?: number;
-  priceMax?: number;
-  explanation: string;
 }
 
 const PROCESS_FILTER_VALUES = PROCESS_VALUES.filter((value) => value !== 'unknown');
@@ -108,33 +94,6 @@ const ROAST_DESCRIPTIONS: Record<string, string> = {
   dark: 'Yoğun, kavruk ve klasik koyu profil.',
 };
 
-export const QUIZ_PRICE_BUCKETS: Record<QuizPricePer100g, PriceBucket> = {
-  under_120: {
-    label: '120 TL/100 g altı',
-    description: 'Yaklaşık 250 g için 300 TL altı.',
-    priceMax: 120,
-    explanation: 'Bütçe: 120 TL/100 g ve altı.',
-  },
-  '120_200': {
-    label: '120-200 TL/100 g',
-    description: 'Yaklaşık 250 g için 300-500 TL aralığı.',
-    priceMin: 120,
-    priceMax: 200,
-    explanation: 'Bütçe: 120-200 TL/100 g aralığı.',
-  },
-  over_200: {
-    label: '200 TL/100 g üstü',
-    description: 'Daha seçili veya premium çekirdekleri dahil et.',
-    priceMin: 200,
-    explanation: 'Bütçe: 200 TL/100 g ve üzeri.',
-  },
-  any: {
-    label: 'Fiyat fark etmez',
-    description: 'Bütçe filtresi ekleme.',
-    explanation: 'Bütçe: fiyat sınırı eklenmedi.',
-  },
-};
-
 export const QUIZ_STEPS: readonly QuizStep[] = [
   {
     id: 'brewMethod',
@@ -176,19 +135,6 @@ export const QUIZ_STEPS: readonly QuizStep[] = [
     queryParam: 'roastLevel',
     options: optionsFromLabels(ROAST_FILTER_VALUES, ROAST_LABELS, ROAST_DESCRIPTIONS),
   },
-  {
-    id: 'pricePer100g',
-    selection: 'single',
-    question: '100 g karşılaştırma fiyatı için aralığın ne?',
-    helper: 'Fiyatları 100 g karşılaştırma değeriyle normalize ediyoruz.',
-    catalogField: 'coffees.price_per_100g',
-    queryParam: 'priceMin / priceMax',
-    options: Object.entries(QUIZ_PRICE_BUCKETS).map(([value, bucket]) => ({
-      value,
-      label: bucket.label,
-      description: bucket.description,
-    })),
-  },
 ] as const;
 
 const ARRAY_FILTER_SPECS: readonly ArrayFilterSpec[] = [
@@ -224,7 +170,6 @@ export function createInitialQuizAnswers(): QuizAnswers {
     flavorCategory: [],
     process: [],
     roastLevel: [],
-    pricePer100g: null,
   };
 }
 
@@ -244,22 +189,6 @@ export function buildQuizFilterResult(answers: QuizAnswers): QuizFilterResult {
         .map((value) => spec.labels[value] ?? value)
         .join(', ')}.`
     );
-  }
-
-  if (answers.pricePer100g) {
-    const bucket = QUIZ_PRICE_BUCKETS[answers.pricePer100g];
-
-    if (bucket.priceMin != null) {
-      filters.priceMin = bucket.priceMin;
-      params.set('priceMin', String(bucket.priceMin));
-    }
-
-    if (bucket.priceMax != null) {
-      filters.priceMax = bucket.priceMax;
-      params.set('priceMax', String(bucket.priceMax));
-    }
-
-    explanations.push(bucket.explanation);
   }
 
   const query = params.toString();
