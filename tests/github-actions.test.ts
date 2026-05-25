@@ -10,6 +10,7 @@ describe('GitHub Actions workflows', () => {
     assert.match(source, /parsa/);
     assert.match(source, /story/);
     assert.match(source, /milestones/);
+    assert.match(source, /cho-coffee/);
     assert.match(source, /github\.event_name == 'schedule'/);
   });
 

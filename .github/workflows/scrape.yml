@@ -26,7 +26,7 @@ jobs:
       # Scheduled production refreshes keep the workflow green for these known
       # external outages; explicit `roasters=<slug>` dispatches remain hard probes.
       SKIP_ROASTERS: ${{ github.event_name == 'schedule' && 'sezy' || '' }}
-      ALLOW_ROASTER_FAILURES: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.roasters == '')) && 'parsa story milestones sezy' || '' }}
+      ALLOW_ROASTER_FAILURES: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.roasters == '')) && 'parsa story milestones sezy cho-coffee' || '' }}
 
     steps:
       - name: Checkout
