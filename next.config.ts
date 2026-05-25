@@ -59,7 +59,7 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""} https://va.vercel-scripts.com`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob: ${imageHosts.map((hostname) => `https://${hostname}`).join(" ")}`,
   "font-src 'self' data:",
   "connect-src 'self' https://*.supabase.co https://va.vercel-scripts.com https://*.vercel-insights.com",
   "object-src 'none'",
@@ -111,6 +111,7 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    unoptimized: true,
     remotePatterns: imageHosts.map((hostname) => ({
       protocol: "https" as const,
       hostname,
