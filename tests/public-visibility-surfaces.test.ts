@@ -38,6 +38,7 @@ describe('public visibility query surfaces', () => {
     assert.match(source, /falling back to local scan/);
     assert.match(migration, /CREATE OR REPLACE FUNCTION is_public_catalog_coffee/);
     assert.match(migration, /CREATE INDEX IF NOT EXISTS idx_coffees_fts_catalog_extended/);
+    assertIndexUsesImmutableExpression(migration, 'idx_coffees_fts_catalog_extended');
     assert.match(migration, /CREATE OR REPLACE FUNCTION search_coffees/);
     assert.match(migration, /CREATE OR REPLACE FUNCTION get_filter_options/);
   });
@@ -110,5 +111,16 @@ function assertSurfaceUsesCatalogGate(source: string, label: string, pattern: Re
     match[0],
     /applyPublicCatalogCoffeeVisibility/,
     `${label} must apply the shared catalog exclusion gate`
+  );
+}
+
+function assertIndexUsesImmutableExpression(source: string, indexName: string) {
+  const match = source.match(new RegExp(`CREATE INDEX IF NOT EXISTS ${indexName}[\\s\\S]*?\\);`));
+  assert.ok(match, `Could not locate ${indexName} definition`);
+
+  assert.doesNotMatch(
+    match[0],
+    /\b(concat_ws|array_to_string)\s*\(/,
+    `${indexName} must avoid stable functions that Postgres rejects in index expressions`
   );
 }

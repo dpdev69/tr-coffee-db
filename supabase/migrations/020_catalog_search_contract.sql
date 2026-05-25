@@ -38,22 +38,16 @@ SET search_path = public;
 
 CREATE INDEX IF NOT EXISTS idx_coffees_fts_catalog_extended ON coffees USING GIN(
   to_tsvector('simple',
-    concat_ws(' ',
-      name,
-      name_normalized,
-      origin_country,
-      origin_region,
-      origin_farm,
-      origin_producer,
-      process,
-      process_detail,
-      roast_level,
-      variety,
-      array_to_string(flavor_notes, ' '),
-      array_to_string(flavor_notes_normalized, ' '),
-      array_to_string(flavor_categories, ' '),
-      array_to_string(brew_methods, ' ')
-    )
+    coalesce(name, '') || ' ' ||
+    coalesce(name_normalized, '') || ' ' ||
+    coalesce(origin_country, '') || ' ' ||
+    coalesce(origin_region, '') || ' ' ||
+    coalesce(origin_farm, '') || ' ' ||
+    coalesce(origin_producer, '') || ' ' ||
+    coalesce(process, '') || ' ' ||
+    coalesce(process_detail, '') || ' ' ||
+    coalesce(roast_level, '') || ' ' ||
+    coalesce(variety, '')
   )
 );
 
