@@ -36,12 +36,27 @@ export default function PrivacyPage() {
             Katalogda arama yaptığınızda filtre ve arama parametreleri sayfa adresinde
             tutulur. Bir kavurucu sitesine geçiş yaptığınızda, bağlantı kalitesini ve
             katalog kullanımını anlamak için kahve kimliği, sayfa yolu ve varsa aktif
-            filtre bağlamı kaydedilebilir.
+            filtre bağlamı redirect_events tablosunda kaydedilebilir. Bu tıklama
+            kaydı sipariş, ödeme veya profil verisi içermez.
           </p>
           <p>
-            Site performansını ve genel kullanımını izlemek için gizliliğe duyarlı
-            analitik araçları kullanılabilir. Bu veriler ürünü iyileştirmek, bozuk
-            sayfaları bulmak ve katalog kapsamını değerlendirmek içindir.
+            Site performansını ve genel kullanımını izlemek için Vercel Analytics
+            kullanılır. Bu analitik veriler ürünü iyileştirmek, bozuk sayfaları
+            bulmak ve katalog kapsamını değerlendirmek içindir.
+          </p>
+        </PolicySection>
+
+        <PolicySection title="Saklama ve düzeltme">
+          <p>
+            Tıklama ve düzeltme raporları yalnızca katalog kalitesini izlemek için
+            tutulur; operasyonel inceleme tamamlandığında gereksiz kayıtları
+            silmeyi hedefleriz. Bu çalışma için varsayılan saklama hedefi 90 gündür.
+          </p>
+          <p>
+            Kahve detay sayfalarındaki rapor formuyla hatalı fiyat, kırık bağlantı
+            veya yanlış metadata bildirebilirsiniz. Verileriniz için erişim,
+            düzeltme ya da silme talebiniz varsa GitHub Issues üzerinden iletişim
+            kurabilirsiniz.
           </p>
         </PolicySection>
 
@@ -67,7 +82,14 @@ export default function PrivacyPage() {
         <Link href="/terms" className="font-semibold text-[#1f1d1b] underline-offset-4 hover:underline">
           Kullanım Şartları
         </Link>{' '}
-        sayfasına bakın.
+        sayfasına bakın. Veri talepleri ve iletişim için{' '}
+        <Link
+          href="https://github.com/dpdev69/tr-coffee-db/issues"
+          className="font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
+        >
+          GitHub Issues
+        </Link>
+        {' '}kanalını kullanın.
       </p>
     </div>
   );

@@ -25,7 +25,7 @@ export function CoffeeCard({
       className="group overflow-hidden rounded-[22px] border border-[#1f1d1b]/10 bg-white transition-colors hover:border-[#1f1d1b]/25"
     >
       <div className="relative m-3 aspect-square overflow-hidden rounded-[18px] bg-[#f2eadf]">
-        {coffee.image_url ? (
+        {isRenderableProductImage(coffee.image_url) ? (
           <Image
             src={coffee.image_url}
             alt={coffee.name}
@@ -99,6 +99,10 @@ export function CoffeeCard({
       </div>
     </Link>
   );
+}
+
+function isRenderableProductImage(url: string | null): url is string {
+  return Boolean(url && !/\.gif(?:[?#]|$)/i.test(url));
 }
 
 function CoffeeImagePlaceholder({ label }: { label: string }) {

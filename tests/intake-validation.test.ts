@@ -35,6 +35,17 @@ describe('validateJsonRequest', () => {
     );
 
     assert.deepEqual(
+      validateJsonRequest(
+        makeRequest({
+          'content-type': 'application/json',
+          host: 'tr-coffee-db.vercel.app',
+        }),
+        1024
+      ),
+      { ok: false, error: 'Missing request origin', status: 403 }
+    );
+
+    assert.deepEqual(
       validateJsonRequest(makeRequest({ 'content-type': 'text/plain' }), 1024),
       { ok: false, error: 'Invalid content type', status: 415 }
     );
@@ -93,10 +104,12 @@ describe('validateClickPayload', () => {
       page_path: '/coffees/ethiopia-natural',
       filter_context: {
         origin: ['Ethiopia'],
+        process: ['washed'],
+        roastLevel: ['medium'],
+        flavorCategory: ['Fruity'],
+        brewMethod: ['filter'],
         search: 'natural',
         singleOrigin: true,
-        priceMin: 0,
-        priceMax: 5000,
         sort: 'price_desc',
         page: 1000,
         perPage: 100,
@@ -106,8 +119,6 @@ describe('validateClickPayload', () => {
         flavorCategory: ['Fruity', 'Chocolate'],
         process: ['washed'],
         roastLevel: ['medium_light', 'medium'],
-        priceMin: 120,
-        priceMax: 200,
       },
     });
 
@@ -117,6 +128,7 @@ describe('validateClickPayload', () => {
     assert.equal(result.data.coffee_id, UUID);
     assert.equal(result.data.source, 'catalog_card');
     assert.deepEqual(result.data.filter_context?.origin, ['Ethiopia']);
+    assert.deepEqual(result.data.filter_context?.process, ['washed']);
     assert.deepEqual(result.data.quiz_context?.flavorCategory, ['Fruity', 'Chocolate']);
     assert.deepEqual(result.data.quiz_context?.roastLevel, ['medium_light', 'medium']);
   });
@@ -150,6 +162,26 @@ describe('validateClickPayload', () => {
         quiz_context: { flavorCategory: ['Fruity', 'Unknown'] },
       }),
       { ok: false, error: 'Invalid flavorCategory' }
+    );
+
+    assert.deepEqual(
+      validateClickPayload({
+        coffee_id: UUID,
+        source: 'catalog_card',
+        page_path: '/coffees',
+        filter_context: { priceMin: 100 },
+      }),
+      { ok: false, error: 'Unsupported filter_context field: priceMin' }
+    );
+
+    assert.deepEqual(
+      validateClickPayload({
+        coffee_id: UUID,
+        source: 'catalog_card',
+        page_path: '/coffees',
+        filter_context: { process: ['unknown-process'] },
+      }),
+      { ok: false, error: 'Invalid process' }
     );
   });
 });

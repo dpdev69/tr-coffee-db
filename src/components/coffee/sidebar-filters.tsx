@@ -23,8 +23,11 @@ export function SidebarFilters({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [roasterQuery, setRoasterQuery] = useState('');
+  const [showAllRoasters, setShowAllRoasters] = useState(false);
   const mobileFilterButtonRef = useRef<HTMLButtonElement>(null);
   const mobileFilterCloseRef = useRef<HTMLButtonElement>(null);
+  const mobileDialogRef = useRef<HTMLElement>(null);
 
   const pushParams = useCallback(
     (params: URLSearchParams) => {
@@ -66,10 +69,15 @@ export function SidebarFilters({
     [pushParams, searchParams]
   );
 
+  const closeMobileFilters = useCallback(() => {
+    setMobileFiltersOpen(false);
+    window.requestAnimationFrame(() => mobileFilterButtonRef.current?.focus());
+  }, []);
+
   const clearAll = useCallback(() => {
     router.push(pathname, { scroll: false });
-    setMobileFiltersOpen(false);
-  }, [router, pathname]);
+    closeMobileFilters();
+  }, [router, pathname, closeMobileFilters]);
 
   const isActive = (key: string, value: string) =>
     searchParams.getAll(key).includes(value);
@@ -139,8 +147,34 @@ export function SidebarFilters({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setMobileFiltersOpen(false);
-        mobileFilterButtonRef.current?.focus();
+        closeMobileFilters();
+        return;
+      }
+
+      if (event.key === 'Tab') {
+        const focusableElements = getFocusableElements(mobileDialogRef.current);
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        const activeElement = document.activeElement;
+
+        if (!mobileDialogRef.current?.contains(activeElement)) {
+          event.preventDefault();
+          firstElement.focus();
+          return;
+        }
+
+        if (event.shiftKey && activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+          return;
+        }
+
+        if (!event.shiftKey && activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
       }
     };
 
@@ -150,7 +184,7 @@ export function SidebarFilters({
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [mobileFiltersOpen]);
+  }, [closeMobileFilters, mobileFiltersOpen]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -171,6 +205,27 @@ export function SidebarFilters({
     return false;
   }, [searchParams]);
   const sortValue = searchParams.get('sort') ?? 'newest';
+  const selectedRoasterSlugs = useMemo(
+    () => new Set(searchParams.getAll('roaster')),
+    [searchParams]
+  );
+  const normalizedRoasterQuery = roasterQuery.trim().toLocaleLowerCase('tr-TR');
+  const filteredRoasters = useMemo(() => {
+    if (!normalizedRoasterQuery) return roasters;
+
+    return roasters.filter((roaster) =>
+      `${roaster.name} ${roaster.slug}`
+        .toLocaleLowerCase('tr-TR')
+        .includes(normalizedRoasterQuery)
+    );
+  }, [normalizedRoasterQuery, roasters]);
+  const visibleRoasters = useMemo(() => {
+    if (normalizedRoasterQuery || showAllRoasters) return filteredRoasters;
+
+    return filteredRoasters.filter((roaster, index) => (
+      index < 12 || selectedRoasterSlugs.has(roaster.slug)
+    ));
+  }, [filteredRoasters, normalizedRoasterQuery, selectedRoasterSlugs, showAllRoasters]);
   const renderFilterSections = () => (
     <>
       {/* Behavioral preference */}
@@ -255,8 +310,21 @@ export function SidebarFilters({
 
       {/* Roaster */}
       {roasters.length > 0 && (
-        <FilterGroup title="Kavurucu">
-          {roasters.map((r) => (
+        <FilterGroup
+          title="Kavurucu"
+          helper="Listede yazmaya başlayarak kavurucu bulabilirsin."
+        >
+          <label className="block">
+            <span className="sr-only">Kavurucu ara</span>
+            <input
+              type="search"
+              value={roasterQuery}
+              onChange={(event) => setRoasterQuery(event.target.value)}
+              placeholder="Kavurucu ara"
+              className="mb-2 h-10 w-full rounded-lg border border-[#1f1d1b]/20 bg-white px-3 text-sm text-[#1f1d1b] placeholder:text-[#5d5853]/70 focus:border-[#1f1d1b] focus:outline-none focus:ring-1 focus:ring-[#1f1d1b]"
+            />
+          </label>
+          {visibleRoasters.map((r) => (
             <FilterCheckbox
               key={r.slug}
               label={r.name}
@@ -264,6 +332,29 @@ export function SidebarFilters({
               onChange={() => updateFilter('roaster', r.slug)}
             />
           ))}
+          {visibleRoasters.length === 0 && (
+            <p className="rounded-lg bg-[#f6f1e8] px-3 py-2 text-xs text-[#5d5853]">
+              Bu aramayla kavurucu bulunamadı.
+            </p>
+          )}
+          {!normalizedRoasterQuery && filteredRoasters.length > visibleRoasters.length && (
+            <button
+              type="button"
+              onClick={() => setShowAllRoasters(true)}
+              className="mt-2 text-xs font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
+            >
+              Tüm kavurucuları göster ({filteredRoasters.length})
+            </button>
+          )}
+          {!normalizedRoasterQuery && showAllRoasters && filteredRoasters.length > 12 && (
+            <button
+              type="button"
+              onClick={() => setShowAllRoasters(false)}
+              className="mt-2 text-xs font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
+            >
+              Listeyi kısalt
+            </button>
+          )}
         </FilterGroup>
       )}
     </>
@@ -311,10 +402,11 @@ export function SidebarFilters({
           <div
             className="fixed inset-0 z-[70] bg-[#1f1d1b]/45 backdrop-blur-sm"
             role="presentation"
-            onClick={() => setMobileFiltersOpen(false)}
+            onClick={closeMobileFilters}
           >
             <section
               id="mobile-coffee-filters"
+              ref={mobileDialogRef}
               role="dialog"
               aria-modal="true"
               aria-labelledby="mobile-coffee-filters-title"
@@ -336,7 +428,7 @@ export function SidebarFilters({
                 <button
                   type="button"
                   ref={mobileFilterCloseRef}
-                  onClick={() => setMobileFiltersOpen(false)}
+                  onClick={closeMobileFilters}
                   className="rounded-full p-2 text-[#1f1d1b]/60 transition-colors hover:bg-[#f6f1e8] hover:text-[#1f1d1b]"
                   aria-label="Filtre panelini kapat"
                 >
@@ -359,7 +451,7 @@ export function SidebarFilters({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setMobileFiltersOpen(false)}
+                  onClick={closeMobileFilters}
                   className="flex-1 rounded-lg bg-[#1f1d1b] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black"
                 >
                   Bitti
@@ -405,6 +497,16 @@ export function SidebarFilters({
 
 function isVisibleFilterParam(key: string) {
   return !['page', 'priceMax', 'priceMin', 'sort'].includes(key);
+}
+
+function getFocusableElements(container: HTMLElement | null) {
+  if (!container) return [];
+
+  return Array.from(
+    container.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter((element) => !element.hasAttribute('hidden') && element.getClientRects().length > 0);
 }
 
 function FilterGroup({

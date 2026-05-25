@@ -84,6 +84,9 @@ npm run scrapers:scrape -- --roaster <slug>
 - Use `npm run scrapers:scrape` to run all configured scrapers.
 - Use `npm run scrapers:scrape -- --roaster <slug>` when you only want one roaster.
 - GitHub Actions also runs [`.github/workflows/scrape.yml`](.github/workflows/scrape.yml) on a schedule or manual dispatch.
+- Scheduled scrapes tolerate known external runner failures for roasters that
+  preserve existing availability on failure. Dispatching a specific roaster slug
+  remains a hard probe and should fail if that adapter is broken.
 
 ## Git Workflow
 

@@ -1,11 +1,26 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { SearchInput } from '@/components/ui/search-input';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+        mobileMenuButtonRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#1f1d1b]/10 bg-white">
@@ -45,6 +60,7 @@ export function Header() {
 
         <button
           type="button"
+          ref={mobileMenuButtonRef}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-[#1f1d1b] hover:bg-[#f6f1e8] md:hidden"
           aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}

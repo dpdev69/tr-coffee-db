@@ -10,6 +10,22 @@ import type { CoffeeSortOption } from '@/lib/constants/filter-options';
 import { applyPublicCoffeeVisibility } from '@/lib/public-coffee-visibility';
 import type { CoffeeWithRoaster } from '@/lib/types/database';
 
+type PublicCatalogCoffeeVisibilityQuery<TSelf> = {
+  eq(column: string, value: unknown): TSelf;
+  gte(column: string, value: string): TSelf;
+  not(column: string, operator: string, value: unknown): TSelf;
+};
+
+type CoffeeSearchRpcClient = {
+  rpc(
+    functionName: 'search_coffees',
+    args: { query: string }
+  ): Promise<{
+    data: Array<{ id: string }> | null;
+    error: { code?: string; message: string } | null;
+  }>;
+};
+
 export interface CoffeeFilters {
   origin?: string[];
   process?: string[];
@@ -19,10 +35,6 @@ export interface CoffeeFilters {
   flavorCategory?: string[];
   brewMethod?: string[];
   singleOrigin?: boolean;
-  /** Deprecated public filter. Kept so stale URLs and analytics payloads can be parsed without applying a comparison price filter. */
-  priceMin?: number;
-  /** Deprecated public filter. Kept so stale URLs and analytics payloads can be parsed without applying a comparison price filter. */
-  priceMax?: number;
   isDecaf?: boolean;
   search?: string;
   sort?: CoffeeSortOption;
@@ -68,11 +80,7 @@ export async function getCoffees(filters: CoffeeFilters = {}) {
     .from('coffees')
     .select('*, roasters!inner(name, slug, city)', { count: 'exact' });
 
-  query = applyPublicCoffeeVisibility(query, currentCutoff);
-
-  for (const pattern of CATALOG_NAME_EXCLUSION_PATTERNS) {
-    query = query.not('name', 'ilike', pattern);
-  }
+  query = applyPublicCatalogCoffeeVisibility(query, currentCutoff);
 
   if (filters.origin?.length) {
     query = query.in('origin_country', filters.origin);
@@ -110,11 +118,6 @@ export async function getCoffees(filters: CoffeeFilters = {}) {
   }
   // Sorting
   switch (filters.sort) {
-    case 'match':
-      query = query
-        .order('click_count', { ascending: false })
-        .order('created_at', { ascending: false });
-      break;
     case 'price_asc':
       query = query.order('price_amount', { ascending: true, nullsFirst: false });
       break;
@@ -150,6 +153,22 @@ async function getCoffeeIdsForSearch(
   supabase: Awaited<ReturnType<typeof createClient>>,
   currentCutoff = getCurrentCatalogCutoffIso()
 ) {
+  const rpcResult = await (supabase as unknown as CoffeeSearchRpcClient).rpc(
+    'search_coffees',
+    { query: searchTerm }
+  );
+  if (!rpcResult.error) {
+    const ids = ((rpcResult.data ?? []) as Array<{ id: string }>).map((coffee) => coffee.id);
+    if (ids.length > 0) return ids;
+
+    console.info('Catalog search RPC returned no rows; falling back to local scan');
+  } else {
+    console.error('Catalog search RPC failed; falling back to local scan', {
+      code: rpcResult.error.code,
+      message: rpcResult.error.message,
+    });
+  }
+
   const pageSize = 1000;
   let from = 0;
   const ids: string[] = [];
@@ -162,7 +181,7 @@ async function getCoffeeIdsForSearch(
       )
       .range(from, from + pageSize - 1);
 
-    query = applyPublicCoffeeVisibility(query, currentCutoff);
+    query = applyPublicCatalogCoffeeVisibility(query, currentCutoff);
 
     const { data, error } = await query;
 
@@ -190,7 +209,7 @@ export async function getCoffeeBySlug(slug: string) {
     .select('*, roasters!inner(id, name, slug, city, website_url, shop_url, logo_url)')
     .eq('slug', slug);
 
-  query = applyPublicCoffeeVisibility(query);
+  query = applyPublicCatalogCoffeeVisibility(query);
 
   const { data, error } = await query.maybeSingle();
 
@@ -231,27 +250,42 @@ async function getRoasterIdsForCities(
 
 export async function getSimilarCoffees(coffee: CoffeeWithRoaster, limit = 4) {
   const supabase = await createClient();
-  const similarityConditions: string[] = [];
+  const candidates = await Promise.all([
+    coffee.origin_country
+      ? getSimilarCoffeesByField(supabase, coffee.id, 'origin_country', coffee.origin_country, limit)
+      : Promise.resolve([]),
+    coffee.process && coffee.process !== 'unknown'
+      ? getSimilarCoffeesByField(supabase, coffee.id, 'process', coffee.process, limit)
+      : Promise.resolve([]),
+  ]);
 
-  if (coffee.origin_country) {
-    similarityConditions.push(`origin_country.eq.${coffee.origin_country}`);
-  }
+  const seen = new Set<string>();
+  return candidates
+    .flat()
+    .filter((candidate) => {
+      if (seen.has(candidate.id)) return false;
+      seen.add(candidate.id);
+      return true;
+    })
+    .slice(0, limit);
+}
 
-  if (coffee.process && coffee.process !== 'unknown') {
-    similarityConditions.push(`process.eq.${coffee.process}`);
-  }
-
-  if (similarityConditions.length === 0) return [];
-
+async function getSimilarCoffeesByField(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  coffeeId: string,
+  field: 'origin_country' | 'process',
+  value: string,
+  limit: number
+) {
   let query = supabase
     .from('coffees')
     .select('*, roasters!inner(name, slug, city)')
-    .neq('id', coffee.id)
-    .or(similarityConditions.join(','))
+    .neq('id', coffeeId)
+    .eq(field, value)
     .order('click_count', { ascending: false })
     .limit(limit);
 
-  query = applyPublicCoffeeVisibility(query);
+  query = applyPublicCatalogCoffeeVisibility(query);
 
   const { data } = await query;
 
@@ -268,7 +302,7 @@ export async function getFeaturedCoffees(limit = 6) {
     .order('created_at', { ascending: false })
     .limit(limit);
 
-  query = applyPublicCoffeeVisibility(query);
+  query = applyPublicCatalogCoffeeVisibility(query);
 
   const { data } = await query;
 
@@ -279,17 +313,17 @@ export async function getStats() {
   const supabase = await createClient();
 
   const [coffeeResult, roasterResult, originResult] = await Promise.all([
-    applyPublicCoffeeVisibility(
+    applyPublicCatalogCoffeeVisibility(
       supabase
         .from('coffees')
         .select('id', { count: 'exact', head: true })
     ),
-    applyPublicCoffeeVisibility(
+    applyPublicCatalogCoffeeVisibility(
       supabase
         .from('coffees')
         .select('roaster_id')
     ),
-    applyPublicCoffeeVisibility(
+    applyPublicCatalogCoffeeVisibility(
       supabase
         .from('coffees')
         .select('origin_country')
@@ -308,4 +342,16 @@ export async function getStats() {
     totalRoasters: uniqueRoasters,
     totalOrigins: uniqueOrigins,
   };
+}
+
+export function applyPublicCatalogCoffeeVisibility<
+  TQuery extends PublicCatalogCoffeeVisibilityQuery<TQuery>,
+>(query: TQuery, currentCutoff?: string): TQuery {
+  let nextQuery = applyPublicCoffeeVisibility(query, currentCutoff);
+
+  for (const pattern of CATALOG_NAME_EXCLUSION_PATTERNS) {
+    nextQuery = nextQuery.not('name', 'ilike', pattern);
+  }
+
+  return nextQuery;
 }

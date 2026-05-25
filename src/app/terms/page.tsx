@@ -54,6 +54,14 @@ export default function TermsPage() {
             güvenlik, ödeme, çerez ve teslimat süreçlerinden ilgili site sorumludur.
           </p>
         </TermsSection>
+
+        <TermsSection title="Yürürlük ve iletişim">
+          <p>
+            Bu şartlar 25 Mayıs 2026 tarihinde güncellenmiştir. Katalogdaki bir
+            hata, kırık bağlantı veya kullanım koşullarıyla ilgili soru için GitHub
+            Issues kanalından iletişim kurabilirsiniz.
+          </p>
+        </TermsSection>
       </div>
 
       <p className="mt-10 text-sm text-[#5d5853]">

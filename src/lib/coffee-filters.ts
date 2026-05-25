@@ -123,7 +123,7 @@ function getActiveCoffeeFilterDefinitions(filters: CoffeeFilters): ActiveCoffeeF
   );
   filters.roaster?.forEach((roaster) =>
     filtersToShow.push({
-      label: `Kavurucu: ${roaster}`,
+      label: `Kavurucu: ${humanizeFilterSlug(roaster)}`,
       remove: [{ key: 'roaster', value: roaster }],
     })
   );
@@ -165,6 +165,14 @@ function getActiveCoffeeFilterDefinitions(filters: CoffeeFilters): ActiveCoffeeF
   }
 
   return filtersToShow;
+}
+
+function humanizeFilterSlug(value: string) {
+  return value
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toLocaleUpperCase('tr-TR') + part.slice(1))
+    .join(' ');
 }
 
 function buildCoffeeFiltersUrl(filters: CoffeeFilters, removals: FilterRemoval[] = []) {

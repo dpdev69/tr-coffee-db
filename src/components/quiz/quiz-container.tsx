@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   buildQuizFilterResult,
   createInitialQuizAnswers,
+  hasQuizSelections,
   QUIZ_STEPS,
   type QuizAnswers,
   type QuizArrayAnswerKey,
@@ -21,8 +22,10 @@ export function QuizContainer() {
   const current = QUIZ_STEPS[Math.min(stepIndex, QUIZ_STEPS.length - 1)];
   const isLastStep = stepIndex === QUIZ_STEPS.length - 1;
   const result = useMemo(() => buildQuizFilterResult(answers), [answers]);
+  const hasAnySelections = hasQuizSelections(answers);
   const selectedValues = getSelectedValues(current, answers);
   const selectedCount = selectedValues.length;
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (stepIndex === 0) return;
@@ -33,6 +36,7 @@ export function QuizContainer() {
 
   function toggleOption(value: string) {
     const key = current.id;
+    setValidationMessage(null);
 
     setAnswers((prev) => {
       const nextValues = prev[key].includes(value)
@@ -45,6 +49,12 @@ export function QuizContainer() {
 
   function advanceStep() {
     if (isLastStep) {
+      if (!hasAnySelections) {
+        setValidationMessage(
+          'Sonuçları daraltmak için en az bir tercih seçin ya da tüm kataloğu açın.'
+        );
+        return;
+      }
       setStepIndex(QUIZ_STEPS.length);
     } else {
       setStepIndex((index) => index + 1);
@@ -124,7 +134,15 @@ export function QuizContainer() {
           </span>
           <span>{selectedCount > 0 ? `${selectedCount} seçim` : 'Opsiyonel'}</span>
         </div>
-        <div className="mt-3 flex gap-1">
+        <div
+          className="mt-3 flex gap-1"
+          role="progressbar"
+          aria-label="Quiz ilerlemesi"
+          aria-valuemin={1}
+          aria-valuemax={QUIZ_STEPS.length}
+          aria-valuenow={stepIndex + 1}
+          aria-valuetext={`${stepIndex + 1}. soru / ${QUIZ_STEPS.length}`}
+        >
           {QUIZ_STEPS.map((stepItem, index) => (
             <div
               key={stepItem.id}
@@ -139,7 +157,7 @@ export function QuizContainer() {
       <h2
         ref={questionRef}
         tabIndex={-1}
-        className="font-display text-3xl leading-none text-[#1f1d1b] focus:outline-none"
+        className="rounded-md font-display text-3xl leading-none text-[#1f1d1b] focus:outline-none focus:ring-2 focus:ring-[#1f1d1b] focus:ring-offset-4"
       >
         {current.question}
       </h2>
@@ -185,11 +203,18 @@ export function QuizContainer() {
       </div>
 
       <div className="mt-5 flex min-h-8 items-center justify-between gap-3 text-sm">
-        <span className="text-[#5d5853]">
-          {selectedCount > 0
-            ? `${selectedCount} seçim eklendi`
-            : 'Seçim yapmadan devam edebilirsin'}
-        </span>
+        <div>
+          <span className="text-[#5d5853]">
+            {selectedCount > 0
+              ? `${selectedCount} seçim eklendi`
+              : 'Bu adımı boş geçebilirsin'}
+          </span>
+          {validationMessage && (
+            <p className="mt-2 max-w-md text-sm font-medium text-[#8b3f24]">
+              {validationMessage}
+            </p>
+          )}
+        </div>
         {selectedCount > 0 && (
           <button
             type="button"
@@ -211,14 +236,24 @@ export function QuizContainer() {
           <ArrowLeftIcon />
           Geri
         </button>
-        <button
-          type="button"
-          onClick={advanceStep}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#1f1d1b] px-6 py-2 text-sm font-semibold text-white hover:bg-black"
-        >
-          {isLastStep ? 'Sonuçları Gör' : 'İleri'}
-          <ArrowRightIcon />
-        </button>
+        <div className="flex flex-wrap justify-end gap-2">
+          {isLastStep && !hasAnySelections && (
+            <Link
+              href="/coffees"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#1f1d1b] px-4 py-2 text-sm font-semibold text-[#1f1d1b] hover:bg-[#f6f1e8]"
+            >
+              Tüm kataloğu aç
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={advanceStep}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#1f1d1b] px-6 py-2 text-sm font-semibold text-white hover:bg-black"
+          >
+            {isLastStep ? 'Sonuçları Gör' : 'İleri'}
+            <ArrowRightIcon />
+          </button>
+        </div>
       </div>
     </div>
   );

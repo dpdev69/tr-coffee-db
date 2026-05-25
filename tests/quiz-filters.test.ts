@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { buildQuizFilterResult } from '@/lib/quiz-filters';
+import { buildQuizFilterResult, hasQuizSelections } from '@/lib/quiz-filters';
 
 describe('buildQuizFilterResult', () => {
   it('maps all quiz answers to catalog filters and explanations without price buckets', () => {
@@ -41,6 +41,12 @@ describe('buildQuizFilterResult', () => {
     assert.equal(result.url, '/coffees');
     assert.deepEqual(result.explanations, []);
     assert.deepEqual(result.filters, {});
+    assert.equal(hasQuizSelections({
+      brewMethod: [],
+      flavorCategory: [],
+      process: [],
+      roastLevel: [],
+    }), false);
   });
 
   it('keeps roast answers aligned to exact catalog roast_level values', () => {
@@ -78,5 +84,6 @@ describe('buildQuizFilterResult', () => {
       process: ['experimental'],
       roastLevel: ['medium'],
     });
+    assert.equal(hasQuizSelections(result.filters), true);
   });
 });

@@ -200,6 +200,13 @@ export function buildQuizFilterResult(answers: QuizAnswers): QuizFilterResult {
   };
 }
 
+export function hasQuizSelections(answers: Partial<QuizAnswers | CoffeeFilters>) {
+  return ARRAY_FILTER_SPECS.some((spec) => {
+    const value = answers[spec.key];
+    return Array.isArray(value) && value.length > 0;
+  });
+}
+
 function optionsFromLabels(
   values: readonly string[],
   labels: Record<string, string>,

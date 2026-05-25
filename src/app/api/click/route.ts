@@ -5,9 +5,12 @@ import {
   validateClickPayload,
   validateJsonRequest,
 } from '@/lib/api/intake-validation';
+import { checkRateLimit } from '@/lib/api/rate-limit';
 import { applyPublicCoffeeVisibility } from '@/lib/public-coffee-visibility';
 
 const MAX_CLICK_BODY_BYTES = 16_384;
+const CLICK_RATE_LIMIT_WINDOW_MS = 60_000;
+const CLICK_RATE_LIMIT_MAX = 60;
 
 export async function POST(request: Request) {
   const requestCheck = validateJsonRequest(request, MAX_CLICK_BODY_BYTES);
@@ -15,6 +18,22 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: requestCheck.error },
       { status: requestCheck.status }
+    );
+  }
+
+  const rateLimit = checkRateLimit({
+    key: getRequestRateLimitKey(request),
+    limit: CLICK_RATE_LIMIT_MAX,
+    namespace: 'click',
+    windowMs: CLICK_RATE_LIMIT_WINDOW_MS,
+  });
+  if (!rateLimit.ok) {
+    return NextResponse.json(
+      { error: 'Too many click events' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) },
+      }
     );
   }
 
@@ -98,4 +117,12 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+function getRequestRateLimitKey(request: Request) {
+  const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  const realIp = request.headers.get('x-real-ip')?.trim();
+  const origin = request.headers.get('origin') ?? 'unknown-origin';
+
+  return `${forwardedFor || realIp || 'unknown-ip'}:${origin}`;
 }

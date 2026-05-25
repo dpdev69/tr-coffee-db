@@ -9,6 +9,26 @@ describe('UX and compliance surfaces', () => {
     assert.match(source, /aria-expanded=\{mobileMenuOpen\}/);
     assert.match(source, /aria-controls="mobile-menu"/);
     assert.match(source, /id="mobile-menu"/);
+    assert.match(source, /event\.key === 'Escape'/);
+  });
+
+  it('keeps mobile filter dialog focus inside the modal', () => {
+    const source = readSource('src/components/coffee/sidebar-filters.tsx');
+
+    assert.match(source, /aria-modal="true"/);
+    assert.match(source, /mobileDialogRef/);
+    assert.match(source, /getFocusableElements/);
+    assert.match(source, /event\.key === 'Tab'/);
+  });
+
+  it('makes the roaster filter searchable without introducing nested scroll traps', () => {
+    const source = readSource('src/components/coffee/sidebar-filters.tsx');
+
+    assert.match(source, /roasterQuery/);
+    assert.match(source, /Kavurucu ara/);
+    assert.match(source, /visibleRoasters/);
+    assert.doesNotMatch(source, /max-h-48/);
+    assert.doesNotMatch(source, /<div className="mt-2[^"]*overflow-y-auto/);
   });
 
   it('uses user-facing filter result copy', () => {
@@ -89,6 +109,9 @@ describe('UX and compliance surfaces', () => {
 
     assert.match(source, /scrollIntoView/);
     assert.match(source, /questionRef/);
+    assert.match(source, /hasQuizSelections/);
+    assert.match(source, /role="progressbar"/);
+    assert.match(source, /Tüm kataloğu aç/);
   });
 
   it('exposes privacy and terms routes in navigation and sitemap', () => {
@@ -107,6 +130,47 @@ describe('UX and compliance surfaces', () => {
     assert.match(source, /normalizeTrustedHttpUrl/);
     assert.match(source, /safeWebsiteUrl/);
     assert.doesNotMatch(source, /href=\{roaster\.website_url\}/);
+  });
+
+  it('uses non-blocking real links for outbound coffee clicks', () => {
+    const source = readSource('src/components/coffee/buy-button.tsx');
+
+    assert.match(source, /<a\b/);
+    assert.match(source, /navigator\.sendBeacon/);
+    assert.match(source, /keepalive: true/);
+    assert.doesNotMatch(source, /await fetch\('\/api\/click'/);
+    assert.doesNotMatch(source, /window\.open/);
+  });
+
+  it('places the coffee detail buy action before the long detail table and exposes report flow', () => {
+    const source = readSource('src/app/coffees/[slug]/page.tsx');
+    const buyIndex = source.indexOf('<BuyButton');
+    const detailsIndex = source.indexOf('>Detaylar</h2>');
+
+    assert.ok(buyIndex > -1, 'Coffee detail must render BuyButton');
+    assert.ok(detailsIndex > -1, 'Coffee detail must render details section');
+    assert.ok(buyIndex < detailsIndex, 'BuyButton should appear before details');
+    assert.match(source, /ReportIssueForm/);
+  });
+
+  it('discloses analytics, click tracking, retention, contact, and request paths', () => {
+    const source = readSource('src/app/privacy/page.tsx');
+
+    assert.match(source, /Vercel Analytics/);
+    assert.match(source, /redirect_events|tıklama/);
+    assert.match(source, /saklama|retention|30 gün|90 gün/i);
+    assert.match(source, /GitHub Issues|iletişim/i);
+    assert.match(source, /erişim|düzeltme|silme/i);
+  });
+
+  it('adds a data correction intake endpoint and coffee detail UI', () => {
+    const api = readSource('src/app/api/correction-report/route.ts');
+    const component = readSource('src/components/coffee/report-issue-form.tsx');
+
+    assert.match(api, /correction_reports/);
+    assert.match(api, /applyPublicCoffeeVisibility/);
+    assert.match(component, /Bilgilerde sorun var/);
+    assert.match(component, /issue_type/);
   });
 });
 

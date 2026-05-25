@@ -1,7 +1,11 @@
 import type { Metadata } from 'next';
 import { unstable_rethrow } from 'next/navigation';
 import { Suspense } from 'react';
-import { getCoffees, type CoffeeFilters } from '@/lib/queries/coffees';
+import {
+  applyPublicCatalogCoffeeVisibility,
+  getCoffees,
+  type CoffeeFilters,
+} from '@/lib/queries/coffees';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
 import { ActiveFilterSummary } from '@/components/coffee/active-filter-summary';
 import { SidebarFilters } from '@/components/coffee/sidebar-filters';
@@ -9,7 +13,6 @@ import { CoffeeCardSkeleton } from '@/components/ui/skeleton';
 import { Pagination } from '@/components/ui/pagination';
 import { parseCoffeeFilters } from '@/lib/coffee-filters';
 import { getCurrentCatalogCutoffIso } from '@/lib/catalog-rules';
-import { applyPublicCoffeeVisibility } from '@/lib/public-coffee-visibility';
 import { SITE_NAME } from '@/lib/site';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 
@@ -94,7 +97,7 @@ async function FiltersLoader() {
     const currentCutoff = getCurrentCatalogCutoffIso();
 
     const [countryResult, roasterResult] = await Promise.all([
-      applyPublicCoffeeVisibility(
+      applyPublicCatalogCoffeeVisibility(
         supabase
           .from('coffees')
           .select('origin_country'),

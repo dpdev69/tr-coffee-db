@@ -21,6 +21,15 @@ const REDIRECT_SOURCES = new Set([
   'roaster_page',
 ]);
 
+const CORRECTION_ISSUE_TYPES = new Set([
+  'stale_price',
+  'broken_link',
+  'unavailable_product',
+  'wrong_metadata',
+  'missing_product',
+  'other',
+]);
+
 const FILTER_SORTS = new Set<string>(SORT_VALUES);
 const QUIZ_BREWS = new Set(BREW_METHOD_VALUES);
 const QUIZ_FLAVORS = new Set<string>(FLAVOR_CATEGORIES);
@@ -50,6 +59,15 @@ export interface ClickPayload {
   page_path: string;
 }
 
+export interface CorrectionReportPayload {
+  coffee_id: string;
+  roaster_id: string;
+  issue_type: string;
+  reporter_email: string;
+  message: string;
+  source_path: string;
+}
+
 export function validateJsonRequest(
   request: Request,
   maxBodyBytes: number
@@ -68,7 +86,10 @@ export function validateJsonRequest(
   }
 
   const origin = request.headers.get('origin');
-  if (origin && !isSameOrigin(origin, request.headers.get('host'))) {
+  if (!origin) {
+    return { ok: false, error: 'Missing request origin', status: 403 };
+  }
+  if (!isSameOrigin(origin, request.headers.get('host'))) {
     return { ok: false, error: 'Invalid request origin', status: 403 };
   }
 
@@ -130,6 +151,48 @@ export function validateClickPayload(input: unknown): ValidationResult<ClickPayl
   };
 }
 
+export function validateCorrectionReportPayload(
+  input: unknown
+): ValidationResult<CorrectionReportPayload> {
+  if (!isRecord(input)) {
+    return { ok: false, error: 'Invalid request body' };
+  }
+
+  const coffeeId = readRequiredUuid(input.coffee_id, 'coffee_id');
+  if (!coffeeId.ok) return coffeeId;
+
+  const roasterId = readRequiredUuid(input.roaster_id, 'roaster_id');
+  if (!roasterId.ok) return roasterId;
+
+  const issueType = readRequiredAllowlistedString(
+    input.issue_type,
+    CORRECTION_ISSUE_TYPES,
+    'issue_type'
+  );
+  if (!issueType.ok) return issueType;
+
+  const reporterEmail = readRequiredEmail(input.reporter_email, 'reporter_email');
+  if (!reporterEmail.ok) return reporterEmail;
+
+  const message = readRequiredString(input.message, 'message', 1, 2000);
+  if (!message.ok) return message;
+
+  const sourcePath = readRequiredPath(input.source_path, 'source_path');
+  if (!sourcePath.ok) return sourcePath;
+
+  return {
+    ok: true,
+    data: {
+      coffee_id: coffeeId.data,
+      roaster_id: roasterId.data,
+      issue_type: issueType.data,
+      reporter_email: reporterEmail.data,
+      message: message.data,
+      source_path: sourcePath.data,
+    },
+  };
+}
+
 function readOptionalFilterContext(input: unknown): ValidationResult<JsonObject | null> {
   if (input == null) return { ok: true, data: null };
   if (!isRecord(input)) {
@@ -141,13 +204,33 @@ function readOptionalFilterContext(input: unknown): ValidationResult<JsonObject 
   for (const [key, value] of Object.entries(input)) {
     switch (key) {
       case 'origin':
-      case 'process':
-      case 'roastLevel':
       case 'roaster':
-      case 'city':
-      case 'flavorCategory':
-      case 'brewMethod': {
+      case 'city': {
         const values = readStringArray(value, key);
+        if (!values.ok) return values;
+        context[key] = values.data;
+        break;
+      }
+      case 'process': {
+        const values = readAllowlistedStringArray(value, QUIZ_PROCESSES, key);
+        if (!values.ok) return values;
+        context[key] = values.data;
+        break;
+      }
+      case 'roastLevel': {
+        const values = readAllowlistedStringArray(value, QUIZ_ROAST_LEVELS, key);
+        if (!values.ok) return values;
+        context[key] = values.data;
+        break;
+      }
+      case 'flavorCategory': {
+        const values = readAllowlistedStringArray(value, QUIZ_FLAVORS, key);
+        if (!values.ok) return values;
+        context[key] = values.data;
+        break;
+      }
+      case 'brewMethod': {
+        const values = readAllowlistedStringArray(value, QUIZ_BREWS, key);
         if (!values.ok) return values;
         context[key] = values.data;
         break;
@@ -165,13 +248,6 @@ function readOptionalFilterContext(input: unknown): ValidationResult<JsonObject 
         }
         context[key] = value;
         break;
-      case 'priceMin':
-      case 'priceMax': {
-        const numberValue = readBoundedNumber(value, key, 0, 5000);
-        if (!numberValue.ok) return numberValue;
-        context[key] = numberValue.data;
-        break;
-      }
       case 'sort': {
         const sort = readRequiredAllowlistedString(value, FILTER_SORTS, key);
         if (!sort.ok) return sort;
@@ -225,13 +301,6 @@ function readOptionalQuizContext(input: unknown): ValidationResult<JsonObject | 
         const roastLevels = readAllowlistedStringArray(value, QUIZ_ROAST_LEVELS, key);
         if (!roastLevels.ok) return roastLevels;
         context[key] = roastLevels.data;
-        break;
-      }
-      case 'priceMin':
-      case 'priceMax': {
-        const numberValue = readBoundedNumber(value, key, 0, 5000);
-        if (!numberValue.ok) return numberValue;
-        context[key] = numberValue.data;
         break;
       }
       case 'sort': {
@@ -330,6 +399,17 @@ function readRequiredString(
   }
 
   return { ok: true, data: value };
+}
+
+function readRequiredEmail(input: unknown, field: string): ValidationResult<string> {
+  const value = readRequiredString(input, field, 3, 254);
+  if (!value.ok) return value;
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.data)) {
+    return { ok: false, error: `Invalid ${field}` };
+  }
+
+  return value;
 }
 
 function readRequiredPath(input: unknown, field: string): ValidationResult<string> {

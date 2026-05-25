@@ -5,6 +5,7 @@ import { notFound, unstable_rethrow } from 'next/navigation';
 import { getCoffeeBySlug, getSimilarCoffees } from '@/lib/queries/coffees';
 import { BuyButton } from '@/components/coffee/buy-button';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
+import { ReportIssueForm } from '@/components/coffee/report-issue-form';
 import { Tag } from '@/components/ui/tag';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { BREW_METHOD_LABELS, PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
@@ -167,6 +168,16 @@ export default async function CoffeeDetailPage({
             )}
           </div>
 
+          <div className="mt-6">
+            <BuyButton
+              allowedHosts={productUrlHosts}
+              coffeeId={coffee.id}
+              productUrl={coffee.product_url}
+              roasterName={roaster.name}
+            />
+            <ReportIssueForm coffeeId={coffee.id} roasterId={roaster.id} />
+          </div>
+
           <CoffeeImage
             alt={coffee.name}
             imageUrl={coffee.image_url}
@@ -267,15 +278,6 @@ export default async function CoffeeDetailPage({
             </dl>
           </div>
 
-          <div className="mt-6">
-            <BuyButton
-              allowedHosts={productUrlHosts}
-              coffeeId={coffee.id}
-              productUrl={coffee.product_url}
-              roasterName={roaster.name}
-            />
-          </div>
-
           {brewRecipes.length > 0 && (
             <div className="mt-8">
               <h2 className="text-lg font-semibold text-[#1f1d1b]">Kavurucudan Öneri</h2>
@@ -330,7 +332,7 @@ function CoffeeImage({
 }) {
   return (
     <div className={`relative overflow-hidden bg-[#f2eadf] ${className}`}>
-      {imageUrl ? (
+      {isRenderableProductImage(imageUrl) ? (
         <Image
           src={imageUrl}
           alt={alt}
@@ -361,6 +363,10 @@ function getImageInitials(label: string) {
     .toLocaleUpperCase('tr-TR');
 
   return initials || 'DB';
+}
+
+function isRenderableProductImage(url: string | null): url is string {
+  return Boolean(url && !/\.gif(?:[?#]|$)/i.test(url));
 }
 
 function RecipeCard({ recipe }: { recipe: CoffeeBrewRecipe }) {

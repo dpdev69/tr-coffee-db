@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { unstable_rethrow } from 'next/navigation';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
@@ -74,7 +75,7 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-          <HeroPreview />
+          <HeroPreview coffees={featured.slice(0, 4)} />
         </div>
       </section>
 
@@ -223,7 +224,52 @@ function StatBlock({ number, label }: { number: number | string; label: string }
   );
 }
 
-function HeroPreview() {
+function HeroPreview({
+  coffees,
+}: {
+  coffees: Awaited<ReturnType<typeof getFeaturedCoffees>>;
+}) {
+  if (coffees.length > 0) {
+    return (
+      <div className="relative mx-auto w-full max-w-xl lg:max-w-none">
+        <div className="relative aspect-[1.04] overflow-hidden rounded-[28px] border border-[#1f1d1b]/10 bg-[#f2eadf] p-4 sm:p-5">
+          <div className="grid h-full grid-cols-2 gap-3">
+            {coffees.map((coffee, index) => (
+              <Link
+                key={coffee.id}
+                href={`/coffees/${coffee.slug}`}
+                className={`group relative overflow-hidden rounded-2xl bg-[#1f1d1b] ${
+                  index === 0 ? 'col-span-2' : ''
+                }`}
+              >
+                {isRenderableProductImage(coffee.image_url) ? (
+                  <Image
+                    src={coffee.image_url}
+                    alt={coffee.name}
+                    fill
+                    sizes={index === 0 ? '(max-width: 1024px) 100vw, 45vw' : '22vw'}
+                    className="object-cover opacity-90 transition-transform duration-300 group-hover:scale-[1.03]"
+                    priority={index === 0}
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-[#8b3f24]" />
+                )}
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-4 text-white">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/75">
+                    {coffee.roasters.name}
+                  </p>
+                  <p className="mt-1 line-clamp-2 text-sm font-bold leading-5">
+                    {coffee.name_normalized ?? coffee.name}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative mx-auto w-full max-w-xl lg:max-w-none">
       <div className="relative aspect-[1.04] overflow-hidden rounded-[28px] border border-[#1f1d1b]/10 bg-[#f2eadf] p-6">
@@ -249,6 +295,10 @@ function HeroPreview() {
       </div>
     </div>
   );
+}
+
+function isRenderableProductImage(url: string | null): url is string {
+  return Boolean(url && !/\.gif(?:[?#]|$)/i.test(url));
 }
 
 function PreviewTile({

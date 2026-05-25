@@ -18,6 +18,30 @@ describe('public visibility query surfaces', () => {
     assertSurfaceUsesPublicGate(catalogPageSource, 'catalog filter option loader', /async function FiltersLoader[\s\S]*$/);
   });
 
+  it('applies the catalog product exclusion rules to every public coffee surface', () => {
+    const source = readSource('src/lib/queries/coffees.ts');
+
+    assert.match(source, /function applyPublicCatalogCoffeeVisibility/);
+    assertSurfaceUsesCatalogGate(source, 'getCoffees', /export async function getCoffees[\s\S]*?async function getCoffeeIdsForSearch/);
+    assertSurfaceUsesCatalogGate(source, 'getCoffeeIdsForSearch', /async function getCoffeeIdsForSearch[\s\S]*?export async function getCoffeeBySlug/);
+    assertSurfaceUsesCatalogGate(source, 'getCoffeeBySlug', /export async function getCoffeeBySlug[\s\S]*?async function getRoasterIdsForCities/);
+    assertSurfaceUsesCatalogGate(source, 'getSimilarCoffees', /export async function getSimilarCoffees[\s\S]*?export async function getFeaturedCoffees/);
+    assertSurfaceUsesCatalogGate(source, 'getFeaturedCoffees', /export async function getFeaturedCoffees[\s\S]*?export async function getStats/);
+    assertSurfaceUsesCatalogGate(source, 'getStats', /export async function getStats[\s\S]*$/);
+  });
+
+  it('routes catalog search through the indexed database search contract with a fallback', () => {
+    const source = readSource('src/lib/queries/coffees.ts');
+    const migration = readSource('supabase/migrations/020_catalog_search_contract.sql');
+
+    assert.match(source, /\.rpc\(\s*['"]search_coffees['"]/);
+    assert.match(source, /falling back to local scan/);
+    assert.match(migration, /CREATE OR REPLACE FUNCTION is_public_catalog_coffee/);
+    assert.match(migration, /CREATE INDEX IF NOT EXISTS idx_coffees_fts_catalog_extended/);
+    assert.match(migration, /CREATE OR REPLACE FUNCTION search_coffees/);
+    assert.match(migration, /CREATE OR REPLACE FUNCTION get_filter_options/);
+  });
+
   it('gates sitemap coffee routes, roaster routes, and click tracking before exposing public records', () => {
     assertSurfaceUsesPublicGate(
       readSource('src/app/sitemap.ts'),
@@ -64,6 +88,7 @@ function hasPublicVisibilityGate(source: string) {
   return (
     /\.eq\(['"]is_public['"],\s*true\)/.test(source) ||
     /\bapplyPublicCoffeeVisibility\b/.test(source) ||
+    /\bapplyPublicCatalogCoffeeVisibility\b/.test(source) ||
     /\bPUBLIC_COFFEE_VISIBILITY\b/.test(source)
   );
 }
@@ -74,5 +99,16 @@ function assertSqlUsesPublicGate(source: string, label: string) {
     source,
     /\bspecialty_status\s*=\s*'specialty'/i,
     `${label} must fail closed to specialty rows`
+  );
+}
+
+function assertSurfaceUsesCatalogGate(source: string, label: string, pattern: RegExp) {
+  const match = source.match(pattern);
+  assert.ok(match, `Could not locate ${label} in source`);
+
+  assert.match(
+    match[0],
+    /applyPublicCatalogCoffeeVisibility/,
+    `${label} must apply the shared catalog exclusion gate`
   );
 }

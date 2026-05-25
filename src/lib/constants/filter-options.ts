@@ -57,7 +57,6 @@ export const BREW_METHOD_LABELS: Record<string, string> = {
 export const BREW_METHOD_VALUES = Object.keys(BREW_METHOD_LABELS);
 
 export const SORT_VALUES = [
-  'match',
   'newest',
   'price_asc',
   'price_desc',
