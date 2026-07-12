@@ -12,7 +12,7 @@ TR CoffeeDB is a Next.js and Supabase app for discovering specialty coffees from
 
 ## Requirements
 
-- Node.js 20
+- Node.js 22
 - npm 10+
 - A Supabase project for app data and scraper writes
 
@@ -73,7 +73,7 @@ npm run scrapers:migrate
 npm run scrapers:scrape -- --roaster <slug>
 ```
 
-`npm run check` is the pre-PR smoke suite. It runs linting, TypeScript checks, the production build, and the scraper typecheck.
+Run `npm test && npm run check` before opening or updating a PR. The first command runs the automated tests; `npm run check` runs linting, TypeScript checks, the production build, and the scraper typecheck.
 
 ## Scraper Workflow
 
@@ -98,8 +98,6 @@ The contributor rules live in [CONTRIBUTING.md](CONTRIBUTING.md). The short vers
 4. Require CI before merge.
 5. Squash-merge to keep history readable.
 
-Because this repository currently has no historical baseline, the first commit should be a clean bootstrap snapshot before multiple feature branches start diverging.
-
 ## CI
 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs the smoke checks we want required on pull requests:
@@ -108,7 +106,22 @@ Because this repository currently has no historical baseline, the first commit s
 - web typecheck
 - production build
 - scraper typecheck
+- automated tests
+
+The web job persists `.next/cache` between runs so unchanged work can be reused by
+subsequent Next.js builds.
+
+Scheduled catalog refreshes use a health gate instead of requiring every external
+storefront to respond perfectly in the same run:
+
+- broad scheduled or manually dispatched refreshes retry a failed roaster once
+- at least 90% of attempted roasters must succeed
+- failed roasters are still emitted as GitHub warnings and listed in the run summary
+- a manual dispatch for specific roaster slugs remains a strict probe and fails if any
+  requested roaster fails
+- the image-health audit still runs after a degraded scrape so the workflow reports both
+  ingestion and public-catalog health
 
 ## Next Steps From The Product Plan
 
-The approved implementation plan lives in [PLAN.md](PLAN.md). The current workflow work maps to Phase 3, Lane C: docs plus CI bootstrap. After this lands, the next parallel lanes are browse and quiz truthfulness, supported-roaster coverage, and targeted tests.
+The approved implementation plan is preserved in [PLAN.md](PLAN.md). Current deferred work and priorities live in [TODOS.md](TODOS.md), and shipped releases are recorded in [CHANGELOG.md](CHANGELOG.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for the branch and pull-request workflow.

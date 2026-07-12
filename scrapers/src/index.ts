@@ -1,15 +1,19 @@
 import 'dotenv/config';
+import { appendFile } from 'node:fs/promises';
 import { ShopifyAdapter } from './adapters/shopify-adapter.js';
 import { WooCommerceAdapter } from './adapters/woocommerce-adapter.js';
 import { HtmlAdapter } from './adapters/html-adapter.js';
 import { ALL_ROASTER_CONFIGS } from './roasters/configs.js';
 import type { RoasterConfig } from './types.js';
-import type { ScrapeRunResult } from './base-scraper.js';
-
-type OrchestratorResult =
-  | ScrapeRunResult
-  | { slug: string; status: 'skipped'; reason: string }
-  | { slug: string; status: 'failed'; error: string };
+import {
+  buildGitHubStepSummary,
+  evaluateScrapeRun,
+  findUnknownTargetSlugs,
+  parseMaxAttempts,
+  parseMinimumSuccessRate,
+  runWithRetries,
+  type OrchestratorResult,
+} from './run-policy.js';
 
 function parseTargetSlugs(args: string[]): string[] {
   return args
@@ -39,6 +43,10 @@ function createScraper(config: RoasterConfig) {
 async function main() {
   const startTime = Date.now();
   const targetSlugs = parseTargetSlugs(process.argv.slice(2));
+  const maxAttempts = parseMaxAttempts(process.env.SCRAPE_MAX_ATTEMPTS);
+  const minimumSuccessRate = parseMinimumSuccessRate(
+    process.env.MIN_SCRAPE_SUCCESS_RATE
+  );
   const allowedFailureSlugs = new Set(
     parseTargetSlugs([process.env.ALLOW_ROASTER_FAILURES ?? ''])
   );
@@ -50,16 +58,26 @@ async function main() {
       ? ALL_ROASTER_CONFIGS.filter((c) => targetSlugs.includes(c.slug))
       : ALL_ROASTER_CONFIGS;
 
-  if (configs.length === 0) {
-    console.error('No matching roaster configs found.');
-    process.exit(1);
-  }
+  const unknownTargetSlugs = findUnknownTargetSlugs(
+    targetSlugs,
+    ALL_ROASTER_CONFIGS.map((config) => config.slug)
+  );
 
   console.log(`Starting scrape for ${configs.length} roasters...`);
   console.log(`Roasters: ${configs.map((c) => c.slug).join(', ')}`);
+  console.log(`Attempts per roaster: ${maxAttempts}`);
+  if (minimumSuccessRate !== null) {
+    console.log(
+      `Broad-run health gate: ${(minimumSuccessRate * 100).toFixed(1)}% minimum success rate`
+    );
+  }
   console.log('---');
 
-  const results: OrchestratorResult[] = [];
+  const results: OrchestratorResult[] = unknownTargetSlugs.map((slug) => ({
+    slug,
+    status: 'failed',
+    error: 'No matching roaster config found.',
+  }));
 
   for (const config of configs) {
     if (skippedSlugs.has(config.slug)) {
@@ -82,7 +100,18 @@ async function main() {
     }
 
     try {
-      const result = await scraper.run();
+      const result = await runWithRetries({
+        maxAttempts,
+        run: () => scraper.run(),
+        onRetry: ({ attempt, error, result: failedResult }) => {
+          const reason =
+            failedResult?.error ??
+            (error instanceof Error ? error.message : error ? String(error) : 'unknown error');
+          console.warn(
+            `[${config.slug}] Attempt ${attempt}/${maxAttempts} failed: ${reason}. Retrying...`
+          );
+        },
+      });
       results.push(result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -109,24 +138,79 @@ async function main() {
     console.log(`  [${icon}] ${r.slug}: ${r.status}${classification}${context}`);
   }
 
-  const failed = results.filter((r) => r.status === 'failed');
-  if (failed.length > 0) {
-    console.log(`\n${failed.length} roaster(s) failed.`);
-    const fatalFailures = failed.filter((r) => !allowedFailureSlugs.has(r.slug));
-    const nonFatalFailures = failed.filter((r) => allowedFailureSlugs.has(r.slug));
+  const evaluation = evaluateScrapeRun({
+    allowedFailureSlugs,
+    minimumSuccessRate,
+    results,
+    targeted: targetSlugs.length > 0,
+  });
 
-    if (nonFatalFailures.length > 0) {
+  if (evaluation.failed.length > 0) {
+    console.log(`\n${evaluation.failed.length} roaster(s) failed.`);
+    if (evaluation.allowedFailures.length > 0) {
       console.log(
-        `Allowed non-fatal failures: ${nonFatalFailures.map((r) => r.slug).join(', ')}`
+        `Known failures: ${evaluation.allowedFailures.map((result) => result.slug).join(', ')}`
       );
     }
 
-    if (fatalFailures.length === 0) {
-      return;
+    for (const result of evaluation.failed) {
+      console.log(
+        `::warning title=Roaster scrape failed: ${escapeWorkflowCommand(result.slug)}::${escapeWorkflowCommand(result.error || 'Unknown scrape failure')}`
+      );
     }
+  }
 
-    process.exit(1);
+  console.log(
+    `Scrape health: ${evaluation.succeeded}/${evaluation.attempted} succeeded (${(
+      evaluation.successRate * 100
+    ).toFixed(1)}%)`
+  );
+
+  await writeGitHubStepSummary(results, evaluation, elapsed);
+
+  if (evaluation.shouldFail) {
+    const message =
+      evaluation.policy === 'minimum-success-rate'
+        ? `${evaluation.succeeded}/${evaluation.attempted} roasters succeeded; ${evaluation.requiredSuccesses} required.`
+        : evaluation.policy === 'targeted'
+          ? 'A targeted roaster probe failed.'
+          : `Unexpected failures: ${evaluation.unexpectedFailures.map((result) => result.slug).join(', ')}`;
+    console.error(`::error title=Scrape health gate failed::${escapeWorkflowCommand(message)}`);
+    process.exitCode = 1;
   }
 }
 
-main();
+async function writeGitHubStepSummary(
+  results: OrchestratorResult[],
+  evaluation: ReturnType<typeof evaluateScrapeRun>,
+  elapsedSeconds: string
+) {
+  const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+  if (!summaryPath) return;
+
+  try {
+    await appendFile(
+      summaryPath,
+      buildGitHubStepSummary({ elapsedSeconds, evaluation, results }),
+      'utf8'
+    );
+  } catch (error) {
+    console.warn('Failed to write GitHub Actions step summary', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+function escapeWorkflowCommand(value: string) {
+  return value
+    .replace(/%/g, '%25')
+    .replace(/\r/g, '%0D')
+    .replace(/\n/g, '%0A');
+}
+
+main().catch((error) => {
+  console.error('Scrape orchestration failed', {
+    error: error instanceof Error ? error.message : String(error),
+  });
+  process.exitCode = 1;
+});

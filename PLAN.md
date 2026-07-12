@@ -5,6 +5,8 @@
 ## Approval Status
 Approved as-is on 2026-04-04 after `/autoplan` review.
 
+This file preserves the approved implementation plan and its review history. For current operational priorities, use `TODOS.md`; for shipped changes, use `CHANGELOG.md`.
+
 ## Plan Summary
 TR CoffeeDB already has a real product skeleton: a Next.js catalog UI, Supabase schema and queries, click tracking, a quiz entry point, and scraper infrastructure for Shopify and WooCommerce roasters. The missing work is not "build the app." It is "finish the app so it can ship without embarrassing itself."
 

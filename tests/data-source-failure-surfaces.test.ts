@@ -36,7 +36,7 @@ describe('data-source failure surfaces', () => {
   });
 
   it('records deferred CEO-review work in the TODO ledger', () => {
-    assert.match(todosSource, /Add catalog freshness dashboard or scrape summary artifact/);
+    assert.match(todosSource, /Extend the Actions scrape summary with catalog freshness counts/);
     assert.match(todosSource, /Defer bespoke custom-platform adapters/);
     assert.match(todosSource, /Revisit external data API or partner feed surface/);
   });

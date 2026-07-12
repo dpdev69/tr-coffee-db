@@ -51,14 +51,15 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
-              Türkiye&apos;nin kahve rehberi
+              Güncel nitelikli kahve rehberi
             </p>
             <h1 className="mt-5 font-display text-5xl leading-[0.94] text-[#1f1d1b] sm:text-6xl lg:text-7xl">
               Yeni kahveni kolayca bul.
             </h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-[#5d5853] sm:text-lg">
-              Bağımsız kavurucuların güncel çekirdeklerini tek ekranda gör; köken,
-              işleme, kavrum, tat notu ve kavurucunun verdiği fiyatla kararını hızlandır.
+              Bağımsız kavurucularda son 3 günde satışta görülen nitelikli çekirdekleri
+              tek ekranda karşılaştır; köken, işleme, kavrum, tat notu ve kavurucunun
+              verdiği fiyatla kararını hızlandır.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -98,6 +99,10 @@ export default async function HomePage() {
               <h2 className="mt-2 font-display text-4xl leading-none text-[#1f1d1b]">
                 Üç adımda daha net seçim.
               </h2>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-[#1f1d1b]/70">
+                Sayılar yalnızca son 3 gün içinde satışta görülen ve nitelikli olarak
+                sınıflandırılan çekirdeklerden oluşur.
+              </p>
               <div className="mt-7 grid grid-cols-3 gap-5">
                 <StatBlock number={stats.totalCoffees} label="kahve" />
                 <StatBlock number={stats.totalRoasters} label="kavurucu" />

@@ -2,16 +2,7 @@
 
 ## Current Repo State
 
-This repository is still on an unborn `main` branch with no commits. Before parallel feature work begins, make one clean bootstrap commit from the current tree so later branches have a stable base.
-
-Recommended initial commit:
-
-```bash
-git add .
-git commit -m "chore: bootstrap tr-coffeedb"
-```
-
-After that first commit, use the workflow below for all ongoing work.
+This is an active repository with `main` as its protected integration branch. Start new work from the latest `main`, keep the branch focused, and use the workflow below for every change.
 
 ## Branching Model
 
@@ -43,7 +34,7 @@ Examples:
 1. Start from an up-to-date `main`.
 2. Keep each branch focused on one concern.
 3. Open a draft PR early if the work will take more than a small session.
-4. Move the PR out of draft only after `npm run check` passes locally.
+4. Move the PR out of draft only after `npm test && npm run check` passes locally.
 5. Merge with squash merge so `main` stays easy to scan.
 
 ## Required Checks
@@ -52,6 +43,7 @@ These should be required in GitHub branch protection for `main`:
 
 - `Web CI`
 - `Scraper CI`
+- `Test Suite`
 
 Repository settings should also enforce:
 
@@ -61,7 +53,7 @@ Repository settings should also enforce:
 
 ## Before You Merge
 
-- Run `npm run check`
+- Run `npm test && npm run check`
 - Confirm docs are updated if setup or workflow changed
 - Note any required secrets, migrations, or scrape changes in the PR description
 - Call out deferred follow-up work instead of hiding it in silent scope creep

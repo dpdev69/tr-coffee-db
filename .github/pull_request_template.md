@@ -4,7 +4,7 @@
 
 ## Testing
 
-- [ ] `npm run check`
+- [ ] `npm test && npm run check`
 - [ ] Manual verification completed when needed
 
 ## Operational Notes

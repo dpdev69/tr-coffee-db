@@ -2,13 +2,13 @@
 
 ## Infrastructure
 
-### Add catalog freshness dashboard or scrape summary artifact
+### Extend the Actions scrape summary with catalog freshness counts
 
-**What:** Show fresh, stale, failed, skipped, and restored roaster counts after every scheduled scrape.
+**What:** Add fresh, stale, and restored catalog counts to the scheduled run summary that now reports per-roaster success, failure, and skip outcomes.
 
 **Why:** Freshness is now the product promise. A green GitHub Action is not enough if users are seeing stale or partial catalog data.
 
-**Context:** The 2026-05-21 catalog freshness checkpoint found 71 restored stale active coffees and seven zero-product WooCommerce adapters. The scraper now fails zero-product runs correctly, but operators still need one place to see catalog health after each run. Start with a GitHub Actions summary artifact before building a full dashboard.
+**Context:** The 2026-05-21 catalog freshness checkpoint found 71 restored stale active coffees and seven zero-product WooCommerce adapters. The workflow now writes a GitHub Actions summary for every broad run and applies a 90% catalog-health gate. The remaining gap is querying the post-run database state so that summary also shows fresh, stale, and restored inventory counts before a full dashboard is justified.
 
 **Effort:** M
 **Priority:** P1

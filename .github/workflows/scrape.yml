@@ -27,6 +27,10 @@ jobs:
       # external outages; explicit `roasters=<slug>` dispatches remain hard probes.
       SKIP_ROASTERS: ${{ github.event_name == 'schedule' && 'sezy' || '' }}
       ALLOW_ROASTER_FAILURES: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.roasters == '')) && 'parsa story milestones sezy cho-coffee' || '' }}
+      # Broad refreshes retry once, then fail only when catalog-wide health drops
+      # below 90%. A targeted manual probe still requires its roaster to succeed.
+      SCRAPE_MAX_ATTEMPTS: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.roasters == '')) && '2' || '1' }}
+      MIN_SCRAPE_SUCCESS_RATE: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.roasters == '')) && '0.90' || '' }}
 
     steps:
       - name: Checkout
@@ -68,9 +72,11 @@ jobs:
         run: npx tsx src/index.ts "$ROASTERS"
 
       - name: Install audit dependencies
+        if: ${{ always() }}
         run: npm ci
 
       - name: Audit image health
+        if: ${{ always() }}
         env:
           AUDIT_IMAGES_MAX_MISSING_COFFEES: ${{ vars.AUDIT_IMAGES_MAX_MISSING_COFFEES || 20 }}
           AUDIT_IMAGES_MAX_MISSING_COFFEE_RATIO: ${{ vars.AUDIT_IMAGES_MAX_MISSING_COFFEE_RATIO || 0.08 }}
