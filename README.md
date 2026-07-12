@@ -4,11 +4,11 @@ TR CoffeeDB is a Next.js and Supabase app for discovering specialty coffees from
 
 ## What Is In This Repo
 
-- `src/app`: Next.js App Router pages for the catalog, quiz, roasters, and click tracking.
-- `src/components`: shared UI, coffee cards, filters, and quiz flow.
-- `src/lib`: Supabase clients, queries, constants, and shared types.
+- `src/app`: Next.js App Router pages for the catalog, coffee journeys, rankings, quiz, roasters, and click tracking.
+- `src/components`: shared UI, coffee cards, journey evidence, filters, and quiz flow.
+- `src/lib`: Supabase clients, lot-journey and ranking logic, queries, constants, and shared types.
 - `scrapers`: Node-based scraper pipeline and migration helper.
-- `supabase/migrations`: schema, policies, indexes, functions, and seed data.
+- `supabase/migrations`: canonical coffee-lot and supply-chain schema, evidence policies, indexes, functions, and seed data.
 
 ## Requirements
 

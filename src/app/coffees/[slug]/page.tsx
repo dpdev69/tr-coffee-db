@@ -6,12 +6,19 @@ import { getCoffeeBySlug, getSimilarCoffees } from '@/lib/queries/coffees';
 import { BuyButton } from '@/components/coffee/buy-button';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
 import { ReportIssueForm } from '@/components/coffee/report-issue-form';
+import {
+  CoffeeJourneySection,
+  EvidenceDrawer,
+  QualityDossier,
+  ValidationBadge,
+} from '@/components/coffee/coffee-journey';
 import { Tag } from '@/components/ui/tag';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { BREW_METHOD_LABELS, PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
 import { formatPackageWeight, formatVerifiedAt, getSourceHost } from '@/lib/coffee-display';
 import { SITE_NAME } from '@/lib/site';
 import { collectTrustedHosts } from '@/lib/trusted-url';
+import { getCoffeeJourney } from '@/lib/coffee-journey';
 import type { CoffeeBrewRecipe } from '@/lib/types/database';
 
 export async function generateMetadata({
@@ -100,6 +107,7 @@ export default async function CoffeeDetailPage({
   if (!coffee) notFound();
 
   let similar: Awaited<ReturnType<typeof getSimilarCoffees>> = [];
+  const journeyPromise = getCoffeeJourney(coffee);
   try {
     similar = await getSimilarCoffees(coffee, 4);
   } catch (error) {
@@ -110,6 +118,7 @@ export default async function CoffeeDetailPage({
       slug,
     });
   }
+  const journey = await journeyPromise;
   const roaster = coffee.roasters as {
     id: string;
     name: string;
@@ -126,13 +135,23 @@ export default async function CoffeeDetailPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-      <nav className="mb-6 text-sm text-[#5d5853]">
-        <Link href="/coffees" className="hover:text-[#1f1d1b]">
-          Kahveler
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-[#1f1d1b]">{coffee.name_normalized ?? coffee.name}</span>
-      </nav>
+      <div className="mb-7 flex flex-col gap-4 border-b border-[#1f1d1b]/10 pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <nav className="text-sm text-[#5d5853]">
+          <Link href="/coffees" className="hover:text-[#1f1d1b]">
+            Kahveler
+          </Link>
+          <span className="mx-2">/</span>
+          <span className="text-[#1f1d1b]">{coffee.name_normalized ?? coffee.name}</span>
+        </nav>
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <a href="#journey" className="rounded-full border border-[#1f1d1b]/15 px-3 py-2 font-semibold hover:bg-white">
+            Yolculuğa git
+          </a>
+          <Link href="/rankings" className="rounded-full bg-[#1f1d1b] px-3 py-2 font-semibold text-white hover:bg-black">
+            Sıralamaları gör
+          </Link>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
         <CoffeeImage
@@ -155,6 +174,13 @@ export default async function CoffeeDetailPage({
             {coffee.name_normalized ?? coffee.name}
           </h1>
 
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <ValidationBadge status={journey.lot.validation_status} />
+            <span className="rounded-full border border-[#1f1d1b]/10 bg-white px-2.5 py-1 font-mono text-[11px] font-semibold text-[#1f1d1b]">
+              İzlenebilirlik {journey.lot.traceability_score}/100
+            </span>
+          </div>
+
           <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
             {coffee.price_amount && (
               <span className="whitespace-nowrap text-2xl font-bold text-[#1f1d1b]">
@@ -176,6 +202,15 @@ export default async function CoffeeDetailPage({
               roasterName={roaster.name}
             />
             <ReportIssueForm coffeeId={coffee.id} roasterId={roaster.id} />
+          </div>
+
+          <div className="mt-6 grid grid-cols-3 gap-2">
+            <HeroFact label="Köken" value={coffee.origin_country ?? 'Belirsiz'} />
+            <HeroFact
+              label="İşleme"
+              value={coffee.process !== 'unknown' ? PROCESS_LABELS[coffee.process] ?? coffee.process : 'Belirsiz'}
+            />
+            <HeroFact label="Hasat" value={coffee.harvest_year ?? 'Belirsiz'} />
           </div>
 
           <CoffeeImage
@@ -237,7 +272,7 @@ export default async function CoffeeDetailPage({
                 <SpecRow label="Kavrum tarihi" value={coffee.roast_date} />
               )}
               {coffee.sca_score && (
-                <SpecRow label="SCA Puanı" value={String(coffee.sca_score)} />
+                <SpecRow label="Yayınlanan puan" value={String(coffee.sca_score)} />
               )}
               {coffee.is_decaf && (
                 <SpecRow label="Dekaf" value="Evet" />
@@ -292,6 +327,10 @@ export default async function CoffeeDetailPage({
         </div>
       </div>
 
+      <CoffeeJourneySection journey={journey} />
+      <QualityDossier journey={journey} />
+      <EvidenceDrawer journey={journey} />
+
       {similar.length > 0 && (
         <section className="mt-16">
           <h2 className="font-display text-4xl leading-none text-[#1f1d1b]">Benzer Kahveler</h2>
@@ -300,6 +339,17 @@ export default async function CoffeeDetailPage({
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+function HeroFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-[#1f1d1b]/10 bg-white p-3">
+      <p className="font-mono text-[10px] font-semibold uppercase tracking-wide text-[#5d5853]">
+        {label}
+      </p>
+      <p className="mt-1 truncate text-sm font-semibold text-[#1f1d1b]">{value}</p>
     </div>
   );
 }

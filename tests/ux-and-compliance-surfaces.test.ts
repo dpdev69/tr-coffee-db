@@ -53,7 +53,7 @@ describe('UX and compliance surfaces', () => {
     assert.doesNotMatch(surfaces, /fiyat filtresi|bütçe|5 kısa/i);
     assert.doesNotMatch(surfaces, /100 g|100g|TL\/100/i);
     assert.match(surfaces, /4 kısa soruyu/);
-    assert.match(surfaces, /Yeni kahveni kolayca bul/);
+    assert.match(surfaces, /Kahveyi bul\. Yolculuğunu gör/);
   });
 
   it('keeps database filter metadata explicit without exposing 100 g price ranges', () => {

@@ -38,6 +38,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     },
     {
+      url: absoluteUrl('/rankings'),
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.85,
+    },
+    {
       url: absoluteUrl('/quiz'),
       lastModified: new Date(),
       changeFrequency: 'monthly',

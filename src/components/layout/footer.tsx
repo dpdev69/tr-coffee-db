@@ -8,20 +8,20 @@ export function Footer() {
           <div>
             <h2 className="font-display text-4xl leading-none">TR CoffeeDB</h2>
             <p className="mt-4 max-w-sm text-sm leading-6 text-[#5d5853]">
-              Türkiye&apos;deki bağımsız kavurucuların güncel nitelikli kahvelerini
-              tek yerde keşfet. Biz mağaza değiliz; karar vermeyi kolaylaştıran
-              ücretsiz bir rehberiz.
+              Türkiye&apos;de satılan specialty kahveleri karşılaştır. Üreticiden
+              kavurucuya bildiğimiz yolculuğu, kaynağı ve eksik kalan bağlantıları gör.
             </p>
           </div>
           <FooterGroup title="Keşfet">
             <FooterLink href="/coffees">Kahveler</FooterLink>
             <FooterLink href="/roasters">Kavurucular</FooterLink>
+            <FooterLink href="/rankings">Sıralamalar</FooterLink>
             <FooterLink href="/quiz">Kahve Bul</FooterLink>
           </FooterGroup>
           <FooterGroup title="Nasıl Kullanılır">
             <p className="text-sm leading-6 text-[#5d5853]">
-              Köken, işleme, kavrum, demleme ve kavurucunun verdiği fiyatla bak.
-              Beğendiğin çekirdekte kavurucunun kendi sitesine geç.
+              Köken, lot, işleme, kavrum ve fiyatı karşılaştır. Her bilginin
+              kaynağını aç, sonra kavurucunun kendi sitesine geç.
             </p>
           </FooterGroup>
           <FooterGroup title="Güven">

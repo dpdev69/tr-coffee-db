@@ -2,6 +2,24 @@
 
 All notable changes to TR CoffeeDB are documented here.
 
+## [0.2.0.0] - 2026-07-13
+
+### Added
+
+- Every current catalog coffee now has a canonical lot record with source-backed claims, journey events, supply-chain roles, assessments, certifications, and explicit validation status.
+- Coffee detail pages now show a journey-to-cup timeline, traceability score, quality dossier, certification state, and field-level evidence ledger without presenting scraped claims as independently verified.
+- A new rankings page compares traceability, published quality evidence, accessible transparent pricing, and market interest as separate measures.
+
+### Changed
+
+- The homepage, catalog cards, navigation, footer, and sitemap now lead with the coffee journey and evidence model.
+- Rankings now page through the full public catalog instead of silently stopping at the first 1,000 coffees.
+
+### Fixed
+
+- Public journey tables are read-only under row-level security, and all new source and organization foreign keys used by the journey graph are indexed.
+- Future scraper writes keep canonical lot records synchronized while preserving observed claims as observed rather than upgrading their verification level.
+
 ## [0.1.0.0] - 2026-07-12
 
 ### Added

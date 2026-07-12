@@ -4,6 +4,7 @@ import { Tag } from '@/components/ui/tag';
 import { PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
 import { formatPackageWeight, formatVerifiedAt, getSourceHost } from '@/lib/coffee-display';
 import type { CoffeeWithRoaster } from '@/lib/types/database';
+import { calculateTraceabilityScore } from '@/lib/coffee-journey';
 
 export function CoffeeCard({
   coffee,
@@ -18,6 +19,7 @@ export function CoffeeCard({
 
   const sourceHost = getSourceHost(coffee.product_url);
   const verifiedAt = formatVerifiedAt(coffee.last_seen_at);
+  const traceabilityScore = calculateTraceabilityScore(coffee);
 
   return (
     <Link
@@ -96,6 +98,14 @@ export function CoffeeCard({
         <p className="mt-2 truncate text-[11px] text-[#5d5853]/70">
           {sourceHost ? `${verifiedAt} · ${sourceHost}` : verifiedAt}
         </p>
+        <div className="mt-3 flex items-center justify-between border-t border-[#1f1d1b]/10 pt-3">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-wide text-[#5d5853]">
+            Yolculuk verisi
+          </span>
+          <span className="rounded-full bg-[#f6f1e8] px-2 py-1 font-mono text-[10px] font-bold text-[#1f1d1b]">
+            {traceabilityScore}/100
+          </span>
+        </div>
       </div>
     </Link>
   );

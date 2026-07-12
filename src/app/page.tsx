@@ -51,15 +51,15 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
-              Güncel nitelikli kahve rehberi
+              Türkiye specialty coffee kayıt sistemi
             </p>
             <h1 className="mt-5 font-display text-5xl leading-[0.94] text-[#1f1d1b] sm:text-6xl lg:text-7xl">
-              Yeni kahveni kolayca bul.
+              Kahveyi bul. Yolculuğunu gör.
             </h1>
             <p className="mt-6 max-w-xl text-base leading-7 text-[#5d5853] sm:text-lg">
-              Bağımsız kavurucularda son 3 günde satışta görülen nitelikli çekirdekleri
-              tek ekranda karşılaştır; köken, işleme, kavrum, tat notu ve kavurucunun
-              verdiği fiyatla kararını hızlandır.
+              Bağımsız kavurucularda satışta görülen çekirdekleri karşılaştır. Üreticiden
+              işleme ve kavruma kadar bildiğimiz adımları, kaynakları ve eksik kalan bağlantıları
+              tek kayıtta incele.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -73,6 +73,12 @@ export default async function HomePage() {
                 className="inline-flex min-h-12 items-center justify-center rounded-lg border border-[#1f1d1b] bg-white px-7 text-sm font-semibold text-[#1f1d1b] transition-colors hover:bg-[#f6f1e8]"
               >
                 Kataloğa Bak
+              </Link>
+              <Link
+                href="/rankings"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg px-4 text-sm font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
+              >
+                Sıralamalar
               </Link>
             </div>
           </div>
@@ -97,7 +103,7 @@ export default async function HomePage() {
                 Nasıl işliyor?
               </p>
               <h2 className="mt-2 font-display text-4xl leading-none text-[#1f1d1b]">
-                Üç adımda daha net seçim.
+                Üç adımda kanıta dayalı seçim.
               </h2>
               <p className="mt-4 max-w-xl text-sm leading-6 text-[#1f1d1b]/70">
                 Sayılar yalnızca son 3 gün içinde satışta görülen ve nitelikli olarak
@@ -112,18 +118,18 @@ export default async function HomePage() {
             <div className="grid gap-6 sm:grid-cols-3 sm:divide-x sm:divide-[#1f1d1b]/20">
               <Step
                 step="01"
-                title="Kataloğa Bak"
-                description="Kavurucu siteleri arasında kaybolmadan güncel çekirdekleri tara."
+                title="Kahveyi bul"
+                description="Kavurucu siteleri arasında kaybolmadan güncel çekirdekleri karşılaştır."
               />
               <Step
                 step="02"
-                title="Fiyatı olduğu gibi gör"
-                description="Kavurucunun verdiği paket fiyatını değiştirmeden gösteririz."
+                title="Yolculuğa dal"
+                description="Üretici, lot, işleme, ticaret ve kavrum adımlarında bildiklerimizi gör."
               />
               <Step
                 step="03"
-                title="Kavurucuya Git"
-                description="Beğendiğin kahvede doğrudan kavurucunun sitesine geç."
+                title="Kanıtı kontrol et"
+                description="Her bilginin kaynağını ve doğrulama seviyesini aç, sonra kavurucuya geç."
               />
             </div>
           </div>
@@ -164,7 +170,7 @@ export default async function HomePage() {
               İster filtrele, ister hızlıca eşleş.
             </h2>
           </div>
-          <div className="mt-9 grid gap-5 md:grid-cols-3">
+          <div className="mt-9 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             <PathCard
               href="/coffees"
               eyebrow="Katalog"
@@ -182,6 +188,12 @@ export default async function HomePage() {
               eyebrow="Kavurucular"
               title="Markaları incele"
               description="Aktif kavurucuları ve her birinin güncel kahvelerini gör."
+            />
+            <PathCard
+              href="/rankings"
+              eyebrow="Sıralamalar"
+              title="Pazarı karşılaştır"
+              description="İzlenebilirlik, yayınlanan puan, fiyat ve ilgiyi ayrı listelerde gör."
             />
           </div>
         </div>

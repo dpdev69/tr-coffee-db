@@ -24,6 +24,134 @@ export interface CoffeeBrewRecipe {
 export type CoffeeSpecialtyStatus = 'unclassified' | 'specialty' | 'not_specialty';
 export type CoffeeSpecialtyOverrideAction = 'force_include' | 'force_exclude';
 export type RoasterSupportTier = 'unverified' | 'supported' | 'priority' | 'excluded';
+export type ValidationStatus =
+  | 'observed'
+  | 'self_reported'
+  | 'corroborated'
+  | 'partner_confirmed'
+  | 'document_verified'
+  | 'independently_assessed'
+  | 'disputed'
+  | 'expired';
+
+export interface SupplyChainOrganization {
+  id: string;
+  slug: string;
+  name: string;
+  organization_type: string;
+  country: string | null;
+  region: string | null;
+  website_url: string | null;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoffeeLot {
+  id: string;
+  lot_code: string | null;
+  display_name: string;
+  origin_country: string | null;
+  origin_region: string | null;
+  farm_name: string | null;
+  producer_name: string | null;
+  altitude_text: string | null;
+  harvest_year: string | null;
+  process: string;
+  process_detail: string | null;
+  varieties: string[];
+  traceability_score: number;
+  validation_status: ValidationStatus;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TraceSource {
+  id: string;
+  coffee_id: string | null;
+  lot_id: string | null;
+  source_type: string;
+  title: string;
+  source_url: string | null;
+  publisher: string | null;
+  observed_at: string | null;
+  retrieved_at: string;
+  content_hash: string | null;
+  is_public: boolean;
+  created_at: string;
+}
+
+export interface CoffeeClaim {
+  id: string;
+  subject_type: string;
+  subject_id: string;
+  field_name: string;
+  value: Json;
+  source_id: string | null;
+  validation_status: ValidationStatus;
+  confidence: number;
+  observed_at: string | null;
+  verified_at: string | null;
+  expires_at: string | null;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TraceEvent {
+  id: string;
+  external_key: string | null;
+  lot_id: string;
+  event_type: string;
+  organization_id: string | null;
+  sequence_number: number;
+  title: string;
+  description: string | null;
+  event_at: string | null;
+  location_name: string | null;
+  location_region: string | null;
+  location_country: string | null;
+  source_id: string | null;
+  validation_status: ValidationStatus;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoffeeAssessment {
+  id: string;
+  lot_id: string;
+  coffee_id: string | null;
+  protocol: string;
+  assessment_type: string;
+  score: number | null;
+  assessor_name: string | null;
+  assessor_organization: string | null;
+  assessed_at: string | null;
+  dimensions: Json;
+  source_id: string | null;
+  validation_status: ValidationStatus;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoffeeCertification {
+  id: string;
+  lot_id: string;
+  organization_id: string | null;
+  scheme: string;
+  certificate_number: string | null;
+  holder_name: string | null;
+  valid_from: string | null;
+  valid_to: string | null;
+  source_id: string | null;
+  validation_status: ValidationStatus;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Database {
   public: {
@@ -41,11 +169,13 @@ export interface Database {
           platform: string;
           is_active: boolean;
           support_tier: RoasterSupportTier;
+          organization_id: string | null;
           created_at: string;
           updated_at: string;
         };
-        Insert: Omit<Database['public']['Tables']['roasters']['Row'], 'id' | 'support_tier' | 'created_at' | 'updated_at'> & {
+        Insert: Omit<Database['public']['Tables']['roasters']['Row'], 'id' | 'support_tier' | 'organization_id' | 'created_at' | 'updated_at'> & {
           support_tier?: RoasterSupportTier;
+          organization_id?: string | null;
         };
         Update: Partial<Database['public']['Tables']['roasters']['Insert']>;
       };
@@ -53,6 +183,7 @@ export interface Database {
         Row: {
           id: string;
           roaster_id: string;
+          green_lot_id: string | null;
           slug: string;
           external_id: string;
           name: string;
@@ -104,12 +235,14 @@ export interface Database {
           | 'specialty_signals'
           | 'specialty_rejection_reason'
           | 'is_public'
+          | 'green_lot_id'
         > & {
           specialty_status?: CoffeeSpecialtyStatus;
           specialty_score?: number | null;
           specialty_signals?: Json;
           specialty_rejection_reason?: string | null;
           is_public?: boolean;
+          green_lot_id?: string | null;
         };
         Update: Partial<Database['public']['Tables']['coffees']['Insert']>;
       };
@@ -185,6 +318,23 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['correction_reports']['Row'], 'id' | 'status' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Database['public']['Tables']['correction_reports']['Row'], 'id' | 'created_at' | 'updated_at'>>;
       };
+      supply_chain_organizations: TableDefinition<SupplyChainOrganization>;
+      coffee_lots: TableDefinition<CoffeeLot>;
+      lot_organizations: TableDefinition<{
+        lot_id: string;
+        organization_id: string;
+        role: string;
+        is_primary: boolean;
+        validation_status: ValidationStatus;
+        valid_from: string | null;
+        valid_to: string | null;
+        created_at: string;
+      }>;
+      trace_sources: TableDefinition<TraceSource>;
+      coffee_claims: TableDefinition<CoffeeClaim>;
+      trace_events: TableDefinition<TraceEvent>;
+      coffee_assessments: TableDefinition<CoffeeAssessment>;
+      coffee_certifications: TableDefinition<CoffeeCertification>;
     };
     Functions: {
       increment_click: {
@@ -208,6 +358,12 @@ export interface Database {
     };
   };
 }
+
+type TableDefinition<TRow> = {
+  Row: TRow;
+  Insert: Partial<TRow>;
+  Update: Partial<TRow>;
+};
 
 export type Coffee = Database['public']['Tables']['coffees']['Row'];
 export type Roaster = Database['public']['Tables']['roasters']['Row'];

@@ -25,12 +25,13 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-[#1f1d1b]/10 bg-white">
       <div className="bg-[#8b3f24] px-4 py-2 text-center text-xs font-semibold text-white sm:text-sm">
-        Türkiye&apos;deki kavurucuları ve güncel çekirdekleri tek ekranda keşfet.
+        Çekirdekten fincana, Türkiye&apos;de satılan specialty kahvenin yolculuğunu keşfet.
       </div>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <nav className="hidden min-w-0 flex-1 items-center gap-1 md:flex">
           <HeaderLink href="/coffees">Kahveler</HeaderLink>
           <HeaderLink href="/roasters">Kavurucular</HeaderLink>
+          <HeaderLink href="/rankings">Sıralamalar</HeaderLink>
           <HeaderLink href="/quiz">Kahve Bul</HeaderLink>
         </nav>
 
@@ -87,6 +88,9 @@ export function Header() {
             </MobileLink>
             <MobileLink href="/roasters" onClick={() => setMobileMenuOpen(false)}>
               Kavurucular
+            </MobileLink>
+            <MobileLink href="/rankings" onClick={() => setMobileMenuOpen(false)}>
+              Sıralamalar
             </MobileLink>
             <MobileLink href="/quiz" onClick={() => setMobileMenuOpen(false)}>
               Kahve Bul
