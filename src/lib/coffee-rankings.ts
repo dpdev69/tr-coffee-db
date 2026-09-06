@@ -104,7 +104,8 @@ export function rankCoffees(rows: CoffeeWithLot[], limit = 8): CoffeeRankings {
         b.traceabilityScore - a.traceabilityScore
       )
       .slice(0, limit),
-    marketInterest: [...ranked]
+    marketInterest: ranked
+      .filter((coffee) => Number.isFinite(coffee.click_count) && coffee.click_count > 0)
       .sort((a, b) =>
         b.click_count - a.click_count || b.traceabilityScore - a.traceabilityScore
       )

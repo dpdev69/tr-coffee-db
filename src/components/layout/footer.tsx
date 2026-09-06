@@ -2,57 +2,71 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-[#1f1d1b]/10 bg-white text-[#1f1d1b]">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr_1fr_1fr]">
+    <footer className="mt-auto border-t border-[#dedfd7] bg-[#faf9f6] text-[#1f1d1b]">
+      <div className="page-shell py-10">
+        <div className="grid gap-8 sm:grid-cols-[1.3fr_1fr_1fr]">
           <div>
-            <h2 className="font-display text-4xl leading-none">TR CoffeeDB</h2>
-            <p className="mt-4 max-w-sm text-sm leading-6 text-[#5d5853]">
-              Türkiye&apos;de satılan specialty kahveleri karşılaştır. Üreticiden
-              kavurucuya bildiğimiz yolculuğu, kaynağı ve eksik kalan bağlantıları gör.
+            <Link
+              href="/"
+              className="inline-flex min-h-11 items-center text-xl font-bold tracking-tight"
+            >
+              TR CoffeeDB.
+            </Link>
+            <p className="mt-2 max-w-sm text-sm leading-6 text-[#625e57]">
+              Türkiye’nin bağımsız kavurucularını keşfet. Çekirdekleri
+              karşılaştır, kahveni tanı, kavurucusundan satın al.
             </p>
           </div>
-          <FooterGroup title="Keşfet">
-            <FooterLink href="/coffees">Kahveler</FooterLink>
+          <nav aria-label="Keşfet">
+            <p className="eyebrow mb-2">Keşfet</p>
+            <FooterLink href="/coffees">Kahve kataloğu</FooterLink>
             <FooterLink href="/roasters">Kavurucular</FooterLink>
-            <FooterLink href="/rankings">Sıralamalar</FooterLink>
-            <FooterLink href="/quiz">Kahve Bul</FooterLink>
-          </FooterGroup>
-          <FooterGroup title="Nasıl Kullanılır">
-            <p className="text-sm leading-6 text-[#5d5853]">
-              Köken, lot, işleme, kavrum ve fiyatı karşılaştır. Her bilginin
-              kaynağını aç, sonra kavurucunun kendi sitesine geç.
-            </p>
-          </FooterGroup>
-          <FooterGroup title="Güven">
-            <FooterLink href="/privacy">Gizlilik</FooterLink>
-            <FooterLink href="/terms">Kullanım Şartları</FooterLink>
-          </FooterGroup>
+            <FooterLink href="/rankings">Katalog sıralamaları</FooterLink>
+          </nav>
+          <nav aria-label="Rehber">
+            <p className="eyebrow mb-2">Bir sonraki fincanın</p>
+            <FooterLink href="/quiz">Damak tadına göre bul</FooterLink>
+            <FooterLink href="/guide">Kahve rehberi</FooterLink>
+            <FooterLink href="/guide#calculator">
+              Demleme hesaplayıcı
+            </FooterLink>
+          </nav>
         </div>
-        <div className="mt-10 border-t border-[#1f1d1b]/10 pt-6 text-xs font-semibold uppercase tracking-[0.18em] text-[#1f1d1b]/45">
-          Desteklenen kavurucularda veriler düzenli olarak güncellenir.
+        <div className="mt-8 flex flex-col justify-between gap-3 border-t border-[#dedfd7] pt-5 text-xs text-[#625e57] sm:flex-row sm:items-center">
+          <p>
+            Bir mağaza değil, bağımsız bir keşif rehberi. Son fiyat ve stok
+            kavurucunun sitesindedir.
+          </p>
+          <div className="flex gap-5">
+            <Link
+              href="/privacy"
+              className="inline-flex min-h-11 items-center hover:underline"
+            >
+              Gizlilik
+            </Link>
+            <Link
+              href="/terms"
+              className="inline-flex min-h-11 items-center hover:underline"
+            >
+              Kullanım şartları
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
   );
 }
-
-function FooterGroup({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <h3 className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7c3a20]">
-        {title}
-      </h3>
-      <div className="mt-4 grid gap-1">{children}</div>
-    </div>
-  );
-}
-
-function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+function FooterLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
   return (
     <Link
       href={href}
-      className="inline-flex min-h-10 items-center text-sm font-semibold text-[#1f1d1b]/75 transition-colors hover:text-[#1f1d1b] hover:underline hover:underline-offset-4"
+      className="flex min-h-10 items-center text-sm text-[#625e57] hover:text-[#244b3d] hover:underline hover:underline-offset-4"
     >
       {children}
     </Link>

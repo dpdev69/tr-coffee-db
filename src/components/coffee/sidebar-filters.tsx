@@ -10,7 +10,10 @@ import {
   FLAVOR_CATEGORY_LABELS,
   SORT_OPTIONS,
 } from '@/lib/constants/filter-options';
-import { BEHAVIORAL_FILTERS, type BehavioralFilterOption } from '@/lib/behavioral-filters';
+import {
+  BEHAVIORAL_FILTERS,
+  type BehavioralFilterOption,
+} from '@/lib/behavioral-filters';
 
 export function SidebarFilters({
   countries,
@@ -34,7 +37,7 @@ export function SidebarFilters({
       const query = params.toString();
       router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
     },
-    [pathname, router]
+    [pathname, router],
   );
 
   const updateFilter = useCallback(
@@ -44,7 +47,9 @@ export function SidebarFilters({
 
       if (current.includes(value)) {
         params.delete(key);
-        current.filter((v) => v !== value).forEach((v) => params.append(key, v));
+        current
+          .filter((v) => v !== value)
+          .forEach((v) => params.append(key, v));
       } else {
         params.append(key, value);
       }
@@ -52,7 +57,7 @@ export function SidebarFilters({
       params.delete('page');
       pushParams(params);
     },
-    [pushParams, searchParams]
+    [pushParams, searchParams],
   );
 
   const setSort = useCallback(
@@ -66,7 +71,7 @@ export function SidebarFilters({
       params.delete('page');
       pushParams(params);
     },
-    [pushParams, searchParams]
+    [pushParams, searchParams],
   );
 
   const closeMobileFilters = useCallback(() => {
@@ -88,13 +93,15 @@ export function SidebarFilters({
   };
 
   const isBehavioralFilterActive = (filter: BehavioralFilterOption) =>
-    filter.params.every(({ key, value }) => searchParams.getAll(key).includes(value));
+    filter.params.every(({ key, value }) =>
+      searchParams.getAll(key).includes(value),
+    );
 
   const toggleBehavioralFilter = useCallback(
     (filter: BehavioralFilterOption) => {
       const params = new URLSearchParams(searchParams.toString());
       const shouldRemove = filter.params.every(({ key, value }) =>
-        params.getAll(key).includes(value)
+        params.getAll(key).includes(value),
       );
 
       for (const { key, value } of filter.params) {
@@ -115,7 +122,7 @@ export function SidebarFilters({
       params.delete('page');
       pushParams(params);
     },
-    [pushParams, searchParams]
+    [pushParams, searchParams],
   );
 
   const toggleBooleanFilter = useCallback(
@@ -133,7 +140,7 @@ export function SidebarFilters({
       params.delete('page');
       pushParams(params);
     },
-    [pushParams, searchParams]
+    [pushParams, searchParams],
   );
 
   useEffect(() => {
@@ -207,7 +214,7 @@ export function SidebarFilters({
   const sortValue = searchParams.get('sort') ?? 'newest';
   const selectedRoasterSlugs = useMemo(
     () => new Set(searchParams.getAll('roaster')),
-    [searchParams]
+    [searchParams],
   );
   const normalizedRoasterQuery = roasterQuery.trim().toLocaleLowerCase('tr-TR');
   const filteredRoasters = useMemo(() => {
@@ -216,16 +223,21 @@ export function SidebarFilters({
     return roasters.filter((roaster) =>
       `${roaster.name} ${roaster.slug}`
         .toLocaleLowerCase('tr-TR')
-        .includes(normalizedRoasterQuery)
+        .includes(normalizedRoasterQuery),
     );
   }, [normalizedRoasterQuery, roasters]);
   const visibleRoasters = useMemo(() => {
     if (normalizedRoasterQuery || showAllRoasters) return filteredRoasters;
 
-    return filteredRoasters.filter((roaster, index) => (
-      index < 12 || selectedRoasterSlugs.has(roaster.slug)
-    ));
-  }, [filteredRoasters, normalizedRoasterQuery, selectedRoasterSlugs, showAllRoasters]);
+    return filteredRoasters.filter(
+      (roaster, index) => index < 12 || selectedRoasterSlugs.has(roaster.slug),
+    );
+  }, [
+    filteredRoasters,
+    normalizedRoasterQuery,
+    selectedRoasterSlugs,
+    showAllRoasters,
+  ]);
   const renderFilterSections = () => (
     <>
       {/* Behavioral preference */}
@@ -239,6 +251,14 @@ export function SidebarFilters({
             onChange={() => toggleBehavioralFilter(filter)}
           />
         ))}
+      </FilterGroup>
+
+      <FilterGroup title="Kafein tercihi">
+        <FilterCheckbox
+          label="Yalnızca kafeinsiz"
+          checked={isToggleActive('isDecaf')}
+          onChange={() => toggleBooleanFilter('isDecaf')}
+        />
       </FilterGroup>
 
       {/* Origin */}
@@ -262,26 +282,30 @@ export function SidebarFilters({
 
       {/* Process */}
       <FilterGroup title="İşleme">
-        {Object.entries(PROCESS_LABELS).filter(([value]) => value !== 'unknown').map(([value, label]) => (
-          <FilterCheckbox
-            key={value}
-            label={label}
-            checked={isActive('process', value)}
-            onChange={() => updateFilter('process', value)}
-          />
-        ))}
+        {Object.entries(PROCESS_LABELS)
+          .filter(([value]) => value !== 'unknown')
+          .map(([value, label]) => (
+            <FilterCheckbox
+              key={value}
+              label={label}
+              checked={isActive('process', value)}
+              onChange={() => updateFilter('process', value)}
+            />
+          ))}
       </FilterGroup>
 
       {/* Roast Level */}
       <FilterGroup title="Kavurma Seviyesi">
-        {Object.entries(ROAST_LABELS).filter(([value]) => value !== 'unknown').map(([value, label]) => (
-          <FilterCheckbox
-            key={value}
-            label={label}
-            checked={isActive('roastLevel', value)}
-            onChange={() => updateFilter('roastLevel', value)}
-          />
-        ))}
+        {Object.entries(ROAST_LABELS)
+          .filter(([value]) => value !== 'unknown')
+          .map(([value, label]) => (
+            <FilterCheckbox
+              key={value}
+              label={label}
+              checked={isActive('roastLevel', value)}
+              onChange={() => updateFilter('roastLevel', value)}
+            />
+          ))}
       </FilterGroup>
 
       {/* Flavor Category */}
@@ -297,7 +321,10 @@ export function SidebarFilters({
       </FilterGroup>
 
       {/* Brew Method */}
-      <FilterGroup title="Demleme Yöntemi">
+      <FilterGroup
+        title="Demleme Yöntemi"
+        helper="Kavurucunun önerdiği yöntemler. Bilgi paylaşılmayan kahveler bu filtrede görünmez."
+      >
         {Object.entries(BREW_METHOD_LABELS).map(([value, label]) => (
           <FilterCheckbox
             key={value}
@@ -337,24 +364,27 @@ export function SidebarFilters({
               Bu aramayla kavurucu bulunamadı.
             </p>
           )}
-          {!normalizedRoasterQuery && filteredRoasters.length > visibleRoasters.length && (
-            <button
-              type="button"
-              onClick={() => setShowAllRoasters(true)}
-              className="mt-2 text-xs font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
-            >
-              Tüm kavurucuları göster ({filteredRoasters.length})
-            </button>
-          )}
-          {!normalizedRoasterQuery && showAllRoasters && filteredRoasters.length > 12 && (
-            <button
-              type="button"
-              onClick={() => setShowAllRoasters(false)}
-              className="mt-2 text-xs font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
-            >
-              Listeyi kısalt
-            </button>
-          )}
+          {!normalizedRoasterQuery &&
+            filteredRoasters.length > visibleRoasters.length && (
+              <button
+                type="button"
+                onClick={() => setShowAllRoasters(true)}
+                className="mt-2 text-xs font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
+              >
+                Tüm kavurucuları göster ({filteredRoasters.length})
+              </button>
+            )}
+          {!normalizedRoasterQuery &&
+            showAllRoasters &&
+            filteredRoasters.length > 12 && (
+              <button
+                type="button"
+                onClick={() => setShowAllRoasters(false)}
+                className="mt-2 text-xs font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
+              >
+                Listeyi kısalt
+              </button>
+            )}
         </FilterGroup>
       )}
     </>
@@ -467,6 +497,7 @@ export function SidebarFilters({
         <div>
           <h3 className="text-sm font-semibold text-[#1f1d1b]">Sırala</h3>
           <select
+            aria-label="Kahveleri sırala"
             value={sortValue}
             onChange={(e) => setSort(e.target.value)}
             className="mt-2 w-full rounded-lg border border-[#1f1d1b]/20 bg-white px-3 py-2 text-sm text-[#1f1d1b] focus:border-[#1f1d1b] focus:outline-none focus:ring-1 focus:ring-[#1f1d1b]"
@@ -504,9 +535,12 @@ function getFocusableElements(container: HTMLElement | null) {
 
   return Array.from(
     container.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    )
-  ).filter((element) => !element.hasAttribute('hidden') && element.getClientRects().length > 0);
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ),
+  ).filter(
+    (element) =>
+      !element.hasAttribute('hidden') && element.getClientRects().length > 0,
+  );
 }
 
 function FilterGroup({
@@ -541,7 +575,7 @@ function FilterCheckbox({
   onChange: () => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-start gap-2 rounded-lg px-1 py-1 text-sm text-[#1f1d1b]/75 hover:bg-[#f6f1e8]">
+    <label className="flex cursor-pointer items-start gap-2 rounded-lg px-1 py-2 text-sm text-[#1f1d1b]/75 hover:bg-[#f6f1e8]">
       <input
         type="checkbox"
         checked={checked}
@@ -589,7 +623,11 @@ function CloseIcon() {
       stroke="currentColor"
       aria-hidden="true"
     >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6 18 18 6M6 6l12 12"
+      />
     </svg>
   );
 }

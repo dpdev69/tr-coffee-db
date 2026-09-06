@@ -7,6 +7,7 @@ import {
 } from '../src/lib/catalog-rules';
 import { applyPublicCoffeeVisibility } from '../src/lib/public-coffee-visibility';
 import type { Database } from '../src/lib/types/database';
+import { emptyCatalogFailures } from './image-health-policy';
 
 type CoffeeRow = Pick<
   Database['public']['Tables']['coffees']['Row'],
@@ -76,6 +77,7 @@ async function main() {
   const missingCoffeeRatio =
     coffees.length === 0 ? 0 : missingCoffeeImages.length / coffees.length;
   const failures = [
+    ...emptyCatalogFailures(coffees.length),
     ...(missingCoffeeImages.length > options.maxMissingCoffees
       ? [
           `missing coffee images ${missingCoffeeImages.length} > ${options.maxMissingCoffees}`,

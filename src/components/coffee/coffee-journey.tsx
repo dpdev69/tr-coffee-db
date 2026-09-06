@@ -32,7 +32,7 @@ export function CoffeeJourneySection({ journey }: { journey: CoffeeJourney }) {
       <div className="rounded-[30px] bg-[#171513] px-5 py-7 text-white sm:px-8 sm:py-9 lg:px-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <p className="font-mono text-xs font-semibold uppercase tracking-[0.24em] text-[#ecff64]">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.24em] text-[#e3ecbd]">
               Journey to cup
             </p>
             <h2 className="mt-3 font-display text-4xl leading-none sm:text-5xl">
@@ -84,7 +84,7 @@ export function QualityDossier({ journey }: { journey: CoffeeJourney }) {
   return (
     <section className="mt-10 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
       <article className="rounded-[26px] border border-[#1f1d1b]/10 bg-white p-6 sm:p-7">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[#7c3a20]">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[#244b3d]">
           Kalite dosyası
         </p>
         <div className="mt-5">
@@ -132,7 +132,7 @@ export function QualityDossier({ journey }: { journey: CoffeeJourney }) {
       </article>
 
       <article className="rounded-[26px] border border-[#1f1d1b]/10 bg-white p-6 sm:p-7">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[#7c3a20]">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[#244b3d]">
           Sertifikalar ve ticaret kanıtı
         </p>
         <div className="mt-5">
@@ -173,7 +173,7 @@ export function EvidenceDrawer({ journey }: { journey: CoffeeJourney }) {
   return (
     <section className="mt-10 rounded-[26px] border border-[#1f1d1b]/10 bg-white p-6 sm:p-7">
       <div className="max-w-3xl">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[#7c3a20]">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[#244b3d]">
           Kanıt defteri
         </p>
         <h2 className="mt-2 font-display text-3xl leading-none text-[#1f1d1b]">
@@ -186,7 +186,7 @@ export function EvidenceDrawer({ journey }: { journey: CoffeeJourney }) {
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <details className="group rounded-2xl border border-[#1f1d1b]/10 bg-[#fffdf8] p-4" open>
+        <details className="group rounded-2xl border border-[#1f1d1b]/10 bg-[#faf9f6] p-4" open>
           <summary className="cursor-pointer list-none font-semibold text-[#1f1d1b]">
             Kaynaklar ({journey.sources.length})
           </summary>
@@ -197,7 +197,7 @@ export function EvidenceDrawer({ journey }: { journey: CoffeeJourney }) {
           </div>
         </details>
 
-        <details className="group rounded-2xl border border-[#1f1d1b]/10 bg-[#fffdf8] p-4">
+        <details className="group rounded-2xl border border-[#1f1d1b]/10 bg-[#faf9f6] p-4">
           <summary className="cursor-pointer list-none font-semibold text-[#1f1d1b]">
             Alan bazlı iddialar ({journey.claims.length})
           </summary>
@@ -247,7 +247,7 @@ export function ValidationBadge({
       : 'border-red-200 bg-red-50 text-red-800'
     : strong
       ? dark
-        ? 'border-[#ecff64]/30 bg-[#ecff64]/10 text-[#ecff64]'
+        ? 'border-[#e3ecbd]/30 bg-[#e3ecbd]/10 text-[#e3ecbd]'
         : 'border-lime-300 bg-lime-50 text-lime-900'
       : dark
         ? 'border-white/15 bg-white/5 text-white/75'
@@ -286,7 +286,7 @@ function JourneyEventCard({
   return (
     <li className="relative rounded-2xl border border-white/10 bg-white/[0.04] p-4">
       <div className="flex items-center gap-3">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#ecff64] font-mono text-xs font-bold text-[#171513]">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#e3ecbd] font-mono text-xs font-bold text-[#171513]">
           {index + 1}
         </span>
         <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
@@ -329,7 +329,7 @@ function SourceRow({ source }: { source: TraceSource }) {
 
 function EmptyEvidence({ title, description }: { title: string; description: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-[#1f1d1b]/20 bg-[#fffdf8] p-5">
+    <div className="rounded-2xl border border-dashed border-[#1f1d1b]/20 bg-[#faf9f6] p-5">
       <p className="text-sm font-semibold text-[#1f1d1b]">{title}</p>
       <p className="mt-2 text-xs leading-5 text-[#5d5853]">{description}</p>
     </div>

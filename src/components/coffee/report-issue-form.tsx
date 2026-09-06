@@ -59,7 +59,7 @@ export function ReportIssueForm({
   }
 
   return (
-    <details className="mt-5 rounded-2xl border border-[#1f1d1b]/10 bg-[#fffdf8] p-4">
+    <details className="mt-5 rounded-2xl border border-[#1f1d1b]/10 bg-[#faf9f6] p-4">
       <summary className="cursor-pointer text-sm font-semibold text-[#1f1d1b]">
         Bilgilerde sorun var mı?
       </summary>
@@ -106,7 +106,7 @@ export function ReportIssueForm({
         </label>
 
         {state === 'success' && (
-          <p className="rounded-lg bg-[#ecff64]/45 px-3 py-2 text-sm font-medium text-[#1f1d1b]">
+          <p className="rounded-lg bg-[#e3ecbd]/45 px-3 py-2 text-sm font-medium text-[#1f1d1b]">
             Teşekkürler. Rapor inceleme kuyruğuna alındı.
           </p>
         )}

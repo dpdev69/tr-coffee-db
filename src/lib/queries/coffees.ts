@@ -42,8 +42,11 @@ export interface CoffeeFilters {
   perPage?: number;
 }
 
-export async function getCoffees(filters: CoffeeFilters = {}) {
-  const supabase = await createClient();
+export async function getCoffees(
+  filters: CoffeeFilters = {},
+  client?: Awaited<ReturnType<typeof createClient>>
+) {
+  const supabase = client ?? await createClient();
   const page = filters.page ?? 1;
   const perPage = filters.perPage ?? 24;
   const from = (page - 1) * perPage;
@@ -123,6 +126,15 @@ export async function getCoffees(filters: CoffeeFilters = {}) {
       break;
     case 'price_desc':
       query = query.order('price_amount', { ascending: false, nullsFirst: false });
+      break;
+    case 'unit_price_asc':
+    case 'unit_price_desc':
+      query = query
+        .eq('price_currency', 'TRY')
+        .order('price_per_100g', {
+          ascending: filters.sort === 'unit_price_asc',
+          nullsFirst: false,
+        });
       break;
     case 'popular':
       query = query.order('click_count', { ascending: false });
@@ -248,8 +260,12 @@ async function getRoasterIdsForCities(
     .map((roaster) => roaster.id);
 }
 
-export async function getSimilarCoffees(coffee: CoffeeWithRoaster, limit = 4) {
-  const supabase = await createClient();
+export async function getSimilarCoffees(
+  coffee: CoffeeWithRoaster,
+  limit = 4,
+  client?: Awaited<ReturnType<typeof createClient>>
+) {
+  const supabase = client ?? await createClient();
   const candidates = await Promise.all([
     coffee.origin_country
       ? getSimilarCoffeesByField(supabase, coffee.id, 'origin_country', coffee.origin_country, limit)
@@ -287,30 +303,73 @@ async function getSimilarCoffeesByField(
 
   query = applyPublicCatalogCoffeeVisibility(query);
 
-  const { data } = await query;
+  const { data, error } = await query;
+
+  if (error) throw error;
 
   return (data ?? []) as CoffeeWithRoaster[];
 }
 
-export async function getFeaturedCoffees(limit = 6) {
-  const supabase = await createClient();
+export async function getFeaturedCoffees(
+  limit = 6,
+  client?: Awaited<ReturnType<typeof createClient>>
+) {
+  const resultLimit = normalizeFeaturedLimit(limit);
+  if (resultLimit === 0) return [];
+
+  const supabase = client ?? await createClient();
 
   let query = supabase
     .from('coffees')
     .select('*, roasters!inner(name, slug, city)')
     .not('image_url', 'is', null)
     .order('created_at', { ascending: false })
-    .limit(limit);
+    .order('id', { ascending: true })
+    .limit(Math.min(resultLimit * 10, 100));
 
   query = applyPublicCatalogCoffeeVisibility(query);
 
-  const { data } = await query;
+  const { data, error } = await query;
 
-  return (data ?? []) as CoffeeWithRoaster[];
+  if (error) throw error;
+
+  return selectDiverseFeaturedCoffees((data ?? []) as CoffeeWithRoaster[], resultLimit);
 }
 
-export async function getStats() {
-  const supabase = await createClient();
+export function selectDiverseFeaturedCoffees<T extends Pick<CoffeeWithRoaster, 'id' | 'roaster_id'>>(
+  coffees: T[],
+  limit: number
+): T[] {
+  const resultLimit = normalizeFeaturedLimit(limit);
+  if (resultLimit === 0) return [];
+
+  const firstPerRoaster: T[] = [];
+  const remaining: T[] = [];
+  const seenRoasters = new Set<string>();
+  const seenCoffees = new Set<string>();
+
+  // Input is already newest-first; preserve that order within both groups.
+  for (const coffee of coffees) {
+    if (seenCoffees.has(coffee.id)) continue;
+    seenCoffees.add(coffee.id);
+
+    if (seenRoasters.has(coffee.roaster_id)) {
+      remaining.push(coffee);
+    } else {
+      seenRoasters.add(coffee.roaster_id);
+      firstPerRoaster.push(coffee);
+    }
+  }
+
+  return [...firstPerRoaster, ...remaining].slice(0, resultLimit);
+}
+
+function normalizeFeaturedLimit(limit: number) {
+  return Number.isFinite(limit) ? Math.max(0, Math.trunc(limit)) : 0;
+}
+
+export async function getStats(client?: Awaited<ReturnType<typeof createClient>>) {
+  const supabase = client ?? await createClient();
 
   const [coffeeResult, roasterResult, originResult] = await Promise.all([
     applyPublicCatalogCoffeeVisibility(
@@ -329,6 +388,10 @@ export async function getStats() {
         .select('origin_country')
     ).not('origin_country', 'is', null),
   ]);
+
+  if (coffeeResult.error) throw coffeeResult.error;
+  if (roasterResult.error) throw roasterResult.error;
+  if (originResult.error) throw originResult.error;
 
   const uniqueOrigins = new Set(
     ((originResult.data ?? []) as { origin_country: string | null }[]).map((c) => c.origin_country)

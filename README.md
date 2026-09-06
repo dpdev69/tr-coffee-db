@@ -2,6 +2,14 @@
 
 TR CoffeeDB is a Next.js and Supabase app for discovering specialty coffees from Turkish roasters. The product goal is simple: help buyers compare beans across roasters without opening a dozen separate storefronts.
 
+## Choosing a coffee
+
+- Search by coffee, roaster, origin or tasting note; narrow the catalog by brewing method, flavor, process, roast and decaf preference.
+- Cards show the listed package price and exact weight, plus a calculated TRY price per 100 g. Sort by either package or unit price.
+- Select up to three coffees to compare prices and published attributes side by side. The selection stays in this browser; comparison URLs can be shared and always load current public records.
+- The coffee guide explains label terminology and includes adjustable starting recipes for filter, espresso, French press and AeroPress, with original sources. Espresso quantities describe beverage yield, not brewing water.
+- “Kontrol edildi” records the last storefront observation, not independent validation or roast date. Data-source errors are shown separately from empty results.
+
 ## What Is In This Repo
 
 - `src/app`: Next.js App Router pages for the catalog, coffee journeys, rankings, quiz, roasters, and click tracking.
@@ -107,6 +115,9 @@ The contributor rules live in [CONTRIBUTING.md](CONTRIBUTING.md). The short vers
 - production build
 - scraper typecheck
 - automated tests
+- PostgreSQL migration replay and service-role coffee INSERT/UPDATE checks
+
+The database job installs `uuid-ossp` in Supabase's `extensions` schema before replaying every migration. It exercises the journey trigger as `service_role`, so a function search-path regression fails CI before reaching scheduled ingestion. The image-health audit also fails if there are no current coffees; an expired empty catalog is not healthy.
 
 The web job persists `.next/cache` between runs so unchanged work can be reused by
 subsequent Next.js builds.

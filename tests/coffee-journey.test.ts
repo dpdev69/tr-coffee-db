@@ -135,6 +135,16 @@ describe('journey experience surfaces', () => {
     assert.equal(rankings.marketInterest[0]?.slug, 'interest');
     assert.ok(rankings.accessiblePrice.every((coffee) => coffee.traceabilityScore >= 40));
   });
+
+  it('does not turn missing or zero clicks into a popularity ranking', () => {
+    const unvisited = rankedCoffee('unvisited', { traceability: 100, score: 91, price: 120, clicks: 0 });
+    const invalid = rankedCoffee('invalid', { traceability: 80, score: null, price: 120, clicks: Number.NaN });
+    const visited = rankedCoffee('visited', { traceability: 30, score: null, price: 120, clicks: 2 });
+
+    assert.deepEqual(rankCoffees([unvisited, invalid]).marketInterest, []);
+    assert.deepEqual(rankCoffees([unvisited, invalid, visited]).marketInterest.map((coffee) => coffee.slug), ['visited']);
+    assert.equal(rankCoffees([unvisited]).traceability[0]?.slug, 'unvisited');
+  });
 });
 
 function rankedCoffee(

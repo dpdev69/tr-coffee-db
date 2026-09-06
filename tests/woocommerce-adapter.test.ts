@@ -5,6 +5,25 @@ process.env.SUPABASE_URL = process.env.SUPABASE_URL ?? 'https://example.supabase
 process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'test-service-key';
 
 describe('WooCommerceAdapter', () => {
+  it('preserves the upstream error instead of reporting an empty catalog', async () => {
+    const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
+    const { WooCommerceAdapter } = await import('../scrapers/src/adapters/woocommerce-adapter.ts');
+    const originalGet = axios.get.bind(axios);
+
+    try {
+      axios.get = (async () => {
+        throw new Error('timeout of 30000ms exceeded');
+      }) as typeof axios.get;
+
+      await assert.rejects(
+        new WooCommerceAdapter(makeConfig()).fetchProducts(),
+        /WooCommerce Store API failed on page 1: timeout of 30000ms exceeded/
+      );
+    } finally {
+      axios.get = originalGet;
+    }
+  });
+
   it('keeps WooCommerce short descriptions so roast profile metadata reaches normalization', async () => {
     const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
     const { WooCommerceAdapter } = await import('../scrapers/src/adapters/woocommerce-adapter.ts');

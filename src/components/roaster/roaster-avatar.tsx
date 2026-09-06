@@ -36,7 +36,7 @@ export function RoasterAvatar({
           onError={() => setFailedLogoUrl(logoUrl)}
         />
       ) : (
-        <span className="flex h-full w-full items-center justify-center bg-[#ecff64]">
+        <span className="flex h-full w-full items-center justify-center bg-[#e3ecbd]">
           {initial}
         </span>
       )}

@@ -60,13 +60,17 @@ export const SORT_VALUES = [
   'newest',
   'price_asc',
   'price_desc',
+  'unit_price_asc',
+  'unit_price_desc',
   'popular',
 ] as const;
 
 export const SORT_OPTIONS = [
   { value: 'newest', label: 'En Yeni' },
-  { value: 'price_asc', label: 'Fiyat: Artan' },
-  { value: 'price_desc', label: 'Fiyat: Azalan' },
+  { value: 'price_asc', label: 'Paket fiyatı: Artan' },
+  { value: 'price_desc', label: 'Paket fiyatı: Azalan' },
+  { value: 'unit_price_asc', label: '100 g fiyatı: Artan' },
+  { value: 'unit_price_desc', label: '100 g fiyatı: Azalan' },
   { value: 'popular', label: 'En Popüler' },
 ] as const;
 

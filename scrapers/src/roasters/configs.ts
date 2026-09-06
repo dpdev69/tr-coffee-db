@@ -194,10 +194,11 @@ export const parsa: RoasterConfig = {
   slug: 'parsa',
   name: 'Parsa Coffee Roasters',
   websiteUrl: 'https://parsacoffeeroasters.com',
-  shopUrl: 'https://parsacoffeeroasters.com',
-  platform: 'woocommerce',
+  shopUrl: 'https://parsacoffeeroasters.com/tr/magaza',
+  platform: 'custom',
   city: 'Istanbul',
-  priceFormat: 'kurus', // 80000 = 800 TL
+  priceFormat: 'tl',
+  structuredDataParser: 'parsa-catalog',
 };
 
 export const poka: RoasterConfig = {
@@ -420,6 +421,7 @@ export const kronotrop: RoasterConfig = {
   platform: 'custom',
   city: 'Istanbul',
   priceFormat: 'tl',
+  derivePackageFromProductPage: true,
   selectors: {
     productList: 'li.animationBorder:has(a.product-click)',
     productLink: 'a.product-click',

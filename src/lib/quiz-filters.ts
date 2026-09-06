@@ -77,12 +77,12 @@ const FLAVOR_DESCRIPTIONS: Record<string, string> = {
 };
 
 const PROCESS_DESCRIPTIONS: Record<string, string> = {
-  washed: 'Daha temiz, parlak ve tanımlı fincanlar.',
-  natural: 'Daha meyvemsi, tatlı ve yoğun aromalar.',
-  honey: 'Tatlılık ve gövdeyi birlikte arayanlar için.',
-  anaerobic: 'Fermantasyon karakteri daha belirgin kahveler.',
-  semi_washed: 'Yıkanmış ile natürel arasında dengeli karakter.',
-  wet_hulled: 'Topraksı, baharatlı ve yoğun gövdeli profiller.',
+  washed: 'Meyve tabakaları kurutmadan önce uzaklaştırılır.',
+  natural: 'Kahve meyvesi çekirdeğiyle birlikte kurutulur.',
+  honey: 'Müsilajın bir kısmı kurutmada çekirdekte kalır; bal eklenmez.',
+  anaerobic: 'Oksijenin sınırlandığı fermantasyon adımı içerir.',
+  semi_washed: 'Kavurucunun yarı yıkanmış olarak belirttiği işlemler.',
+  wet_hulled: 'Çekirdek henüz nemliyken parşömen kabuğu ayrılır.',
   experimental: 'Alışılmışın dışında işleme denemeleri.',
 };
 

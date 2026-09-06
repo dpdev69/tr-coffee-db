@@ -3,6 +3,7 @@ import { appendFile } from 'node:fs/promises';
 import { ShopifyAdapter } from './adapters/shopify-adapter.js';
 import { WooCommerceAdapter } from './adapters/woocommerce-adapter.js';
 import { HtmlAdapter } from './adapters/html-adapter.js';
+import { ParsaAdapter } from './adapters/parsa-adapter.js';
 import { ALL_ROASTER_CONFIGS } from './roasters/configs.js';
 import type { RoasterConfig } from './types.js';
 import {
@@ -23,6 +24,7 @@ function parseTargetSlugs(args: string[]): string[] {
 }
 
 function createScraper(config: RoasterConfig) {
+  if (config.structuredDataParser === 'parsa-catalog') return new ParsaAdapter(config);
   switch (config.platform) {
     case 'shopify':
       return new ShopifyAdapter(config);

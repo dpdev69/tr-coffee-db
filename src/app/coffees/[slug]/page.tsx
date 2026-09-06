@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, unstable_rethrow } from 'next/navigation';
 import { getCoffeeBySlug, getSimilarCoffees } from '@/lib/queries/coffees';
+import { CompareToggle } from '@/components/coffee/compare-controls';
 import { BuyButton } from '@/components/coffee/buy-button';
 import { CoffeeGrid } from '@/components/coffee/coffee-grid';
 import { ReportIssueForm } from '@/components/coffee/report-issue-form';
@@ -14,8 +15,17 @@ import {
 } from '@/components/coffee/coffee-journey';
 import { Tag } from '@/components/ui/tag';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
-import { BREW_METHOD_LABELS, PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
-import { formatPackageWeight, formatVerifiedAt, getSourceHost } from '@/lib/coffee-display';
+import {
+  BREW_METHOD_LABELS,
+  PROCESS_LABELS,
+  ROAST_LABELS,
+} from '@/lib/constants/filter-options';
+import {
+  formatPackageWeight,
+  formatVerifiedAt,
+  getSourceHost,
+  getUnitPrice,
+} from '@/lib/coffee-display';
 import { SITE_NAME } from '@/lib/site';
 import { collectTrustedHosts } from '@/lib/trusted-url';
 import { getCoffeeJourney } from '@/lib/coffee-journey';
@@ -50,7 +60,9 @@ export async function generateMetadata({
   const description = `${roaster} kavurucusundan ${title}. ${
     coffee.origin_country ? `${coffee.origin_country} kökenli. ` : ''
   }${coffee.process !== 'unknown' ? `${PROCESS_LABELS[coffee.process] ?? coffee.process} işleme. ` : ''}${
-    coffee.price_amount ? `${coffee.price_amount.toLocaleString('tr-TR')} TL. ` : ''
+    coffee.price_amount
+      ? `${coffee.price_amount.toLocaleString('tr-TR')} TL. `
+      : ''
   }Güncel çekirdekleri TR CoffeeDB'de keşfedin.`;
 
   return {
@@ -131,7 +143,11 @@ export default async function CoffeeDetailPage({
   const brewRecipes = coffee.brew_recipes ?? [];
   const sourceHost = getSourceHost(coffee.product_url);
   const verifiedAt = formatVerifiedAt(coffee.last_seen_at);
-  const productUrlHosts = collectTrustedHosts([roaster.website_url, roaster.shop_url]);
+  const unitPrice = getUnitPrice(coffee);
+  const productUrlHosts = collectTrustedHosts([
+    roaster.website_url,
+    roaster.shop_url,
+  ]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -141,13 +157,21 @@ export default async function CoffeeDetailPage({
             Kahveler
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-[#1f1d1b]">{coffee.name_normalized ?? coffee.name}</span>
+          <span className="text-[#1f1d1b]">
+            {coffee.name_normalized ?? coffee.name}
+          </span>
         </nav>
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <a href="#journey" className="rounded-full border border-[#1f1d1b]/15 px-3 py-2 font-semibold hover:bg-white">
+          <a
+            href="#journey"
+            className="rounded-full border border-[#1f1d1b]/15 px-3 py-2 font-semibold hover:bg-white"
+          >
             Yolculuğa git
           </a>
-          <Link href="/rankings" className="rounded-full bg-[#1f1d1b] px-3 py-2 font-semibold text-white hover:bg-black">
+          <Link
+            href="/rankings"
+            className="rounded-full bg-[#1f1d1b] px-3 py-2 font-semibold text-white hover:bg-black"
+          >
             Sıralamaları gör
           </Link>
         </div>
@@ -165,7 +189,7 @@ export default async function CoffeeDetailPage({
         <div>
           <Link
             href={`/roasters/${roaster.slug}`}
-            className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7c3a20] hover:text-[#1f1d1b]"
+            className="text-xs font-semibold uppercase tracking-[0.22em] text-[#244b3d] hover:text-[#1f1d1b]"
           >
             {roaster.name} &middot; {roaster.city}
           </Link>
@@ -180,6 +204,10 @@ export default async function CoffeeDetailPage({
               İzlenebilirlik {journey.lot.traceability_score}/100
             </span>
           </div>
+          <p className="mt-2 text-xs text-[#625e57]">
+            İzlenebilirlik, paylaşılan bilgi kapsamını gösterir; lezzet puanı
+            değildir.
+          </p>
 
           <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
             {coffee.price_amount && (
@@ -194,6 +222,18 @@ export default async function CoffeeDetailPage({
             )}
           </div>
 
+          <p className="mt-2 text-sm text-[#625e57]">
+            {unitPrice !== null
+              ? `${unitPrice.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} TL / 100 g · `
+              : ''}
+            Kargo hariç. Son fiyat ve stok kavurucunun sitesindedir.
+          </p>
+          <div className="mt-4">
+            <CompareToggle
+              slug={coffee.slug}
+              name={coffee.name_normalized ?? coffee.name}
+            />
+          </div>
           <div className="mt-6">
             <BuyButton
               allowedHosts={productUrlHosts}
@@ -205,10 +245,17 @@ export default async function CoffeeDetailPage({
           </div>
 
           <div className="mt-6 grid grid-cols-3 gap-2">
-            <HeroFact label="Köken" value={coffee.origin_country ?? 'Belirsiz'} />
+            <HeroFact
+              label="Köken"
+              value={coffee.origin_country ?? 'Belirsiz'}
+            />
             <HeroFact
               label="İşleme"
-              value={coffee.process !== 'unknown' ? PROCESS_LABELS[coffee.process] ?? coffee.process : 'Belirsiz'}
+              value={
+                coffee.process !== 'unknown'
+                  ? (PROCESS_LABELS[coffee.process] ?? coffee.process)
+                  : 'Belirsiz'
+              }
             />
             <HeroFact label="Hasat" value={coffee.harvest_year ?? 'Belirsiz'} />
           </div>
@@ -221,21 +268,37 @@ export default async function CoffeeDetailPage({
             priority
           />
 
+          <div className="mt-6 rounded-xl border border-[#cbd4c4] bg-[#eef1e5] p-4">
+            <p className="text-sm leading-6 text-[#625e57]">
+              Nereden başlamalı? Demleme hesaplayıcıyla kahve ve su miktarını
+              bul. Kavurucunun bu çekirdeğe özel tarifi varsa onu da dene.
+            </p>
+            <Link href="/guide#calculator" className="text-link">
+              Demleme oranını hesapla ↗
+            </Link>
+          </div>
           <div className="mt-8 space-y-4">
             <h2 className="text-lg font-semibold text-[#1f1d1b]">Detaylar</h2>
             <dl className="divide-y divide-[#1f1d1b]/10 border-y border-[#1f1d1b]/10">
               {coffee.weight_grams && (
-                <SpecRow label="Paket" value={formatPackageWeight(coffee.weight_grams)} />
+                <SpecRow
+                  label="Paket"
+                  value={formatPackageWeight(coffee.weight_grams)}
+                />
               )}
-              <SpecRow label="Stok" value={coffee.is_available ? 'Stokta görünüyor' : 'Stokta yok'} />
-              <SpecRow label="Doğrulama" value={verifiedAt} />
-              {sourceHost && (
-                <SpecRow label="Kaynak" value={sourceHost} />
-              )}
+              <SpecRow
+                label="Stok"
+                value={coffee.is_available ? 'Stokta görünüyor' : 'Stokta yok'}
+              />
+              <SpecRow label="Kaynak kontrolü" value={verifiedAt} />
+              {sourceHost && <SpecRow label="Kaynak" value={sourceHost} />}
               {coffee.origin_country && (
-                <SpecRow label="Köken" value={
-                  [coffee.origin_country, coffee.origin_region].filter(Boolean).join(', ')
-                } />
+                <SpecRow
+                  label="Köken"
+                  value={[coffee.origin_country, coffee.origin_region]
+                    .filter(Boolean)
+                    .join(', ')}
+                />
               )}
               {coffee.origin_farm && (
                 <SpecRow label="Çiftlik" value={coffee.origin_farm} />
@@ -252,7 +315,7 @@ export default async function CoffeeDetailPage({
                   value={
                     coffee.process_detail
                       ? `${PROCESS_LABELS[coffee.process] ?? coffee.process} (${coffee.process_detail})`
-                      : PROCESS_LABELS[coffee.process] ?? coffee.process
+                      : (PROCESS_LABELS[coffee.process] ?? coffee.process)
                   }
                 />
               )}
@@ -272,11 +335,12 @@ export default async function CoffeeDetailPage({
                 <SpecRow label="Kavrum tarihi" value={coffee.roast_date} />
               )}
               {coffee.sca_score && (
-                <SpecRow label="Yayınlanan puan" value={String(coffee.sca_score)} />
+                <SpecRow
+                  label="Yayınlanan puan"
+                  value={String(coffee.sca_score)}
+                />
               )}
-              {coffee.is_decaf && (
-                <SpecRow label="Dekaf" value="Evet" />
-              )}
+              {coffee.is_decaf && <SpecRow label="Dekaf" value="Evet" />}
               {coffee.flavor_notes_normalized.length > 0 && (
                 <SpecRow
                   label="Tadım notları"
@@ -284,7 +348,7 @@ export default async function CoffeeDetailPage({
                     <div className="flex flex-wrap justify-end gap-2">
                       {coffee.flavor_notes_normalized.map((note) => {
                         const category = coffee.flavor_categories.find((cat) =>
-                          note.toLowerCase().includes(cat.toLowerCase())
+                          note.toLowerCase().includes(cat.toLowerCase()),
                         );
                         return (
                           <Tag key={note} category={category} size="sm">
@@ -315,15 +379,19 @@ export default async function CoffeeDetailPage({
 
           {brewRecipes.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-lg font-semibold text-[#1f1d1b]">Kavurucudan Öneri</h2>
+              <h2 className="text-lg font-semibold text-[#1f1d1b]">
+                Kavurucudan Öneri
+              </h2>
               <div className="mt-3 space-y-3">
                 {brewRecipes.map((recipe, index) => (
-                  <RecipeCard key={`${recipe.method}-${index}`} recipe={recipe} />
+                  <RecipeCard
+                    key={`${recipe.method}-${index}`}
+                    recipe={recipe}
+                  />
                 ))}
               </div>
             </div>
           )}
-
         </div>
       </div>
 
@@ -333,7 +401,9 @@ export default async function CoffeeDetailPage({
 
       {similar.length > 0 && (
         <section className="mt-16">
-          <h2 className="font-display text-4xl leading-none text-[#1f1d1b]">Benzer Kahveler</h2>
+          <h2 className="font-display text-4xl leading-none text-[#1f1d1b]">
+            Benzer Kahveler
+          </h2>
           <div className="mt-6">
             <CoffeeGrid coffees={similar} />
           </div>
@@ -349,7 +419,9 @@ function HeroFact({ label, value }: { label: string; value: string }) {
       <p className="font-mono text-[10px] font-semibold uppercase tracking-wide text-[#5d5853]">
         {label}
       </p>
-      <p className="mt-1 truncate text-sm font-semibold text-[#1f1d1b]">{value}</p>
+      <p className="mt-1 truncate text-sm font-semibold text-[#1f1d1b]">
+        {value}
+      </p>
     </div>
   );
 }
@@ -388,7 +460,7 @@ function CoffeeImage({
           alt={alt}
           fill
           sizes={sizes}
-          className="object-cover"
+          className="object-contain p-6"
           loading={priority ? 'eager' : 'lazy'}
         />
       ) : (
@@ -396,7 +468,9 @@ function CoffeeImage({
           <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[#1f1d1b]/15 bg-white text-2xl font-bold text-[#1f1d1b] shadow-sm">
             {getImageInitials(alt)}
           </div>
-          <span className="mt-4 text-sm font-medium text-[#5d5853]">Görsel bekleniyor</span>
+          <span className="mt-4 text-sm font-medium text-[#5d5853]">
+            Görsel bekleniyor
+          </span>
         </div>
       )}
     </div>
@@ -434,7 +508,7 @@ function RecipeCard({ recipe }: { recipe: CoffeeBrewRecipe }) {
     <article className="rounded-2xl border border-[#1f1d1b]/10 bg-white p-4">
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-sm font-bold text-[#1f1d1b]">{recipe.method}</h3>
-        <span className="rounded-md bg-[#ecff64] px-2 py-1 text-xs font-medium text-[#1f1d1b]">
+        <span className="rounded-md bg-[#e3ecbd] px-2 py-1 text-xs font-medium text-[#1f1d1b]">
           Kavurucu sayfasından
         </span>
       </div>

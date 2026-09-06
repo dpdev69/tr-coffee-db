@@ -25,7 +25,8 @@ jobs:
       # zero products, or time out while still having preserved catalog data.
       # Scheduled production refreshes keep the workflow green for these known
       # external outages; explicit `roasters=<slug>` dispatches remain hard probes.
-      SKIP_ROASTERS: ${{ github.event_name == 'schedule' && 'sezy' || '' }}
+      # Attempt every configured roaster so recovered sources stay current.
+      # The bounded retries and broad-run health gate handle external outages.
       ALLOW_ROASTER_FAILURES: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.roasters == '')) && 'parsa story milestones sezy cho-coffee' || '' }}
       # Broad refreshes retry once, then fail only when catalog-wide health drops
       # below 90%. A targeted manual probe still requires its roaster to succeed.

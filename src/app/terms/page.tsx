@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
+      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#244b3d]">
         Güven
       </p>
       <h1 className="mt-3 font-display text-5xl leading-none text-[#1f1d1b]">Kullanım Şartları</h1>

@@ -7,6 +7,12 @@ import { classifySpecialtyProduct } from '../scrapers/src/specialty-classificati
 import type { NormalizedCoffee, RawProduct } from '../scrapers/src/types';
 
 describe('isLikelyCatalogCoffeeProduct', () => {
+  it('rejects matcha and tea sets without rejecting tea tasting notes on coffee', () => {
+    for (const name of ['Matcha Seti', 'Matcha Demleme Seti', 'Tea Set', 'Çay Demleme Seti', 'Green Tea']) {
+      assert.equal(isLikelyCatalogCoffeeProduct([name, 'Kahve']), false, name);
+    }
+    assert.equal(isLikelyCatalogCoffeeProduct(['Ethiopia Guji', 'Black tea, jasmine']), true);
+  });
   it('excludes Turkish filter-paper product titles with dotted Turkish characters', () => {
     assert.equal(isLikelyCatalogCoffeeProduct(['ABACA Filtre Kağıdı']), false);
     assert.equal(isLikelyCatalogCoffeeProduct(['Cafec Abaca PLUS Filtre Kağıdı-CUP4']), false);
@@ -47,6 +53,21 @@ describe('isLikelyCatalogCoffeeProduct', () => {
     assert.equal(isLikelyCatalogCoffeeProduct(['Kakao']), false);
     assert.equal(isLikelyCatalogCoffeeProduct(['Çikolata Bar']), false);
     assert.equal(isLikelyCatalogCoffeeProduct(['PAU BRASIL (K.Vişne, Bdem, Bitter Çikolata)']), true);
+    assert.equal(isLikelyCatalogCoffeeProduct(['Etiyopya Yaye Natural / Cocoa']), true);
+    assert.equal(isLikelyCatalogCoffeeProduct(['CEMORRADO CHOCOLATE/NATURAL']), true);
+    assert.equal(isLikelyCatalogCoffeeProduct(['Colombia Finca Milan Passion Fruit']), true);
+  });
+
+  it('excludes coffee samplers and Paper chocolate bars despite the coffee category', () => {
+    // Mixed Fruit Box contains four 50 g coffee samples, not a single coffee for comparison.
+    for (const name of [
+      'Mixed Fruit Box - 200 gr',
+      'Reserve Gift Set',
+      'Paper Chocolate - El Salvador La Carrera %25 Kakao Nibi - Sütlü Çikolata',
+      'Paper Chocolate - El Salvador La Carrera %70 Kakao Nibi - Bitter Çikolata',
+    ]) {
+      assert.equal(isLikelyCatalogCoffeeProduct([name, 'Kahve', 'Kahveler']), false, name);
+    }
   });
 });
 
@@ -96,7 +117,7 @@ describe('classifySpecialtyProduct', () => {
     assert.equal(result.is_public, false);
   });
 
-  it('rejects stale non-bean catalog entries that previously looked like coffee', () => {
+  it('rejects stale accessories, non-coffee products, and bundles before scoring', () => {
     for (const name of [
       'Baristocrat Sample Box',
       'Origami Air S',
@@ -104,6 +125,12 @@ describe('classifySpecialtyProduct', () => {
       'Cold Brew Black & Strong Cam Şişe 200 Ml.',
       'Wastepresso & Candle + Friends Kahve Posalı Mum',
       'Aşırı Kolay Cold Brew',
+      'Matcha Seti',
+      'Matcha Demleme Seti',
+      'Mixed Fruit Box - 200 gr',
+      'Reserve Gift Set',
+      'Paper Chocolate - El Salvador La Carrera %25 Kakao Nibi - Sütlü Çikolata',
+      'Paper Chocolate - El Salvador La Carrera %70 Kakao Nibi - Bitter Çikolata',
     ]) {
       const result = classifySpecialtyProduct(
         makeClassificationInput({

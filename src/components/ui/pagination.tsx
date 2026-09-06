@@ -52,7 +52,7 @@ export function Pagination({
             onClick={() => goToPage(page)}
             className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-3 text-sm font-medium ${
               page === currentPage
-                ? 'bg-[#ecff64] text-[#1f1d1b]'
+                ? 'bg-[#e3ecbd] text-[#1f1d1b]'
                 : 'text-[#1f1d1b]/70 hover:bg-[#f6f1e8]'
             }`}
           >

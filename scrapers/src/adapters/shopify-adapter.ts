@@ -49,7 +49,12 @@ export class ShopifyAdapter extends BaseScraper {
       for (const product of data.products) {
         if (!this.isCoffeeProduct(product)) continue;
 
-        const variant = this.pickBestVariant(product.variants);
+        // Some stores categorize bottled cold brew as freshly roasted coffee.
+        // Package identity excludes the drink without excluding beans intended for cold brew.
+        const catalogVariants = product.variants.filter((variant) => !/\bcam\s*[şs]i[şs]e\b/i.test(variant.title));
+        if (product.variants.length > 0 && catalogVariants.length === 0) continue;
+
+        const variant = this.pickBestVariant(catalogVariants);
         const weightGrams = this.extractWeight(variant, product);
         const productUrl = normalizeRoasterProductUrl(
           `/products/${product.handle}`,
@@ -68,8 +73,8 @@ export class ShopifyAdapter extends BaseScraper {
           weightGrams,
           imageUrl: normalizeRoasterImageUrl(product.images[0]?.src, this.config),
           productUrl,
-          isAvailable: product.variants.some((v) => v.available),
-          variants: product.variants.map((v) => ({
+          isAvailable: catalogVariants.some((v) => v.available),
+          variants: catalogVariants.map((v) => ({
             id: String(v.id),
             title: v.title,
             price: parseFloat(v.price),

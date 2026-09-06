@@ -17,8 +17,8 @@ describe('data-source failure surfaces', () => {
   });
 
   it('does not advertise fallback homepage counts when live stats fail', () => {
-    assert.match(homepageSource, /Canlı katalog sayıları şu an yüklenemiyor\./);
-    assert.match(homepageSource, /tahmini sayı göstermiyoruz/);
+    assert.match(homepageSource, /Katalog şu an yüklenemiyor\./);
+    assert.match(homepageSource, /!catalogUnavailable && stats.totalCoffees > 0/);
     assert.doesNotMatch(homepageSource, /totalCoffees\s*\|\|\s*['"`]100\+/);
   });
 

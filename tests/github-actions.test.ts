@@ -9,6 +9,7 @@ describe('GitHub Actions workflows', () => {
     assert.match(source, /ALLOW_ROASTER_FAILURES/);
     assert.match(source, /SCRAPE_MAX_ATTEMPTS/);
     assert.match(source, /MIN_SCRAPE_SUCCESS_RATE/);
+    assert.doesNotMatch(source, /SKIP_ROASTERS:/);
     assert.match(source, /0\.90/);
     assert.match(source, /parsa/);
     assert.match(source, /story/);

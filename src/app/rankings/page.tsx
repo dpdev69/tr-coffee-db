@@ -35,7 +35,7 @@ export default async function RankingsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <section className="overflow-hidden rounded-[30px] bg-[#171513] px-6 py-9 text-white sm:px-9 sm:py-12 lg:px-12">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.24em] text-[#ecff64]">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.24em] text-[#e3ecbd]">
           Market intelligence
         </p>
         <div className="mt-4 grid gap-8 lg:grid-cols-[1fr_0.7fr] lg:items-end">
@@ -129,7 +129,7 @@ function RankingPanel({
 }) {
   return (
     <section className="rounded-[26px] border border-[#1f1d1b]/10 bg-white p-5 sm:p-7">
-      <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[#7c3a20]">
+      <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[#244b3d]">
         {eyebrow}
       </p>
       <h2 className="mt-2 font-display text-3xl leading-none text-[#1f1d1b]">{title}</h2>

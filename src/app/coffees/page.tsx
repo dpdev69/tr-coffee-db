@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { unstable_rethrow } from 'next/navigation';
 import { Suspense } from 'react';
+import Link from 'next/link';
+import { SearchInput } from '@/components/ui/search-input';
 import {
   applyPublicCatalogCoffeeVisibility,
   getCoffees,
@@ -48,27 +50,41 @@ export default async function CoffeesPage({
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <div className="mb-7 max-w-3xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#244b3d]">
           Kahve kataloğu
         </p>
-        <h1 className="mt-3 font-display text-5xl leading-none text-[#1f1d1b]">
-          Güncel çekirdekleri tara.
+        <h1 className="mt-3 font-display text-4xl leading-[1.1] sm:text-5xl text-[#1f1d1b]">
+          Sana uygun çekirdeği bul.
         </h1>
         <p className="mt-4 text-sm leading-6 text-[#5d5853] sm:text-base">
-          Köken, işleme, kavrum, demleme yöntemi ve kavurucunun verdiği fiyatla
-          sana yakın kahveleri hızlıca daralt.
+          Tat, köken ve demleme yöntemine göre daralt. Seçtiğin kahveleri yan
+          yana karşılaştır; farklı paketler için 100 g fiyatına bak.
         </p>
+      </div>
+      <div className="flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1">
+          <Suspense fallback={<div className="h-11 rounded-lg bg-stone-100" />}>
+            <SearchInput />
+          </Suspense>
+        </div>
+        <Link href="/guide" className="text-link">
+          Seçim rehberi ↗
+        </Link>
       </div>
       <div className="mt-5 flex flex-col gap-5 lg:mt-8 lg:flex-row lg:gap-8">
         {/* Sidebar */}
         <div className="w-full shrink-0 lg:w-64">
-          <Suspense fallback={<div className="h-14 animate-pulse rounded bg-stone-100 lg:h-96" />}>
+          <Suspense
+            fallback={
+              <div className="h-14 animate-pulse rounded bg-stone-100 lg:h-96" />
+            }
+          >
             <FiltersLoader />
           </Suspense>
         </div>
 
         {/* Main grid */}
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <Suspense
             fallback={
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
@@ -98,10 +114,8 @@ async function FiltersLoader() {
 
     const [countryResult, roasterResult] = await Promise.all([
       applyPublicCatalogCoffeeVisibility(
-        supabase
-          .from('coffees')
-          .select('origin_country'),
-        currentCutoff
+        supabase.from('coffees').select('origin_country'),
+        currentCutoff,
       ).not('origin_country', 'is', null),
       supabase
         .from('roasters')
@@ -110,11 +124,14 @@ async function FiltersLoader() {
         .order('name'),
     ]);
 
+    if (countryResult.error) throw countryResult.error;
+    if (roasterResult.error) throw roasterResult.error;
+
     countries = [
       ...new Set(
         ((countryResult.data ?? []) as { origin_country: string | null }[])
           .map((c) => c.origin_country)
-          .filter((c): c is string => c !== null)
+          .filter((c): c is string => c !== null),
       ),
     ].sort();
 
@@ -147,9 +164,13 @@ async function CoffeesLoader({
 }) {
   const filters: CoffeeFilters = parseCoffeeFilters(params);
 
-  let result = { coffees: [], total: 0, page: 1, perPage: 24, totalPages: 0 } as Awaited<
-    ReturnType<typeof getCoffees>
-  >;
+  let result = {
+    coffees: [],
+    total: 0,
+    page: 1,
+    perPage: 24,
+    totalPages: 0,
+  } as Awaited<ReturnType<typeof getCoffees>>;
   let catalogUnavailable = false;
 
   try {
@@ -177,12 +198,9 @@ async function CoffeesLoader({
   return (
     <>
       <ActiveFilterSummary filters={filters} total={result.total} />
-      <CoffeeGrid coffees={result.coffees} />
+      <CoffeeGrid coffees={result.coffees} catalog />
       {result.totalPages > 1 && (
-        <Pagination
-          currentPage={result.page}
-          totalPages={result.totalPages}
-        />
+        <Pagination currentPage={result.page} totalPages={result.totalPages} />
       )}
     </>
   );
@@ -198,7 +216,12 @@ function getFilterLogContext(filters: CoffeeFilters) {
     activeFilterKeys: Object.entries(filters)
       .filter(([, value]) => {
         if (Array.isArray(value)) return value.length > 0;
-        return value !== undefined && value !== null && value !== 'newest' && value !== 24;
+        return (
+          value !== undefined &&
+          value !== null &&
+          value !== 'newest' &&
+          value !== 24
+        );
       })
       .map(([key]) => key)
       .sort(),

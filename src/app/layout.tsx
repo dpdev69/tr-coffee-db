@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_URL } from "@/lib/site";
+import { CompareDock } from "@/components/coffee/compare-controls";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -64,9 +65,11 @@ export default function RootLayout({
       lang="tr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-[#fffdf8] font-sans text-[#1f1d1b]">
+      <body className="flex min-h-full flex-col bg-[#faf9f6] font-sans text-[#1f1d1b]">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:p-4">İçeriğe geç</a>
         <Header />
-        <main className="flex-1">{children}</main>
+        <main id="main-content" className="flex-1">{children}</main>
+        <CompareDock />
         <Footer />
         <Analytics />
       </body>

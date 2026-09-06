@@ -19,6 +19,7 @@ type RoasterSitemapRow = Pick<
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
+    { url: absoluteUrl('/guide'), changeFrequency: 'monthly', priority: 0.8 },
     {
       url: absoluteUrl('/'),
       lastModified: new Date(),

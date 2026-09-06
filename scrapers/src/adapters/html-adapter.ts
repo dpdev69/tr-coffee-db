@@ -837,7 +837,9 @@ export class HtmlAdapter extends BaseScraper {
       haystack.includes(keyword.toLowerCase())
     );
 
-    if (!isLikelyCatalogCoffeeProduct(parts) && !configKeywordMatches) {
+    // Descriptions contain brew recommendations and sometimes embedded CSS
+    // (for example Story's "scale-bar"). They do not identify the item for sale.
+    if (!isLikelyCatalogCoffeeProduct([product.name, ...categoryNames, ...tagNames])) {
       return false;
     }
 
@@ -948,6 +950,7 @@ export class HtmlAdapter extends BaseScraper {
 
   private stripHtml(html: string) {
     return html
+      .replace(/<(script|style|noscript)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
       .replace(/<br\s*\/?>/gi, '\n')
       .replace(/<[^>]+>/g, ' ')
       .replace(/&nbsp;/g, ' ')
@@ -981,6 +984,7 @@ export function parseProductPagePackageSelection(
     ...extractAnchorPackageOptions($, config, basePrice),
     ...extractDefinitionListPackageOptions($, config, basePrice),
   ];
+  if (candidates.length === 0) candidates.push(...extractStructuredPackageOptions($, config));
 
   return candidates
     .filter((candidate) => candidate.weightGrams != null)
@@ -1000,6 +1004,42 @@ export function parseProductPagePackageSelection(
       return (left.price ?? Number.POSITIVE_INFINITY)
         - (right.price ?? Number.POSITIVE_INFINITY);
     })[0] ?? null;
+}
+
+function extractStructuredPackageOptions(
+  $: ReturnType<typeof cheerio.load>,
+  config: RoasterConfig
+): DetailPackageSelection[] {
+  const products: Array<Record<string, unknown>> = [];
+  $('script[type="application/ld+json"]').each((_, element) => {
+    try {
+      const data = JSON.parse($(element).text());
+      const entries = Array.isArray(data) ? data : [data];
+      for (const entry of entries) {
+        if (entry?.['@type'] === 'Product') products.push(entry);
+      }
+    } catch { /* Ignore malformed optional structured data. */ }
+  });
+  // Avoid pairing a recommendation's weight with the main product's offer.
+  if (products.length !== 1) return [];
+  const product = products[0];
+  const offer = product.offers as Record<string, unknown> | undefined;
+  if (!offer || Array.isArray(offer) || offer.priceCurrency !== 'TRY') return [];
+  const description = typeof product.description === 'string' ? product.description : '';
+  const weights = [...new Set(
+    (description.match(/\b\d+(?:[.,]\d+)?\s*(?:kg|gr|g)\b/gi) ?? [])
+      .map(parsePackageWeight).filter((weight): weight is number => weight !== null)
+  )];
+  if (weights.length !== 1) return [];
+  const price = parseCatalogPriceText(String(offer.price ?? ''), config);
+  if (price === null || price <= 0) return [];
+  return [{
+    price,
+    weightGrams: weights[0],
+    label: `${weights[0]} g`,
+    text: `${weights[0]} g`,
+    isAvailable: typeof offer.availability === 'string' && /\/InStock$/.test(offer.availability),
+  }];
 }
 
 export function parseProductPageMetadata(html: string) {
@@ -1365,6 +1405,8 @@ function normalizeTurkishText(text: string) {
 
 export function parseCatalogPriceText(text: string, config: RoasterConfig): number | null {
   const compactText = text.replace(/\s+/g, ' ').trim();
+  // International storefront responses must never be relabeled as Turkish lira.
+  if (/[$€£]|\b(?:USD|EUR|GBP)\b/i.test(compactText)) return null;
   const firstPriceText = compactText.match(/\d[\d.,]*/)?.[0];
 
   if (!firstPriceText) return null;

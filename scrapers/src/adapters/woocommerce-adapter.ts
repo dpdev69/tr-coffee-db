@@ -129,14 +129,6 @@ export class WooCommerceAdapter extends BaseScraper {
           }
         }
 
-        // If Store API fails, try legacy WC REST API
-        if (page === 1) {
-          console.warn(
-            `[${this.config.slug}] Store API failed, trying v3 API...`
-          );
-          return this.fetchFromLegacyApi();
-        }
-
         const message = error instanceof Error ? error.message : String(error);
         throw new Error(
           `WooCommerce Store API failed on page ${page}: ${message}`
@@ -625,12 +617,6 @@ export class WooCommerceAdapter extends BaseScraper {
 
     const value = Number.parseInt(bareGrams[0], 10);
     return Number.isFinite(value) && value > 0 ? value : null;
-  }
-
-  private async fetchFromLegacyApi(): Promise<RawProduct[]> {
-    // v3 REST API typically requires auth — just return empty
-    console.warn(`[${this.config.slug}] Legacy API requires auth, skipping`);
-    return [];
   }
 
   private stripHtml(html: string): string {

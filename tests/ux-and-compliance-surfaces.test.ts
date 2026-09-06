@@ -38,7 +38,7 @@ describe('UX and compliance surfaces', () => {
     assert.doesNotMatch(source, /Bilgi eksik/);
   });
 
-  it('uses natural Turkish discovery copy without 100 g comparison messaging', () => {
+  it('uses natural Turkish discovery copy with clear unit-price comparison', () => {
     const surfaces = [
       'src/app/page.tsx',
       'src/app/coffees/page.tsx',
@@ -51,9 +51,9 @@ describe('UX and compliance surfaces', () => {
     assert.doesNotMatch(surfaces, /Adil Karşılaştır/);
     assert.doesNotMatch(surfaces, /Tercihime Göre/);
     assert.doesNotMatch(surfaces, /fiyat filtresi|bütçe|5 kısa/i);
-    assert.doesNotMatch(surfaces, /100 g|100g|TL\/100/i);
+    assert.match(surfaces, /100 g/);
     assert.match(surfaces, /4 kısa soruyu/);
-    assert.match(surfaces, /Kahveyi bul\. Yolculuğunu gör/);
+    assert.match(surfaces, /Kahve ara/);
   });
 
   it('keeps database filter metadata explicit without exposing 100 g price ranges', () => {

@@ -22,7 +22,7 @@ export function ActiveFilterSummary({
           <p className="mt-1 hidden text-sm text-[#5d5853] sm:block">
             {hasActiveFilters
               ? 'Bu liste seçtiğiniz filtrelere ve tercihlerinize göre daraltıldı.'
-              : 'Katalog stokta görünen, yayına açık specialty kahvelerle sınırlıdır.'}
+              : 'Kavurucuların sitelerinde son 3 günde satışta görülen çekirdekler.'}
           </p>
         </div>
 
@@ -44,7 +44,7 @@ export function ActiveFilterSummary({
               href={chip.removeHref}
               scroll={false}
               aria-label={`${chip.label} filtresini kaldır`}
-              className="group inline-flex max-w-full items-center gap-1.5 rounded-full border border-[#1f1d1b]/10 bg-[#f6f1e8] py-0.5 pl-2 pr-1 text-xs font-medium text-[#1f1d1b]/75 transition-colors hover:bg-[#ecff64] hover:text-[#1f1d1b] focus:outline-none focus:ring-2 focus:ring-[#1f1d1b] focus:ring-offset-2"
+              className="group inline-flex max-w-full items-center gap-1.5 rounded-full border border-[#1f1d1b]/10 bg-[#f6f1e8] min-h-9 py-1 pl-3 pr-2 text-xs font-medium text-[#1f1d1b]/75 transition-colors hover:bg-[#e3ecbd] hover:text-[#1f1d1b] focus:outline-none focus:ring-2 focus:ring-[#1f1d1b] focus:ring-offset-2"
             >
               <span className="truncate">{chip.label}</span>
               <span

@@ -45,7 +45,7 @@ export default async function RoastersPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <div className="max-w-3xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#244b3d]">
           Kavurucular
         </p>
         <h1 className="mt-3 font-display text-5xl leading-none text-[#1f1d1b]">

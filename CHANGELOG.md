@@ -2,6 +2,27 @@
 
 All notable changes to TR CoffeeDB are documented here.
 
+## [Unreleased]
+
+### Added
+
+- Compare up to three current coffees side by side, with shareable URLs and a browser-local shortlist.
+- A Turkish coffee guide and dose calculator with sourced filter, espresso, French press and AeroPress starting recipes.
+- Separate package-price and 100 g price sorting, plus a visible decaf filter.
+- PostgreSQL CI that replays migrations and verifies scraper writes synchronize journey records.
+
+### Changed
+
+- Discovery now starts with search and current coffees, with consistent navigation, contained product imagery, readable cards and mobile controls.
+- Cards and details show exact package weights and comparable unit prices; freshness labels describe source checks rather than independent verification.
+
+### Fixed
+
+- The journey trigger can resolve UUID extension functions in Supabase, restoring catalog imports.
+- Catalog summary and related-coffee query failures no longer appear as valid empty data.
+- Image health cannot pass with an expired, empty catalog.
+- Popularity rankings exclude coffees with no recorded interest, and quiz results receive keyboard focus.
+
 ## [0.2.0.0] - 2026-07-13
 
 ### Added

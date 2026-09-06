@@ -112,6 +112,15 @@ const EXCLUDED_ANYWHERE_PATTERNS = [
 ];
 
 const EXCLUDED_PRODUCT_NAME_PATTERNS = [
+  // Paper files chocolate bars under Kahve; its Mixed Fruit Box is four 50 g coffee samples.
+  // Both belong outside single-coffee comparisons, while chocolate/fruit tasting notes stay valid.
+  /^paper\s+chocolate\b/i,
+  /^mixed\s+fruit\s+box\b/i,
+  /\bgift\s*set\b/i,
+  /\b(?:matcha|chasen|chawan)\b/i,
+  /(?:^|\s)(?:çay|cay|tea)\s+(?:demleme\s+)?(?:seti?|kit)\b/i,
+  /^(?:yeşil|yesil|siyah|bitki)\s+çay[ıi]?(?:\s|$)/i,
+  /^(?:green|black|herbal)\s+tea(?:\s|$)/i,
   /^(?:kakao|çikolata|cikolata)(?:\s+(?:bar|tablet|tozu|nibs?))?$/i,
   /(?:^|\s)(?:kakao|çikolata|cikolata)\s+(?:bar|tablet|tozu|nibs?)\b/i,
 ];

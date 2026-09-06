@@ -12,6 +12,45 @@ permissions:
   contents: read
 
 jobs:
+  database:
+    name: Database CI
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: coffee_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGDATABASE: coffee_test
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Bootstrap Supabase roles and extension schema
+        run: psql --set ON_ERROR_STOP=1 --file tests/sql/bootstrap.sql
+
+      - name: Apply all database migrations
+        run: |
+          for migration in supabase/migrations/*.sql; do
+            psql --set ON_ERROR_STOP=1 --file "$migration"
+          done
+
+      - name: Verify scraper writes synchronize coffee journeys
+        run: psql --set ON_ERROR_STOP=1 --file tests/sql/coffee-journey-trigger.sql
+
   web:
     name: Web CI
     runs-on: ubuntu-latest

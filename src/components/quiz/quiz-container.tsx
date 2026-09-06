@@ -25,7 +25,9 @@ export function QuizContainer() {
   const hasAnySelections = hasQuizSelections(answers);
   const selectedValues = getSelectedValues(current, answers);
   const selectedCount = selectedValues.length;
-  const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const [validationMessage, setValidationMessage] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     if (stepIndex === 0) return;
@@ -51,7 +53,7 @@ export function QuizContainer() {
     if (isLastStep) {
       if (!hasAnySelections) {
         setValidationMessage(
-          'Sonuçları daraltmak için en az bir tercih seçin ya da tüm kataloğu açın.'
+          'Sonuçları daraltmak için en az bir tercih seçin ya da tüm kataloğu açın.',
         );
         return;
       }
@@ -76,17 +78,21 @@ export function QuizContainer() {
         ref={cardRef}
         className="scroll-mt-28 rounded-[24px] border border-[#1f1d1b]/10 bg-white p-5 text-center sm:p-8"
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#ecff64] text-[#1f1d1b]">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#e3ecbd] text-[#1f1d1b]">
           <CheckIcon />
         </div>
-        <h2 className="mt-4 font-display text-3xl leading-none text-[#1f1d1b]">
+        <h2
+          ref={questionRef}
+          tabIndex={-1}
+          className="mt-4 font-display text-3xl leading-none text-[#1f1d1b]"
+        >
           Tercihlerine göre listeyi hazırladık.
         </h2>
         <p className="mt-2 text-[#5d5853]">
           Seçimlerin doğrudan katalog filtrelerine çevrildi.
         </p>
         {result.explanations.length > 0 && (
-          <div className="mx-auto mt-5 max-w-xl rounded-2xl border border-[#1f1d1b]/10 bg-[#fffdf8] p-4 text-left">
+          <div className="mx-auto mt-5 max-w-xl rounded-2xl border border-[#1f1d1b]/10 bg-[#faf9f6] p-4 text-left">
             <h3 className="text-sm font-semibold text-[#1f1d1b]">
               Uygulanacak filtreler
             </h3>
@@ -101,7 +107,7 @@ export function QuizContainer() {
           </div>
         )}
         {result.explanations.length === 0 && (
-          <p className="mx-auto mt-5 max-w-xl rounded-2xl border border-[#1f1d1b]/10 bg-[#fffdf8] p-4 text-sm text-[#5d5853]">
+          <p className="mx-auto mt-5 max-w-xl rounded-2xl border border-[#1f1d1b]/10 bg-[#faf9f6] p-4 text-sm text-[#5d5853]">
             Filtre seçmedin; katalogdaki tüm güncel kahveleri göstereceğiz.
           </p>
         )}
@@ -126,13 +132,18 @@ export function QuizContainer() {
   }
 
   return (
-    <div ref={cardRef} className="scroll-mt-28 rounded-[24px] border border-[#1f1d1b]/10 bg-white p-5 sm:p-6">
+    <div
+      ref={cardRef}
+      className="scroll-mt-28 rounded-[24px] border border-[#1f1d1b]/10 bg-white p-5 sm:p-6"
+    >
       <div className="mb-7">
         <div className="flex items-center justify-between gap-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#1f1d1b]/45">
           <span>
             Soru {stepIndex + 1} / {QUIZ_STEPS.length}
           </span>
-          <span>{selectedCount > 0 ? `${selectedCount} seçim` : 'Opsiyonel'}</span>
+          <span>
+            {selectedCount > 0 ? `${selectedCount} seçim` : 'Opsiyonel'}
+          </span>
         </div>
         <div
           className="mt-3 flex gap-1"
@@ -175,7 +186,7 @@ export function QuizContainer() {
               aria-pressed={isSelected}
               className={`flex min-h-[96px] items-start gap-3 rounded-xl border px-4 py-4 text-left transition-colors ${
                 isSelected
-                  ? 'border-[#1f1d1b] bg-[#ecff64] text-[#1f1d1b]'
+                  ? 'border-[#1f1d1b] bg-[#e3ecbd] text-[#1f1d1b]'
                   : 'border-[#1f1d1b]/12 bg-white text-[#1f1d1b] hover:border-[#1f1d1b]/30 hover:bg-[#f6f1e8]'
               }`}
             >
@@ -190,7 +201,9 @@ export function QuizContainer() {
                 <SmallCheckIcon />
               </span>
               <span className="min-w-0">
-                <span className="block text-sm font-semibold leading-5">{opt.label}</span>
+                <span className="block text-sm font-semibold leading-5">
+                  {opt.label}
+                </span>
                 {opt.description && (
                   <span className="mt-1 block text-xs leading-5 text-[#5d5853]">
                     {opt.description}
@@ -303,7 +316,11 @@ function ArrowRightIcon() {
       stroke="currentColor"
       aria-hidden="true"
     >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M5 12h14m-6-6 6 6-6 6"
+      />
     </svg>
   );
 }
@@ -318,7 +335,11 @@ function ArrowLeftIcon() {
       stroke="currentColor"
       aria-hidden="true"
     >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m6 6-6-6 6-6" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19 12H5m6 6-6-6 6-6"
+      />
     </svg>
   );
 }

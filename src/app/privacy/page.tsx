@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#7c3a20]">
+      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#244b3d]">
         Güven
       </p>
       <h1 className="mt-3 font-display text-5xl leading-none text-[#1f1d1b]">Gizlilik</h1>
@@ -70,9 +70,10 @@ export default function PrivacyPage() {
 
         <PolicySection title="Kontrol sizde">
           <p>
-            TR CoffeeDB&apos;de hesap veya profil olmadığı için saklanan kişisel tercihleri
-            yönetmeniz gerekmez. Tarayıcınızdaki çerez ve site verilerini dilediğiniz
-            zaman silebilirsiniz.
+            Karşılaştırma listeniz, bu tarayıcının yerel depolamasında en fazla üç kahvenin
+            kimliği olarak saklanır. Bir hesapla eşleştirilmez. Karşılaştırma çubuğundaki
+            temizleme düğmesiyle veya tarayıcınızın site verilerini silerek kaldırabilirsiniz.
+            Paylaştığınız karşılaştırma adresi, seçilen kahveleri adresin içinde taşır.
           </p>
         </PolicySection>
       </div>

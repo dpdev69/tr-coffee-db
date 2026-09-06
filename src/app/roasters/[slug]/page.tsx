@@ -70,7 +70,7 @@ export default async function RoasterDetailPage({
       <div className="flex flex-col gap-5 rounded-[24px] border border-[#1f1d1b]/10 bg-white p-5 sm:flex-row sm:items-center">
         <RoasterAvatar name={roaster.name} logoUrl={roaster.logo_url} size="lg" />
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7c3a20]">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#244b3d]">
             Kavurucu
           </p>
           <h1 className="mt-1 font-display text-4xl leading-none text-[#1f1d1b]">{roaster.name}</h1>

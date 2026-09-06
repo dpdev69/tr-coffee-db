@@ -1,150 +1,126 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { SearchInput } from '@/components/ui/search-input';
 
+const links = [
+  { href: '/coffees', label: 'Kahveler' },
+  { href: '/roasters', label: 'Kavurucular' },
+  { href: '/rankings', label: 'Sıralamalar' },
+  { href: '/guide', label: 'Kahve rehberi' },
+];
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
-
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const pathname = usePathname();
   useEffect(() => {
     if (!mobileMenuOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const close = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMobileMenuOpen(false);
-        mobileMenuButtonRef.current?.focus();
+        buttonRef.current?.focus();
       }
     };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
   }, [mobileMenuOpen]);
-
   return (
-    <header className="sticky top-0 z-50 border-b border-[#1f1d1b]/10 bg-white">
-      <div className="bg-[#8b3f24] px-4 py-2 text-center text-xs font-semibold text-white sm:text-sm">
-        Çekirdekten fincana, Türkiye&apos;de satılan specialty kahvenin yolculuğunu keşfet.
-      </div>
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-        <nav className="hidden min-w-0 flex-1 items-center gap-1 md:flex">
-          <HeaderLink href="/coffees">Kahveler</HeaderLink>
-          <HeaderLink href="/roasters">Kavurucular</HeaderLink>
-          <HeaderLink href="/rankings">Sıralamalar</HeaderLink>
-          <HeaderLink href="/quiz">Kahve Bul</HeaderLink>
-        </nav>
-
+    <header className="sticky top-0 z-50 border-b border-[#dedfd7] bg-[#faf9f6]/95 backdrop-blur-md">
+      <div className="page-shell flex h-[76px] items-center justify-between gap-6">
         <Link
           href="/"
-          className="flex min-h-11 shrink-0 items-center justify-center text-center"
           aria-label="TR CoffeeDB ana sayfa"
+          onClick={() => setMobileMenuOpen(false)}
+          className="flex min-h-11 shrink-0 items-center gap-2.5"
         >
-          <span className="text-[1.65rem] font-black leading-none tracking-tight text-[#1f1d1b]">
-            TR CoffeeDB
+          <span
+            aria-hidden="true"
+            className="grid h-9 w-9 place-items-center rounded-full bg-[#244b3d] font-display text-lg italic text-white"
+          >
+            c.
+          </span>
+          <span className="text-xl font-bold tracking-tight text-[#1f1d1b]">
+            TR CoffeeDB<span className="ml-1 text-[#507960]">.</span>
           </span>
         </Link>
-
-        <div className="hidden min-w-0 flex-1 items-center justify-end gap-3 md:flex">
-          <div className="w-60 lg:w-72">
-            <Suspense fallback={<div className="h-11 w-full animate-pulse rounded-lg bg-[#f2eadf]" />}>
-              <SearchInput />
-            </Suspense>
-          </div>
+        <nav
+          aria-label="Ana menü"
+          className="hidden items-center gap-1 lg:flex"
+        >
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={pathname.startsWith(link.href) ? 'page' : undefined}
+              className={`inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors hover:bg-[#e9edde] ${pathname.startsWith(link.href) ? 'bg-[#e9edde] text-[#244b3d]' : 'text-[#625e57]'}`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="flex items-center gap-2">
           <Link
             href="/quiz"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-[#1f1d1b] px-5 text-sm font-semibold text-white transition-colors hover:bg-black"
+            className="hidden min-h-11 items-center gap-4 rounded-lg bg-[#244b3d] px-4 text-sm font-semibold text-white hover:bg-[#163629] sm:inline-flex"
           >
-            Başla
+            Kahvemi bul <span aria-hidden="true">↗</span>
           </Link>
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
+            className="grid h-11 w-11 place-items-center rounded-lg border border-[#cbd0c2] text-[#244b3d] lg:hidden"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              aria-hidden="true"
+            >
+              <path
+                d={
+                  mobileMenuOpen
+                    ? 'M6 6l12 12M6 18 18 6'
+                    : 'M4 7h16M4 12h16M4 17h16'
+                }
+              />
+            </svg>
+          </button>
         </div>
-
-        <button
-          type="button"
-          ref={mobileMenuButtonRef}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-[#1f1d1b] hover:bg-[#f6f1e8] md:hidden"
-          aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
-          aria-expanded={mobileMenuOpen}
-          aria-controls="mobile-menu"
-        >
-          {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
-        </button>
       </div>
-
       {mobileMenuOpen && (
         <div
           id="mobile-menu"
-          className="border-t border-[#1f1d1b]/10 bg-white px-4 py-4 md:hidden"
+          className="border-t border-[#dedfd7] bg-[#faf9f6] px-5 pb-5 pt-3 lg:hidden"
         >
-          <div className="mb-4">
-            <Suspense fallback={<div className="h-11 w-full animate-pulse rounded-lg bg-[#f2eadf]" />}>
-              <SearchInput onSearch={() => setMobileMenuOpen(false)} />
-            </Suspense>
-          </div>
-          <nav className="grid gap-1">
-            <MobileLink href="/coffees" onClick={() => setMobileMenuOpen(false)}>
-              Kahveler
-            </MobileLink>
-            <MobileLink href="/roasters" onClick={() => setMobileMenuOpen(false)}>
-              Kavurucular
-            </MobileLink>
-            <MobileLink href="/rankings" onClick={() => setMobileMenuOpen(false)}>
-              Sıralamalar
-            </MobileLink>
-            <MobileLink href="/quiz" onClick={() => setMobileMenuOpen(false)}>
-              Kahve Bul
-            </MobileLink>
+          <nav aria-label="Mobil menü" className="mb-4 grid">
+            {[...links, { href: '/quiz', label: 'Kahvemi bul' }].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                aria-current={
+                  pathname.startsWith(link.href) ? 'page' : undefined
+                }
+                className="flex min-h-12 items-center border-b border-[#dedfd7] py-3 text-base font-medium text-[#244b3d]"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
+          <Suspense fallback={<div className="h-11 rounded-lg bg-stone-100" />}>
+            <SearchInput onSearch={() => setMobileMenuOpen(false)} />
+          </Suspense>
         </div>
       )}
     </header>
-  );
-}
-
-function HeaderLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-[#1f1d1b]/75 transition-colors hover:bg-[#f6f1e8] hover:text-[#1f1d1b]"
-    >
-      {children}
-    </Link>
-  );
-}
-
-function MobileLink({
-  href,
-  onClick,
-  children,
-}: {
-  href: string;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className="inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-semibold text-[#1f1d1b] hover:bg-[#f6f1e8]"
-    >
-      {children}
-    </Link>
-  );
-}
-
-function MenuIcon() {
-  return (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h16M4 17h16" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18" />
-    </svg>
   );
 }

@@ -59,11 +59,11 @@ export function SearchInput({ onSearch }: { onSearch?: () => void }) {
             submitSearch();
           }
         }}
-        className="h-11 w-full rounded-lg border border-[#1f1d1b]/20 bg-white pl-10 pr-14 text-sm text-[#1f1d1b] placeholder:text-[#1f1d1b]/40 focus:border-[#1f1d1b] focus:outline-none focus:ring-1 focus:ring-[#1f1d1b]"
+        className="h-11 w-full rounded-lg border border-[#1f1d1b]/20 bg-white pl-10 pr-14 text-base sm:text-sm text-[#1f1d1b] placeholder:text-[#1f1d1b]/40 focus:border-[#1f1d1b] focus:outline-none focus:ring-1 focus:ring-[#1f1d1b]"
       />
       <button
         type="submit"
-        className="absolute right-0 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-r-lg text-[#1f1d1b]/55 transition-colors hover:bg-[#ecff64] hover:text-[#1f1d1b]"
+        className="absolute right-0 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-r-lg text-[#1f1d1b]/55 transition-colors hover:bg-[#e3ecbd] hover:text-[#1f1d1b]"
         aria-label="Aramayı uygula"
       >
         <svg

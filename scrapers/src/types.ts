@@ -117,5 +117,5 @@ export interface RoasterConfig {
     nextPage?: string;
     unavailableText?: string;
   };
-  structuredDataParser?: 'next-data-products' | 'probador-products';
+  structuredDataParser?: 'next-data-products' | 'probador-products' | 'parsa-catalog';
 }

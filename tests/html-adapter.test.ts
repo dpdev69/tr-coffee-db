@@ -156,6 +156,61 @@ describe('HtmlAdapter URL policy', () => {
 });
 
 describe('HtmlAdapter next-data structured images', () => {
+  it('does not let coffee keyword hints override non-coffee product exclusions', async () => {
+    const payload = makeNextDataPayload();
+    payload.props.pageProps.productList.push({
+      ...payload.props.pageProps.productList[0],
+      name: 'Matcha Demleme Seti',
+      metaData: { slug: 'matcha-demleme-seti' },
+    });
+    const products = await fetchNextDataProductsWithHtml(
+      `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify(payload)}</script>`,
+      { coffeeProductKeywords: ['kahve'] }
+    );
+    assert.deepEqual(products.map((product) => product.name), ['Colombia Filter Coffee']);
+  });
+
+  it('keeps coffees with brewing advice and embedded styles while excluding accessories', async () => {
+    const payload = makeNextDataPayload();
+    const coffee = payload.props.pageProps.productList[0];
+    coffee.description = '<style>.scale-bar { color: red; }</style><script>track()</script><p>Yıkanmış kahve. V60 veya AeroPress ile demleyin.</p>';
+    payload.props.pageProps.productList.push({
+      ...coffee,
+      name: 'Hario V60 Dripper',
+      description: 'Kahve demleme ekipmanı',
+      metaData: { slug: 'hario-v60-dripper' },
+    });
+
+    const products = await fetchNextDataProductsWithHtml(
+      `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify(payload).replace(/</g, '\\u003c')}</script>`
+    );
+
+    assert.deepEqual(products.map((product) => product.name), ['Colombia Filter Coffee']);
+    assert.match(products[0].description, /Yıkanmış kahve/);
+    assert.doesNotMatch(products[0].description, /scale-bar|track\(\)|color: red/);
+  });
+
+  it('excludes Paper chocolate and a coffee sampler placed in the Kahve category', async () => {
+    const payload = makeNextDataPayload();
+    for (const [name, description] of [
+      ['Mixed Fruit Box - 200 gr', "Seçeceğiniz 50'er gr lık 4 paket kahve."],
+      ['Paper Chocolate - El Salvador La Carrera %25 Kakao Nibi - Sütlü Çikolata', 'Kakao çekirdeği, şeker pancarı'],
+      ['Paper Chocolate - El Salvador La Carrera %70 Kakao Nibi - Bitter Çikolata', 'Kakao çekirdeği, şeker pancarı'],
+    ]) {
+      payload.props.pageProps.productList.push({
+        ...payload.props.pageProps.productList[0],
+        name,
+        description,
+        metaData: { slug: name.toLowerCase().replaceAll(' ', '-') },
+      });
+    }
+    const products = await fetchNextDataProductsWithHtml(
+      `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify(payload)}</script>`,
+      { coffeeProductKeywords: ['kahve'] }
+    );
+    assert.deepEqual(products.map((product) => product.name), ['Colombia Filter Coffee']);
+  });
+
   it('builds IKAS CDN images from __NEXT_DATA__ variant image IDs', async () => {
     const products = await fetchNextDataProductsWithHtml(`
       <script id="__NEXT_DATA__" type="application/json">
@@ -268,6 +323,25 @@ describe('HtmlAdapter next-data structured images', () => {
       products[0].imageUrl,
       'https://cdn.myikas.com/images/store/image-id/1080/colombia.webp'
     );
+  });
+});
+
+describe('structured retail offers', () => {
+  it('takes the TRY price and single package weight from the same product offer', async () => {
+    const { parseCatalogPriceText, parseProductPagePackageSelection } = await import('../scrapers/src/adapters/html-adapter.ts');
+    assert.equal(parseCatalogPriceText('$19.95', makeCustomConfig()), null);
+    assert.equal(parseCatalogPriceText('19,95 EUR', makeCustomConfig()), null);
+    const product = {
+      '@type': 'Product', description: 'Taze kavrulmuş 250 g kahve çekirdeği.',
+      offers: { priceCurrency: 'TRY', price: '1300.00', availability: 'https://schema.org/InStock' },
+    };
+    const html = (value: unknown) => `<script type="application/ld+json">${JSON.stringify(value)}</script>`;
+    const selected = parseProductPagePackageSelection(html(product), makeCustomConfig(), 19.95);
+    assert.equal(selected?.price, 1300);
+    assert.equal(selected?.weightGrams, 250);
+    assert.equal(selected?.isAvailable, true);
+    assert.equal(parseProductPagePackageSelection(html({ ...product, offers: { ...product.offers, priceCurrency: 'USD' } }), makeCustomConfig(), 19.95), null);
+    assert.equal(parseProductPagePackageSelection(html({ ...product, description: '250 g ve 1 kg seçenekleri' }), makeCustomConfig(), 19.95), null);
   });
 });
 
@@ -467,7 +541,7 @@ function makeNextDataPayload({
   };
 }
 
-async function fetchNextDataProductsWithHtml(html: string) {
+async function fetchNextDataProductsWithHtml(html: string, overrides: { coffeeProductKeywords?: string[] } = {}) {
   const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
   const { HtmlAdapter } = await import('../scrapers/src/adapters/html-adapter.ts');
   const originalGet = axios.get.bind(axios);
@@ -478,7 +552,7 @@ async function fetchNextDataProductsWithHtml(html: string) {
       headers: {},
     })) as typeof axios.get;
 
-    const adapter = new HtmlAdapter(makeNextDataConfig());
+    const adapter = new HtmlAdapter({ ...makeNextDataConfig(), ...overrides });
     return adapter.fetchProducts();
   } finally {
     axios.get = originalGet;
