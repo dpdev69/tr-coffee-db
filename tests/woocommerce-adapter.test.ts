@@ -5,6 +5,38 @@ process.env.SUPABASE_URL = process.env.SUPABASE_URL ?? 'https://example.supabase
 process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'test-service-key';
 
 describe('WooCommerceAdapter', () => {
+  it('excludes a configured wholesale source product even when its coffee category is missing', async () => {
+    const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
+    const { WooCommerceAdapter } = await import('../scrapers/src/adapters/woocommerce-adapter.ts');
+    const { oldJava } = await import('../scrapers/src/roasters/configs.ts');
+    const originalGet = axios.get.bind(axios);
+
+    try {
+      const wholesale = {
+        ...makeWooProduct({
+          id: 3415,
+          name: 'Café Abyssinia / Etiopía',
+          categories: [],
+          price: '60000',
+          minorUnit: 2,
+          attributes: [makeAttribute('Miktar', ['1 X 60kg', '5 X 60kg', '10 X 60kg'])],
+          variations: [{ id: 3419, attributes: [{ name: 'Miktar', value: '1-x-60kg' }] }],
+        }),
+        slug: 'cafe-abyssinia-etiopia',
+      };
+      axios.get = (async () => ({
+        data: [wholesale, makeWooProduct({ name: 'Ethiopia Guji 250g', categories: [] })],
+        headers: { 'x-wp-totalpages': '1' },
+      })) as typeof axios.get;
+
+      const products = await new WooCommerceAdapter({ ...oldJava, ...makeConfig() }).fetchProducts();
+      assert.deepEqual(products.map((product) => product.name), ['Ethiopia Guji 250g']);
+      assert.equal(products[0].weightGrams, 250);
+    } finally {
+      axios.get = originalGet;
+    }
+  });
+
   it('preserves the upstream error instead of reporting an empty catalog', async () => {
     const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
     const { WooCommerceAdapter } = await import('../scrapers/src/adapters/woocommerce-adapter.ts');

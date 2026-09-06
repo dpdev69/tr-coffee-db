@@ -476,6 +476,8 @@ export class WooCommerceAdapter extends BaseScraper {
   }
 
   private isCoffeeProduct(product: WooProduct): boolean {
+    if (this.config.excludedProductSlugs?.includes(product.slug)) return false;
+
     const categories = product.categories.map((c) => c.name.toLowerCase());
     const tags = product.tags.map((tag) => tag.name);
     const haystack = [

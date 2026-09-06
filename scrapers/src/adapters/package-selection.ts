@@ -4,6 +4,22 @@ const KG_UNIT_PATTERN = String.raw`(?:kg|kilogram)(?![\p{L}])`;
 const WEIGHT_UNIT_PATTERN = String.raw`(?:${GRAM_UNIT_PATTERN}|${KG_UNIT_PATTERN})`;
 
 export function parsePackageWeight(text: string): number | null {
+  // Cartons may list the unit weight before the count: "1 Kg x 10 Adet".
+  // Read the entire package before falling back to a single weight match.
+  const weightFirstMatch = text.match(
+    new RegExp(String.raw`(\d+(?:[.,]\d+)?)\s*(${WEIGHT_UNIT_PATTERN})\s*-?\s*[x×]\s*-?\s*(\d+)(?![\d.,])`, 'iu')
+  );
+  if (weightFirstMatch) {
+    const count = Number.parseInt(weightFirstMatch[3], 10);
+    const unit = /(?:kg|kilogram)/i.test(weightFirstMatch[2]) ? 1000 : 1;
+    const unitWeight = unit === 1000
+      ? parseLocalizedDecimalNumber(weightFirstMatch[1])
+      : parseLocalizedWeightNumber(weightFirstMatch[1]);
+    if (count > 0 && unitWeight != null) {
+      return Math.round(count * unitWeight * unit);
+    }
+  }
+
   const multiPackMatch = text.match(
     new RegExp(String.raw`(\d+)\s*-?\s*[x×]\s*-?\s*(\d+(?:[.,]\d+)?)\s*${WEIGHT_UNIT_PATTERN}`, 'iu')
   );

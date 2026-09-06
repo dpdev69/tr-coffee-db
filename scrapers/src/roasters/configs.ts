@@ -178,6 +178,9 @@ export const oldJava: RoasterConfig = {
   platform: 'woocommerce',
   city: 'Istanbul',
   priceFormat: 'kurus', // 60000 = 600 TL
+  // This uncategorized wholesale offer has only 1×60 kg, 5×60 kg, and 10×60 kg options.
+  // Source: https://oldjavacoffee.com/urun/cafe-abyssinia-etiopia/
+  excludedProductSlugs: ['cafe-abyssinia-etiopia'],
 };
 
 export const ordinarius: RoasterConfig = {

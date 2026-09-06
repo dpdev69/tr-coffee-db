@@ -18,6 +18,7 @@ All notable changes to TR CoffeeDB are documented here.
 
 ### Fixed
 
+- Retail comparisons exclude a confirmed wholesale-only offer, and multipack weights include quantities written after the bag size.
 - The journey trigger can resolve UUID extension functions in Supabase, restoring catalog imports.
 - Catalog summary and related-coffee query failures no longer appear as valid empty data.
 - Image health cannot pass with an expired, empty catalog.

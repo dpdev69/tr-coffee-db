@@ -360,6 +360,14 @@ describe('parseCatalogPriceText', () => {
 });
 
 describe('parsePackageWeight', () => {
+  it('reads unit-weight-first cartons without losing the pack count', async () => {
+    const { parsePackageWeight } = await import('../scrapers/src/adapters/package-selection.ts');
+    assert.equal(parsePackageWeight('1 Kg x 10 Adet (Koli)'), 10000);
+    assert.equal(parsePackageWeight('250 gr × 4 paket'), 1000);
+    assert.equal(parsePackageWeight('0,5 kg x 6'), 3000);
+    assert.equal(parsePackageWeight('1.000 gr x 10'), 10000);
+  });
+
   it('treats Turkish thousands separators in gram values as thousands', async () => {
     const { parsePackageWeight } = await import('../scrapers/src/adapters/package-selection.ts');
 

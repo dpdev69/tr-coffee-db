@@ -106,6 +106,8 @@ export interface RoasterConfig {
   deriveMetadataFromProductPage?: boolean;
   // WooCommerce-specific
   categoryId?: number;
+  // Source-confirmed products outside the retail catalog whose category metadata is missing.
+  excludedProductSlugs?: string[];
   // HTML scraping selectors (ikas, ticimax, custom)
   selectors?: {
     productList: string;

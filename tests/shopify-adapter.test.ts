@@ -5,6 +5,35 @@ process.env.SUPABASE_URL = process.env.SUPABASE_URL ?? 'https://example.supabase
 process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'test-service-key';
 
 describe('ShopifyAdapter catalog formats', () => {
+  it('prices a 1 kg × 10 carton against its full 10 kg package weight', async () => {
+    const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
+    const { ShopifyAdapter } = await import('../scrapers/src/adapters/shopify-adapter.ts');
+    const { normalize } = await import('../scrapers/src/normalization/index.ts');
+    const originalGet = axios.get.bind(axios);
+    let page = 0;
+
+    try {
+      axios.get = (async () => ({ data: { products: page++ === 0 ? [
+        makeProduct('Colombia Supremo Huila Çekirdek Kahve 1 Kg x 10 Adet (Koli)', [
+          makeVariant('Default Title', '8100.00'),
+        ]),
+      ] : [] } })) as typeof axios.get;
+      const products = await new ShopifyAdapter({
+        slug: 'test-shopify', name: 'Test Shopify', websiteUrl: 'https://example.test',
+        shopUrl: 'https://example.test', platform: 'shopify', city: 'Istanbul',
+        priceFormat: 'tl', productTypeFilter: ['kahve'],
+      }).fetchProducts();
+
+      assert.equal(products.length, 1);
+      const coffee = normalize(products[0]);
+      assert.equal(coffee.price_amount, 8100);
+      assert.equal(coffee.weight_grams, 10000);
+      assert.equal(coffee.price_per_100g, 81);
+    } finally {
+      axios.get = originalGet;
+    }
+  });
+
   it('excludes bottled drinks and gift samplers while retaining cold-brew coffee beans', async () => {
     const axios = (await import('../scrapers/node_modules/axios/index.js')).default;
     const { ShopifyAdapter } = await import('../scrapers/src/adapters/shopify-adapter.ts');
