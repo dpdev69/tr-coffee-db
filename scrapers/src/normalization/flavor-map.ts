@@ -94,7 +94,7 @@ const FLAVOR_MAPPINGS: FlavorMapping[] = [
   { keywords: ['asidik', 'acidic', 'bright', 'parlak'], note: 'Bright Acidity', category: 'Other' },
 ];
 
-export function matchFlavorNotes(text: string): {
+export function matchFlavorNotes(text: string, strictWords = false): {
   notes: string[];
   categories: string[];
 } {
@@ -104,7 +104,7 @@ export function matchFlavorNotes(text: string): {
 
   for (const mapping of FLAVOR_MAPPINGS) {
     for (const keyword of mapping.keywords) {
-      if (lower.includes(keyword.toLowerCase())) {
+      if (strictWords ? new RegExp(`(?:^|[^\\p{L}\\p{N}])${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=$|[^\\p{L}\\p{N}])`, 'iu').test(text) : lower.includes(keyword.toLowerCase())) {
         matchedNotes.add(mapping.note);
         matchedCategories.add(mapping.category);
         break;

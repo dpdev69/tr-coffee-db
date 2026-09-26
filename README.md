@@ -136,3 +136,7 @@ storefront to respond perfectly in the same run:
 ## Next Steps From The Product Plan
 
 The approved implementation plan is preserved in [PLAN.md](PLAN.md). Current deferred work and priorities live in [TODOS.md](TODOS.md), and shipped releases are recorded in [CHANGELOG.md](CHANGELOG.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for the branch and pull-request workflow.
+
+## D1 catalog refresh
+
+The daily catalog refresh now runs on GitHub Actions at 03:00 Istanbul using the scoped `CLOUDFLARE_D1_API_TOKEN` secret. Cloudflare cron is disabled. See [the data pipeline runbook](docs/free-catalog-refresh.md) for source coverage, quota recovery and verification.

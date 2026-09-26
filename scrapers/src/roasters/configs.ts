@@ -187,10 +187,11 @@ export const ordinarius: RoasterConfig = {
   slug: 'ordinarius',
   name: 'Ordinarius Coffee Roastery',
   websiteUrl: 'https://ordinariuscoffee.com',
-  shopUrl: 'https://ordinariuscoffee.com',
-  platform: 'woocommerce',
+  shopUrl: 'https://www.ordinariuscoffee.com/kategori/kahve',
+  platform: 'custom',
   city: 'Eskisehir',
   priceFormat: 'kurus',
+  selectors: {productList:'.showcase',productLink:'.showcase-title a',productName:'.showcase-title',productPrice:'.showcase-price',productImage:'img',description:''},
 };
 
 export const parsa: RoasterConfig = {
@@ -472,7 +473,7 @@ export const coffeerem: RoasterConfig = {
   name: 'Coffeerem Roastery',
   websiteUrl: 'https://coffeerem.com',
   shopUrl: 'https://coffeerem.com/magaza/',
-  platform: 'custom',
+  platform: 'woocommerce',
   city: 'Izmir',
   priceFormat: 'tl',
   derivePackageFromProductPage: true,
@@ -544,6 +545,7 @@ export const choCoffee: RoasterConfig = {
     productImage: '.picture img.picture-img',
     description: '.description',
     unavailableText: 'SOULD OUT',
+    nextPage: '.pager .next-page a',
   },
 };
 

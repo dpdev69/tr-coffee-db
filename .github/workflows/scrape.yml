@@ -1,88 +1,54 @@
-name: Scrape Coffee Data
+name: Refresh D1 Coffee Catalog
 
 on:
   schedule:
-    # Every 2 days at 3:00 AM UTC
-    - cron: '0 3 */2 * *'
+    # Daily at 03:00 Istanbul. GitHub may delay scheduled starts.
+    - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
       roasters:
-        description: 'Specific roaster slugs (space-separated, leave empty for all)'
+        description: 'Space-separated roaster slugs; empty attempts every active source'
         required: false
         default: ''
 
 permissions:
   contents: read
 
+concurrency:
+  group: d1-catalog-refresh
+  cancel-in-progress: false
+
 jobs:
-  scrape:
+  refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     env:
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      # Some roaster sites intermittently block GitHub-hosted runners, return
-      # zero products, or time out while still having preserved catalog data.
-      # Scheduled production refreshes keep the workflow green for these known
-      # external outages; explicit `roasters=<slug>` dispatches remain hard probes.
-      # Attempt every configured roaster so recovered sources stay current.
-      # The bounded retries and broad-run health gate handle external outages.
-      ALLOW_ROASTER_FAILURES: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.roasters == '')) && 'parsa story milestones sezy cho-coffee' || '' }}
-      # Broad refreshes retry once, then fail only when catalog-wide health drops
-      # below 90%. A targeted manual probe still requires its roaster to succeed.
-      SCRAPE_MAX_ATTEMPTS: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.roasters == '')) && '2' || '1' }}
-      MIN_SCRAPE_SUCCESS_RATE: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.roasters == '')) && '0.90' || '' }}
-
+      CLOUDFLARE_ACCOUNT_ID: '4c1a4493b8584296f35c3eddc8279112'
+      CLOUDFLARE_D1_DATABASE_ID: '5090f52d-546e-4ba6-bdcd-b4ee531a29a3'
+      CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
-          cache: 'npm'
-          cache-dependency-path: |
-            package-lock.json
-            scrapers/package-lock.json
-
-      - name: Install scraper dependencies
-        working-directory: scrapers
-        run: npm ci
-
-      - name: Validate required secrets
+          cache: npm
+          cache-dependency-path: scrapers/package-lock.json
+      - name: Install crawler dependencies
+        run: npm ci --prefix scrapers
+      - name: Refresh all active roasters
+        env:
+          ROASTERS: ${{ inputs.roasters }}
+        shell: bash
         run: |
-          missing=0
-
-          if [ -z "$SUPABASE_URL" ]; then
-            echo "::error title=Missing repository secret::SUPABASE_URL is required for scheduled scrapes."
-            missing=1
-          fi
-
-          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "::error title=Missing repository secret::SUPABASE_SERVICE_ROLE_KEY is required for scheduled scrapes."
-            missing=1
-          fi
-
-          exit "$missing"
-
-      - name: Run scrapers
-        working-directory: scrapers
-        env:
-          ROASTERS: ${{ github.event.inputs.roasters || '' }}
-        run: npx tsx src/index.ts "$ROASTERS"
-
-      - name: Install audit dependencies
-        if: ${{ always() }}
-        run: npm ci
-
-      - name: Audit image health
-        if: ${{ always() }}
-        env:
-          AUDIT_IMAGES_MAX_MISSING_COFFEES: ${{ vars.AUDIT_IMAGES_MAX_MISSING_COFFEES || 20 }}
-          AUDIT_IMAGES_MAX_MISSING_COFFEE_RATIO: ${{ vars.AUDIT_IMAGES_MAX_MISSING_COFFEE_RATIO || 0.08 }}
-          AUDIT_IMAGES_MAX_MISSING_ROASTER_LOGOS: ${{ vars.AUDIT_IMAGES_MAX_MISSING_ROASTER_LOGOS || 0 }}
-          AUDIT_IMAGES_MAX_OPTIMIZER_FAILURES: ${{ vars.AUDIT_IMAGES_MAX_OPTIMIZER_FAILURES || 0 }}
-          AUDIT_IMAGES_OPTIMIZER_LIMIT: ${{ vars.AUDIT_IMAGES_OPTIMIZER_LIMIT || 0 }}
-          AUDIT_IMAGES_SITE_URL: ${{ vars.AUDIT_IMAGES_SITE_URL || vars.NEXT_PUBLIC_SITE_URL || 'https://tr-coffee-db.vercel.app' }}
-        run: npm run audit:images
+          test -n "$CLOUDFLARE_D1_API_TOKEN" || { echo '::error::CLOUDFLARE_D1_API_TOKEN is missing'; exit 1; }
+          read -ra slugs <<< "$ROASTERS"
+          scrapers/node_modules/.bin/tsx scripts/v2-refresh.mts "${slugs[@]}"
+      - name: Keep the refresh report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-refresh-${{ github.run_id }}
+          path: .local/v2/refresh/
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: warn

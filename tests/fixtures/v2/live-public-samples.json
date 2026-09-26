@@ -1,0 +1,263 @@
+{
+  "provenance": {
+    "capturedAt": "2026-09-14T20:43:14Z/2026-09-14T20:44:23Z",
+    "description": "Selected factual fields and variants from public source responses, not complete catalog snapshots. Description, contact, and unrelated fields removed.",
+    "sources": [
+      "https://petracoffee.com/products.json?limit=250&page=1",
+      "https://daphnecoffee.co/wp-json/wc/store/v1/products",
+      "https://parsacoffeeroasters.com/api/katalog/kahveler/103"
+    ]
+  },
+  "shopify": {
+    "products": [
+      {
+        "id": 8251622785164,
+        "title": "Guatemala Las Penas",
+        "handle": "guatemala-las-penas-2",
+        "product_type": "Kahve",
+        "tags": [
+          "featured",
+          "single-origin",
+          "yeni"
+        ],
+        "variants": [
+          {
+            "id": 44444451373196,
+            "title": "250g / Çekirdek Kahve",
+            "price": "870.00",
+            "compare_at_price": null,
+            "available": true,
+            "grams": 0
+          },
+          {
+            "id": 44444452028556,
+            "title": "2.5 kg / Çekirdek Kahve",
+            "price": "8700.00",
+            "compare_at_price": "0.00",
+            "available": true,
+            "grams": 0
+          }
+        ]
+      }
+    ]
+  },
+  "woocommerce": {
+    "product": {
+      "id": 6861,
+      "name": "Endonezya Guntur",
+      "slug": "endonezya-guntur",
+      "type": "variable",
+      "permalink": "https://daphnecoffee.co/urun/endonezya-guntur/",
+      "prices": {
+        "price": "355",
+        "regular_price": "355",
+        "sale_price": "355",
+        "price_range": {
+          "min_amount": "355",
+          "max_amount": "850"
+        },
+        "currency_code": "TRY",
+        "currency_symbol": "₺",
+        "currency_minor_unit": 0,
+        "currency_decimal_separator": ".",
+        "currency_thousand_separator": ",",
+        "currency_prefix": "",
+        "currency_suffix": "₺"
+      },
+      "categories": [
+        {
+          "id": 58,
+          "name": "Çok Satan",
+          "slug": "cok-satan",
+          "link": "https://daphnecoffee.co/urun-kategorisi/cok-satan/"
+        },
+        {
+          "id": 33,
+          "name": "Kahve",
+          "slug": "kahve",
+          "link": "https://daphnecoffee.co/urun-kategorisi/kahve/"
+        }
+      ],
+      "tags": [],
+      "is_in_stock": true,
+      "variations": [
+        {
+          "id": 6863,
+          "attributes": [
+            {
+              "name": "Paket",
+              "value": "250-gr"
+            },
+            {
+              "name": "Öğütme Seçeneği",
+              "value": null
+            }
+          ]
+        },
+        {
+          "id": 6862,
+          "attributes": [
+            {
+              "name": "Paket",
+              "value": "100-gr"
+            },
+            {
+              "name": "Öğütme Seçeneği",
+              "value": null
+            }
+          ]
+        }
+      ],
+      "attributes": [
+        {
+          "id": 1,
+          "name": "Paket",
+          "taxonomy": "pa_paket",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 56,
+              "name": "100 gr",
+              "slug": "100-gr"
+            },
+            {
+              "id": 38,
+              "name": "250 gr",
+              "slug": "250-gr"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Öğütme Seçeneği",
+          "taxonomy": "pa_ogutme-secenegi",
+          "has_variations": true,
+          "terms": [
+            {
+              "id": 43,
+              "name": "Aeropress",
+              "slug": "aeropress"
+            },
+            {
+              "id": 40,
+              "name": "Çekirdek",
+              "slug": "cekirdek"
+            },
+            {
+              "id": 46,
+              "name": "Chemex",
+              "slug": "chemex"
+            },
+            {
+              "id": 49,
+              "name": "Cold Brew",
+              "slug": "cold-brew"
+            },
+            {
+              "id": 41,
+              "name": "Espresso",
+              "slug": "espresso"
+            },
+            {
+              "id": 45,
+              "name": "Filtre Kahve Mak.",
+              "slug": "filtre-kahve-mak"
+            },
+            {
+              "id": 47,
+              "name": "French Press",
+              "slug": "french-press"
+            },
+            {
+              "id": 42,
+              "name": "Mokapot",
+              "slug": "mokapot"
+            },
+            {
+              "id": 57,
+              "name": "Origami",
+              "slug": "origami"
+            },
+            {
+              "id": 48,
+              "name": "Türk Kahvesi",
+              "slug": "turk-kahvesi"
+            },
+            {
+              "id": 44,
+              "name": "V60",
+              "slug": "v60"
+            }
+          ]
+        }
+      ]
+    },
+    "variations": [
+      {
+        "id": 6863,
+        "name": "Endonezya Guntur",
+        "variation": "Paket: 250 gr",
+        "permalink": "https://daphnecoffee.co/urun/endonezya-guntur/?attribute_pa_paket=250-gr",
+        "prices": {
+          "price": "850",
+          "regular_price": "850",
+          "sale_price": "850",
+          "price_range": null,
+          "currency_code": "TRY",
+          "currency_symbol": "₺",
+          "currency_minor_unit": 0,
+          "currency_decimal_separator": ".",
+          "currency_thousand_separator": ",",
+          "currency_prefix": "",
+          "currency_suffix": "₺"
+        },
+        "is_in_stock": true,
+        "attributes": []
+      },
+      {
+        "id": 6862,
+        "name": "Endonezya Guntur",
+        "variation": "Paket: 100 gr",
+        "permalink": "https://daphnecoffee.co/urun/endonezya-guntur/?attribute_pa_paket=100-gr",
+        "prices": {
+          "price": "355",
+          "regular_price": "355",
+          "sale_price": "355",
+          "price_range": null,
+          "currency_code": "TRY",
+          "currency_symbol": "₺",
+          "currency_minor_unit": 0,
+          "currency_decimal_separator": ".",
+          "currency_thousand_separator": ",",
+          "currency_prefix": "",
+          "currency_suffix": "₺"
+        },
+        "is_in_stock": true,
+        "attributes": []
+      }
+    ]
+  },
+  "parsa": {
+    "kod": "103",
+    "ad": "Guatemala Oriente",
+    "aktif": true,
+    "taban_fiyat_tl": "0.00",
+    "indirim_orani": 0,
+    "varyasyonlar": [
+      {
+        "id": 127,
+        "gramaj": "250g",
+        "ek_fiyat_tl": "950.00",
+        "stok": 287,
+        "aktif": true
+      },
+      {
+        "id": 128,
+        "gramaj": "1000g",
+        "ek_fiyat_tl": "3230.00",
+        "stok": 75,
+        "aktif": true
+      }
+    ]
+  }
+}
