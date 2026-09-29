@@ -118,6 +118,7 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
     const seenOffers = new Set<string>();
     for (const product of input.products) {
       validateProduct(product);
+      const excluded = coffeeExclusionReason(product);
       const url = canonicalizeUrl(product.canonicalUrl, hosts);
       const identity = productIdentity({ ...product, canonicalUrl: url });
       const bySource = coffeeRows.find(row => row.identity_key === identity || (product.sourceProductId !== null && row.source_product_id === product.sourceProductId));
@@ -140,7 +141,7 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
       const slug = existing?.slug ?? stableSlug(product.name, coffeeId);
       statements.push(insert(db, 'coffees', { id: coffeeId, roaster_id: input.roasterId, source_product_id: product.sourceProductId ?? existing?.source_product_id ?? null,
         identity_key: existing?.identity_key ?? identity, canonical_url: url, name: product.name.trim(), slug, raw_metadata_json: JSON.stringify(product.rawMetadata),
-        visibility: coffeeExclusionReason(product) ? 'hidden' : product.visibility ?? 'unclassified', first_seen_at: startedAt, last_seen_at: startedAt, created_at: completedAt, updated_at: completedAt },
+        visibility: excluded ? 'hidden' : product.visibility ?? 'unclassified', first_seen_at: startedAt, last_seen_at: startedAt, created_at: completedAt, updated_at: completedAt },
       `ON CONFLICT(id) ${upsertColumns(['source_product_id','canonical_url','name','raw_metadata_json','visibility','last_seen_at','updated_at'])}`));
       for (const [type, alias] of [['url',url],['slug',slug], ...(product.sourceProductId ? [['source',product.sourceProductId]] : [])]) {
         const known = aliases.find(item => item.alias_type === type && item.alias === alias);
@@ -148,7 +149,7 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
         if(!known) aliases.push({alias_type:type,alias,coffee_id:coffeeId});
         statements.push(insert(db, 'coffee_aliases', { roaster_id: input.roasterId, alias_type: type, alias, coffee_id: coffeeId, created_at: completedAt }, 'ON CONFLICT(roaster_id,alias_type,alias) DO NOTHING'));
       }
-      const events: CoffeeEvent[] = existing || coffeeExclusionReason(product) ? [] : await deriveNewEvent(coffeeId,input.id,startedAt,mode);
+      const events: CoffeeEvent[] = existing || excluded ? [] : await deriveNewEvent(coffeeId,input.id,startedAt,mode);
       for (const offer of product.offers) {
         const purchaseUrl = canonicalizeUrl(offer.purchaseUrl, hosts);
         const key = offerIdentity({ ...offer, purchaseUrl });
@@ -166,7 +167,7 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
           priceMinor,compareAtMinor,weightG,currency,inStock: offer.inStock,source: mode === 'import' ? 'import' : 'crawl' };
         const history: PriceObservation[] = observationRows.filter(row => row.offer_id === offerId).map(row => ({ id: row.id,offerId: row.offer_id,crawlRunId: row.crawl_run_id,observedAt: row.observed_at,
           priceMinor: row.price_minor,compareAtMinor: row.compare_at_minor,weightG: row.weight_g,currency: row.currency,inStock: row.in_stock === null ? null : row.in_stock === 1,source: row.source }));
-        if (!coffeeExclusionReason(product)) events.push(...await deriveOfferEvents({ coffeeId,observation,history,mode }));
+        if (!excluded) events.push(...await deriveOfferEvents({ coffeeId,observation,history,mode }));
         const priceChanged = existingOffer && existingOffer.current_price_minor !== priceMinor && existingOffer.currency === currency && existingOffer.weight_g === weightG;
         statements.push(insert(db, 'offers', { id: offerId,coffee_id: coffeeId,source_variant_id: offer.sourceVariantId,identity_key: key,label: offer.label,weight_g: weightG,currency,
           current_price_minor: priceMinor,compare_at_price_minor: compareAtMinor,in_stock: stock(offer.inStock),purchase_url: purchaseUrl,first_seen_at: startedAt,last_seen_at: startedAt,

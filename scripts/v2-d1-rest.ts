@@ -7,6 +7,7 @@ type Result = { results: Record<string, unknown>[]; success: boolean; meta?: { r
 export class D1RestDatabase implements CatalogDatabase {
   rowsRead = 0;
   rowsWritten = 0;
+  private pending: Promise<unknown> = Promise.resolve();
   constructor(private accountId: string, private databaseId: string, private token: string, private request: typeof fetch = fetch) {
     if (!/^[a-f0-9]{32}$/.test(accountId) || !/^[a-f0-9-]{36}$/.test(databaseId) || !token) throw new Error('D1 credentials are missing or invalid.');
   }
@@ -17,7 +18,13 @@ export class D1RestDatabase implements CatalogDatabase {
       return { sql: statement.sql, params: statement.values };
     }));
   }
-  async query(batch: Query[]): Promise<Result[]> {
+  query(batch: Query[]): Promise<Result[]> {
+    // ponytail: one D1 request at a time for quota accounting; reserve budgets if DB latency dominates.
+    const result = this.pending.then(() => this.send(batch));
+    this.pending = result.catch(() => {});
+    return result;
+  }
+  private async send(batch: Query[]): Promise<Result[]> {
     // Leave room for public reads and health writes within the free daily quota.
     if (this.rowsWritten >= 65_000 || this.rowsRead >= 3_000_000) throw new Error('Refresh database budget reached; remaining sources deferred.');
     const response = await this.request(`https://api.cloudflare.com/client/v4/accounts/${this.accountId}/d1/database/${this.databaseId}/query`, {

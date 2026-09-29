@@ -5,6 +5,36 @@ import {TestCatalogDatabase} from './helpers/v2-sqlite';
 import {registerRoaster} from '../shared/v2/ingestion';
 import {refreshCatalog} from '../scripts/v2-refresh.mts';
 import {D1RestDatabase} from '../scripts/v2-d1-rest';
+import {ALL_ROASTER_CONFIGS} from '../scrapers/src/roasters/configs';
+
+test('refresh overlaps at most three storefronts and retains every snapshot and daily deduplication',async()=>{
+  const db=new TestCatalogDatabase();
+  const slugs=['petra','homestead','boxx','nok-coffee'];
+  for(const config of ALL_ROASTER_CONFIGS.filter(config=>slugs.includes(config.slug)))await registerRoaster(db,{id:config.slug,slug:config.slug,name:config.name,websiteUrl:config.websiteUrl,adapter:config.platform});
+  const payload=JSON.parse(readFileSync(new URL('./fixtures/v2/shopify.json',import.meta.url),'utf8'));
+  let active=0,peak=0,calls=0;const hosts=new Set<string>();
+  const options={scheduledAt:'2026-01-01T00:00:00Z',now:()=> '2026-01-01T01:00:00Z',source:{requestDelayMs:0,fetch:async(input:RequestInfo|URL)=>{
+    const host=new URL(String(input)).hostname;assert.ok(!hosts.has(host));hosts.add(host);
+    calls++;peak=Math.max(peak,++active);await new Promise(resolve=>setTimeout(resolve,20));active--;hosts.delete(host);return Response.json(payload);
+  }}};
+  const results=await refreshCatalog(db,options);
+  assert.equal(peak,3);assert.equal(results.length,4);assert.ok(results.every(result=>result.status==='success'&&result.products===1&&result.offers===3));
+  assert.equal(db.sqlite.prepare('SELECT count(*) n FROM coffees').get()?.n,4);
+  assert.equal(db.sqlite.prepare('SELECT count(*) n FROM price_observations').get()?.n,12);
+  assert.ok((await refreshCatalog(db,options)).every(result=>result.status==='already_completed'));assert.equal(calls,4);
+  assert.equal(db.sqlite.prepare("SELECT count(*) n FROM crawl_runs WHERE status='running'").get()?.n,0);db.sqlite.close();
+});
+
+test('refresh settles other storefronts before propagating a fatal reporting error',async()=>{
+  const db=new TestCatalogDatabase();
+  for(const config of ALL_ROASTER_CONFIGS.filter(config=>['petra','homestead','boxx','nok-coffee'].includes(config.slug)))await registerRoaster(db,{id:config.slug,slug:config.slug,name:config.name,websiteUrl:config.websiteUrl,adapter:config.platform});
+  const payload=JSON.parse(readFileSync(new URL('./fixtures/v2/shopify.json',import.meta.url),'utf8'));
+  const reported:string[]=[];
+  await assert.rejects(refreshCatalog(db,{scheduledAt:'2026-01-01T00:00:00Z',now:()=> '2026-01-01T01:00:00Z',source:{requestDelayMs:0,fetch:async(input)=>{
+    await new Promise(resolve=>setTimeout(resolve,String(input).includes('homestead')?5:30));return Response.json(payload);
+  }},report:async result=>{reported.push(String(result.slug));if(result.slug==='homestead')throw new Error('report unavailable');}}),/report unavailable/);
+  assert.equal(reported.length,4);assert.equal(db.sqlite.prepare("SELECT count(*) n FROM crawl_runs WHERE status='running'").get()?.n,0);db.sqlite.close();
+});
 
 test('free runner attempts every active source, preserves failed data, and deduplicates completed daily jobs',async()=>{
   const db=new TestCatalogDatabase();
@@ -24,4 +54,17 @@ test('D1 REST sends parameters and an entire transaction together, validates err
   });
   const statements=[db.prepare('INSERT ...').bind("coffee's name",null),db.prepare('UPDATE ...')];
   await db.batch(statements);assert.equal(db.rowsWritten,6);assert.equal(db.rowsRead,4);await assert.rejects(db.batch(statements),/CHECK constraint/);
+});
+
+test('D1 concurrent batches recover after an error and stop at the settled quota',async()=>{
+  let calls=0,active=0,peak=0;
+  const db=new D1RestDatabase('a'.repeat(32),'a'.repeat(8)+'-'+ 'b'.repeat(4)+'-'+ 'c'.repeat(4)+'-'+ 'd'.repeat(4)+'-'+ 'e'.repeat(12),'private-test-token',async()=>{
+    const call=++calls;peak=Math.max(peak,++active);await new Promise(resolve=>setTimeout(resolve,10));active--;
+    return Response.json(call===1?{success:false,errors:[{message:'temporary failure'}]}:{success:true,result:[{success:true,results:[],meta:{rows_read:1,rows_written:65_000}}]});
+  });
+  const results=await Promise.allSettled([db.batch([db.prepare('first')]),db.batch([db.prepare('second')]),db.batch([db.prepare('third')])]);
+  assert.deepEqual(results.map(result=>result.status),['rejected','fulfilled','rejected']);
+  assert.match(String((results[0] as PromiseRejectedResult).reason),/temporary failure/);
+  assert.match(String((results[2] as PromiseRejectedResult).reason),/budget reached/);
+  assert.equal(peak,1);assert.equal(calls,2);assert.equal(db.rowsWritten,65_000);assert.equal(db.rowsRead,1);
 });
