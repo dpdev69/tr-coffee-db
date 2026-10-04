@@ -1,5 +1,5 @@
 import { coffeeExclusionReason } from '../../../shared/v2/coffee-eligibility.js';
-import { truthfulMetadata } from '../../../shared/v2/profile-truth.js';
+import { cleanCoffeeName, truthfulMetadata } from '../../../shared/v2/profile-truth.js';
 import { load } from 'cheerio';
 import { classifySpecialtyProduct } from '../specialty-classification.js';
 import { normalize } from '../normalization/index.js';
@@ -11,7 +11,8 @@ import type { Json, SourceCoffee, SourceOffer } from '../../../shared/v2/types.j
 import { bool, canonicalUrl, collect, list, money, names, optionalList, plainHtml, record, requiredText, sourceId, stock, text, weight } from './primitives.js';
 
 function json(value: unknown): Json { return JSON.parse(JSON.stringify(value)) as Json; }
-function coffee(config: RoasterConfig, raw: Record<string, unknown>, url: string, name: string, id: unknown, offers: SourceOffer[], description: unknown, image: unknown): SourceCoffee {
+function coffee(config: RoasterConfig, raw: Record<string, unknown>, url: string, sourceName: string, id: unknown, offers: SourceOffer[], description: unknown, image: unknown): SourceCoffee {
+  const name = cleanCoffeeName(sourceName);
   const descriptionText = plainHtml(description);
   const eligibility = classifyEligibility(raw, name, url, sourceId(id), descriptionText);
   const score = raw.sca_score ?? raw.scaScore;

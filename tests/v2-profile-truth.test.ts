@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { declaredDecaf, truthfulFeatures, truthfulMetadata } from '../shared/v2/profile-truth';
+import { cleanCoffeeName, declaredDecaf, truthfulFeatures, truthfulMetadata } from '../shared/v2/profile-truth';
 import { deriveProfileFeatures, profileInput } from '../scrapers/src/v2/profile';
 import { matchFlavorNotes } from '../scrapers/src/normalization/flavor-map';
 import { plainHtml } from '../scrapers/src/v2/primitives';
@@ -60,4 +60,36 @@ test('source taste and brew sections avoid grinding-option and generic varietal 
   assert.deepEqual(values.brew_compatibility,['filter','aeropress']);
   assert.equal(values.is_decaf,false);assert.ok((values.flavor_notes_normalized as string[]).includes('Plum'));
   assert.ok(!(values.flavor_notes_normalized as string[]).includes('Rum'));
+});
+test('glued storefront labels and prose never become profile facts; repair is idempotent',()=>{
+  const cases:[Partial<Record<'country'|'region'|'producer'|'farm'|'altitude'|'process'|'roast',string>>,Record<string,string|undefined>][]=[
+    [{process:'Doğal / NaturalYükselik: 1500-1900m'},{process:'Doğal / Natural'}],
+    [{process:'Washed Menşei: El Salvador'},{process:'Washed'}],
+    [{altitude:'1.280 mStory’de tazelikPazartesi, salı ve cuma günleri kavuruyoruz.'},{altitude:'1.280 m'}],
+    [{altitude:'1.600 m İşlem Türü: Washed AB FAQ'},{altitude:'1.600 m'}],
+    [{altitude:'2150 - 2200Cupping Score: 87,5'},{altitude:'2150 - 2200'}],
+    [{altitude:'1800M'},{altitude:'1800M'}],
+    [{region:'Rift Valley Varteye:SL28, SL34'},{region:'Rift Valley'}],
+    [{region:'Kirinyaga – Embu / Mount Kenya Lot: 12-25-87'},{region:'Kirinyaga – Embu / Mount Kenya'}],
+    [{region:'Yirgacheffeİşlem Metodu: Washed'},{region:'Yirgacheffe'}],
+    [{farm:'SunsetTür. : Çeşitli'},{farm:'Sunset'}],
+    [{producer:'Santiago Noriega10 Ekim 2021\'de kurulan Finca Cultivares'},{producer:'Santiago Noriega'}],
+    [{roast:'Orta · Asidite: DengeliGövde: Orta'},{roast:'Orta'}],
+    [{roast:'Orta-AçıkTat Notları: Raspberry, Rose'},{roast:'Orta-Açık'}],
+    [{process:'Yarı Yıkanmış Asidite: Orta – Düşük'},{process:'Yarı Yıkanmış'}],
+    [{farm:'Finca El Cerro Finca El Cerro çiftliği beş nesildir El Salvadorlu kahve üreticilerinin mirasıdır.'},{farm:undefined}],
+    [{region:'Sidama Bensa',process:'Doğal (Natural) · PB / Peaberry'},{region:'Sidama Bensa',process:'Doğal (Natural) · PB / Peaberry'}],
+  ];
+  for(const [input,expected] of cases){
+    const repaired=truthfulMetadata(input,'Coffee');
+    for(const [key,value] of Object.entries(expected))assert.equal(repaired[key as keyof typeof repaired],value,JSON.stringify(input));
+    assert.deepEqual(truthfulMetadata(repaired,'Coffee'),repaired,'idempotent');
+  }
+});
+test('coffee names decode storefront entities and drop promo prefixes',()=>{
+  assert.equal(cleanCoffeeName('Rwanda &#8211; Gisanga'),'Rwanda – Gisanga');
+  assert.equal(cleanCoffeeName('YENİ &#8211; BREZİLYA FAZENDA INES ANAEROBİK'),'BREZİLYA FAZENDA INES ANAEROBİK');
+  assert.equal(cleanCoffeeName('Brazil  Capadocia &amp; Co &#x2019;s'),'Brazil Capadocia & Co ’s');
+  assert.equal(cleanCoffeeName('Yeni Gine Elimbari'),'Yeni Gine Elimbari','"Yeni" without a separator is part of the name');
+  assert.equal(cleanCoffeeName('&#0;'),'&#0;');
 });

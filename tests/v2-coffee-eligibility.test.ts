@@ -12,7 +12,8 @@ function product(id:string, name:string, categories:string[]=[]):SourceCoffee {
 }
 const excluded=[product('ying-yang','Ying Yang'),product('new-ceramic','Yeni tasarım',['Türk Kahvesi Setleri']),product('mug','Kahve Fincanı'),product('filter','FİLTRE KAĞIDI'),product('tea','Green Tea'),product('class','Kahve Atölyesi'),
   product('thermos','Kahve Termosu Özel - 500ml'),product('tote','Hound Coffee Bez Çanta'),product('bread','Ekşi Maya Tam Çavdar Ekmeği'),
-  product('thermos-taxonomy','Yeni tasarım',['TERMOSLAR']),product('tumbler','Coffee Tumbler'),product('flask','Coffee Flask'),product('bottle','Kahve Matarası'),product('bread-en','Sourdough Bread')];
+  product('thermos-taxonomy','Yeni tasarım',['TERMOSLAR']),product('tumbler','Coffee Tumbler'),product('flask','Coffee Flask'),product('bottle','Kahve Matarası'),product('bread-en','Sourdough Bread'),
+  product('plan','12 Haftalık Kahve Planı · 4 × 250 g / 2 Haftada Bir'),product('drip','Burundi Baho / Drip Bag Kahve'),product('drip-tr','Drip Hazır Filtre Kahve'),product('set','Best of Panama Seti'),product('case','Colombia Supremo Huila Çekirdek Kahve 1 Kg x 10 Adet (Koli)'),product('fair','Fuar Paket')];
 const allowed=[product('colombia','Colombia China Alta Ibagué Washed'),{...product('fruit','Berry coffee'),rawMetadata:{description:'Seramik V60 dripper, filtre kağıdı ve fincan kullanın. Termosta içebilir, ekmek ile servis edebilirsiniz.',tastingNotes:['green tea','chocolate bar','bread']}},product('unknown-weight','Ethiopia'),
   product('cascara-process','Colombia San Adolfo Cascara'),product('decaf-water','Lala Salama Sparkling Water Kafeinsiz'),product('sugar-decaf','Colombia Sugar Cane Decaf')];
 

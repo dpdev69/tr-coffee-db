@@ -202,3 +202,30 @@ test('detail identity lookup seeks indexed candidates instead of scanning aliase
   const plan=db.db.prepare('EXPLAIN QUERY PLAN '+query).all('missing','missing','missing').map(row=>row.detail).join('\n');
   assert.match(plan,/SEARCH c USING INDEX sqlite_autoindex_coffees/);assert.match(plan,/SEARCH coffee_aliases USING COVERING INDEX aliases_lookup/);assert.doesNotMatch(plan,/SCAN c\b/);db.db.close();
 });
+
+test('grind/roast variants at the same weight and price are one package in details, counts and roaster totals',async()=>{
+  const db=await setup();
+  const variant=(sku:string,label:string,weightG:number,price:number)=>({sourceVariantId:sku,label,weightG,price,compareAtPrice:null,currency:'TRY',inStock:true,purchaseUrl:`https://shop.test/v?${sku}`});
+  const grinds=product('g',{name:'Rwanda &#8211; Gisanga',offers:[variant('v60','125 G · Hario V60',125,225),variant('chemex','125 G · Chemex',125,225),variant('bean','125 G · Çekirdek',125,225),variant('kg','1 kg · Çekirdek',1000,1400)]});
+  await ingestCrawl(db,run(1,[grinds]));
+  const [coffee]=(await listCatalog(db)).coffees;
+  assert.equal(coffee.name,'Rwanda – Gisanga');
+  assert.deepEqual(coffee.offers.map(o=>[o.weightG,o.label,o.variantOfferIds.length]),[[125,null,3],[1000,'1 kg · Çekirdek',1]]);
+  assert.equal((await getCatalogCounts(db)).offers,2);
+  assert.equal((await listRoasters(db))[0].offerCount,2);
+  assert.equal((await getRoasterDetail(db,'roaster'))?.roaster.offerCount,2);
+});
+
+test('price sort/filter use the package the card shows; search folds Turkish case and spelling pairs',async()=>{
+  const db=await setup();
+  const pack=(sku:string,weightG:number,price:number)=>({sourceVariantId:sku,label:`${weightG} g`,weightG,price,compareAtPrice:null,currency:'TRY',inStock:true,purchaseUrl:`https://shop.test/p?${sku}`});
+  // A 50 g sample must not make a 250 g coffee look like the cheapest bag.
+  const sampler=product('s',{name:'ETİYOPYA Gesha Village',offers:[pack('s50',50,120),pack('s250',250,900)]});
+  const plain=product('p',{name:'Brezilya Cerrado',offers:[pack('p250',250,500)]});
+  await ingestCrawl(db,run(1,[sampler,plain]));
+  assert.deepEqual((await listCatalog(db,{sort:'price_asc'})).coffees.map(c=>c.name),['Brezilya Cerrado','ETİYOPYA Gesha Village']);
+  assert.deepEqual((await listCatalog(db,{priceMax:600})).coffees.map(c=>c.name),['Brezilya Cerrado']);
+  for(const search of ['etiyopya','ethiopia','geisha','GESHA'])assert.equal((await listCatalog(db,{search})).total,1,search);
+  assert.equal((await listCatalog(db,{search:'brazil'})).total,1);
+  assert.equal((await listCatalog(db,{search:'50%_'})).total,0,'LIKE wildcards stay literal');
+});

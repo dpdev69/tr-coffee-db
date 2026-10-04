@@ -2,12 +2,14 @@ import type { RawMetadata } from './types';
 
 /** Retail identity/taxonomy only. Brew instructions and tasting notes are not product types. */
 const EQUIPMENT = ['ekipman', 'equipment', 'aksesuar', 'accessories', 'seramik', 'ceramic', 'stoneware', 'fincan', 'kupa', 'mug', 'dripper', 'grinder', 'ogutucu', 'degirmen', 'terazi', 'kettle', 'filter paper', 'filtre kagidi', 'filtre kagit', 'kahvesi setleri', 'kahve setleri', 'cup set', 'tea set', 'gift set', 'hediye set', 'workshop', 'atolye', 'egitim', 'makinesi', 'machine', 'bardak', 'surahi', 'tote bag', 'bez canta', 'termos', 'thermos', 'tumbler', 'flask', 'matara'];
-const NON_COFFEE_NAMES = ['matcha', 'chasen', 'chawan', 'paper chocolate', 'mixed fruit box', 'kakao tozu', 'cikolata bar', 'chocolate bar', 'green tea', 'black tea', 'herbal tea', 'yesil cay', 'siyah cay', 'bitki cayi', 'ekmek', 'ekmegi', 'bread'];
+const NON_COFFEE_NAMES = ['matcha', 'chasen', 'chawan', 'paper chocolate', 'mixed fruit box', 'kakao tozu', 'cikolata bar', 'chocolate bar', 'green tea', 'black tea', 'herbal tea', 'yesil cay', 'siyah cay', 'bitki cayi', 'ekmek', 'ekmegi', 'bread',
+  // Not a comparable bean package: subscriptions, multi-coffee sets, drip bags and wholesale cases (names only; tags/notes can mention these).
+  'kahve plani', 'abonelik', 'subscription', 'seti', 'fuar paket', 'drip bag', 'hazir filtre', 'koli'];
 // Source capture 2026-09-14: all ten URLs belong to Molecule's “Türk Kahvesi Setleri”.
 // The legacy import omitted taxonomy, so these exact identities also need protection before repair.
 const MOLECULE_CERAMICS = ['aktris', 'oxide', 'khaki-splash', 'baby-blue-splash', 'cobalt-splash', 'pink-splash', 'ying-yang', 'paloma', 'ocean', 'citrus'];
 const FOLD_PAIRS = [['İ','i'],['I','i'],['ı','i'],['ş','s'],['Ş','s'],['ğ','g'],['Ğ','g'],['ü','u'],['Ü','u'],['ö','o'],['Ö','o'],['ç','c'],['Ç','c']] as const;
-function fold(value: string): string { return FOLD_PAIRS.reduce((text, [from, to]) => text.replaceAll(from,to), value).toLowerCase(); }
+export function fold(value: string): string { return FOLD_PAIRS.reduce((text, [from, to]) => text.replaceAll(from,to), value).toLowerCase(); }
 function record(value: unknown): Record<string,unknown> { return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string,unknown> : {}; }
 function taxonomy(metadata: RawMetadata): string {
   const raw=record(metadata.sourceData);
@@ -30,7 +32,7 @@ function anySql(terms:string[]):string {
   const middle=Math.ceil(terms.length/2);
   return `(${anySql(terms.slice(0,middle))} OR ${anySql(terms.slice(middle))})`;
 }
-function foldSql(expression:string):string { return `lower(${FOLD_PAIRS.reduce((sql,[from,to])=>`replace(${sql},${literal(from)},${literal(to)})`,expression)})`; }
+export function foldSql(expression:string):string { return `lower(${FOLD_PAIRS.reduce((sql,[from,to])=>`replace(${sql},${literal(from)},${literal(to)})`,expression)})`; }
 /** Same guard at every public SQL boundary, including imported records that were marked public. */
 export function coffeeOnlySql(alias='c'):string {
   if(!/^[a-z][a-z0-9_]*$/i.test(alias))throw new Error('Invalid SQL alias');

@@ -1,5 +1,5 @@
-import { truthfulFeatures, truthfulMetadata } from './profile-truth';
-import { coffeeOnlySql } from './coffee-eligibility';
+import { cleanCoffeeName, truthfulFeatures, truthfulMetadata } from './profile-truth';
+import { coffeeOnlySql, fold, foldSql } from './coffee-eligibility';
 import { countryFilterAliases } from './country-labels';
 import type { CatalogDatabase, SqlValue } from './database';
 import { canonicalizeUrl, unitPriceTry } from './identity';
@@ -10,6 +10,8 @@ export interface CatalogOffer {
   weightG: number | null; currency: string | null; priceMinor: number | null; compareAtMinor: number | null;
   inStock: boolean | null; purchaseUrl: string | null; unitPriceTry: number | null;
   firstSeenAt: string; lastSeenAt: string; lastPriceChangeAt: string | null;
+  /** Grind/roast variants with the same weight, price and stock collapse into one package; their ids stay here for event lookup. */
+  variantOfferIds: string[];
 }
 export interface CatalogCoffee {
   id: string; name: string; slug: string; canonicalUrl: string; sourceUrl: string | null; sourceProductId: string | null;
@@ -40,12 +42,18 @@ interface FeatureRow {coffee_id:string;feature:string;value_json:string;source_t
 interface EventRow {id:string;coffee_id:string;offer_id:string|null;type:CoffeeEvent['type'];created_at:string;before_json:string;after_json:string;idempotency_key:string;observation_id:string|null}
 const COFFEE_COLUMNS='c.*,r.slug AS roaster_slug,r.name AS roaster_name,r.website_url,r.city,r.trusted_hosts_json';
 const EVENT_TYPES=new Set(['NEW','PRICE_DROP','RESTOCKED','DEAL','OUT_OF_STOCK']);
+// One package = coffee + weight + price + currency. Grind options at the same price are not separate packages.
+const PACKAGE_KEY="o.coffee_id||'|'||coalesce(o.weight_g,'')||'|'||coalesce(o.current_price_minor,'')||'|'||coalesce(o.currency,'')";
+// The package a card shows (in stock, closest to 250 g, then cheapest) is the one price sort and price filters use.
+const PREFERRED_PRICE="(SELECT o.current_price_minor FROM offers o WHERE o.coffee_id=c.id AND o.in_stock=1 AND o.retired_at IS NULL AND o.currency='TRY' AND o.current_price_minor IS NOT NULL ORDER BY o.weight_g IS NULL,abs(coalesce(o.weight_g,250)-250),o.current_price_minor,o.id LIMIT 1)";
+// Common spelling pairs in roaster copy; a search for one finds the other.
+const SEARCH_SYNONYMS=[['geisha','gesha'],['etiyopya','ethiopia'],['kolombiya','colombia'],['brezilya','brazil'],['kenya','kenia'],['natural','dogal'],['washed','yikanmis']];
 const placeholders=(length:number)=>Array.from({length},()=>'?').join(',');
 function parseJson<T>(value:string,fallback:T):T { try{return JSON.parse(value) as T;}catch{return fallback;} }
 function eventFromRow(row:EventRow):CoffeeEvent { return {id:row.id,coffeeId:row.coffee_id,offerId:row.offer_id,type:row.type,createdAt:row.created_at,before:parseJson<Json>(row.before_json,null),after:parseJson<Json>(row.after_json,null),idempotencyKey:row.idempotency_key,observationId:row.observation_id}; }
 
 export async function getCatalogCounts(db:CatalogDatabase):Promise<{coffees:number;roasters:number;offers:number}> {
-  const counts=await db.prepare(`SELECT count(DISTINCT c.id) AS coffees,count(DISTINCT c.roaster_id) AS roasters,count(o.id) AS offers FROM public_catalog_coffees c JOIN offers o ON o.coffee_id=c.id AND o.in_stock=1 AND o.retired_at IS NULL WHERE ${coffeeOnlySql()}`).first<{coffees:number;roasters:number;offers:number}>();
+  const counts=await db.prepare(`SELECT count(DISTINCT c.id) AS coffees,count(DISTINCT c.roaster_id) AS roasters,count(DISTINCT ${PACKAGE_KEY}) AS offers FROM public_catalog_coffees c JOIN offers o ON o.coffee_id=c.id AND o.in_stock=1 AND o.retired_at IS NULL WHERE ${coffeeOnlySql()}`).first<{coffees:number;roasters:number;offers:number}>();
   return counts??{coffees:0,roasters:0,offers:0};
 }
 
@@ -57,8 +65,8 @@ export async function listCatalog(db:CatalogDatabase,filters:CatalogFilters={},n
   const from='FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id';
   const sorts:Record<string,string>={
     newest:'c.first_seen_at DESC,c.id',
-    price_asc:'(SELECT min(o.current_price_minor) FROM offers o WHERE o.coffee_id=c.id AND o.in_stock=1 AND o.retired_at IS NULL AND o.currency=\'TRY\') ASC NULLS LAST,c.id',
-    price_desc:'(SELECT min(o.current_price_minor) FROM offers o WHERE o.coffee_id=c.id AND o.in_stock=1 AND o.retired_at IS NULL AND o.currency=\'TRY\') DESC NULLS LAST,c.id',
+    price_asc:`${PREFERRED_PRICE} ASC NULLS LAST,c.id`,
+    price_desc:`${PREFERRED_PRICE} DESC NULLS LAST,c.id`,
     unit_price_asc:'(SELECT min(1.0*o.current_price_minor/o.weight_g) FROM offers o WHERE o.coffee_id=c.id AND o.in_stock=1 AND o.retired_at IS NULL AND o.currency=\'TRY\' AND o.weight_g>0) ASC NULLS LAST,c.id',
   };
   const [total,coffees]=await Promise.all([
@@ -87,9 +95,12 @@ function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
   metadata('$.brewMethods',['brew_compatibility','brew_methods'],filters.brewMethod);
   if(filters.roaster?.length){const input=filters.roaster.slice(0,20);conditions.push(`r.slug IN (${placeholders(input.length)})`);values.push(...input);}
   if(filters.search?.trim()){
-    const escaped=filters.search.trim().slice(0,100).replace(/[\\%_]/g,'\\$&');
-    conditions.push("(c.name LIKE ? ESCAPE '\\' OR r.name LIKE ? ESCAPE '\\' OR json_extract(c.raw_metadata_json,'$.description') LIKE ? ESCAPE '\\')");
-    values.push(`%${escaped}%`,`%${escaped}%`,`%${escaped}%`);
+    // SQLite LIKE only folds ASCII case, so both sides are folded (İ/ı/ş/ğ/ü/ö/ç) before matching.
+    const term=fold(filters.search.trim().slice(0,100));
+    const terms=[...new Set([term,...SEARCH_SYNONYMS.flatMap(pair=>pair.flatMap(word=>term.includes(word)?pair.map(other=>term.replaceAll(word,other)):[]))])].slice(0,4);
+    const fields=[foldSql('c.name'),foldSql('r.name'),foldSql("coalesce(json_extract(c.raw_metadata_json,'$.description'),'')")];
+    conditions.push(`(${terms.flatMap(()=>fields.map(field=>`${field} LIKE ? ESCAPE '\\'`)).join(' OR ')})`);
+    values.push(...terms.flatMap(value=>fields.map(()=>`%${value.replace(/[\\%_]/g,'\\$&')}%`)));
   }
   for(const [field,feature] of [['farm','origin_farm'],['producer','origin_producer'],['variety','variety']] as const){
     const input=filters[field];
@@ -113,10 +124,8 @@ function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
     conditions.push(filters.traceability==='missing'?`NOT ${evidence}`:evidence);
   }
   if(Number.isFinite(filters.priceMin)||Number.isFinite(filters.priceMax)){
-    const priceConditions=["o.coffee_id=c.id","o.in_stock=1","o.retired_at IS NULL","o.currency='TRY'"];
-    if(Number.isFinite(filters.priceMin)){priceConditions.push('o.current_price_minor>=?');values.push(Math.round(Math.max(0,filters.priceMin!)*100));}
-    if(Number.isFinite(filters.priceMax)){priceConditions.push('o.current_price_minor<=?');values.push(Math.round(Math.max(0,filters.priceMax!)*100));}
-    conditions.push(`EXISTS(SELECT 1 FROM offers o WHERE ${priceConditions.join(' AND ')})`);
+    if(Number.isFinite(filters.priceMin)){conditions.push(`${PREFERRED_PRICE}>=?`);values.push(Math.round(Math.max(0,filters.priceMin!)*100));}
+    if(Number.isFinite(filters.priceMax)){conditions.push(`${PREFERRED_PRICE}<=?`);values.push(Math.round(Math.max(0,filters.priceMax!)*100));}
   }
   if(filters.event&&EVENT_TYPES.has(filters.event)){
     const eventConditions=['e.coffee_id=c.id','e.type=?'];values.push(filters.event);
@@ -153,23 +162,36 @@ async function hydrate(db:CatalogDatabase,rows:CoffeeRow[],now:number):Promise<C
     db.prepare(`SELECT * FROM coffee_feature_values WHERE coffee_id IN (${list}) ORDER BY feature,source_type`).bind(...ids).all<FeatureRow>(),
     db.prepare(`SELECT * FROM (SELECT e.*,row_number() OVER(PARTITION BY coffee_id,type ORDER BY created_at DESC,id DESC) AS position FROM coffee_events e WHERE coffee_id IN (${list})) WHERE position=1 ORDER BY created_at DESC`).bind(...ids).all<EventRow>(),
   ]);
-  return rows.map(row=>({id:row.id,name:row.name,slug:row.slug,canonicalUrl:row.canonical_url,sourceUrl:trustedSourceUrl(row),sourceProductId:row.source_product_id,
+  return rows.map(row=>({id:row.id,name:cleanCoffeeName(row.name),slug:row.slug,canonicalUrl:row.canonical_url,sourceUrl:trustedSourceUrl(row),sourceProductId:row.source_product_id,
     roaster:{id:row.roaster_id,slug:row.roaster_slug,name:row.roaster_name,websiteUrl:row.website_url,city:row.city},
     rawMetadata:truthfulMetadata(parseJson<RawMetadata>(row.raw_metadata_json,{}),row.name),
     features:truthfulFeatures(features.results.filter(f=>f.coffee_id===row.id).map(f=>({feature:f.feature,value:parseJson<Json>(f.value_json,null),sourceType:f.source_type,confidence:f.confidence,version:f.version,sourceReference:f.source_reference})),parseJson<RawMetadata>(row.raw_metadata_json,{})),
-    offers:offers.results.filter(o=>o.coffee_id===row.id).map(o=>{
+    offers:collapsePackages(offers.results.filter(o=>o.coffee_id===row.id).map(o=>{
       let purchaseUrl:string|null=null;
       try{const hosts=parseJson<string[]>(row.trusted_hosts_json,[]);if(hosts.length)purchaseUrl=canonicalizeUrl(o.purchase_url,hosts);}catch{/* Invalid imported URL has no purchase action. */}
       return {id:o.id,coffeeId:o.coffee_id,sourceVariantId:o.source_variant_id,label:o.label,weightG:o.weight_g,currency:o.currency,priceMinor:o.current_price_minor,compareAtMinor:o.compare_at_price_minor,
-        inStock:o.in_stock===null?null:o.in_stock===1,purchaseUrl,unitPriceTry:unitPriceTry(o.current_price_minor,o.weight_g,o.currency),firstSeenAt:o.first_seen_at,lastSeenAt:o.last_seen_at,lastPriceChangeAt:o.last_price_change_at};
-    }),
+        inStock:o.in_stock===null?null:o.in_stock===1,purchaseUrl,unitPriceTry:unitPriceTry(o.current_price_minor,o.weight_g,o.currency),firstSeenAt:o.first_seen_at,lastSeenAt:o.last_seen_at,lastPriceChangeAt:o.last_price_change_at,variantOfferIds:[o.id]};
+    })),
     latestEvents:events.results.filter(e=>e.coffee_id===row.id).map(eventFromRow),
     firstSeenAt:row.first_seen_at,lastSeenAt:row.last_seen_at,discontinuedAt:row.discontinued_at,stale:now-Date.parse(row.last_seen_at)>3*86400000,
   }));
 }
 
+/** Rows arrive in display order (in stock, cheapest first); the first variant of each package keeps its purchase link. */
+function collapsePackages(offers:CatalogOffer[]):CatalogOffer[] {
+  const packages=new Map<string,CatalogOffer>();
+  for(const offer of offers){
+    const key=[offer.weightG,offer.priceMinor,offer.currency,offer.inStock].join('|');
+    const existing=packages.get(key);
+    if(!existing){packages.set(key,offer);continue;}
+    // The variant label (grind/roast option) no longer describes the merged package; the weight does.
+    packages.set(key,{...existing,label:null,variantOfferIds:[...existing.variantOfferIds,offer.id]});
+  }
+  return [...packages.values()];
+}
+
 export async function listRoasters(db:CatalogDatabase):Promise<CatalogRoaster[]> {
-  const rows=await db.prepare(`SELECT r.*,count(DISTINCT c.id) AS coffee_count,count(DISTINCT o.id) AS offer_count FROM roasters r JOIN public_catalog_coffees c ON c.roaster_id=r.id JOIN offers o ON o.coffee_id=c.id AND o.in_stock=1 AND o.retired_at IS NULL WHERE ${coffeeOnlySql()} GROUP BY r.id ORDER BY r.name,r.id`)
+  const rows=await db.prepare(`SELECT r.*,count(DISTINCT c.id) AS coffee_count,count(DISTINCT ${PACKAGE_KEY}) AS offer_count FROM roasters r JOIN public_catalog_coffees c ON c.roaster_id=r.id JOIN offers o ON o.coffee_id=c.id AND o.in_stock=1 AND o.retired_at IS NULL WHERE ${coffeeOnlySql()} GROUP BY r.id ORDER BY r.name,r.id`)
     .all<{id:string;slug:string;name:string;website_url:string;city:string|null;adapter:string;coffee_count:number;offer_count:number;last_attempt_at:string|null;last_success_at:string|null;crawl_health:string}>();
   return rows.results.map(r=>({id:r.id,slug:r.slug,name:r.name,websiteUrl:r.website_url,city:r.city,adapter:r.adapter,coffeeCount:r.coffee_count,offerCount:r.offer_count,lastAttemptAt:r.last_attempt_at,lastSuccessAt:r.last_success_at,crawlHealth:r.crawl_health}));
 }
@@ -178,7 +200,7 @@ export async function getRoasterDetail(db:CatalogDatabase,slug:string):Promise<{
     .first<{id:string;slug:string;name:string;website_url:string;city:string|null;adapter:string;last_attempt_at:string|null;last_success_at:string|null;crawl_health:string}>();
   if(!row)return null;
   const catalog=await listCatalog(db,{roaster:[slug]});
-  const offerCount=await db.prepare(`SELECT count(*) AS count FROM offers o JOIN public_catalog_coffees c ON c.id=o.coffee_id WHERE c.roaster_id=? AND o.in_stock=1 AND o.retired_at IS NULL AND ${coffeeOnlySql()}`).bind(row.id).first<{count:number}>();
+  const offerCount=await db.prepare(`SELECT count(DISTINCT ${PACKAGE_KEY}) AS count FROM offers o JOIN public_catalog_coffees c ON c.id=o.coffee_id WHERE c.roaster_id=? AND o.in_stock=1 AND o.retired_at IS NULL AND ${coffeeOnlySql()}`).bind(row.id).first<{count:number}>();
   return {roaster:{id:row.id,slug:row.slug,name:row.name,websiteUrl:row.website_url,city:row.city,adapter:row.adapter,coffeeCount:catalog.total,offerCount:offerCount?.count??0,lastAttemptAt:row.last_attempt_at,lastSuccessAt:row.last_success_at,crawlHealth:row.crawl_health},catalog};
 }
 

@@ -33,11 +33,46 @@ export function declaredDecaf(name:string,description=''):boolean|null {
   if(/(?:bu kahve\s+kafeinsizdir|this coffee is\s+(?:decaf|caffeine[ -]*free))/iu.test(description))return true;
   return null;
 }
-/** Read repair for legacy category-as-flavor extraction and disproven decaf claims.
+const ENTITIES:Record<string,string>={amp:'&',lt:'<',gt:'>',quot:'"',apos:"'",nbsp:' '};
+/** Storefront APIs return HTML-encoded titles ("Rwanda &#8211; Gisanga") and promo prefixes ("YENİ – …"). */
+export function cleanCoffeeName(name:string):string {
+  const decoded=name.replace(/&(?:#(\d{1,7})|#x([\da-f]{1,6})|([a-z]+));/giu,(entity,dec?:string,hex?:string,named?:string)=>{
+    const code=dec?Number(dec):hex?parseInt(hex,16):null;
+    if(code!==null)return code>0&&code<=0x10ffff?String.fromCodePoint(code):entity;
+    return ENTITIES[named!.toLowerCase()]??entity;
+  });
+  return decoded.replace(/^\s*yen[iİ]\s*[-–—:|]\s*/iu,'').replace(/\s+/g,' ').trim()||name.trim();
+}
+// A field value ends where a glued label or the next sentence starts: "NaturalYükselik: 1500m", "Washed Menşei: El Salvador",
+// "1.280 mStory’de tazelik…". Over-long remainders are prose, not a fact; unknown is safer than a paragraph.
+const FIELD_LIMITS={country:30,region:60,producer:60,farm:60,altitude:30,process:60,roast:30} as const;
+// ponytail: camel-case glue split; a name like "McKinley" would be cut, revisit if roasters use one.
+const GLUE=/(?<=\p{Ll})(?=\p{Lu})|(?<=\p{L}{3})(?=\d)|(?<=\d)(?=\p{Lu}\p{Ll})/u;
+// One word before a colon, so "Rift Valley Varteye:" keeps "Rift Valley"; two-word labels lose their lead word below.
+const NEXT_LABEL=/[\s ​⁠·|;,]+\p{L}[\p{L}\p{M}’'.]*(?:\s*\([^)]{0,24}\))?\s*:/u;
+const LABEL_LEAD=/\s+(?:[İi]şleme?|Islem|Tatsal|Hasat|Tad[ıi]m|Tat|Lezzet|Kavrum|Kavurma|Cupping|Mal|Fincan|Çiftlik|Kasaba|Tasting)$/u;
+function cleanField(value:string,limit:number):string|undefined {
+  let text=value;
+  for(const pattern of [GLUE,NEXT_LABEL]){const index=text.search(pattern);if(index>0)text=text.slice(0,index);}
+  text=text.replace(LABEL_LEAD,'').replace(/[\s·|;,:/–-]+$/u,'').trim();
+  return text&&text.length<=limit?text:undefined;
+}
+function cleanProfile<T extends RawMetadata>(metadata:T):T {
+  const result={...metadata};
+  for(const [key,limit] of Object.entries(FIELD_LIMITS) as [keyof typeof FIELD_LIMITS,number][]){
+    const value=result[key];
+    if(typeof value!=='string')continue;
+    const cleaned=cleanField(value,limit);
+    if(cleaned===undefined)delete result[key];else result[key]=cleaned;
+  }
+  return result;
+}
+/** Read repair for legacy category-as-flavor extraction, glued source labels and disproven decaf claims.
  * Source archives stay intact. These corrections also cover old staging rows before recrawl.
  */
-export function truthfulMetadata(raw:RawMetadata,name:string):RawMetadata {
-  const source=declaredProfile(raw.description??'');
+export function truthfulMetadata(input:RawMetadata,name:string):RawMetadata {
+  const raw=cleanProfile(input);
+  const source=cleanProfile(declaredProfile(raw.description??''));
   const missing=Object.fromEntries(Object.entries(source).filter(([key])=>key==='tastingNotes'||raw[key as keyof RawMetadata]==null||raw[key as keyof RawMetadata]===''||raw[key as keyof RawMetadata]==='unknown'||Array.isArray(raw[key as keyof RawMetadata])&&!(raw[key as keyof RawMetadata] as unknown[]).length));
   const metadata={...raw,...missing};
   const decaf=declaredDecaf(name,metadata.description??'');

@@ -33,7 +33,8 @@ export async function DiscoveryCatalog({params,path='/kahveler',event}:{params:D
   try{
     const db=await getCatalogDatabase();
     const [catalog,roasterRows,originRows]=await Promise.all([listCatalog(db,filters),listRoasters(db),db.prepare(`SELECT DISTINCT value FROM (SELECT json_extract(c.raw_metadata_json,'$.country') AS value FROM public_catalog_coffees c UNION ALL SELECT j.value FROM coffee_feature_values f JOIN public_catalog_coffees c ON c.id=f.coffee_id JOIN json_each(f.value_json) j WHERE f.feature IN ('normalized_origin','origin_country') AND j.type='text') WHERE value IS NOT NULL AND value<>'unknown' ORDER BY value`).all<{value:string}>()]);
-    result=catalog;roasters=roasterRows;origins=countryOptions(originRows.results.map(row=>row.value));
+    // A stale or hand-edited ?page= past the end shows the last page instead of a false empty state.
+    result=catalog.page>catalog.totalPages&&catalog.totalPages>0?await listCatalog(db,{...filters,page:catalog.totalPages}):catalog;roasters=roasterRows;origins=countryOptions(originRows.results.map(row=>row.value));
   }catch(error){unstable_rethrow(error);console.error('Catalog read failed', error instanceof Error ? error.message : 'Unknown database error');return <DataSourceNotice title="Katalog şu an yüklenemiyor." message="Güncel kahveleri doğrulayamıyoruz. Biraz sonra yeniden deneyebilir veya demleme rehberini kullanabilirsin." actionHref="/guide" actionLabel="Demleme rehberi"/>;}
   const linkToPage=(page:number)=>{const query=new URLSearchParams();for(const [key,value]of Object.entries(params))for(const item of Array.isArray(value)?value:value?[value]:[])if(key!=='page')query.append(key,item);query.set('page',String(page));return `${path}?${query}`;};
   return <>

@@ -26,7 +26,7 @@ export function currentBadges(coffee:CatalogCoffee,now=Date.now()):CoffeeEvent[]
   return coffee.latestEvents.filter(event=>{
     const age=now-Date.parse(event.createdAt);
     if(!Number.isFinite(age)||age<0||age>7*86400000)return false;
-    const offer=coffee.offers.find(value=>value.id===event.offerId);
+    const offer=coffee.offers.find(value=>value.variantOfferIds.includes(event.offerId??''));
     if(event.type==='NEW')return true;
     if(event.type==='RESTOCKED')return offer?.inStock===true;
     if(event.type==='OUT_OF_STOCK')return offer?.inStock===false;

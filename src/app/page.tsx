@@ -54,7 +54,7 @@ export default async function HomePage() {
         {data.catalog.length ? <DiscoveryGrid coffees={data.catalog} source="home" /> : <DiscoveryEmpty>Henüz satışta bir kahve yok. Yeni paketler eklendiğinde burada bulacaksın.</DiscoveryEmpty>}
         <div className="studio-counts"><span><strong>{data.counts.coffees.toLocaleString('tr-TR')}</strong> kahve</span><span><strong>{data.counts.roasters}</strong> kavurucu</span><p>Tek bir yerde. Kendi fiyatlarıyla.</p></div>
       </section>
-      <FeedSection title="Fiyatı düşenler." href="/firsatlar?event=PRICE_DROP" coffees={data.drops} />
+      <FeedSection title="Fiyatı düşenler." href="/firsatlar" coffees={data.drops} />
       <FeedSection title="Tekrar raflarda." href="/yeni?event=RESTOCKED" coffees={data.restocked} />
     </> : <section className="section-space"><DataSourceNotice title="Kahveler şu an yüklenemiyor." message="Katalog bağlantısına ulaşamadık. Yeniden deneyebilir veya damak tadını keşfetmek için testi çözebilirsin." actionHref="/kahveler" actionLabel="Kataloğu yeniden aç" /></section>}
     <section className="studio-journal"><div><p className="eyebrow">Kahve molası</p><h2>Güzel kahve,<br /><em>küçük bir ritüel.</em></h2><p>Çekirdeğini seçtin. Şimdi doğru oranı bul, suyunu hazırla ve kendi fincanını demle.</p><Link href="/guide#calculator" className="text-link">Demleme rehberine git ↗</Link></div><NewsletterForm source="home-bottom" /></section>

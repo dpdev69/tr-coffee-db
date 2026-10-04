@@ -9,7 +9,7 @@ import type { CatalogCoffee, CatalogOffer } from '../shared/v2/catalog';
 import type { CoffeeEvent } from '../shared/v2/types';
 
 const now = Date.parse('2026-09-15T12:00:00Z');
-const offer: CatalogOffer = { id: 'offer-250', coffeeId: 'coffee', sourceVariantId: 'sku-250', label: '250 g', weightG: 250, currency: 'TRY', priceMinor: 90000, compareAtMinor: 120000, inStock: true, purchaseUrl: 'https://example.com/coffee', unitPriceTry: 360, firstSeenAt: '2026-09-01T12:00:00Z', lastSeenAt: '2026-09-15T12:00:00Z', lastPriceChangeAt: '2026-09-15T12:00:00Z' };
+const offer: CatalogOffer = { id: 'offer-250', coffeeId: 'coffee', sourceVariantId: 'sku-250', label: '250 g', weightG: 250, currency: 'TRY', priceMinor: 90000, compareAtMinor: 120000, inStock: true, purchaseUrl: 'https://example.com/coffee', unitPriceTry: 360, firstSeenAt: '2026-09-01T12:00:00Z', lastSeenAt: '2026-09-15T12:00:00Z', lastPriceChangeAt: '2026-09-15T12:00:00Z', variantOfferIds: ['offer-250'] };
 function coffee(events: CoffeeEvent[] = []): CatalogCoffee {
   return { id: 'coffee', name: 'Example coffee', slug: 'example-coffee', sourceProductId: 'native-id', canonicalUrl: 'https://example.com/coffee', sourceUrl: 'https://example.com/coffee', roaster: { id: 'roaster', slug: 'example', name: 'Example', websiteUrl: 'https://example.com', city: null }, rawMetadata: {}, features: [], offers: [{ ...offer }], latestEvents: events, firstSeenAt: '2026-09-01T12:00:00Z', lastSeenAt: '2026-09-15T12:00:00Z', discontinuedAt: null, stale: false };
 }
