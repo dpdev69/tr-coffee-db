@@ -47,9 +47,11 @@ export async function registerRoaster(db: CatalogDatabase, roaster: RoasterInput
   const website = canonicalizeUrl(roaster.websiteUrl);
   const host = new URL(website).hostname;
   const hosts = [...new Set([host, host.startsWith('www.') ? host.slice(4) : `www.${host}`, ...(roaster.trustedHosts ?? [])])];
+  // Keyed by slug: imported roasters keep their legacy IDs. Revision (the ingestion snapshot guard) moves only on a real change.
+  const columns = ['name','website_url','city','adapter','trusted_hosts_json','active'];
   await db.batch([insert(db, 'roasters', { id: roaster.id, slug: roaster.slug, name: roaster.name, website_url: website,
     city: roaster.city ?? null, adapter: roaster.adapter, trusted_hosts_json: JSON.stringify(hosts), active: Number(roaster.active !== false), created_at: now, updated_at: now },
-  `ON CONFLICT(id) ${upsertColumns(['slug','name','website_url','city','adapter','trusted_hosts_json','active','updated_at'])},revision=roasters.revision+1`)]);
+  `ON CONFLICT(slug) ${upsertColumns([...columns,'updated_at'])},revision=roasters.revision+1 WHERE ${columns.map(column => `roasters.${column} IS NOT excluded.${column}`).join(' OR ')}`)]);
 }
 
 export type CrawlStart = Pick<CrawlInput,'id'|'jobKey'|'roasterId'|'startedAt'|'parserVersion'|'mode'>;
