@@ -14,7 +14,7 @@ function json(value: unknown): Json { return JSON.parse(JSON.stringify(value)) a
 function coffee(config: RoasterConfig, raw: Record<string, unknown>, url: string, sourceName: string, id: unknown, offers: SourceOffer[], description: unknown, image: unknown): SourceCoffee {
   const name = cleanCoffeeName(sourceName);
   const descriptionText = plainHtml(description);
-  const eligibility = classifyEligibility(raw, name, url, sourceId(id), descriptionText);
+  const eligibility = classifyEligibility(raw, name, url, sourceId(id), descriptionText, config.name);
   const score = raw.sca_score ?? raw.scaScore;
   const scaScore = typeof score === 'number' && Number.isFinite(score) && score > 0 && score <= 100 ? score : null;
   return {
@@ -22,15 +22,15 @@ function coffee(config: RoasterConfig, raw: Record<string, unknown>, url: string
     rawMetadata: truthfulMetadata({ ...(scaScore === null ? {} : { scaScore }), description: descriptionText, imageUrl: normalizeRoasterImageUrl(text(image), config), sourceData: json(raw) },name),
     // A zero price is a storefront placeholder, not a free coffee: unknown beats wrong.
     offers: offers.map(offer => ({ ...offer, price: offer.price || null, compareAtPrice: offer.compareAtPrice || null })), visibility: eligibility.is_public ? 'public' : 'hidden',
-    features: [{ feature: 'catalog_eligibility', value: json(eligibility), sourceType: 'RULE_INFERRED', confidence: null, version: 'legacy-specialty-v1-coffee-only-v3', sourceReference: url }, ...deriveProfileFeatures(profileInput(raw, name, url, sourceId(id), descriptionText))],
+    features: [{ feature: 'catalog_eligibility', value: json(eligibility), sourceType: 'RULE_INFERRED', confidence: null, version: 'legacy-specialty-v1-coffee-only-v3', sourceReference: url }, ...deriveProfileFeatures(profileInput(raw, name, url, sourceId(id), descriptionText, config.name))],
   };
 }
 
 /** Existing specialty policy is eligibility evidence only, never a source metadata extractor. */
-function classifyEligibility(raw: Record<string, unknown>, name: string, url: string, id: string | null, description: string) {
+function classifyEligibility(raw: Record<string, unknown>, name: string, url: string, id: string | null, description: string, roasterName: string) {
   const tags = typeof raw.tags === 'string' ? raw.tags.split(',') : names(raw.tags);
   const taxonomy = [text(raw.product_type), ...tags, ...names(raw.categories)];
-  const input = profileInput(raw, name, url, id, description);
+  const input = profileInput(raw, name, url, id, description, roasterName);
   const classification = classifySpecialtyProduct({ raw: input, normalized: normalize(input) });
   const equipment = taxonomy.some(value => /(?:^|\s)(?:equipment|ekipman|aksesuar|accessories)(?:\s|$)/i.test(value)) ||
     /filtre\s+(?:kahve\s+)?k[aâ]ğ[ıi]d[ıi]|filtre\s+(?:kahve\s+)?kagidi|\b(?:coffee\s+)?filters?\s+(?:papers?|brown|white)\b/i.test(name);
