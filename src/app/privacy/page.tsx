@@ -1,22 +1,10 @@
+import { pageMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/site';
+import { CONTACT_EMAIL, DATA_CONTROLLER, LEGAL_PENDING, LEGAL_UPDATED } from '@/lib/legal';
 
-export const metadata: Metadata = {
-  title: 'Gizlilik',
-  description:
-    'TR CoffeeDB hangi verileri neden kullandığını ve dış bağlantıların nasıl çalıştığını açıklar.',
-  alternates: {
-    canonical: '/privacy',
-  },
-  openGraph: {
-    title: `Gizlilik | ${SITE_NAME}`,
-    description:
-      'TR CoffeeDB hangi verileri neden kullandığını ve dış bağlantıların nasıl çalıştığını açıklar.',
-    url: '/privacy',
-    type: 'website',
-  },
-};
+export const metadata: Metadata = pageMetadata('Gizlilik', `${SITE_NAME} hangi verileri neden kullandığını ve dış bağlantıların nasıl çalıştığını açıklar.`, '/privacy');
 
 export default function PrivacyPage() {
   return (
@@ -26,37 +14,66 @@ export default function PrivacyPage() {
       </p>
       <h1 className="mt-3 font-display text-5xl leading-none text-[#1f1d1b]">Gizlilik</h1>
       <p className="mt-4 text-sm leading-6 text-[#5d5853]">
-        TR CoffeeDB hesap, ödeme ya da teslimat bilgisi toplamaz. Satın alma işlemleri
+        {SITE_NAME} hesap, ödeme ya da teslimat bilgisi toplamaz. Satın alma işlemleri
         kavurucuların kendi sitelerinde tamamlanır.
       </p>
 
       <div className="mt-8 space-y-8">
-        <PolicySection title="Kullandığımız veriler">
+        <PolicySection title="Veri sorumlusu">
           <p>
-            Katalogda arama yaptığınızda filtre ve arama parametreleri sayfa adresinde
-            tutulur. Bir kavurucu sitesine geçiş yaptığınızda, bağlantı kalitesini ve
-            katalog kullanımını anlamak için kahve kimliği, sayfa yolu ve varsa aktif
-            filtre bağlamı redirect_events tablosunda kaydedilebilir. Bu tıklama
-            kaydı sipariş, ödeme veya profil verisi içermez.
-          </p>
-          <p>
-            Site performansını ve genel kullanımını izlemek için Vercel Analytics
-            kullanılır. Bu analitik veriler ürünü iyileştirmek, bozuk sayfaları
-            bulmak ve katalog kapsamını değerlendirmek içindir.
+            Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu’nun (KVKK) 10. maddesi kapsamında
+            aydınlatma amacıyla hazırlanmıştır. Veri sorumlusu: <strong>{DATA_CONTROLLER ?? LEGAL_PENDING}</strong>.
+            İletişim: <strong>{CONTACT_EMAIL ? <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-4">{CONTACT_EMAIL}</a> : LEGAL_PENDING}</strong>.
           </p>
         </PolicySection>
 
-        <PolicySection title="Saklama ve düzeltme">
+        <PolicySection title="Haftalık Drop aboneliği">
           <p>
-            Tıklama ve düzeltme raporları yalnızca katalog kalitesini izlemek için
-            tutulur; operasyonel inceleme tamamlandığında gereksiz kayıtları
-            silmeyi hedefleriz. Bu çalışma için varsayılan saklama hedefi 90 gündür.
+            Bülten için yalnızca e-posta adresini isteriz. Adresin sunucumuz üzerinden
+            Kit’e iletilir; katalog veritabanımıza, uygulama günlüklerine veya ürün
+            analitiğine kaydedilmez. Kit, aboneliğini ve gönderimleri yönetir.
+            Aboneliğin onay e-postasındaki bağlantıyla etkinleşir. Her bültenin
+            abonelikten ayrılma bağlantısını kullanabilirsin.
           </p>
           <p>
-            Kahve detay sayfalarındaki rapor formuyla hatalı fiyat, kırık bağlantı
-            veya yanlış metadata bildirebilirsiniz. Verileriniz için erişim,
-            düzeltme ya da silme talebiniz varsa GitHub Issues üzerinden iletişim
-            kurabilirsiniz.
+            Aboneliğin geldiği sayfanın yolu ve sınırlı kampanya bilgileri Kit’e
+            iletilebilir; arama metinleri ve katalog filtrelerinin değerleri bu
+            bilgilere eklenmez. Kit’in abone verilerini işleme koşulları için{' '}
+            <a href="https://kit.com/dpa" className="underline underline-offset-4">veri işleme ekini</a>{' '}
+            inceleyebilirsin.
+          </p>
+          <p>
+            Amaç: sana haftalık kahve bülteni (yeni gelenler, fiyat düşüşleri, tekrar stoğa girenler)
+            göndermek. Hukuki sebep: abonelik formunda ve onay e-postasında verdiğin açık rıza. Bülten,
+            kavurucuların ürünlerini tanıttığı için ticari elektronik ileti sayılabilir; onayını dilediğin an
+            her e-postadaki bağlantıyla geri alabilirsin.
+          </p>
+          <p>
+            Yurt dışına aktarım: e-posta adresin, bülteni gönderen ABD merkezli Kit (ConvertKit LLC)
+            tarafından; sitenin altyapı ve ölçüm verileri ise Cloudflare tarafından yurt dışındaki
+            sunucularda işlenir. Saklama: adresin abonelik sürdükçe Kit’te tutulur. Ayrıldığında, sana
+            yeniden e-posta gönderilmemesi için yalnızca Kit’in gönderim engeli kaydında kalır.
+          </p>
+        </PolicySection>
+
+        <PolicySection title="Site kullanımı ve ölçüm">
+          <p>
+            İsteğe bağlı ölçüme izin verdiğinde genel ziyaret ve performans ölçümü için Cloudflare Web Analytics,
+            kahve görüntüleme, filtre kullanımı, bülten başvurusu, kısa test ve
+            kavurucuya geçiş sayıları için Cloudflare Workers Analytics Engine
+            kullanılır. Ürün olaylarına e-posta, IP adresi, kullanıcı kimliği,
+            arama metni veya tam sayfa adresi eklemeyiz. Bir kavurucuya geçişte
+            yalnızca katalogdaki kahve, kavurucu ve paket kimlikleriyle sayfa türü
+            gibi sınırlı bağlamı sayarız. Bu sayımlar bir satın alma kanıtı değildir.
+          </p>
+          <p>
+            Katalog filtreleri paylaşılabilir sayfa adresinde tutulur. Kötüye
+            kullanımı sınırlandırmak için IP adresi istek sırasında geçici olarak
+            kullanılabilir; uygulama tarafından ürün analitiğinde saklanmaz.
+            Ürün olayları Cloudflare Analytics Engine’in üç aylık saklama
+            süresine tabidir. Cloudflare’ın altyapı verilerini nasıl işlediğini{' '}
+            <a href="https://www.cloudflare.com/privacypolicy/" className="underline underline-offset-4">gizlilik politikasında</a>{' '}
+            bulabilirsin.
           </p>
         </PolicySection>
 
@@ -68,9 +85,21 @@ export default function PrivacyPage() {
           </p>
         </PolicySection>
 
+        <PolicySection title="KVKK kapsamındaki hakların">
+          <p>
+            KVKK’nın 11. maddesi uyarınca kişisel verinin işlenip işlenmediğini öğrenme, işlenmişse bilgi
+            talep etme, işlenme amacını ve amaca uygun kullanılıp kullanılmadığını öğrenme, aktarıldığı
+            üçüncü kişileri bilme, eksik veya yanlış işlenmişse düzeltilmesini, silinmesini ya da yok
+            edilmesini isteme, bu işlemlerin aktarılan kişilere bildirilmesini isteme, otomatik analiz
+            sonucu aleyhine bir sonuca itiraz etme ve kanuna aykırı işleme nedeniyle zararın giderilmesini
+            talep etme haklarına sahipsin. Taleplerini yukarıdaki iletişim adresine iletebilirsin; en geç
+            30 gün içinde yanıtlanır.
+          </p>
+        </PolicySection>
+
         <PolicySection title="Kontrol sizde">
           <p>
-            Karşılaştırma listeniz, bu tarayıcının yerel depolamasında en fazla üç kahvenin
+            Çerez tercihin bir yıl boyunca kahvedrop_consent çerezinde tutulur. Sayfanın altındaki Çerez tercihleri düğmesiyle değiştirebilirsin. Ölçümü reddedersen kullanım olayları gönderilmez; bültene kaydolmaya ve kavurucuya gitmeye devam edebilirsin. Karşılaştırma listeniz, bu tarayıcının yerel depolamasında en fazla üç kahvenin
             kimliği olarak saklanır. Bir hesapla eşleştirilmez. Karşılaştırma çubuğundaki
             temizleme düğmesiyle veya tarayıcınızın site verilerini silerek kaldırabilirsiniz.
             Paylaştığınız karşılaştırma adresi, seçilen kahveleri adresin içinde taşır.
@@ -83,14 +112,7 @@ export default function PrivacyPage() {
         <Link href="/terms" className="font-semibold text-[#1f1d1b] underline-offset-4 hover:underline">
           Kullanım Şartları
         </Link>{' '}
-        sayfasına bakın. Veri talepleri ve iletişim için{' '}
-        <Link
-          href="https://github.com/dpdev69/tr-coffee-db/issues"
-          className="font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
-        >
-          GitHub Issues
-        </Link>
-        {' '}kanalını kullanın.
+        sayfasına bakın. Son güncelleme: {LEGAL_UPDATED}.
       </p>
     </div>
   );

@@ -46,3 +46,20 @@ next-env.d.ts
 
 # local supabase artifacts
 supabase/.temp/
+
+# V2 local data, secrets and Cloudflare build output
+.local/
+.dev.vars*
+.wrangler/
+dist/
+.vinext/
+
+# Local browser automation sessions (may contain entered form values)
+.playwright-cli/
+
+# Local agent/tooling state and browser-run output (may contain form values)
+output/
+.agents/
+.knowledge/
+.specify/
+skills-lock.json

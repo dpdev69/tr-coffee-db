@@ -3,8 +3,6 @@ import Link from 'next/link';
 import { PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
 import {
   formatPackageWeight,
-  formatVerifiedAt,
-  getUnitPrice,
 } from '@/lib/coffee-display';
 import type { CoffeeWithRoaster } from '@/lib/types/database';
 import { CompareToggle } from './compare-controls';
@@ -17,10 +15,9 @@ export function CoffeeCard({
   imageLoading?: 'eager' | 'lazy';
 }) {
   const name = coffee.name_normalized ?? coffee.name;
-  const unitPrice = getUnitPrice(coffee);
   return (
     <article className="coffee-card">
-      <Link href={`/coffees/${coffee.slug}`} className="coffee-card-main">
+      <Link href={`/kahve/${coffee.slug}`} className="coffee-card-main">
         <div className="coffee-card-image">
           {coffee.image_url && !/\.gif(?:[?#]|$)/i.test(coffee.image_url) ? (
             <Image
@@ -80,11 +77,6 @@ export function CoffeeCard({
               ) : null}
             </div>
             <div className="mt-1 flex flex-wrap justify-between gap-1 text-xs text-[#625e57]">
-              <span>
-                {unitPrice !== null
-                  ? `${unitPrice.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} TL / 100 g`
-                  : 'Birim fiyat hesaplanamıyor'}
-              </span>
               {coffee.roast_level !== 'unknown' && (
                 <span>
                   {ROAST_LABELS[coffee.roast_level] ?? coffee.roast_level}{' '}
@@ -95,10 +87,7 @@ export function CoffeeCard({
           </div>
         </div>
       </Link>
-      <div className="coffee-card-footer">
-        <time dateTime={coffee.last_seen_at ?? undefined}>
-          {formatVerifiedAt(coffee.last_seen_at)}
-        </time>
+      <div className="coffee-card-footer justify-end">
         <CompareToggle slug={coffee.slug} name={name} />
       </div>
     </article>

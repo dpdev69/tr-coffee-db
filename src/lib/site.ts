@@ -1,7 +1,8 @@
-export const SITE_NAME = 'TR CoffeeDB';
+import { brand } from './brand';
 
-export const SITE_DESCRIPTION =
-  "Türkiye'deki bağımsız kavurucuların güncel nitelikli kahvelerini tek yerde keşfedin. Köken, işleme, kavrum, tat notu ve kavurucunun verdiği fiyatla filtreleyin; beğendiğiniz çekirdekte kavurucunun sitesine geçin.";
+export const SITE_NAME = brand.name;
+
+export const SITE_DESCRIPTION = brand.description;
 
 export const SITE_KEYWORDS = [
   'nitelikli kahve',
@@ -25,7 +26,7 @@ function getSiteUrl() {
     process.env.NEXT_PUBLIC_SITE_URL ??
     process.env.VERCEL_PROJECT_PRODUCTION_URL ??
     process.env.VERCEL_URL ??
-    'https://tr-coffee-db.vercel.app';
+    brand.domain;
 
   const withProtocol = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
   return new URL(withProtocol);

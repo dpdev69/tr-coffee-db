@@ -266,7 +266,8 @@ describe('Current source profiles survive a successful crawl without claiming in
       assert.equal(feature.sourceType, 'RULE_INFERRED'); assert.equal(feature.confidence, null);
       assert.equal(feature.version, 'v2-profile-2'); assert.equal(feature.sourceReference, parsed.canonicalUrl);
     }
-    assert.equal(parsed.rawMetadata.country, undefined); assert.equal(parsed.rawMetadata.process, undefined); assert.equal(parsed.rawMetadata.tastingNotes, undefined);
+    assert.equal(parsed.rawMetadata.country, undefined); assert.equal(parsed.rawMetadata.process, undefined);
+    assert.deepEqual(parsed.rawMetadata.tastingNotes,['jasmine','peach','chocolate'],'source-labeled tasting notes are declared; following brew prose is excluded');
   });
   it('never infers Panama from Gesha alone or from a source URL and keeps unknown profiles empty', async () => {
     const data = await json('shopify.json'); data.products[0].body_html = ''; data.products[0].tags = []; data.products[0].product_type = '';
@@ -328,6 +329,11 @@ describe('complete storefront variants',()=>{
     assert.deepEqual(parseKronotropProduct(html,config,'https://example.test/coffee').offers.map(o=>[o.price,o.weightG,o.inStock]),[[500,250,true],[520,250,false]]);
     const milestone='<h1 class="product-title">Ethiopia Coffee</h1><button data-sepete-ekle="1"></button><ins data-guncel-fiyat="640,00"></ins><div class="product-variation-form"><a data-secenek-id="1" data-stok="2" data-fiyat="-">250g</a><a data-secenek-id="2" data-stok="0" data-fiyat="1920,00">1kg</a></div>';
     assert.deepEqual(parseMilestonesProduct(milestone,config,'https://example.test/coffee').offers.map(o=>[o.price,o.weightG,o.inStock]),[[640,250,true],[2560,1000,false]]);
+    const image=milestone+'<div class="product-single"><img src="upload/coffee.jpg"></div>';
+    const categoryConfig={...config,shopUrl:'https://example.test/kategori/kahveler-57/'};
+    assert.equal(parseMilestonesProduct(image,categoryConfig,'https://example.test/urun/coffee').rawMetadata.imageUrl,'https://example.test/upload/coffee.jpg');
+    assert.equal(parseMilestonesProduct('<base href="/media/">'+image,categoryConfig,'https://example.test/urun/coffee').rawMetadata.imageUrl,'https://example.test/media/upload/coffee.jpg');
+    assert.equal(parseMilestonesProduct('<base href="https://evil.test/">'+image,categoryConfig,'https://example.test/urun/coffee').rawMetadata.imageUrl,'https://example.test/upload/coffee.jpg');
   });
   it('uses Kafein native option price/stock and IdeaSoft variant evidence without executing source scripts',()=>{
     const data={mainProductId:'1',mainProductName:'Ethiopia Coffee',mainProductUrl:'/coffee',hasVariants:true,variantProperties:{1:{options:{5:{product_id:'2',name:'250gr',saleable:false,price:500}}}}};

@@ -1,4 +1,5 @@
 import { coffeeExclusionReason } from '../../../shared/v2/coffee-eligibility.js';
+import { cleanCoffeeName, truthfulMetadata } from '../../../shared/v2/profile-truth.js';
 import { load } from 'cheerio';
 import { classifySpecialtyProduct } from '../specialty-classification.js';
 import { normalize } from '../normalization/index.js';
@@ -10,14 +11,15 @@ import type { Json, SourceCoffee, SourceOffer } from '../../../shared/v2/types.j
 import { bool, canonicalUrl, collect, list, money, names, optionalList, plainHtml, record, requiredText, sourceId, stock, text, weight } from './primitives.js';
 
 function json(value: unknown): Json { return JSON.parse(JSON.stringify(value)) as Json; }
-function coffee(config: RoasterConfig, raw: Record<string, unknown>, url: string, name: string, id: unknown, offers: SourceOffer[], description: unknown, image: unknown): SourceCoffee {
+function coffee(config: RoasterConfig, raw: Record<string, unknown>, url: string, sourceName: string, id: unknown, offers: SourceOffer[], description: unknown, image: unknown): SourceCoffee {
+  const name = cleanCoffeeName(sourceName);
   const descriptionText = plainHtml(description);
   const eligibility = classifyEligibility(raw, name, url, sourceId(id), descriptionText);
   const score = raw.sca_score ?? raw.scaScore;
   const scaScore = typeof score === 'number' && Number.isFinite(score) && score > 0 && score <= 100 ? score : null;
   return {
     sourceProductId: sourceId(id), canonicalUrl: canonicalUrl(url, config), name,
-    rawMetadata: { ...(scaScore === null ? {} : { scaScore }), description: plainHtml(description), imageUrl: normalizeRoasterImageUrl(text(image), config), sourceData: json(raw) },
+    rawMetadata: truthfulMetadata({ ...(scaScore === null ? {} : { scaScore }), description: descriptionText, imageUrl: normalizeRoasterImageUrl(text(image), config), sourceData: json(raw) },name),
     offers, visibility: eligibility.is_public ? 'public' : 'hidden',
     features: [{ feature: 'catalog_eligibility', value: json(eligibility), sourceType: 'RULE_INFERRED', confidence: null, version: 'legacy-specialty-v1-coffee-only-v3', sourceReference: url }, ...deriveProfileFeatures(profileInput(raw, name, url, sourceId(id), descriptionText))],
   };
@@ -348,7 +350,9 @@ export function parseMilestonesProduct(html:string,config:RoasterConfig,url:stri
     // Storefront post.php islem=fiyat adds the option surcharge to the base price.
     return {sourceVariantId:requiredText(node.attr('data-secenek-id')),label,weightG:weight(label),price:money(base+(extra && extra!=='-'?localized(extra)!:0)),compareAtPrice:null,currency:'TRY',inStock:Number(quantity)>0,purchaseUrl:url};});
   const description=$('#product-tab-description').text().trim();
-  return coffee(config,{id,name,offers,description},url,name,id,offers,description,$('.product-single img').first().attr('src')||$('meta[property="og:image"]').attr('content'));
+  const imageBase=normalizeRoasterImageUrl($('base[href]').first().attr('href'),config,url)??config.websiteUrl;
+  const image=normalizeRoasterImageUrl($('.product-single img').first().attr('src')||$('meta[property="og:image"]').attr('content'),config,imageBase);
+  return coffee(config,{id,name,offers,description},url,name,id,offers,description,image);
 }
 
 export function parseKafeinProduct(payload:unknown,html:string,config:RoasterConfig,url:string,selected?:{label:string;data:unknown}[]):SourceCoffee {

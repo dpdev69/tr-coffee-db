@@ -1,0 +1,57 @@
+npm warn exec The following package was not found and will be installed: vinext@1.0.0-beta.9
+
+  vinext check
+
+  Scanning project...
+
+
+  [1mvinext compatibility report[0m
+  ========================================
+
+  [1mImports[0m: 6/7 fully supported
+    [33m~[0m  next/font/google [90m(1 file)[0m [90m— fonts loaded from CDN, not self-hosted at build time[0m
+    [32m✓[0m  next/server [90m(2 files)[0m [90m— NextRequest/NextResponse shimmed[0m
+    [32m✓[0m  next/image [90m(2 files)[0m [90m— uses @unpic/react (no local optimization yet)[0m
+    [32m✓[0m  next/link [90m(19 files)[0m
+    [32m✓[0m  next/navigation [90m(12 files)[0m
+    [32m✓[0m  next/og [90m(1 file)[0m [90m— ImageResponse via @vercel/og[0m
+    [32m✓[0m  next/headers [90m(1 file)[0m
+
+  [1mConfig[0m: 2/3 options supported
+    [33m~[0m  images [90m— remotePatterns validated; on-the-fly optimization via images.optimizer (Cloudflare Images), passthrough otherwise[0m
+    [32m✓[0m  headers
+    [32m✓[0m  poweredByHeader [90m— not sent (matching Next.js default when disabled)[0m
+
+  [1mLibraries[0m: 2/2 compatible
+    [32m✓[0m  @vercel/analytics [90m— analytics script injected client-side[0m
+    [32m✓[0m  tailwindcss
+
+  [1mProject structure[0m:
+    [32m✓[0m  App Router (src/app/)
+    [32m✓[0m  11 page(s)
+    [32m✓[0m  1 layout(s)
+    [32m✓[0m  2 route handler(s)
+    [31m✗[0m  Missing "type": "module" in package.json [90m— required for Vite — vinext init will add it automatically[0m
+    [31m✗[0m  __dirname / __filename (CommonJS globals) [90m— CJS globals unavailable in ESM — use fileURLToPath(import.meta.url) / dirname(...), or import.meta.dirname / import.meta.filename (Node 22+)[0m
+
+  ----------------------------------------
+  [1mOverall[0m: [33m83% compatible[0m (14 supported, 2 partial, 2 issues)
+
+  [1mIssues to address:[0m
+    [31m✗[0m  Missing "type": "module" in package.json — required for Vite — vinext init will add it automatically
+    [31m✗[0m  __dirname / __filename (CommonJS globals) — CJS globals unavailable in ESM — use fileURLToPath(import.meta.url) / dirname(...), or import.meta.dirname / import.meta.filename (Node 22+)
+       [90mscrapers/run-migrations.mjs[0m
+
+  [1mPartial support (may need attention):[0m
+    [33m~[0m  next/font/google — fonts loaded from CDN, not self-hosted at build time
+    [33m~[0m  images — remotePatterns validated; on-the-fly optimization via images.optimizer (Cloudflare Images), passthrough otherwise
+
+  [1mRecommended next steps:[0m
+    Run [36mvinext init[0m to set up your project automatically
+
+  Or manually:
+    1. Add [36m"type": "module"[0m to package.json
+    2. Install: [36mnpm install -D vinext vite @vitejs/plugin-react @vitejs/plugin-rsc react-server-dom-webpack[0m
+    3. Create vite.config.ts (see docs)
+    4. Run: [36mnpx vite dev[0m
+

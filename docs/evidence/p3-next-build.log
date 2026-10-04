@@ -1,0 +1,43 @@
+
+> tr-coffee-db@0.1.0 build
+> next build
+
+▲ Next.js 16.2.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1706ms
+  Running TypeScript ...
+  Finished TypeScript in 2.0s ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/18) ...
+  Generating static pages using 9 workers (4/18) 
+  Generating static pages using 9 workers (8/18) 
+  Generating static pages using 9 workers (13/18) 
+✓ Generating static pages using 9 workers (18/18) in 1719ms
+  Finalizing page optimization ...
+
+Route (app)                 Revalidate  Expire
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /api/click
+├ ƒ /api/correction-report
+├ ƒ /coffees
+├ ƒ /coffees/[slug]
+├ ƒ /compare
+├ ○ /guide
+├ ○ /opengraph-image
+├ ○ /privacy
+├ ○ /quiz
+├ ƒ /rankings
+├ ƒ /roasters
+├ ƒ /roasters/[slug]
+├ ○ /robots.txt
+├ ○ /sitemap.xml                    1d      1y
+├ ○ /terms
+└ ○ /twitter-image
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

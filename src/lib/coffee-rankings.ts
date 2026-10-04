@@ -1,7 +1,7 @@
 import { getCurrentCatalogCutoffIso } from '@/lib/catalog-rules';
 import { calculateTraceabilityScore } from '@/lib/coffee-journey';
 import { applyPublicCatalogCoffeeVisibility } from '@/lib/queries/coffees';
-import { createClient } from '@/lib/supabase/server';
+import { legacyCatalogDatabase, legacyRankingRows } from '@/lib/v2-legacy';
 import type { CoffeeLot, CoffeeWithRoaster, ValidationStatus } from '@/lib/types/database';
 
 export interface RankedCoffee extends CoffeeWithRoaster {
@@ -21,7 +21,9 @@ type CoffeeWithLot = CoffeeWithRoaster & {
 };
 
 export async function getCoffeeRankings(limit = 8): Promise<CoffeeRankings> {
-  const supabase = await createClient();
+  const db = await legacyCatalogDatabase();
+  if (db) return rankCoffees(await legacyRankingRows(db), limit);
+  const supabase = await (await import('@/lib/supabase/server')).createClient();
   const cutoff = getCurrentCatalogCutoffIso();
   const pageSize = 1000;
   const rows: CoffeeWithLot[] = [];

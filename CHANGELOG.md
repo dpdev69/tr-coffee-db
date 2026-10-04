@@ -6,6 +6,9 @@ All notable changes to TR CoffeeDB are documented here.
 
 ### Added
 
+- Weekly “Haftalık Drop” digest that creates a Kit draft from verified price drops, new arrivals and restocks.
+- KVKK privacy notice and explicit newsletter consent.
+- Weekly D1 backup workflow.
 - Compare up to three current coffees side by side, with shareable URLs and a browser-local shortlist.
 - A Turkish coffee guide and dose calculator with sourced filter, espresso, French press and AeroPress starting recipes.
 - Separate package-price and 100 g price sorting, plus a visible decaf filter.
@@ -18,6 +21,9 @@ All notable changes to TR CoffeeDB are documented here.
 
 ### Fixed
 
+- Grind/roast variants at the same price show as one package; subscriptions, sets, drip bags and wholesale cases leave the catalog; glued storefront labels and HTML entities no longer appear in coffee facts and names.
+- Price sort and filters match the package on the card; search handles Turkish capitalisation and gesha/geisha spellings.
+- Coffees a roaster delisted leave the catalog seven days after that roaster's last successful refresh.
 - Retail comparisons exclude a confirmed wholesale-only offer, and multipack weights include quantities written after the bag size.
 - The journey trigger can resolve UUID extension functions in Supabase, restoring catalog imports.
 - Catalog summary and related-coffee query failures no longer appear as valid empty data.

@@ -1,15 +1,17 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
+import { brand } from '@/lib/brand';
 import { usePathname } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { SearchInput } from '@/components/ui/search-input';
 
 const links = [
-  { href: '/coffees', label: 'Kahveler' },
-  { href: '/roasters', label: 'Kavurucular' },
-  { href: '/rankings', label: 'Sıralamalar' },
-  { href: '/guide', label: 'Kahve rehberi' },
+  { href: '/kahveler', label: 'Kahveler' },
+  { href: '/yeni', label: 'Yeni keşifler' },
+  { href: '/firsatlar', label: 'Fırsatlar' },
+  { href: '/kavurucular', label: 'Kavurucular' },
 ];
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -28,21 +30,16 @@ export function Header() {
   }, [mobileMenuOpen]);
   return (
     <header className="sticky top-0 z-50 border-b border-[#dedfd7] bg-[#faf9f6]/95 backdrop-blur-md">
-      <div className="page-shell flex h-[76px] items-center justify-between gap-6">
+      <div className="page-shell flex h-[76px] items-center justify-between gap-3">
         <Link
           href="/"
-          aria-label="TR CoffeeDB ana sayfa"
+          aria-label={`${brand.name} ana sayfa`}
           onClick={() => setMobileMenuOpen(false)}
           className="flex min-h-11 shrink-0 items-center gap-2.5"
         >
-          <span
-            aria-hidden="true"
-            className="grid h-9 w-9 place-items-center rounded-full bg-[#244b3d] font-display text-lg italic text-white"
-          >
-            c.
-          </span>
-          <span className="text-xl font-bold tracking-tight text-[#1f1d1b]">
-            TR CoffeeDB<span className="ml-1 text-[#507960]">.</span>
+          <Image src={brand.logoPath} alt="" width={36} height={36} className="h-8 w-8 sm:h-9 sm:w-9" />
+          <span className="text-lg font-bold tracking-tight sm:text-xl text-[#1f1d1b]">
+            {brand.name}<span className="ml-1 text-[#507960]">.</span>
           </span>
         </Link>
         <nav
@@ -63,7 +60,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <Link
             href="/quiz"
-            className="hidden min-h-11 items-center gap-4 rounded-lg bg-[#244b3d] px-4 text-sm font-semibold text-white hover:bg-[#163629] sm:inline-flex"
+            className="hidden min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg bg-[#244b3d] px-3 text-sm font-semibold text-white hover:bg-[#163629] inline-flex"
           >
             Kahvemi bul <span aria-hidden="true">↗</span>
           </Link>

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync } from 'node:fs';
+import { applyMigrations } from './helpers/v2-sqlite';
 import type { CatalogDatabase, SqlValue, Statement } from '../shared/v2/database';
 import { beginCrawl, ingestCrawl, registerRoaster } from '../shared/v2/ingestion';
 import type { CrawlInput } from '../shared/v2/types';
@@ -10,7 +10,7 @@ import type { CrawlInput } from '../shared/v2/types';
 class SqliteD1 implements CatalogDatabase {
   sqlite = new DatabaseSync(':memory:');
   beforeBatch?: () => void;
-  constructor() { for(const file of ['0001_catalog.sql','0002_queue_job_idempotency.sql']) this.sqlite.exec(readFileSync(new URL(`../migrations/d1/${file}`, import.meta.url),'utf8')); }
+  constructor() { applyMigrations(this.sqlite); }
   prepare(sql: string): Statement { return new SqliteStatement(this,sql); }
   async batch(statements: Statement[]): Promise<unknown[]> {
     this.beforeBatch?.();
@@ -94,6 +94,25 @@ test('duplicates, stale crawls, ambiguous identities and concurrent plans fail w
   await ingestCrawl(db,crawl(3));
   await assert.rejects(ingestCrawl(db,crawl(2)),/Stale/);
   assert.equal(count(db,'crawl_runs'),2);
+  db.sqlite.close();
+});
+test('unchanged features are not rewritten; any change replaces that provenance; observations still repeat', async () => {
+  const db = await setup();
+  const withFeatures = (day: number, process = 'washed') => { const input = crawl(day); input.products[0].features = [
+    { feature: 'process_family', value: process, sourceType: 'RULE_INFERRED', confidence: 0.8, version: 'rules-v1' },
+    { feature: 'flavor_categories', value: ['fruity'], sourceType: 'RULE_INFERRED', confidence: 1, version: 'rules-v1' },
+  ]; return input; };
+  const writes: string[] = [];const batch = db.batch.bind(db);
+  db.batch = async statements => { writes.push(...statements.map(s => (s as unknown as { sql: string }).sql).filter(sql => /coffee_feature_values/.test(sql))); return batch(statements); };
+  await ingestCrawl(db, withFeatures(1));
+  assert.equal(writes.length, 3);writes.length = 0;
+  await ingestCrawl(db, withFeatures(2));
+  assert.deepEqual(writes, [], 'identical features skip delete and insert');
+  assert.equal(count(db, 'price_observations'), 2, 'same-price observations are still recorded for DEAL baselines');
+  await ingestCrawl(db, withFeatures(3, 'natural'));
+  assert.equal(writes.length, 3);
+  assert.deepEqual(db.sqlite.prepare('SELECT feature,value_json,updated_at FROM coffee_feature_values ORDER BY feature').all().map(row => ({ ...row })),
+    [{ feature: 'flavor_categories', value_json: '["fruity"]', updated_at: crawl(3).completedAt }, { feature: 'process_family', value_json: '"natural"', updated_at: crawl(3).completedAt }]);
   db.sqlite.close();
 });
 test('rollback includes the entire batch when a late feature constraint fails', async () => {

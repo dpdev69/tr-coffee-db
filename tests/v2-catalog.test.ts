@@ -1,15 +1,15 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
-import {readFileSync} from 'node:fs';
 import type {CatalogDatabase,SqlValue,Statement} from '../shared/v2/database';
 import {ingestCrawl,registerRoaster} from '../shared/v2/ingestion';
 import {getCatalogCounts,getCoffeeDetail,getRoasterDetail,getSimilarCoffees,listCatalog,listEvents,listRoasters} from '../shared/v2/catalog';
 import type {CrawlInput,SourceCoffee} from '../shared/v2/types';
+import {applyMigrations} from './helpers/v2-sqlite';
 
 class SQLite implements CatalogDatabase {
   db=new DatabaseSync(':memory:');
-  constructor(){for(const file of ['0001_catalog.sql','0002_queue_job_idempotency.sql'])this.db.exec(readFileSync(new URL(`../migrations/d1/${file}`,import.meta.url),'utf8'));}
+  constructor(){applyMigrations(this.db);}
   prepare(sql:string):Statement{return new Prepared(this,sql);}
   async batch(statements:Statement[]){this.db.exec('BEGIN');try{const results=statements.map(s=>{const p=s as Prepared;return this.db.prepare(p.sql).run(...p.values);});this.db.exec('COMMIT');return results;}catch(error){this.db.exec('ROLLBACK');throw error;}}
 }
@@ -40,6 +40,23 @@ test('canonical current counts agree across catalog, roasters and detail with un
   assert.equal((await listEvents(db,'OUT_OF_STOCK')).length,1);
   db.db.close();
 });
+test('a coffee absent from successful crawls for over 7 days leaves the catalog; failed crawls never hide it',async()=>{
+  const db=await setup();const a=product('a'),b=product('b');
+  const at=(day:string,products:SourceCoffee[],status:CrawlInput['status']='success'):CrawlInput=>({...run(1,products),id:`run-${day}`,startedAt:`2026-01-${day}T00:00:00.000Z`,completedAt:`2026-01-${day}T00:01:00.000Z`,status});
+  await ingestCrawl(db,at('01',[a,b]));
+  await ingestCrawl(db,at('08',[a]));
+  assert.equal((await getCatalogCounts(db)).coffees,2,'exactly 7 days since last sighting is still current');
+  await ingestCrawl(db,at('09',[a]));
+  assert.deepEqual((await listCatalog(db)).coffees.map(c=>c.sourceProductId),['a']);
+  assert.equal((await getCatalogCounts(db)).coffees,1);
+  assert.equal(db.db.prepare('SELECT coffees FROM catalog_counts').get()?.coffees,1);
+  assert.equal(db.db.prepare("SELECT in_stock FROM offers WHERE source_variant_id='sku-b'").get()?.in_stock,1,'no stock state is written');
+  await ingestCrawl(db,at('30',[],'failed'));
+  assert.equal((await getCatalogCounts(db)).coffees,1,'an outage keeps the last successful catalog');
+  await ingestCrawl(db,at('31',[a,b]));
+  assert.equal((await getCatalogCounts(db)).coffees,2,'a returning coffee is current again');
+  db.db.close();
+});
 test('filters use declared and inferred features without misrepresenting raw source, search is parameterized, bounds safe',async()=>{
   const db=await setup();const a=product('a',{rawMetadata:{varieties:['Gesha']},features:[
     {feature:'origin_country',value:'Ethiopia',sourceType:'RULE_INFERRED',confidence:null,version:'legacy'},
@@ -62,6 +79,54 @@ test('feed deals require matching present price; similarity is deterministic and
   const similar=await getSimilarCoffees(db,deals.coffees[0]);assert.equal(similar.length,1);assert.deepEqual(similar[0].similarityReasons,['Aynı kökenden']);
   a.offers[0].price=120;await ingestCrawl(db,run(4,[a,b,c]));assert.equal((await listCatalog(db,{event:'DEAL'})).total,0);
   assert.equal((await listEvents(db,'DEAL')).length,1); // history is retained, the active deal feed is different.
+  db.db.close();
+});
+
+test('catalog rows and hydration do not wait for the independent total query',async()=>{
+  const db=await setup();await ingestCrawl(db,{...run(1,[product('a')]),mode:'baseline'});
+  let release!:()=>void;const pending=new Promise<void>(resolve=>{release=resolve;});
+  let hydrated=false;
+  const concurrent:CatalogDatabase={...db,batch:statements=>db.batch(statements),prepare(sql){
+    const statement=db.prepare(sql);
+    if(sql.startsWith('SELECT * FROM offers'))hydrated=true;
+    return {bind(...values){statement.bind(...values);return this;},first:async<T>()=>{if(sql.startsWith('SELECT count(*) AS count'))await pending;return statement.first<T>();},all:<T>()=>statement.all<T>()};
+  }};
+  const result=listCatalog(concurrent);
+  await new Promise<void>(resolve=>setImmediate(resolve));
+  try{assert.equal(hydrated,true,'selected coffees hydrate while the total is pending');}finally{release();}
+  assert.equal((await result).total,1);db.db.close();
+});
+
+test('similarity ranks declared/inferred values with Turkish duplicates excluded and hydrates only winners',async()=>{
+  const db=await setup();
+  await registerRoaster(db,{id:'r2',slug:'other',name:'Other',websiteUrl:'https://shop.test',adapter:'test'});
+  const facts={country:'Türkiye',process:'washed'};
+  const features=[{feature:'flavor_families',value:['fruity'],sourceType:'RULE_INFERRED' as const,confidence:null,version:'1'}];
+  const a=product('a',{name:'IŞIK',rawMetadata:facts,features});
+  const strongest=product('strongest',{rawMetadata:{country:'TÜRKİYE',process:'WASHED'},features});
+  const inferred=product('inferred',{rawMetadata:{},features:[
+    {feature:'normalized_origin',value:['Türkiye',12,null],sourceType:'RULE_INFERRED',confidence:null,version:'1'},
+    {feature:'process_family',value:'washed',sourceType:'RULE_INFERRED',confidence:null,version:'1'},
+    {feature:'flavor_categories',value:[true,'fruity'],sourceType:'RULE_INFERRED',confidence:null,version:'1'},
+    {feature:'origin_country',value:null,sourceType:'RULE_INFERRED',confidence:null,version:'1'},
+    {feature:'process',value:{unmatched:'washed'},sourceType:'RULE_INFERRED',confidence:null,version:'1'},
+  ]});
+  const hidden=product('hidden',{visibility:'hidden',rawMetadata:facts,features});
+  const unavailable=product('unavailable',{rawMetadata:facts,features});unavailable.offers[0].inStock=false;
+  await ingestCrawl(db,{...run(1,[a,strongest,inferred,hidden,unavailable,product('duplicate',{name:'ışık',rawMetadata:facts,features}),product('equipment',{name:'Kahve Fincanı',rawMetadata:facts,features}),product('origin-only',{rawMetadata:{country:'Türkiye'}})]),mode:'baseline'});
+  // Legacy incorrect visibility must still pass the shared coffee-only guard.
+  db.db.prepare("UPDATE coffees SET visibility='public' WHERE source_product_id='equipment'").run();
+  await ingestCrawl(db,{...run(2,[product('same-url',{canonicalUrl:a.canonicalUrl,rawMetadata:facts,features})]),roasterId:'r2',mode:'baseline'});
+  const all=(await listCatalog(db)).coffees;const current=all.find(c=>c.sourceProductId==='a')!;
+  let reads=0;let hydratedIds:SqlValue[]=[];
+  const counted:CatalogDatabase={batch:statements=>db.batch(statements),prepare(sql){reads++;const statement=db.prepare(sql);return {bind(...values){if(sql.startsWith('SELECT * FROM offers'))hydratedIds=values;statement.bind(...values);return this;},first:<T>()=>statement.first<T>(),all:<T>()=>statement.all<T>()};}};
+  const result=await getSimilarCoffees(counted,current,2);
+  const winners=all.filter(c=>['strongest','inferred'].includes(c.sourceProductId!)).sort((a,b)=>a.id.localeCompare(b.id));
+  assert.deepEqual(result,winners.map(c=>({...c,similarityReasons:['Aynı kökenden','Benzer işleme yöntemi','Benzer tat profili']})));
+  assert.equal(reads,4);assert.deepEqual(hydratedIds,winners.map(c=>c.id));
+  assert.equal((await getSimilarCoffees(db,current,0)).length,0);
+  assert.equal((await getSimilarCoffees(db,current,-1)).length,0);
+  assert.equal((await getSimilarCoffees(db,current,NaN)).length,3);
   db.db.close();
 });
 
@@ -148,9 +213,36 @@ test('traceability filters actual public linked archive sources, not inferred or
 });
 
 test('detail identity lookup seeks indexed candidates instead of scanning aliases per coffee',async()=>{
-  const db=await setup();db.db.exec(readFileSync(new URL('../migrations/d1/0004_alias_lookup.sql',import.meta.url),'utf8'));
+  const db=await setup();
   let query='';const prepare=db.prepare.bind(db);db.prepare=(sql)=>{if(sql.includes('FROM coffees c JOIN roasters'))query=sql;return prepare(sql);};
   assert.equal(await getCoffeeDetail(db,'missing'),null);
   const plan=db.db.prepare('EXPLAIN QUERY PLAN '+query).all('missing','missing','missing').map(row=>row.detail).join('\n');
   assert.match(plan,/SEARCH c USING INDEX sqlite_autoindex_coffees/);assert.match(plan,/SEARCH coffee_aliases USING COVERING INDEX aliases_lookup/);assert.doesNotMatch(plan,/SCAN c\b/);db.db.close();
+});
+
+test('grind/roast variants at the same weight and price are one package in details, counts and roaster totals',async()=>{
+  const db=await setup();
+  const variant=(sku:string,label:string,weightG:number,price:number)=>({sourceVariantId:sku,label,weightG,price,compareAtPrice:null,currency:'TRY',inStock:true,purchaseUrl:`https://shop.test/v?${sku}`});
+  const grinds=product('g',{name:'Rwanda &#8211; Gisanga',offers:[variant('v60','125 G · Hario V60',125,225),variant('chemex','125 G · Chemex',125,225),variant('bean','125 G · Çekirdek',125,225),variant('kg','1 kg · Çekirdek',1000,1400)]});
+  await ingestCrawl(db,run(1,[grinds]));
+  const [coffee]=(await listCatalog(db)).coffees;
+  assert.equal(coffee.name,'Rwanda – Gisanga');
+  assert.deepEqual(coffee.offers.map(o=>[o.weightG,o.label,o.variantOfferIds.length]),[[125,null,3],[1000,'1 kg · Çekirdek',1]]);
+  assert.equal((await getCatalogCounts(db)).offers,2);
+  assert.equal((await listRoasters(db))[0].offerCount,2);
+  assert.equal((await getRoasterDetail(db,'roaster'))?.roaster.offerCount,2);
+});
+
+test('price sort/filter use the package the card shows; search folds Turkish case and spelling pairs',async()=>{
+  const db=await setup();
+  const pack=(sku:string,weightG:number,price:number)=>({sourceVariantId:sku,label:`${weightG} g`,weightG,price,compareAtPrice:null,currency:'TRY',inStock:true,purchaseUrl:`https://shop.test/p?${sku}`});
+  // A 50 g sample must not make a 250 g coffee look like the cheapest bag.
+  const sampler=product('s',{name:'ETİYOPYA Gesha Village',offers:[pack('s50',50,120),pack('s250',250,900)]});
+  const plain=product('p',{name:'Brezilya Cerrado',offers:[pack('p250',250,500)]});
+  await ingestCrawl(db,run(1,[sampler,plain]));
+  assert.deepEqual((await listCatalog(db,{sort:'price_asc'})).coffees.map(c=>c.name),['Brezilya Cerrado','ETİYOPYA Gesha Village']);
+  assert.deepEqual((await listCatalog(db,{priceMax:600})).coffees.map(c=>c.name),['Brezilya Cerrado']);
+  for(const search of ['etiyopya','ethiopia','geisha','GESHA'])assert.equal((await listCatalog(db,{search})).total,1,search);
+  assert.equal((await listCatalog(db,{search:'brazil'})).total,1);
+  assert.equal((await listCatalog(db,{search:'50%_'})).total,0,'LIKE wildcards stay literal');
 });

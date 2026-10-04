@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { brand } from '@/lib/brand';
 
 export function Footer() {
   return (
@@ -10,7 +11,7 @@ export function Footer() {
               href="/"
               className="inline-flex min-h-11 items-center text-xl font-bold tracking-tight"
             >
-              TR CoffeeDB.
+              {brand.name}.
             </Link>
             <p className="mt-2 max-w-sm text-sm leading-6 text-[#625e57]">
               Türkiye’nin bağımsız kavurucularını keşfet. Çekirdekleri
@@ -19,9 +20,9 @@ export function Footer() {
           </div>
           <nav aria-label="Keşfet">
             <p className="eyebrow mb-2">Keşfet</p>
-            <FooterLink href="/coffees">Kahve kataloğu</FooterLink>
-            <FooterLink href="/roasters">Kavurucular</FooterLink>
-            <FooterLink href="/rankings">Katalog sıralamaları</FooterLink>
+            <FooterLink href="/kahveler">Kahve kataloğu</FooterLink>
+            <FooterLink href="/kavurucular">Kavurucular</FooterLink>
+            <FooterLink href="/firsatlar">Doğrulanan fırsatlar</FooterLink>
           </nav>
           <nav aria-label="Rehber">
             <p className="eyebrow mb-2">Bir sonraki fincanın</p>

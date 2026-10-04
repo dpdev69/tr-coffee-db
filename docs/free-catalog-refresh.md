@@ -2,7 +2,7 @@
 
 GitHub Actions runs the parsers on Node 22; D1 remains the canonical database and the Cloudflare web Worker remains its reader. `scrape.yml` replaces the old Supabase writer and schedules one refresh daily at 00:00 UTC (03:00 Istanbul; GitHub can delay starts). Cloudflare crawler cron triggers and `CRAWLS_ENABLED` are disabled. Both old queue deliveries are paused, preventing backlog retries from competing with the new writer. The queue handler is retained for deliberate recovery.
 
-`CLOUDFLARE_D1_API_TOKEN` is an Actions secret scoped to Account → D1 → Edit for the existing account. No paid Cloudflare plan was enabled. A 20-minute Linux job timeout bounds scheduled usage to 620 minutes in a 31-day month, excluding manual runs and other workflows.
+`CLOUDFLARE_D1_API_TOKEN` is an Actions secret scoped to Account → D1 → Edit for the existing account. `d1-backup.yml` reuses it weekly for `wrangler d1 export` (the export endpoint is a POST job; D1 Edit covers it, D1 Read may not) and keeps a gzipped SQL artifact for 30 days; the catalog holds no emails or subscriber data. No paid Cloudflare plan was enabled. A 20-minute Linux job timeout bounds scheduled usage to 620 minutes in a 31-day month, excluding manual runs and other workflows.
 
 ## Ingestion
 
@@ -11,6 +11,10 @@ All active database roasters are attempted. Complete snapshots commit through th
 The runner overlaps three independent roasters. Requests within each storefront retain their 300 ms pacing, discovery limits and access checks. D1 REST requests remain serialized, so each quota check includes the preceding batch's actual usage. In-flight workers settle before the final report is written, including when reporting fails. Reports include total and per-roaster `elapsedMs`.
 
 Complete variant discovery retires withdrawn offers for an observed product without fabricating stock observations. Explicitly unavailable parents may have no offers. Returning variants recover their identity. A first complete baseline supersedes synthetic legacy offers across that roaster, retaining their history. Entirely absent native products are not declared sold out.
+
+Absent products also leave the public catalog without any write: migration 0005 limits `public_catalog_coffees` to coffees whose `last_seen_at` is within 7 days of their roaster's `last_success_at`. Only successful crawls move either timestamp, so failed/partial runs or a stopped workflow never hide a catalog. A delisted coffee disappears after the first successful crawl at least 7 days past its last sighting; if it returns, the next success shows it again.
+
+Apply 0005 with `npm run db:migrate:staging` (`wrangler d1 migrations apply --remote`, token with D1 Edit). The runner records 0004 in `d1_migrations` itself, so first confirm with `npx wrangler d1 migrations list coffeedb-v2-staging --remote` that only `0005_current_offers_freshness.sql` is pending; if older files appear, their objects already exist, so record them in the ledger rather than re-running them. The runner deliberately does not install 0005. Catalog reads cache for 5 minutes.
 
 Attempts older than two hours expire as failed. Reports include actual D1 rows read/written. A process stops further requests after 3 million reads or 65,000 writes, leaving headroom; the final atomic batch can cross that threshold. This is a per-process guard, not an account-wide quota guarantee. Reports remain available for seven days; source failures fail the job visibly.
 

@@ -2,12 +2,14 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import type { CatalogDatabase, SqlValue, Statement } from '../../shared/v2/database';
 
+/** Applies every D1 migration in ledger order, as `wrangler d1 migrations apply` does. */
+export function applyMigrations(sqlite: DatabaseSync) {
+  const directory = new URL('../../migrations/d1/', import.meta.url);
+  for (const name of readdirSync(directory).filter(name => name.endsWith('.sql')).sort()) sqlite.exec(readFileSync(new URL(name, directory), 'utf8'));
+}
 export class TestCatalogDatabase implements CatalogDatabase {
   readonly sqlite = new DatabaseSync(':memory:');
-  constructor() {
-    const directory = new URL('../../migrations/d1/', import.meta.url);
-    for (const name of readdirSync(directory).filter(name => name.endsWith('.sql')).sort()) this.sqlite.exec(readFileSync(new URL(name, directory), 'utf8'));
-  }
+  constructor() { applyMigrations(this.sqlite); }
   prepare(sql: string): Statement { return new TestStatement(this, sql); }
   async batch(statements: Statement[]) {
     this.sqlite.exec('BEGIN');

@@ -143,7 +143,7 @@ export function CompareCatalogLink({
 }) {
   return (
     <Link
-      href="/coffees"
+      href="/kahveler"
       className={className}
       onNavigate={() => setSelection(slugs)}
     >
@@ -167,7 +167,7 @@ export function CompareDock() {
         <small>
           {selection.length === 1
             ? 'Yan yana görmek için bir kahve daha ekle.'
-            : 'Paket, 100 g fiyatı ve tatları yan yana gör.'}
+            : 'Paket fiyatlarını, gramajları ve tatları yan yana gör.'}
         </small>
       </div>
       <Link href={`/compare?${query.toString()}`}>

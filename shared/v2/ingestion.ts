@@ -8,6 +8,7 @@ interface RoasterRow { id: string; revision: number; last_success_at: string | n
 interface CoffeeRow { id: string; source_product_id: string | null; identity_key: string; slug: string }
 interface AliasRow { alias_type: string; alias: string; coffee_id: string }
 interface OfferRow { id: string; coffee_id: string; identity_key: string; current_price_minor: number | null; currency: string | null; weight_g: number | null }
+interface FeatureRow { coffee_id: string; feature: string; value_json: string; source_type: string; confidence: number | null; version: string; source_reference: string | null }
 interface ObservationRow { id: string; offer_id: string; crawl_run_id: string; observed_at: string; price_minor: number | null; compare_at_minor: number | null; weight_g: number | null; currency: string | null; in_stock: number | null; source: 'crawl' | 'import' }
 
 function insert(db: CatalogDatabase, table: string, row: Record<string, SqlValue>, suffix = ''): Statement {
@@ -114,6 +115,7 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
     const observationRows = (await db.prepare(`SELECT p.* FROM offers o JOIN coffees c ON c.id=o.coffee_id
       JOIN price_observations p ON p.id IN (SELECT recent.id FROM price_observations recent WHERE recent.offer_id=o.id ORDER BY recent.observed_at DESC LIMIT 2)
       WHERE c.roaster_id=?`).bind(input.roasterId).all<ObservationRow>()).results;
+    const featureRows = (await db.prepare("SELECT f.coffee_id,f.feature,f.value_json,f.source_type,f.confidence,f.version,f.source_reference FROM coffee_feature_values f JOIN coffees c ON c.id=f.coffee_id WHERE c.roaster_id=? AND f.source_type<>'MANUAL'").bind(input.roasterId).all<FeatureRow>()).results;
     const seenCoffees = new Set<string>();
     const seenOffers = new Set<string>();
     for (const product of input.products) {
@@ -185,12 +187,17 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
       // validateProduct restricts source input to declared/inferred provenance. Reviewed MANUAL
       // records belong to a separate write path and must never be deleted by a crawl.
       // Only provenance types present in this result are refreshed; a rule update leaves declarations intact.
-      const featureSources = new Set((product.features ?? []).map(feature => feature.sourceType));
-      for (const source of featureSources) statements.push(db.prepare('DELETE FROM coffee_feature_values WHERE coffee_id=? AND source_type=?').bind(coffeeId,source));
-      for (const feature of product.features ?? []) {
+      const features: FeatureRow[] = (product.features ?? []).map(feature => {
         if (feature.confidence !== null && (!Number.isFinite(feature.confidence) || feature.confidence < 0 || feature.confidence > 1)) throw new Error('Invalid feature confidence');
-        statements.push(insert(db, 'coffee_feature_values', { coffee_id: coffeeId,feature: feature.feature,value_json: JSON.stringify(feature.value),source_type: feature.sourceType,
-          confidence: feature.confidence,version: feature.version,source_reference: feature.sourceReference ?? null,created_at: completedAt,updated_at: completedAt }));
+        return { coffee_id: coffeeId,feature: feature.feature,value_json: JSON.stringify(feature.value),source_type: feature.sourceType,confidence: feature.confidence,version: feature.version,source_reference: feature.sourceReference ?? null };
+      });
+      const featureSources = new Set(features.map(feature => feature.source_type));
+      // Identical refreshed provenance rows are left alone; the daily delete/re-insert dominated row writes.
+      const featureKey = (row: FeatureRow) => JSON.stringify([row.feature,row.source_type,row.value_json,row.confidence,row.version,row.source_reference]);
+      const unchanged = features.map(featureKey).sort().join('\n') === featureRows.filter(row => row.coffee_id === coffeeId && featureSources.has(row.source_type)).map(featureKey).sort().join('\n');
+      if (!unchanged) {
+        for (const source of featureSources) statements.push(db.prepare('DELETE FROM coffee_feature_values WHERE coffee_id=? AND source_type=?').bind(coffeeId,source));
+        for (const feature of features) statements.push(insert(db, 'coffee_feature_values', { ...feature,created_at: completedAt,updated_at: completedAt }));
       }
       for (const event of events) statements.push(insert(db, 'coffee_events', { id: event.id,coffee_id: event.coffeeId,offer_id: event.offerId,type: event.type,created_at: event.createdAt,
         before_json: JSON.stringify(event.before),after_json: JSON.stringify(event.after),idempotency_key: event.idempotencyKey,observation_id: event.observationId }));

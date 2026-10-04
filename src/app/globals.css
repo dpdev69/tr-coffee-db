@@ -716,3 +716,76 @@ summary {
     transition: none !important;
   }
 }
+
+/* Native Safari selects otherwise collapse below the mobile touch target. */
+.discovery-filters select {
+  appearance: none;
+  min-height: 44px;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%23244b3d' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+.discovery-filters select[multiple] {
+  background-image: none;
+  min-height: 88px;
+}
+
+/* Warm coffee studio */
+:root { --paper: #faf7f0; --ink: #30281f; --line: #ded7ca; }
+.studio-hero { position: relative; isolation: isolate; overflow: hidden; min-height: 560px; display: flex; align-items: center; padding-block: 68px; }
+.studio-hero-copy { position: relative; z-index: 1; max-width: 640px; }
+.studio-background { position: absolute !important; inset: 0; z-index: -1; pointer-events: none; }
+.studio-hero h1 { margin-top: 24px; font-family: var(--font-display); font-size: clamp(44px, 5.2vw, 72px); line-height: 1.06; letter-spacing: -.055em; font-weight: 400; }
+.studio-hero h1 em { color: #936044; font-weight: 400; }
+.studio-intro { max-width: 490px; margin-top: 26px; font-size: 16px; line-height: 1.9; color: #6e6255; }
+.studio-actions { display: flex; flex-wrap: wrap; gap: 22px; align-items: center; margin-top: 28px; }
+.studio-actions .button-dark { min-width: 178px; border-radius: 28px; }
+.studio-small { font-size: 12px; color: #76695d; margin-top: 14px; }
+.studio-scene-wrap { min-width: 0; }
+.studio-scene-caption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 14px 8px; color: #756858; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; }
+.studio-paths { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border-block: 1px solid var(--line); }
+.studio-paths a { display: flex; align-items: center; gap: 16px; padding: 24px 18px; border-right: 1px solid var(--line); }
+.studio-paths a:first-child { padding-left: 0; }
+.studio-paths a:last-child { border-right: 0; }
+.studio-paths a:hover { background: #f2ece0; }
+.studio-paths strong { font-size: 14px; font-weight: 600; }
+.studio-paths p { font-size: 12px; color: #786b5f; margin-top: 5px; }
+.studio-paths a > span:last-child { margin-left: auto; }
+.studio-path-number { color: #a07a57; font-size: 12px; font-family: var(--font-mono); }
+.studio-latest { padding-top: 54px; }
+.studio-counts { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; margin-top: 26px; font-size: 13px; color: #76695d; }
+.studio-counts strong { color: #244b3d; font-size: 17px; }
+.studio-counts p { margin-left: auto; }
+.studio-journal { display: grid; grid-template-columns: 1fr 1fr; gap: 70px; align-items: center; border-top: 1px solid var(--line); padding-block: 48px 64px; }
+.studio-journal h2 { margin-top: 20px; font-family: var(--font-display); font-size: 44px; line-height: 1.12; }
+.studio-journal h2 em { font-weight: 400; color: #936044; }
+.studio-journal p:not(.eyebrow) { max-width: 400px; margin-block: 22px 10px; font-size: 14px; line-height: 1.8; color: #76695d; }
+.coffee-card { border-color: #ded7ca; border-radius: 14px; }
+.coffee-card-image { aspect-ratio: 1 / 1; background: #f0ece3; }
+.coffee-card h3 { font-size: 23px; }
+.discovery-filters { background: #f1ede4; }
+@media (max-width: 767px) {
+  .studio-hero { min-height: 530px; padding-block: 42px 100px; align-items: flex-start; }
+  .studio-hero-copy { max-width: 100%; }
+  .studio-hero h1 { font-size: clamp(42px, 10vw, 62px); }
+  .studio-intro { margin-top: 20px; }
+  .studio-scene-wrap { width: min(100%,440px); margin-inline: auto; }
+  .studio-paths { grid-template-columns: 1fr; }
+  .studio-paths a, .studio-paths a:first-child { padding: 18px 4px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .studio-paths a:last-child { border-bottom: 0; }
+  .studio-journal { grid-template-columns: 1fr; gap: 30px; }
+  .studio-counts { gap: 15px; }
+  .studio-counts p { margin-left: 0; }
+  .coffee-card h3 { font-size: 22px; }
+}
+
+.coffee-scene-background {
+  mask-image: linear-gradient(100deg, transparent 10%, #00000008 35%, #00000099 65%, black 100%);
+}
+
+@media (max-width: 650px) {
+  .coffee-scene-background {
+    mask-image: linear-gradient(180deg, #00000018 0%, #00000018 72%, #00000099 100%);
+  }
+}

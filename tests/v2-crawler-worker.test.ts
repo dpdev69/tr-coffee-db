@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
+import {applyMigrations} from './helpers/v2-sqlite';
 import type {CatalogDatabase,SqlValue,Statement} from '../shared/v2/database';
 import {registerRoaster,beginCrawl,expireCrawls} from '../shared/v2/ingestion';
 import {createCrawlerWorker,type CrawlJob} from '../workers/crawler';
@@ -10,7 +11,7 @@ import {ALL_ROASTER_CONFIGS} from '../scrapers/src/roasters/configs';
 
 class SQLite implements CatalogDatabase {
   db=new DatabaseSync(':memory:');loseSuccessResponse=false;
-  constructor(){for(const file of ['0001_catalog.sql','0002_queue_job_idempotency.sql'])this.db.exec(readFileSync(new URL(`../migrations/d1/${file}`,import.meta.url),'utf8'));}
+  constructor(){applyMigrations(this.db);}
   withSession(){return this;}
   prepare(sql:string):Statement{return new Prepared(this,sql);}
   async batch(statements:Statement[]){this.db.exec('BEGIN');try{const results=statements.map(s=>{const p=s as Prepared;return this.db.prepare(p.sql).run(...p.values);});this.db.exec('COMMIT');
@@ -29,7 +30,8 @@ const job:CrawlJob={roasterId:'r',slug:'petra',scheduledAt};
 function message(attempts=1,body:unknown=job){return{body,attempts,acked:false,retried:false,ack(){this.acked=true;},retry(){this.retried=true;}};}
 function clock(){let seconds=0;return()=>new Date(Date.parse(scheduledAt)+seconds++*1000).toISOString();}
 async function setup(){const db=new SQLite();await registerRoaster(db,{id:'r',slug:'petra',name:'Petra',websiteUrl:'https://petracoffee.com',adapter:'shopify'});return db;}
-function env(db:SQLite){return{DB:db,CRAWLS_ENABLED:'true',CRAWL_MODE:'baseline',CRAWL_QUEUE:{sendBatch:async()=>{}}};}
+const DLQ='crawls-dlq-test';
+function env(db:SQLite){return{DB:db,CRAWLS_ENABLED:'true',CRAWL_MODE:'baseline',CRAWL_DLQ_QUEUE:DLQ,CRAWL_QUEUE:{sendBatch:async()=>{}}};}
 const count=(db:SQLite,table:string)=>Number(db.db.prepare(`SELECT count(*) AS count FROM ${table}`).get()?.count);
 const deliver=async(worker:ReturnType<typeof createCrawlerWorker>,db:SQLite,messages:ReturnType<typeof message>[])=>worker.queue({messages}as never,env(db)as never);
 
@@ -71,6 +73,24 @@ test('concurrent deliveries recover interrupted running attempt and cannot doubl
 });
 
 
+test('disabled crawls hold queued jobs without crawling or spending retries; DLQ still closes jobs',async()=>{
+  const db=await setup();const worker=createCrawlerWorker({fetch:async()=>{throw new Error('Disabled crawler fetched source');}},clock());
+  const sent:{body:unknown;options:unknown}[]=[];
+  const disabled={...env(db),CRAWLS_ENABLED:'false',CRAWL_QUEUE:{send:async(body:unknown,options:unknown)=>{sent.push({body,options});}}};
+  const held=message(3);await worker.queue({queue:'crawls-test',messages:[held]}as never,disabled as never);
+  assert.equal(held.acked,true);assert.equal(held.retried,false);
+  assert.deepEqual(sent,[{body:job,options:{contentType:'json',delaySeconds:43200}}]);
+  assert.equal(count(db,'crawl_runs'),0,'no attempt is started');
+  const exhausted=message(5);await worker.queue({queue:DLQ,messages:[exhausted]}as never,disabled as never);
+  assert.equal(exhausted.acked,true);assert.equal(sent.length,1);
+  assert.equal(db.db.prepare('SELECT status FROM crawl_runs').get()?.status,'failed');db.db.close();
+});
+test('crawler DLQ variable names the configured dead-letter queue',()=>{
+  const config=JSON.parse(readFileSync(new URL('../wrangler.crawler.jsonc',import.meta.url),'utf8').replace(/^\s*\/\/.*$/gm,''));
+  const [main,dlq]=config.queues.consumers;
+  assert.equal(config.vars.CRAWL_DLQ_QUEUE,main.dead_letter_queue);assert.equal(dlq.queue,main.dead_letter_queue);
+});
+
 test('qualification is explicit and rejects configured-but-unreviewed sources before any queue I/O',async()=>{
   assert.equal(QUALIFIED_SOURCE_SLUGS.length,38);
   assert.equal(new Set(QUALIFIED_SOURCE_SLUGS).size,38);
@@ -89,7 +109,7 @@ test('live sources establish a quiet baseline; exhausted and expired attempts cl
   const first=message();await worker.queue({messages:[first]}as never,{...env(db),CRAWL_MODE:'live'}as never);
   assert.equal(first.acked,true);assert.equal(db.db.prepare('SELECT mode FROM crawl_runs').get()?.mode,'baseline');assert.equal(count(db,'coffee_events'),0);
   const exhausted=message(1,{...job,scheduledAt:'2025-12-31T12:00:00Z'});
-  for(let i=0;i<2;i++)await worker.queue({queue:'coffeedb-v2-crawls-dlq-staging',messages:[exhausted]}as never,env(db)as never);
+  for(let i=0;i<2;i++)await worker.queue({queue:DLQ,messages:[exhausted]}as never,env(db)as never);
   assert.equal(exhausted.acked,true);assert.equal(exhausted.retried,false);assert.equal(count(db,'crawl_runs'),2);
   await beginCrawl(db,{id:'stale',roasterId:'r',startedAt:'2025-12-31T13:00:00Z',parserVersion:'test',mode:'live'});
   await beginCrawl(db,{id:'recent',roasterId:'r',startedAt:'2026-01-01T01:59:00Z',parserVersion:'test',mode:'live'});
