@@ -10,11 +10,21 @@ export const brand = {
   domain: process.env.NEXT_PUBLIC_SITE_URL || 'https://coffeedb-v2-web-staging.hellobasalt.workers.dev',
   title: `${name} · Damak tadına göre kahve keşfet`,
   description,
+  // One signup, two sends. newsletterName/Promise describe the weekly digest (scripts/v2-digest.mts reads them).
   newsletterName: 'Haftalık Drop',
-  newsletterPromise: 'Yeni çıkan kahveler ve gerçekten iyi fırsatlar, haftada bir.',
+  newsletterPromise: 'Fiyatı düşen ve yeni gelen kahveler, haftada bir.',
+  monthlyName: `${name} Mektup`,
+  signupPromise: 'Ayın favori kahveleri, sahneden haberler ve etkinlikler ayda bir. Fiyatı düşenler ve yeni gelenler haftada bir. İstediğin an çıkarsın.',
   emailSourceName: process.env.NEXT_PUBLIC_EMAIL_SOURCE_NAME || name,
   analyticsSource: process.env.NEXT_PUBLIC_ANALYTICS_SOURCE || 'kahvedrop',
   logoPath: process.env.NEXT_PUBLIC_BRAND_LOGO || '/brand-mark.svg',
   social: { title: `${name} · Damak tadına göre kahve keşfet`, description, image: '/opengraph-image' },
   production,
+} as const;
+
+/** Wording shown beside the checkbox and the version stored in Kit with the signup. Change the text only together with the version. */
+export const newsletterConsent = {
+  version: '2026-10-v1',
+  text: 'Aylık bülteni ve haftalık fiyat özetini almayı kabul ediyorum. Aydınlatma metnini okudum.',
+  linkText: 'Aydınlatma metnini',
 } as const;

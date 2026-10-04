@@ -7,6 +7,7 @@ export async function POST(request: Request) {
     const env = await getV2Environment();
     const result = await handleSubscribe(request, { ...env, ANALYTICS: analyticsConsent(request.headers.get('cookie')) ? env.ANALYTICS : undefined });
     if (result.diagnostic) console.warn('subscribe_provider_failure', result.diagnostic);
+    if (result.consentFieldsSkipped) console.warn('subscribe_consent_fields_missing');
     return subscribeResponse(result);
   } catch {
     return subscribeResponse(subscribeUnavailable());
