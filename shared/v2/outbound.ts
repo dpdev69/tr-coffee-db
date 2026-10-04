@@ -64,3 +64,17 @@ export async function handleOutbound(request: Request, offerId: string, db: Cata
   }
   return new Response(null, { status: 302, headers: { ...HEADERS, Location: location } });
 }
+
+/** The roaster's own site, only when its stored website passes the same trusted-host check as purchase links. */
+export async function roasterSiteUrl(db: CatalogDatabase, slug: string, referralSource = 'kahvedrop'): Promise<string | null> {
+  if (!/^[a-z0-9-]{1,80}$/.test(slug)) return null;
+  const row = await db.prepare('SELECT website_url,trusted_hosts_json FROM roasters WHERE slug=? AND active=1').bind(slug).first<{ website_url: string; trusted_hosts_json: string }>();
+  if (!row) return null;
+  try { return trustedReferralUrl(row.website_url, JSON.parse(row.trusted_hosts_json), 'roaster', referralSource); } catch { return null; }
+}
+export async function handleRoasterOutbound(request: Request, slug: string, db: CatalogDatabase, referralSource = 'kahvedrop'): Promise<Response> {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return empty(405);
+  let location: string | null;
+  try { location = await roasterSiteUrl(db, slug, referralSource); } catch { return empty(503); }
+  return location ? new Response(null, { status: 302, headers: { ...HEADERS, Location: location } }) : empty(404);
+}

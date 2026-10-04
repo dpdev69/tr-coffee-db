@@ -1,7 +1,7 @@
 import type { RoasterConfig } from '../types.js';
 
 // ==========================================
-// SHOPIFY ROASTERS (11) — all prices in TL
+// SHOPIFY ROASTERS (12) — all prices in TL
 // ==========================================
 
 export const petra: RoasterConfig = {
@@ -125,8 +125,18 @@ export const cupOfJoy: RoasterConfig = {
   productTypeFilter: ['kahve'],
 };
 
+export const coffeeSapiens: RoasterConfig = {
+  slug: 'coffee-sapiens',
+  name: 'Coffee Sapiens',
+  websiteUrl: 'https://www.coffeesapiens.com',
+  shopUrl: 'https://www.coffeesapiens.com',
+  platform: 'shopify',
+  city: 'Istanbul',
+  priceFormat: 'tl',
+};
+
 // ==========================================
-// WOOCOMMERCE ROASTERS (11)
+// WOOCOMMERCE ROASTERS (12)
 // Price format varies — checked during research
 // ==========================================
 
@@ -215,9 +225,21 @@ export const poka: RoasterConfig = {
   priceFormat: 'kurus', // 60000 = 600 TL
 };
 
+export const lotCoffee: RoasterConfig = {
+  slug: 'lot-coffee',
+  name: 'Lot Coffee Roastery',
+  websiteUrl: 'https://lotcoffeeroastery.com',
+  shopUrl: 'https://lotcoffeeroastery.com',
+  platform: 'woocommerce',
+  city: null,
+  priceFormat: 'kurus', // 92500 = 925 TL
+  // Single origins are named by origin/farm only; the store files every coffee under the "Specialty" category.
+  coffeeProductKeywords: ['specialty'],
+};
+
 export const sezy: RoasterConfig = {
   slug: 'sezy',
-  runsFrom: 'local',
+  runsFrom: 'relay',
   name: 'Sezy Coffee',
   websiteUrl: 'https://sezycoffee.com',
   shopUrl: 'https://sezycoffee.com',
@@ -247,7 +269,7 @@ export const williams: RoasterConfig = {
 };
 
 // ==========================================
-// IKAS ROASTERS (10)
+// IKAS ROASTERS (13)
 // Parsed from __NEXT_DATA__ storefront payloads
 // ==========================================
 
@@ -414,6 +436,39 @@ export const tetraN: RoasterConfig = {
   coffeeProductKeywords: ['kahve', 'coffee', 'roastery', 'filtre', 'espresso'],
 };
 
+export const caffeDiToee: RoasterConfig = {
+  slug: 'caffe-di-toee',
+  name: 'Caffe Di Toee',
+  websiteUrl: 'https://caffeditoee.com',
+  shopUrl: 'https://caffeditoee.com/kahveler',
+  platform: 'ikas',
+  city: 'Ankara',
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+};
+
+export const mayard: RoasterConfig = {
+  slug: 'mayard',
+  name: 'Mayard Coffee',
+  websiteUrl: 'https://mayardcoffee.com',
+  shopUrl: 'https://mayardcoffee.com/cekirdek',
+  platform: 'ikas',
+  city: null,
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+};
+
+export const vitus: RoasterConfig = {
+  slug: 'vitus',
+  name: 'Vitus Coffee & Roastery',
+  websiteUrl: 'https://vituscoffee.com',
+  shopUrl: 'https://vituscoffee.com/niteliklikahveler',
+  platform: 'ikas',
+  city: null,
+  priceFormat: 'tl',
+  structuredDataParser: 'next-data-products',
+};
+
 // ==========================================
 // CUSTOM ROASTERS
 // ==========================================
@@ -471,7 +526,7 @@ export const kafeinKultur: RoasterConfig = {
 
 export const coffeerem: RoasterConfig = {
   slug: 'coffeerem',
-  runsFrom: 'local',
+  runsFrom: 'relay',
   name: 'Coffeerem Roastery',
   websiteUrl: 'https://coffeerem.com',
   shopUrl: 'https://coffeerem.com/magaza/',
@@ -570,6 +625,7 @@ export const ALL_ROASTER_CONFIGS: RoasterConfig[] = [
   nullCoffee,
   kimma,
   cupOfJoy,
+  coffeeSapiens,
   // WooCommerce
   baristocrat,
   coffeeFriendzone,
@@ -582,6 +638,7 @@ export const ALL_ROASTER_CONFIGS: RoasterConfig[] = [
   sezy,
   molecule,
   williams,
+  lotCoffee,
   // Ikas
   paper,
   story,
@@ -593,6 +650,9 @@ export const ALL_ROASTER_CONFIGS: RoasterConfig[] = [
   calibre,
   a4Kahve,
   tetraN,
+  caffeDiToee,
+  mayard,
+  vitus,
   // Custom
   kronotrop,
   probador,

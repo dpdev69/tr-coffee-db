@@ -1,3 +1,4 @@
+import { relayFetch } from '../shared/v2/relay';
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -16,22 +17,20 @@ export async function syncRoasters(db: CatalogDatabase, configs = ALL_ROASTER_CO
     adapter: config.platform, active: config.active !== false, trustedHosts: collectRoasterProductHosts(config) }, now);
   await db.batch([db.prepare('UPDATE roasters SET active=0,revision=revision+1,updated_at=? WHERE active=1 AND slug NOT IN (SELECT value FROM json_each(?))').bind(now, JSON.stringify(configs.map(config => config.slug)))]);
 }
-/** Red means attention: an active source without a successful crawl for 3 days, or under 80% of this run succeeding. One-night blips stay green. */
+/** Red means attention: an active qualified source without a successful crawl for 3 days, or under 80% of this run succeeding. One-night blips stay green. */
 export async function attentionNeeded(db: CatalogDatabase, results: Record<string, unknown>[], now: string): Promise<string[]> {
   const cutoff = new Date(Date.parse(now) - 3 * 86_400_000).toISOString();
-  const stale = (await db.prepare('SELECT slug FROM roasters WHERE active=1 AND (last_success_at IS NULL OR last_success_at<?) ORDER BY slug').bind(cutoff).all<{ slug: string }>()).results.map(row => row.slug);
+  const stale = (await db.prepare('SELECT slug FROM roasters WHERE active=1 AND (last_success_at IS NULL OR last_success_at<?) ORDER BY slug').bind(cutoff).all<{ slug: string }>()).results.map(row => row.slug).filter(isQualifiedSource); // An unqualified source is never 'success' by design.
   const succeeded = results.filter(result => result.status === 'success' || result.status === 'already_completed').length;
   return [...(stale.length ? [`No successful crawl for 3 days: ${stale.join(', ')}`] : []), ...(succeeded < results.length * 0.8 ? [`Only ${succeeded}/${results.length} sources succeeded in this run`] : [])];
 }
-export async function refreshCatalog(db: CatalogDatabase, options: { slugs?: string[]; scheduledAt: string; source?: CrawlOptions; now?: () => string; report?: (result: Record<string, unknown>) => Promise<void> }) {
+export async function refreshCatalog(db: CatalogDatabase, options: { slugs?: string[]; scheduledAt: string; source?: CrawlOptions; relay?: typeof fetch; now?: () => string; report?: (result: Record<string, unknown>) => Promise<void> }) {
   const now = options.now ?? (() => new Date().toISOString());
   await expireCrawls(db, now());
   const active = (await db.prepare('SELECT id,slug FROM roasters WHERE active=1 ORDER BY slug').all<{id:string;slug:string}>()).results;
   if (options.slugs?.some(slug => !active.some(row => row.slug === slug))) throw new Error('Requested roaster is not active.');
   const results: Record<string, unknown>[] = [];
-  // With no slugs requested, skip sources that only answer from the owner's machine (runsFrom: 'local').
-  const localOnly = new Set(ALL_ROASTER_CONFIGS.filter(config => config.runsFrom === 'local').map(config => config.slug));
-  const pending = active.filter(r => options.slugs?.length ? options.slugs.includes(r.slug) : !localOnly.has(r.slug)).values();
+  const pending = active.filter(r => !options.slugs?.length || options.slugs.includes(r.slug)).values();
   // Each worker crawls a different storefront; per-source pacing remains unchanged.
   const workers = await Promise.allSettled(Array.from({length:3}, async () => {
     for (const roaster of pending) {
@@ -48,7 +47,8 @@ export async function refreshCatalog(db: CatalogDatabase, options: { slugs?: str
       await beginCrawl(db,{id,jobKey,roasterId:roaster.id,startedAt,mode,parserVersion:PARSER_VERSION});
       let status = 'failed', products = 0, offers = 0, diagnostics: unknown[] = [];
       try {
-        const crawl = await crawlRoaster(config,options.source);
+        // Shops that refuse this network are fetched through our relay Worker when one is configured.
+        const crawl = await crawlRoaster(config,config.runsFrom==='relay'&&options.relay?{...options.source,fetch:options.relay}:options.source);
         if (crawl.complete && !isQualifiedSource(roaster.slug)) {
           crawl.complete = false;
           crawl.diagnostics.push({stage:'coverage',code:'source_unqualified',message:'Parser produced a snapshot but source coverage has not passed review.'});
@@ -85,7 +85,7 @@ async function main() {
     // Idempotent index installation also repairs deployments awaiting the quota reset.
     await db.batch([db.prepare(await readFile(new URL('../migrations/d1/0004_alias_lookup.sql',import.meta.url),'utf8')),db.prepare("INSERT OR IGNORE INTO d1_migrations(name) VALUES ('0004_alias_lookup.sql')")]);
     await syncRoasters(db);
-    results=await refreshCatalog(db,{scheduledAt,slugs:process.argv[2]==='--local'?ALL_ROASTER_CONFIGS.filter(config=>config.runsFrom==='local'&&config.active!==false).map(config=>config.slug):process.argv.slice(2),report:async result=>{results.push(result);console.log(JSON.stringify(result));await appendFile(resolve(directory,'results.jsonl'),JSON.stringify(result)+'\n');}});
+    results=await refreshCatalog(db,{scheduledAt,slugs:process.argv.slice(2),relay:process.env.CRAWL_RELAY_URL&&process.env.CRAWL_RELAY_TOKEN?relayFetch(process.env.CRAWL_RELAY_URL,process.env.CRAWL_RELAY_TOKEN):undefined,report:async result=>{results.push(result);console.log(JSON.stringify(result));await appendFile(resolve(directory,'results.jsonl'),JSON.stringify(result)+'\n');}});
   } catch(error) { failure=safeDiagnostic(error instanceof Error?error.message:String(error));console.error(failure);process.exitCode=1; }
   const summary={scheduledAt,results,failure,elapsedMs:Math.round(performance.now()-started),rowsRead:db.rowsRead,rowsWritten:db.rowsWritten};
   await writeFile(resolve(directory,'summary.json'),JSON.stringify(summary,null,2));

@@ -26,6 +26,9 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: '4c1a4493b8584296f35c3eddc8279112'
       CLOUDFLARE_D1_DATABASE_ID: '5090f52d-546e-4ba6-bdcd-b4ee531a29a3'
       CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+      # Shops that refuse GitHub's network are fetched through our own Worker; see docs/crawl-relay.md.
+      CRAWL_RELAY_URL: 'https://coffeedb-v2-crawler-staging.hellobasalt.workers.dev/relay'
+      CRAWL_RELAY_TOKEN: ${{ secrets.CRAWL_RELAY_TOKEN }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

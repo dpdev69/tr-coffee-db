@@ -6,7 +6,7 @@ import { SITE_NAME } from '@/lib/site';
 export const revalidate = 3600;
 
 const description =
-  '4 kısa soruyu yanıtla; damak tadınıza, demleme yönteminize ve kavrum tercihinize uygun nitelikli kahveleri filtreleyelim.';
+  '4 kısa soruyu yanıtla; damak tadına, demleme yöntemine ve kavrum tercihine en yakın nitelikli kahveleri sıralayalım.';
 
 export const metadata: Metadata = {
   title: 'Damak Tadına Göre Kahve Bul',
@@ -29,8 +29,8 @@ export const metadata: Metadata = {
 
 export default function QuizPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:px-8">
-      <div className="text-center">
+    <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:max-w-5xl lg:px-8">
+      <div className="mx-auto max-w-3xl text-center">
         <p className="eyebrow">
           Fincanını bul
         </p>
@@ -38,7 +38,7 @@ export default function QuizPage() {
           Damak tadına göre kahve bul.
         </h1>
         <p className="mt-4 text-muted">
-          4 kısa soruyu yanıtla; demleme rutinine ve sevdiğin tatlara uyan kahveleri keşfet.
+          4 kısa soruyu yanıtla; demleme rutinine ve sevdiğin tatlara en yakın kahveleri sıralayalım. Emin olmadığın adımda “Fark etmez” de.
         </p>
       </div>
       <div className="mt-10">

@@ -6,6 +6,9 @@ import { isWooCoffee, ikasCatalogContext, IKAS_CATALOG_QUERY, parseIkasProducts,
 import type { SourceCoffee, SourceCrawl } from './types.js';
 
 export const PARSER_VERSION = 'v2-source-5-catalog-coverage';
+/** The crawler's one honest identity, sent on every request, direct or relayed. */
+export const CRAWLER_HEADERS = { 'User-Agent': 'CoffeeDiscovery/2.0 (public coffee catalog; no challenge bypass)', Accept: 'application/json,text/html' };
+
 export interface CrawlOptions {
   fetch?: typeof fetch;
   sleep?: (ms: number) => Promise<void>;
@@ -222,7 +225,7 @@ function createFetcher(config: RoasterConfig, options: CrawlOptions, retryAfter:
       try {
         let response: Response;
         try {
-          response = await fetcher(url, { ...init, redirect: 'manual', signal: controller.signal, headers: { ...(config.slug==='cho-coffee'?{Cookie:[...(cookies.get(new URL(url).hostname)?.values()??[])].join('; ')}:{}), 'User-Agent': 'CoffeeDiscovery/2.0 (public coffee catalog; no challenge bypass)', Accept: 'application/json,text/html', ...init?.headers } });
+          response = await fetcher(url, { ...init, redirect: 'manual', signal: controller.signal, headers: { ...(config.slug==='cho-coffee'?{Cookie:[...(cookies.get(new URL(url).hostname)?.values()??[])].join('; ')}:{}), ...CRAWLER_HEADERS, ...init?.headers } });
         } catch (error) {
           // A transport failure ("fetch failed", timeout) gets one paced retry. HTTP statuses never retry here.
           if (retried) throw error;

@@ -1,0 +1,383 @@
+{
+ "recorded": "2026-10-05 GET https://lotcoffeeroastery.com/wp-json/wc/store/v1/products?page=1&per_page=100 and the type=variation include= request, trimmed to 2 of 19 products and 2 of their variations",
+ "products": [
+  {
+   "id": 47349,
+   "name": "Kenya Gakuyuini",
+   "slug": "kenya-gakuyuini",
+   "parent": 0,
+   "type": "variable",
+   "variation": "",
+   "permalink": "https://lotcoffeeroastery.com/urun/kenya-gakuyuini/",
+   "sku": "",
+   "short_description": "<p><b>Kirinyaga, Gakuyuini, Kenya</b></p>\n<p><strong>Greyfurt / Sarı Üzüm / Lime  </strong></p>\n<p><strong>Grapefruit / Yellow Grape / Lime </strong></p>\n<p><strong><em>Çiftlik Sahibi </em></strong><em>Rockbern Coffee </em><em>• <strong>Tür </strong>SL28, SL34, Batian • <strong>İşleme Yöntemi</stron",
+   "description": "<p>Gakuyuini, Kenya Dağı&#8217;nın güney yamaçlarında, Kirinyaga Bölgesi&#8217;ndeki Thirikwa Kooperatifi&#8217;ne ait bir yıkama istasyonudur. Verimli kırmızı volkanik topraklar ve bol yağış, zengin ve karmaşık bir lezzete sahip kahve üretimi için ideal koşullar yaratmaktadır. Kooperatif, ortalama ",
+   "on_sale": false,
+   "prices": {
+    "price": "92500",
+    "regular_price": "92500",
+    "sale_price": "92500",
+    "price_range": {
+     "min_amount": "92500",
+     "max_amount": "320000"
+    },
+    "currency_code": "TRY",
+    "currency_symbol": "₺",
+    "currency_minor_unit": 2,
+    "currency_decimal_separator": ".",
+    "currency_thousand_separator": ",",
+    "currency_prefix": "",
+    "currency_suffix": "₺"
+   },
+   "price_html": "<span class=\"woocommerce-Price-amount amount\">925.00<span class=\"woocommerce-Price-currencySymbol\">&#8378;</span></span> &ndash; <span class=\"woocommerce-Price-amount amount\">3,200.00<span class=\"woocommerce-Price-currencySymbol\">&#8378;</span></span>",
+   "average_rating": "0",
+   "review_count": 0,
+   "images": [
+    {
+     "id": 47365,
+     "src": "https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini.png",
+     "thumbnail": "https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-500x500.png",
+     "srcset": "https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini.png 1200w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-300x300.png 300w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-1024x1024.png 1024w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-150x150.png 150w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-768x768.png 768w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-370x370.png 370w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-120x120.png 120w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-840x840.png 840w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-410x410.png 410w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-500x500.png 500w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-600x600.png 600w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-100x100.png 100w",
+     "sizes": "(max-width: 1200px) 100vw, 1200px",
+     "name": "Gakuyuini",
+     "alt": ""
+    }
+   ],
+   "categories": [
+    {
+     "id": 305,
+     "name": "Specialty",
+     "slug": "specialty",
+     "link": "https://lotcoffeeroastery.com/urun-kategori/kahvelerimiz/specialty/"
+    }
+   ],
+   "tags": [],
+   "attributes": [
+    {
+     "id": 0,
+     "name": "Ağırlık",
+     "taxonomy": null,
+     "has_variations": true,
+     "terms": [
+      {
+       "id": 0,
+       "name": "250 gr",
+       "slug": "250 gr"
+      },
+      {
+       "id": 0,
+       "name": "1000 gr",
+       "slug": "1000 gr"
+      }
+     ]
+    },
+    {
+     "id": 0,
+     "name": "Öğütme Seçeneği",
+     "taxonomy": null,
+     "has_variations": true,
+     "terms": [
+      {
+       "id": 0,
+       "name": "Çekirdek",
+       "slug": "Çekirdek"
+      },
+      {
+       "id": 0,
+       "name": "Espresso",
+       "slug": "Espresso"
+      },
+      {
+       "id": 0,
+       "name": "Moka Pot",
+       "slug": "Moka Pot"
+      },
+      {
+       "id": 0,
+       "name": "Aeropress",
+       "slug": "Aeropress"
+      },
+      {
+       "id": 0,
+       "name": "V60",
+       "slug": "V60"
+      },
+      {
+       "id": 0,
+       "name": "Filtre Kahve Makinası",
+       "slug": "Filtre Kahve Makinası"
+      },
+      {
+       "id": 0,
+       "name": "Chemex",
+       "slug": "Chemex"
+      },
+      {
+       "id": 0,
+       "name": "French Press",
+       "slug": "French Press"
+      }
+     ]
+    }
+   ],
+   "variations": [
+    {
+     "id": 47350,
+     "attributes": [
+      {
+       "name": "Ağırlık",
+       "value": "250 gr"
+      },
+      {
+       "name": "Öğütme Seçeneği",
+       "value": "Çekirdek"
+      }
+     ]
+    },
+    {
+     "id": 47358,
+     "attributes": [
+      {
+       "name": "Ağırlık",
+       "value": "1000 gr"
+      },
+      {
+       "name": "Öğütme Seçeneği",
+       "value": "Çekirdek"
+      }
+     ]
+    }
+   ],
+   "has_options": true,
+   "is_purchasable": true,
+   "is_in_stock": true,
+   "is_on_backorder": false,
+   "low_stock_remaining": null,
+   "stock_availability": {
+    "text": "",
+    "class": ""
+   },
+   "sold_individually": false,
+   "add_to_cart": {
+    "text": "Seçenekler",
+    "description": "&ldquo;Kenya Gakuyuini&rdquo; için seçenekleri seçin",
+    "url": "https://lotcoffeeroastery.com/urun/kenya-gakuyuini/",
+    "minimum": 1,
+    "maximum": 9999,
+    "multiple_of": 1
+   },
+   "extensions": {}
+  },
+  {
+   "id": 45116,
+   "name": "CAFEC ABACA TRAPEZOİD FİLTRE KAĞIDI-103",
+   "slug": "cafecabacatrapezoidfiltrekagidi103",
+   "parent": 0,
+   "type": "simple",
+   "variation": "",
+   "permalink": "https://lotcoffeeroastery.com/urun/cafecabacatrapezoidfiltrekagidi103/",
+   "sku": "",
+   "short_description": "",
+   "description": "<p>Cafec Abaca Trapezoid 103 filtreler <strong>”No4”</strong> filtre kağıdı kullanan tüm filtre kahve makineleri için kullanabilirsiniz.</p>\n<p><strong>Moccamaster Select ve KBGT 1.25 tüm modelleri ile tam uyumludur.</strong></p>\n<p>Bu filtreleri aynı zamanda düz tabanlı Clever, Bonavita Dripper gib",
+   "on_sale": false,
+   "prices": {
+    "price": "69500",
+    "regular_price": "69500",
+    "sale_price": "69500",
+    "price_range": null,
+    "currency_code": "TRY",
+    "currency_symbol": "₺",
+    "currency_minor_unit": 2,
+    "currency_decimal_separator": ".",
+    "currency_thousand_separator": ",",
+    "currency_prefix": "",
+    "currency_suffix": "₺"
+   },
+   "price_html": "<span class=\"woocommerce-Price-amount amount\">695.00<span class=\"woocommerce-Price-currencySymbol\">&#8378;</span></span>",
+   "average_rating": "0",
+   "review_count": 0,
+   "images": [
+    {
+     "id": 43086,
+     "src": "https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1.jpg",
+     "thumbnail": "https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1-500x500.jpg",
+     "srcset": "https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1.jpg 1000w, https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1-500x500.jpg 500w, https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1-100x100.jpg 100w, https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1-600x600.jpg 600w, https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1-300x300.jpg 300w, https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1-150x150.jpg 150w, https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1-768x768.jpg 768w, https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1-370x370.jpg 370w, https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1-120x120.jpg 120w, https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1-840x840.jpg 840w, https://lotcoffeeroastery.com/wp-content/uploads/2024/05/abaca103-e1703010777149-1-410x410.jpg 410w",
+     "sizes": "(max-width: 1000px) 100vw, 1000px",
+     "name": "abaca103-e1703010777149-1.jpg",
+     "alt": ""
+    }
+   ],
+   "categories": [
+    {
+     "id": 306,
+     "name": "Cafec Filters",
+     "slug": "cafec-filtre",
+     "link": "https://lotcoffeeroastery.com/urun-kategori/kahve-ekipmanlari/cafec-filtre/"
+    }
+   ],
+   "tags": [
+    {
+     "id": 300,
+     "name": "abaca",
+     "slug": "abaca",
+     "link": "https://lotcoffeeroastery.com/urun-etiketi/abaca/"
+    },
+    {
+     "id": 298,
+     "name": "cafec",
+     "slug": "cafec",
+     "link": "https://lotcoffeeroastery.com/urun-etiketi/cafec/"
+    }
+   ],
+   "attributes": [],
+   "variations": [],
+   "has_options": false,
+   "is_purchasable": true,
+   "is_in_stock": true,
+   "is_on_backorder": false,
+   "low_stock_remaining": null,
+   "stock_availability": {
+    "text": "7 adet stokta",
+    "class": "in-stock"
+   },
+   "sold_individually": false,
+   "add_to_cart": {
+    "text": "Sepete Ekle",
+    "description": "Sepete ekle: “CAFEC ABACA TRAPEZOİD FİLTRE KAĞIDI-103”",
+    "url": "?add-to-cart=45116",
+    "minimum": 1,
+    "maximum": 7,
+    "multiple_of": 1
+   },
+   "extensions": {}
+  }
+ ],
+ "variations": [
+  {
+   "id": 47350,
+   "name": "Kenya Gakuyuini",
+   "slug": "kolombiya-el-indio-76",
+   "parent": 47349,
+   "type": "variation",
+   "variation": "Ağırlık: 250 gr, Öğütme Seçeneği: Çekirdek",
+   "permalink": "https://lotcoffeeroastery.com/urun/kenya-gakuyuini/?attribute_agirlik=250+gr&attribute_ogutme-secenegi=%C3%87ekirdek",
+   "sku": "",
+   "short_description": "",
+   "description": "",
+   "on_sale": false,
+   "prices": {
+    "price": "92500",
+    "regular_price": "92500",
+    "sale_price": "92500",
+    "price_range": null,
+    "currency_code": "TRY",
+    "currency_symbol": "₺",
+    "currency_minor_unit": 2,
+    "currency_decimal_separator": ".",
+    "currency_thousand_separator": ",",
+    "currency_prefix": "",
+    "currency_suffix": "₺"
+   },
+   "price_html": "<span class=\"woocommerce-Price-amount amount\">925.00<span class=\"woocommerce-Price-currencySymbol\">&#8378;</span></span>",
+   "average_rating": "0",
+   "review_count": 0,
+   "images": [
+    {
+     "id": 47365,
+     "src": "https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini.png",
+     "thumbnail": "https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-500x500.png",
+     "srcset": "https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini.png 1200w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-300x300.png 300w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-1024x1024.png 1024w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-150x150.png 150w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-768x768.png 768w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-370x370.png 370w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-120x120.png 120w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-840x840.png 840w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-410x410.png 410w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-500x500.png 500w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-600x600.png 600w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-100x100.png 100w",
+     "sizes": "(max-width: 1200px) 100vw, 1200px",
+     "name": "Gakuyuini",
+     "alt": ""
+    }
+   ],
+   "categories": [],
+   "tags": [],
+   "attributes": [],
+   "variations": [],
+   "has_options": false,
+   "is_purchasable": true,
+   "is_in_stock": true,
+   "is_on_backorder": false,
+   "low_stock_remaining": null,
+   "stock_availability": {
+    "text": "",
+    "class": "in-stock"
+   },
+   "sold_individually": false,
+   "add_to_cart": {
+    "text": "Sepete Ekle",
+    "description": "Sepete ekle: “Kenya Gakuyuini”",
+    "url": "https://lotcoffeeroastery.com/urun/kenya-gakuyuini/?attribute_agirlik=250+gr&#038;attribute_ogutme-secenegi=%C3%87ekirdek&#038;variation_id=47350&#038;add-to-cart=47349",
+    "minimum": 1,
+    "maximum": 9999,
+    "multiple_of": 1
+   },
+   "extensions": {}
+  },
+  {
+   "id": 47358,
+   "name": "Kenya Gakuyuini",
+   "slug": "kolombiya-el-indio-84",
+   "parent": 47349,
+   "type": "variation",
+   "variation": "Ağırlık: 1000 gr, Öğütme Seçeneği: Çekirdek",
+   "permalink": "https://lotcoffeeroastery.com/urun/kenya-gakuyuini/?attribute_agirlik=1000+gr&attribute_ogutme-secenegi=%C3%87ekirdek",
+   "sku": "",
+   "short_description": "",
+   "description": "",
+   "on_sale": false,
+   "prices": {
+    "price": "320000",
+    "regular_price": "320000",
+    "sale_price": "320000",
+    "price_range": null,
+    "currency_code": "TRY",
+    "currency_symbol": "₺",
+    "currency_minor_unit": 2,
+    "currency_decimal_separator": ".",
+    "currency_thousand_separator": ",",
+    "currency_prefix": "",
+    "currency_suffix": "₺"
+   },
+   "price_html": "<span class=\"woocommerce-Price-amount amount\">3,200.00<span class=\"woocommerce-Price-currencySymbol\">&#8378;</span></span>",
+   "average_rating": "0",
+   "review_count": 0,
+   "images": [
+    {
+     "id": 47365,
+     "src": "https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini.png",
+     "thumbnail": "https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-500x500.png",
+     "srcset": "https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini.png 1200w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-300x300.png 300w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-1024x1024.png 1024w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-150x150.png 150w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-768x768.png 768w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-370x370.png 370w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-120x120.png 120w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-840x840.png 840w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-410x410.png 410w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-500x500.png 500w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-600x600.png 600w, https://lotcoffeeroastery.com/wp-content/uploads/2026/03/Gakuyuini-100x100.png 100w",
+     "sizes": "(max-width: 1200px) 100vw, 1200px",
+     "name": "Gakuyuini",
+     "alt": ""
+    }
+   ],
+   "categories": [],
+   "tags": [],
+   "attributes": [],
+   "variations": [],
+   "has_options": false,
+   "is_purchasable": true,
+   "is_in_stock": true,
+   "is_on_backorder": false,
+   "low_stock_remaining": null,
+   "stock_availability": {
+    "text": "",
+    "class": "in-stock"
+   },
+   "sold_individually": false,
+   "add_to_cart": {
+    "text": "Sepete Ekle",
+    "description": "Sepete ekle: “Kenya Gakuyuini”",
+    "url": "https://lotcoffeeroastery.com/urun/kenya-gakuyuini/?attribute_agirlik=1000+gr&#038;attribute_ogutme-secenegi=%C3%87ekirdek&#038;variation_id=47358&#038;add-to-cart=47349",
+    "minimum": 1,
+    "maximum": 9999,
+    "multiple_of": 1
+   },
+   "extensions": {}
+  }
+ ]
+}

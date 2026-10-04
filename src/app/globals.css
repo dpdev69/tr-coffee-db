@@ -190,7 +190,6 @@
   }
 
   /* Home */
-  /* Hero: copy left, .hero-scene right (an empty, sized mount point for the scene). */
   .studio-hero {
     display: flex;
     flex-wrap: wrap;
@@ -202,14 +201,10 @@
     flex: 1 1 440px;
     min-width: 0;
   }
-  .hero-scene {
-    position: relative;
-    flex: 1 1 380px;
-    aspect-ratio: 5 / 4;
-    min-width: 0;
-  }
-  .hero-scene:empty {
-    display: none; /* no blank block until the scene mounts */
+  .quiz-layout,
+  .quiz-result-head {
+    display: grid;
+    gap: 20px;
   }
   .studio-hero h1 {
     margin-top: 24px;
@@ -320,11 +315,6 @@
     line-height: 1.8;
     color: var(--color-muted);
   }
-  /* Applied by coffee-scene.tsx (animation pass) when it mounts into .hero-scene. */
-  .coffee-scene-background {
-    mask-image: linear-gradient(180deg, #00000018 0%, #00000018 72%, #00000099 100%);
-  }
-
   /* Coffee card. Hooks: .coffee-card, -image, -body, -price, -footer */
   .coffee-card {
     display: flex;
@@ -715,11 +705,6 @@
       padding: 28px;
     }
   }
-  @media (min-width: 651px) {
-    .coffee-scene-background {
-      mask-image: linear-gradient(100deg, transparent 10%, #00000008 35%, #00000099 65%, black 100%);
-    }
-  }
   @media (min-width: 1024px) {
     .guide-layout {
       gap: 48px;
@@ -729,6 +714,48 @@
       display: block;
       content-visibility: visible;
     }
+  }
+}
+
+/* Return visits: save button and the home page's coffee-of-the-day / Listem grid. */
+@layer components {
+  .save-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-accent);
+  }
+  .save-toggle:hover {
+    border-color: var(--color-accent);
+  }
+  .save-toggle[aria-pressed='true'] {
+    background: var(--color-chip);
+    color: var(--color-accent-deep);
+  }
+  .save-toggle-label {
+    width: auto;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  /* The home page reserves the Listem panel's cell before hydration when a list exists (set by an inline script). */
+  .home-daylist {
+    display: grid;
+    gap: 24px;
+  }
+  @media (min-width: 1024px) {
+    html[data-saved-list] .home-daylist {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  html[data-saved-list] .saved-panel-slot {
+    min-height: 260px;
   }
 }
 

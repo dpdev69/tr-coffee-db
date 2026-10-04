@@ -1,5 +1,11 @@
 # Source data quality
 
+## Source counts — 2026-10-05
+
+`scrapers/src/roasters/configs.ts` now holds **44 configured sources**: 43 active and Cho Coffee inactive (HTTP 403). `shared/v2/qualified-sources.ts` lists **38 qualified sources**. Five sources added on 2026-10-05 are configured and covered by offline fixture tests but **await qualification**: `coffee-sapiens`, `lot-coffee`, `caffe-di-toee`, `mayard`, `vitus`. The nightly refresh still attempts them; because they are unqualified, `scripts/v2-refresh.mts` records their snapshots as partial and publishes nothing. The counts in the sections below describe their earlier dates (the 39-source and 14-source figures are historical).
+
+To qualify a source (the process in [crawler-comparison.md](crawler-comparison.md) and [free-catalog-refresh.md](free-catalog-refresh.md)): capture a complete paced snapshot with `crawlRoaster` (it reports `complete: true` only when pagination and every SKU were covered), review its product identities, prices, weights and stock against the live storefront, run the staging baseline for the slug and compare it with that review, and only then add the slug to `QUALIFIED_SOURCE_SLUGS` and update the length assertions in `tests/v2-crawler-worker.test.ts`. The staging baseline writes to the remote database and needs the owner's go-ahead. Fixture tests alone do not qualify a source.
+
 ## Current V2 staging quality — 2026-09-14, 21:52:49 UTC
 
 The verified remote current public available catalog contains **481 coffees / 38 roasters / 1,170 offers**. D1 holds **2,786 price observations**, including 1,030 imported snapshot observations, and **13,452 immutable archive rows**. There are **zero coffee events, zero crawl errors and zero duplicate observation groups**. The archived legacy records remain available for traceability; current offers and source-derived profiles are separate from that archive.

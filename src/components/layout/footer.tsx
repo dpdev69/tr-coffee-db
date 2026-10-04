@@ -25,6 +25,7 @@ export function Footer() {
             <FooterLink href="/kahveler">Kahve kataloğu</FooterLink>
             <FooterLink href="/kavurucular">Kavurucular</FooterLink>
             <FooterLink href="/firsatlar">Doğrulanan fırsatlar</FooterLink>
+            <FooterLink href="/listem">Listem</FooterLink>
           </nav>
           <nav aria-label="Rehber">
             <p className="eyebrow mb-2">Bir sonraki fincanın</p>

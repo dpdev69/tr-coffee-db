@@ -9,7 +9,10 @@ import { JsonLd } from '@/components/layout/json-ld';
 import { absoluteUrl } from '@/lib/site';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
 import { RoasterInitial } from '@/components/v2/discovery-detail';
-import { getCatalogCounts, listCatalog, listRoasters, type CatalogCoffee, type CatalogRoaster } from '../../shared/v2/catalog';
+import { getCatalogCounts, getCoffeeOfTheDay, listCatalog, listRoasters, type CatalogCoffee, type CatalogRoaster } from '../../shared/v2/catalog';
+import { CoffeeImage } from '@/components/v2/coffee-image';
+import { SAVED_KEY } from '@/lib/device-store';
+import { SavedPanel, SinceLastVisit, TasteArrivals } from '@/components/v2/home-personal';
 
 // Matches the 5-minute D1 read cache: the edge may serve a page this stale, never older.
 export const revalidate = 300;
@@ -26,20 +29,42 @@ function FeedSection({ title, href, coffees }: { title: string; href: string; co
   return <section className="section-space border-t border-line"><div className="section-heading"><h2>{title}</h2><Link href={href} className="text-link">Tümünü gör ↗</Link></div><DiscoveryGrid coffees={coffees} source="home" /></section>;
 }
 
+// Runs before paint: a stored list reserves the Listem panel's cell, so the page does not jump when it hydrates.
+const savedListScript = `try{if(JSON.parse(localStorage.getItem(${JSON.stringify(SAVED_KEY)})||"[]").length)document.documentElement.dataset.savedList=""}catch(e){}`;
+const dayLabel = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' });
+
+/** Same card for every visitor on a given day; caches with the page. */
+function DayCard({ coffee, now }: { coffee: CatalogCoffee; now: number }) {
+  const notes = (coffee.rawMetadata.tastingNotes ?? []).slice(0, 3).join(', ');
+  return <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="group relative flex min-h-[300px] gap-6 overflow-hidden rounded-[28px] bg-accent p-7 text-on-accent sm:p-9">
+    <span className="flex min-w-0 flex-1 flex-col gap-3">
+      <span className="text-[13px] font-semibold tracking-[0.04em] text-chip">GÜNÜN KAHVESİ · {dayLabel.format(now).toLocaleUpperCase('tr-TR')}</span>
+      <span className="font-display text-[clamp(28px,3.4vw,38px)] font-medium leading-[1.08]">{coffee.name}</span>
+      <span className="text-base text-chip">{coffee.roaster.name}{notes ? ` · ${notes}` : ''}</span>
+      <span className="mt-auto text-[15px] font-semibold group-hover:underline">Kahveyi gör →</span>
+      <span className="text-[13px] text-chip">Her gün başka bir kahve. Yarın yenisi gelir.</span>
+    </span>
+    <span className="relative hidden w-[38%] max-w-56 flex-none self-center overflow-hidden rounded-2xl bg-surface sm:block sm:aspect-square">
+      <CoffeeImage source={coffee.rawMetadata.imageUrl!} roaster={coffee.roaster.name} alt="" sizes="224px" className="absolute inset-0 h-full w-full object-contain p-3" />
+    </span>
+  </Link>;
+}
+
 export default async function HomePage() {
-  let data: { counts: Awaited<ReturnType<typeof getCatalogCounts>>; catalog: CatalogCoffee[]; drops: CatalogCoffee[]; restocked: CatalogCoffee[]; roasters: CatalogRoaster[] } | null = null;
+  let data: { counts: Awaited<ReturnType<typeof getCatalogCounts>>; catalog: CatalogCoffee[]; drops: CatalogCoffee[]; restocked: CatalogCoffee[]; roasters: CatalogRoaster[]; day: CatalogCoffee | null } | null = null;
+  // Server request time picks the day's coffee and the verified-event window.
+  // eslint-disable-next-line react-hooks/purity
+  const now = Date.now();
   try {
     const db = await getCatalogDatabase();
-    // Server request time defines the verified-event window.
-    // eslint-disable-next-line react-hooks/purity
-    const since = new Date(Math.floor(Date.now() / 300000) * 300000 - 7 * 86400000).toISOString();
-    const [counts, catalog, drops, restocked, roasters] = await Promise.all([
+    const since = new Date(Math.floor(now / 300000) * 300000 - 7 * 86400000).toISOString();
+    const [counts, catalog, drops, restocked, roasters, day] = await Promise.all([
       getCatalogCounts(db), listCatalog(db, { sort: 'newest', perPage: 4 }),
       listCatalog(db, { event: 'PRICE_DROP', since, perPage: 4 }),
       listCatalog(db, { event: 'RESTOCKED', since, perPage: 4 }),
-      listRoasters(db),
+      listRoasters(db), getCoffeeOfTheDay(db, now),
     ]);
-    data = { counts, catalog: catalog.coffees, drops: drops.coffees, restocked: restocked.coffees, roasters };
+    data = { counts, catalog: catalog.coffees, drops: drops.coffees, restocked: restocked.coffees, roasters, day };
   } catch (error) { unstable_rethrow(error); }
   return <div className="page-shell studio-home">
     <JsonLd data={{ '@type': 'Organization', name: brand.name, url: absoluteUrl('/'), logo: absoluteUrl(brand.logoPath), description: brand.description }} />
@@ -51,9 +76,13 @@ export default async function HomePage() {
         <div className="studio-actions"><Link href="/quiz" className="button-dark button-lg">Kahvemi bul</Link><Link href="/kahveler" className="button-light button-lg">Kataloğu keşfet</Link></div>
         <p className="studio-small">4 kısa soru · Damak tadına göre keşif</p>
       </div>
-      {/* Mount point for the hero scene (three.js, owned by the animation pass). Intentionally empty. */}
-      <div className="hero-scene" data-scene-slot="home-hero" aria-hidden="true" />
     </section>
+    <SinceLastVisit />
+    <script dangerouslySetInnerHTML={{ __html: savedListScript }} />
+    <div className="home-daylist mb-4">
+      {data?.day ? <DayCard coffee={data.day} now={now} /> : null}
+      <div className="saved-panel-slot"><SavedPanel /></div>
+    </div>
     <nav className="studio-paths" aria-label="Kahveni keşfet">
       <Link href="/quiz"><span className="studio-path-number">01</span><div><strong>Damak tadını keşfet</strong><p>Kısa bir testle başla.</p></div><span aria-hidden="true">↗</span></Link>
       <Link href="/yeni"><span className="studio-path-number">02</span><div><strong>Yeni kahvelere bak</strong><p>Kataloğun son keşifleri.</p></div><span aria-hidden="true">↗</span></Link>
@@ -65,8 +94,7 @@ export default async function HomePage() {
     </section>
     {data ? <>
       <section className="section-space studio-latest">
-        <div className="section-heading"><div><p className="eyebrow">Keşif defteri</p><h2>Yeni keşifler.</h2><p className="mt-3 max-w-xl text-sm leading-7 text-muted">Farklı kavuruculardan, farklı karakterlerde çekirdekler. Bir sonraki favorini bul.</p></div><Link href="/yeni" className="text-link">Tümünü keşfet ↗</Link></div>
-        {data.catalog.length ? <DiscoveryGrid coffees={data.catalog} source="home" /> : <DiscoveryEmpty>Henüz satışta bir kahve yok. Yeni paketler eklendiğinde burada bulacaksın.</DiscoveryEmpty>}
+        <TasteArrivals>{data.catalog.length ? <DiscoveryGrid coffees={data.catalog} source="home" /> : <DiscoveryEmpty>Henüz satışta bir kahve yok. Yeni paketler eklendiğinde burada bulacaksın.</DiscoveryEmpty>}</TasteArrivals>
         <div className="studio-counts"><span><strong>{data.counts.coffees.toLocaleString('tr-TR')}</strong> kahve</span><span><strong>{data.counts.roasters}</strong> kavurucu</span><p>Tek bir yerde. Kendi fiyatlarıyla.</p></div>
       </section>
       <FeedSection title="Fiyatı düşenler." href="/firsatlar" coffees={data.drops} />

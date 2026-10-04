@@ -1,8 +1,12 @@
 import { beginCrawl, expireCrawls, ingestCrawl, safeDiagnostic } from '../shared/v2/ingestion';
 import { stableId } from '../shared/v2/identity';
-import { crawlRoaster, PARSER_VERSION, type CrawlOptions } from '../scrapers/src/v2/crawl';
+import { crawlRoaster, CRAWLER_HEADERS, PARSER_VERSION, type CrawlOptions } from '../scrapers/src/v2/crawl';
+import { relayRequest } from '../shared/v2/relay';
 import { isQualifiedSource } from '../shared/v2/qualified-sources';
 import { ALL_ROASTER_CONFIGS } from '../scrapers/src/roasters/configs';
+
+/** Hosts of the sources marked runsFrom: 'relay'; the relay fetches nothing else. */
+const RELAY_HOSTS=new Set(ALL_ROASTER_CONFIGS.filter(config=>config.runsFrom==='relay').flatMap(config=>{const host=new URL(config.shopUrl).hostname.replace(/^www\./,'');return [host,`www.${host}`];}));
 
 export type CrawlJob = { roasterId: string; slug: string; scheduledAt: string };
 interface Attempt { id:string;status:string;started_at:string;parser_version:string;mode:'live'|'baseline'|'import' }
@@ -87,7 +91,11 @@ export function createCrawlerWorker(sourceOptions:CrawlOptions={},now=()=>new Da
         }
       }
     },
-    async fetch(){return Response.json({service:'catalog-crawler',status:'ok'});},
+    async fetch(request,env){
+      if(new URL(request.url).pathname!=='/relay')return Response.json({service:'catalog-crawler',status:'ok'});
+      // RELAY_TOKEN is a Worker secret, so it is absent from the generated env type.
+      return relayRequest(request,(env as unknown as {RELAY_TOKEN?:string}).RELAY_TOKEN,RELAY_HOSTS,CRAWLER_HEADERS);
+    },
   } satisfies ExportedHandler<CrawlerEnv,CrawlJob>;
 }
 export default createCrawlerWorker();

@@ -48,9 +48,12 @@ test('every redirect is validated and untrusted destinations are never fetched',
 test('missing, oversized, non-image and failed sources return a safe renderable placeholder', async () => {
   const oversized = (async () => new Response(new Uint8Array([1]), { headers: { 'Content-Type': 'image/jpeg', 'Content-Length': '20971521' } })) as typeof fetch;
   for (const fetcher of [oversized, async () => new Response('missing', { status: 404 }), async () => new Response('<html>blocked</html>'), async () => { throw new Error('network'); }]) {
-    const result = await serveCoffeeImage(request(), imageBinding([]), fetcher as typeof fetch);
+    const named = new Request(`${request().url}&name=${encodeURIComponent('Kahve & <Co>')}`);
+    const result = await serveCoffeeImage(named, imageBinding([]), fetcher as typeof fetch);
     assert.equal(result.status, 200); assert.equal(result.headers.get('content-type'), 'image/svg+xml'); assert.equal(result.headers.get('location'), null);
-    assert.match(await result.text(), /<svg[^>]+>.*Görsel mevcut değil/);
+    const svg = await result.text();
+    // The roaster's name, escaped, on the tint token instead of an apology.
+    assert.match(svg, /<svg[^>]+>.*fill="#e9edf8".*Kahve &#38; &#60;Co&#62;<\/text>/); assert.doesNotMatch(svg, /Görsel mevcut değil|<Co>/);
   }
 });
 test('valid original bytes remain available when the image optimizer is missing or fails', async () => {
