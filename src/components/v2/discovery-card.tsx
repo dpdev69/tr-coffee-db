@@ -42,7 +42,7 @@ export function publicOfferLabel(offer:CatalogOffer|undefined){
 /** Price per 100 g of this package alone: its own price over its own weight. A package without a weight never gets one. */
 function UnitPrice({offer}:{offer:CatalogOffer}){
   const unit=unitPriceTry(offer.priceMinor,offer.weightG,offer.currency);
-  return unit?<p className="offer-unit-price mt-0.5 text-xs text-muted">₺{Math.round(unit).toLocaleString('tr-TR')} / 100 g</p>:null;
+  return unit?<p className="mt-0.5 text-xs text-muted">₺{Math.round(unit).toLocaleString('tr-TR')} / 100 g</p>:null;
 }
 export function OfferPrice({offer}:{offer:CatalogOffer|undefined}){
   return <div className="tabular-nums"><p className="flex flex-wrap items-baseline gap-x-1.5"><strong className="text-[19px] font-semibold">{offer?.priceMinor!=null&&offer.priceMinor>0?formatMoney(offer.priceMinor/100,offer.currency??'(para birimi belirtilmemiş)'): 'Fiyat paylaşılmamış'}</strong>{offer?.weightG?<span className="text-[13px] text-muted">/ {formatPackageWeight(offer.weightG)}</span>:null}</p>

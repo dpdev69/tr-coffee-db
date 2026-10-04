@@ -2,7 +2,7 @@ import { CoffeeImage } from './coffee-image';
 import Link from 'next/link';
 import { CompareToggle } from '@/components/coffee/compare-controls';
 import { formatMoney } from '@/lib/coffee-display';
-import { FLAVOR_CATEGORIES, ROAST_LABELS, ROAST_VALUES } from '@/lib/constants/filter-options';
+import { ROAST_LABELS } from '@/lib/constants/filter-options';
 import type { CatalogCoffee, CatalogOffer } from '../../../shared/v2/catalog';
 import { coffeeOrigin, coffeeProcess, currentBadges, EVENT_LABELS, featureText, OfferPrice, preferredOffer, publicOfferLabel, savedPackage, tasteSummary } from './discovery-card';
 import { SaveToggle } from '@/components/coffee/saved-list';
@@ -14,10 +14,6 @@ export function RoasterInitial({name,size='md'}:{name:string;size?:keyof typeof 
   return <span aria-hidden="true" className={`inline-flex flex-none items-center justify-center rounded-full font-display text-warm ${INITIAL_SIZES[size]}`}>{name.trim().charAt(0).toLocaleUpperCase('tr-TR')}</span>;
 }
 
-const QUIZ_ROASTS=new Set(ROAST_VALUES.filter(value=>value!=='unknown'));
-const QUIZ_TASTES=new Map<string,string>([...FLAVOR_CATEGORIES.map(value=>[value.toLowerCase(),value] as [string,string]),['chocolatey','Chocolate']]);
-function sceneRoast(roast:string|null|undefined){const id=roast?.trim().toLowerCase().replace(/[\s-]+/g,'_');return id&&QUIZ_ROASTS.has(id)?id:undefined;}
-function sceneTastes(coffee:CatalogCoffee){const ids=[...new Set(featureText(coffee,'flavor_families','flavor_categories').flatMap(value=>QUIZ_TASTES.get(value.toLowerCase())??[]))];return ids.length?ids.join(','):undefined;}
 type Fact=[label:string,value:string|null|undefined,source:string|null];
 export function DiscoveryDetail({coffee}:{coffee:CatalogCoffee}){
   const tastes=tasteSummary(coffee),raw=coffee.rawMetadata;
@@ -33,9 +29,7 @@ export function DiscoveryDetail({coffee}:{coffee:CatalogCoffee}){
   return <>
     <nav aria-label="İçerik yolu" className="mb-4 flex flex-wrap items-center gap-2 text-sm"><Link href="/kahveler" className="inline-flex min-h-11 items-center text-accent hover:underline">Kahveler</Link><span className="text-muted" aria-hidden="true">/</span><Link href={`/kavurucu/${coffee.roaster.slug}`} className="inline-flex min-h-11 items-center text-accent hover:underline">{coffee.roaster.name}</Link><span className="text-muted" aria-hidden="true">/</span><span className="text-muted" aria-current="page">{coffee.name}</span></nav>
     <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
-      <div className="flex flex-col gap-4"><div className="relative aspect-square max-w-[560px] overflow-hidden rounded-[18px] bg-tint lg:rounded-3xl">{raw.imageUrl&&/^https?:\/\//.test(raw.imageUrl)?<CoffeeImage roaster={coffee.roaster.name} source={raw.imageUrl} alt={coffee.name} sizes="(max-width: 1023px) 90vw, 45vw" loading="eager" className="absolute inset-0 h-full w-full object-contain p-8"/>:<div className="flex h-full items-center justify-center p-12 text-center font-display text-5xl text-accent">{coffee.roaster.name}</div>}</div>
-        {/* Mount point for the coffee scene (three.js, owned by the animation pass). Empty until then; quiz option ids, unknown values omitted. */}
-        <div className="coffee-scene-slot h-24 max-w-[560px] lg:h-32" data-scene-slot="coffee" data-roast={sceneRoast(roast)} data-taste={sceneTastes(coffee)} aria-hidden="true"/></div>
+      <div className="relative aspect-square max-w-[560px] overflow-hidden rounded-[18px] bg-tint lg:rounded-3xl">{raw.imageUrl&&/^https?:\/\//.test(raw.imageUrl)?<CoffeeImage roaster={coffee.roaster.name} source={raw.imageUrl} alt={coffee.name} sizes="(max-width: 1023px) 90vw, 45vw" loading="eager" className="absolute inset-0 h-full w-full object-contain p-8"/>:<div className="flex h-full items-center justify-center p-12 text-center font-display text-5xl text-accent">{coffee.roaster.name}</div>}</div>
       <div className="flex flex-col gap-5">
         <div>
           <p className="mb-2.5 flex flex-wrap items-center gap-2 text-[15px]"><Link href={`/kavurucu/${coffee.roaster.slug}`} className="inline-flex min-h-11 items-center font-semibold text-accent hover:underline">{coffee.roaster.name}</Link>{coffee.roaster.city?<span className="text-muted">· {coffee.roaster.city}</span>:null}{currentBadges(coffee).map(event=><span key={event.id} className="coffee-card-badge">{EVENT_LABELS[event.type]}</span>)}</p>

@@ -93,11 +93,3 @@ test('legacy migration package placeholders stay out of public price labels', ()
   assert.doesNotMatch(html, /Legacy|SKU|unverified/);
   assert.match(html, /Paket ağırlığı belirtilmemiş/);
 });
-
-test('the coffee scene slot carries quiz option ids and omits unknown values', () => {
-  const value = coffee();
-  assert.match(renderToStaticMarkup(createElement(DiscoveryDetail, { coffee: value })), /<div class="coffee-scene-slot[^"]*" data-scene-slot="coffee" aria-hidden="true">/);
-  value.rawMetadata = { roast: 'Medium Light' };
-  value.features = [{ feature: 'flavor_families', value: ['fruity', 'chocolatey', 'invented'], sourceType: 'RULE_INFERRED', confidence: null, version: 'v', sourceReference: null }];
-  assert.match(renderToStaticMarkup(createElement(DiscoveryDetail, { coffee: value })), /data-scene-slot="coffee" data-roast="medium_light" data-taste="Fruity,Chocolate"/);
-});

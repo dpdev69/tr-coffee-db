@@ -31,7 +31,7 @@ export function advanceVisit(stored: string, now: number): { previous: string | 
 type Counts = { NEW: number; PRICE_DROP: number; RESTOCKED: number };
 const CHANGES: Array<[keyof Counts, string, string]> = [['NEW', 'yeni kahve', '/yeni'], ['PRICE_DROP', 'fiyat düşüşü', '/firsatlar'], ['RESTOCKED', 'yeniden stokta', '/yeni?event=RESTOCKED']];
 
-/** Hooks: .since-row, .since-count. The row keeps its size from first paint, so nothing below it moves. */
+/** Same structure from first paint (placeholders until counts arrive), so nothing below it moves. */
 export function SinceLastVisit() {
   const [state, setState] = useState<{ returning: boolean; counts: Counts | null } | null>(null);
   useEffect(() => {
@@ -44,13 +44,11 @@ export function SinceLastVisit() {
       .then(data => setState({ returning: Boolean(previous), counts: data?.counts ?? null }))
       .catch(() => setState({ returning: Boolean(previous), counts: null }));
   }, []);
-  const quiet = state?.counts && !state.counts.NEW && !state.counts.PRICE_DROP && !state.counts.RESTOCKED;
-  return <section className="since-row mb-10 mt-8 flex min-h-[124px] flex-wrap content-start items-center gap-x-4 gap-y-3 sm:min-h-16" aria-live="polite" aria-busy={!state}>
+  return <section className="mb-10 mt-8 flex flex-wrap content-start items-center gap-x-4 gap-y-3 sm:min-h-16" aria-live="polite" aria-busy={!state}>
     <h2 className="mr-2 w-full font-display text-[26px] sm:w-auto">{state ? (state.returning ? 'Son ziyaretinden beri' : 'Son 7 günde') : ' '}</h2>
-    {CHANGES.map(([type, label, href]) => <Link key={type} href={href} className="since-count inline-flex min-h-11 items-baseline gap-2 rounded-full border border-line bg-surface px-[18px] py-2.5 text-[15px] text-ink hover:border-accent">
+    {CHANGES.map(([type, label, href]) => <Link key={type} href={href} className="inline-flex min-h-11 items-baseline gap-2 rounded-full border border-line bg-surface px-[18px] py-2.5 text-[15px] text-ink hover:border-accent">
       <span className="font-display text-[22px] font-semibold text-accent">{state?.counts ? state.counts[type].toLocaleString('tr-TR') : '·'}</span>{label}
     </Link>)}
-    {quiet ? <p className="w-full text-sm text-muted">Şimdilik sakin. Katalog her gece yenilenir.</p> : null}
   </section>;
 }
 
@@ -68,7 +66,7 @@ export function SavedPanel() {
   const ready = items && items !== 'error' ? items : null;
   const ranked = ready ? [...saved].sort((a, b) => Number(savedStatus(b, ready.get(b.slug)).kind === 'drop') - Number(savedStatus(a, ready.get(a.slug)).kind === 'drop')) : saved;
   const drops = ready ? saved.filter(entry => savedStatus(entry, ready.get(entry.slug)).kind === 'drop').length : 0;
-  return <section className="saved-panel flex h-full flex-col gap-1.5 rounded-[28px] border border-line bg-surface p-6 sm:p-8" aria-labelledby="saved-panel-title">
+  return <section className="flex h-full flex-col gap-1.5 rounded-[28px] border border-line bg-surface p-6 sm:p-8" aria-labelledby="saved-panel-title">
     <div className="flex items-baseline justify-between gap-3"><h2 id="saved-panel-title" className="font-display text-[26px]">Listem</h2><Link href="/listem" className="text-link inline-flex min-h-11 items-center text-sm">Tümü ({saved.length}) →</Link></div>
     {drops ? <p className="mb-1.5 rounded-xl bg-chip px-3.5 py-2.5 text-[15px] text-accent-deep">Listendeki {drops} kahvenin fiyatı düştü.</p> : null}
     {items === 'error' ? <p className="text-sm text-muted">Güncel fiyatları şu an alamadık.</p> : ranked.slice(0, 3).map(entry => ready ? <SavedRow key={entry.slug} saved={entry} item={ready.get(entry.slug)} compact /> : <div key={entry.slug} className="h-[68px] border-b border-line" />)}
@@ -118,7 +116,7 @@ async function fetchMatches(profile: Profile, signal: AbortSignal): Promise<Cata
   } catch { return null; }
 }
 
-/** Hooks: .taste-line. Server-rendered new arrivals stay as `children` unless matches for a saved profile arrive. */
+/** Server-rendered new arrivals stay as `children` unless matches for a saved profile arrive. */
 export function TasteArrivals({ children }: { children: ReactNode }) {
   const profile = parseProfile(tasteStore.useValue());
   const key = profile ? JSON.stringify(profile) : '';
@@ -132,7 +130,7 @@ export function TasteArrivals({ children }: { children: ReactNode }) {
   const personal = matches?.key === key && key ? matches.coffees : null;
   const words = profile ? profileWords(profile) : '';
   return <>
-    <p className="taste-line mb-2.5 flex min-h-11 flex-wrap items-center gap-x-3.5 gap-y-1 text-sm text-muted">
+    <p className="mb-2.5 flex min-h-11 flex-wrap items-center gap-x-3.5 gap-y-1 text-sm text-muted">
       {profile ? <><span className="font-semibold tracking-[0.04em] text-warm">DAMAK PROFİLİN</span>{words ? <span>{words}</span> : null}<Link href="/quiz" className="text-link inline-flex min-h-11 items-center">Değiştir</Link></>
         : <><span>Damak tadını henüz bilmiyoruz.</span><Link href="/quiz" className="text-link inline-flex min-h-11 items-center">4 soruda bul, yeni gelenleri sana göre sıralayalım →</Link></>}
     </p>

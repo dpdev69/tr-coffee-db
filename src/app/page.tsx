@@ -33,10 +33,10 @@ function FeedSection({ title, href, coffees }: { title: string; href: string; co
 const savedListScript = `try{if(JSON.parse(localStorage.getItem(${JSON.stringify(SAVED_KEY)})||"[]").length)document.documentElement.dataset.savedList=""}catch(e){}`;
 const dayLabel = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' });
 
-/** Same card for every visitor on a given day; caches with the page. Hook: .day-card. */
+/** Same card for every visitor on a given day; caches with the page. */
 function DayCard({ coffee, now }: { coffee: CatalogCoffee; now: number }) {
   const notes = (coffee.rawMetadata.tastingNotes ?? []).slice(0, 3).join(', ');
-  return <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="day-card group relative flex min-h-[300px] gap-6 overflow-hidden rounded-[28px] bg-accent p-7 text-on-accent sm:p-9">
+  return <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="group relative flex min-h-[300px] gap-6 overflow-hidden rounded-[28px] bg-accent p-7 text-on-accent sm:p-9">
     <span className="flex min-w-0 flex-1 flex-col gap-3">
       <span className="text-[13px] font-semibold tracking-[0.04em] text-chip">GÜNÜN KAHVESİ · {dayLabel.format(now).toLocaleUpperCase('tr-TR')}</span>
       <span className="font-display text-[clamp(28px,3.4vw,38px)] font-medium leading-[1.08]">{coffee.name}</span>

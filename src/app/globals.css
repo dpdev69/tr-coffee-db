@@ -732,8 +732,7 @@
   }
 }
 
-/* Return visits: save button, since-last-visit row, coffee of the day, Listem. Motion hooks:
-   .save-toggle[aria-pressed], .since-row, .since-count, .day-card, .saved-panel, .saved-row, .taste-line. */
+/* Return visits: save button and the home page's coffee-of-the-day / Listem grid. */
 @layer components {
   .save-toggle {
     display: inline-flex;
