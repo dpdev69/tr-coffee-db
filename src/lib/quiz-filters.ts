@@ -8,22 +8,9 @@ import {
   ROAST_LABELS,
   ROAST_VALUES,
 } from '@/lib/constants/filter-options';
-import type { CoffeeFilters } from '@/lib/queries/coffees';
+import { QUIZ_DIMENSIONS, type QuizAnswers, type QuizDimension, type QuizReason } from '../../shared/v2/quiz-rank';
 
-export type QuizArrayAnswerKey = 'brewMethod' | 'flavorCategory' | 'process' | 'roastLevel';
-
-export interface QuizAnswers {
-  brewMethod: string[];
-  flavorCategory: string[];
-  process: string[];
-  roastLevel: string[];
-}
-
-export interface QuizFilterResult {
-  url: string;
-  explanations: string[];
-  filters: CoffeeFilters;
-}
+export type { QuizAnswers, QuizDimension };
 
 export interface QuizOption {
   value: string;
@@ -31,26 +18,13 @@ export interface QuizOption {
   description?: string;
 }
 
-interface QuizStepBase {
+export interface QuizStep {
+  id: QuizDimension;
+  /** Short name for the progress line ("Adım 2 / 4 · Tat"). */
+  short: string;
   question: string;
   helper: string;
-  catalogField: string;
-  queryParam: string;
   options: readonly QuizOption[];
-}
-
-export type QuizStep =
-  QuizStepBase & {
-    id: QuizArrayAnswerKey;
-    selection: 'multiple';
-  };
-
-interface ArrayFilterSpec {
-  key: QuizArrayAnswerKey;
-  explanationLabel: string;
-  queryParam: string;
-  labels: Record<string, string>;
-  allowedValues: ReadonlySet<string>;
 }
 
 const PROCESS_FILTER_VALUES = PROCESS_VALUES.filter((value) => value !== 'unknown');
@@ -97,119 +71,120 @@ const ROAST_DESCRIPTIONS: Record<string, string> = {
 
 export const QUIZ_STEPS: readonly QuizStep[] = [
   {
-    id: 'brewMethod',
-    selection: 'multiple',
+    id: 'brew',
+    short: 'Demleme',
     question: 'Hangi demleme yöntemleri senin rutinin?',
     helper: 'Bir veya daha fazla yöntem seçebilirsin.',
-    catalogField: 'coffees.brew_methods',
-    queryParam: 'brewMethod',
     options: optionsFromLabels(BREW_METHOD_VALUES, BREW_METHOD_LABELS, BREW_DESCRIPTIONS),
   },
   {
-    id: 'flavorCategory',
-    selection: 'multiple',
+    id: 'taste',
+    short: 'Tat',
     question: 'Fincanda hangi tat ailesini arıyorsun?',
     helper: 'Bir veya daha fazla tat ailesi seçebilirsin.',
-    catalogField: 'coffees.flavor_categories',
-    queryParam: 'taste',
-    options: optionsFromLabels(
-      FLAVOR_CATEGORIES,
-      FLAVOR_CATEGORY_LABELS,
-      FLAVOR_DESCRIPTIONS
-    ),
+    options: optionsFromLabels(FLAVOR_CATEGORIES, FLAVOR_CATEGORY_LABELS, FLAVOR_DESCRIPTIONS),
   },
   {
     id: 'process',
-    selection: 'multiple',
+    short: 'İşlem',
     question: 'İşleme tarafında bir tercihin var mı?',
-    helper: 'Bilmiyorsan boş bırakıp devam edebilirsin.',
-    catalogField: 'coffees.process',
-    queryParam: 'process',
+    helper: 'Bilmiyorsan “Fark etmez” deyip devam edebilirsin.',
     options: optionsFromLabels(PROCESS_FILTER_VALUES, PROCESS_LABELS, PROCESS_DESCRIPTIONS),
   },
   {
-    id: 'roastLevel',
-    selection: 'multiple',
+    id: 'roast',
+    short: 'Kavrum',
     question: 'Kavurma seviyesi nasıl olsun?',
     helper: 'Bir veya daha fazla kavrum aralığı seçebilirsin.',
-    catalogField: 'coffees.roast_level',
-    queryParam: 'roast',
     options: optionsFromLabels(ROAST_FILTER_VALUES, ROAST_LABELS, ROAST_DESCRIPTIONS),
   },
 ] as const;
 
-const ARRAY_FILTER_SPECS: readonly ArrayFilterSpec[] = [
-  {
-    key: 'brewMethod',
-    queryParam: 'brewMethod',
-    explanationLabel: 'Demleme uyumu',
-    labels: BREW_METHOD_LABELS,
-    allowedValues: new Set(BREW_METHOD_VALUES),
-  },
-  {
-    key: 'flavorCategory',
-    queryParam: 'taste',
-    explanationLabel: 'Tat kategorisi',
-    labels: FLAVOR_CATEGORY_LABELS,
-    allowedValues: new Set<string>(FLAVOR_CATEGORIES),
-  },
-  {
-    key: 'process',
-    queryParam: 'process',
-    explanationLabel: 'İşleme',
-    labels: PROCESS_LABELS,
-    allowedValues: new Set(PROCESS_FILTER_VALUES),
-  },
-  {
-    key: 'roastLevel',
-    queryParam: 'roast',
-    explanationLabel: 'Kavurma seviyesi',
-    labels: ROAST_LABELS,
-    allowedValues: new Set(ROAST_FILTER_VALUES),
-  },
-] as const;
+/** "Fark etmez" is the empty selection: the step is left out of the ranking, exactly like skipping it. */
+export const QUIZ_ANY = { label: 'Fark etmez', description: 'Bu adımı sıralamaya katma.' } as const;
 
 export function createInitialQuizAnswers(): QuizAnswers {
-  return {
-    brewMethod: [],
-    flavorCategory: [],
-    process: [],
-    roastLevel: [],
-  };
+  return { brew: [], taste: [], roast: [], process: [] };
 }
 
-export function buildQuizFilterResult(answers: QuizAnswers): QuizFilterResult {
-  const params = new URLSearchParams();
-  const explanations: string[] = [];
-  const filters: CoffeeFilters = {};
+export function hasQuizSelections(answers: QuizAnswers) {
+  return QUIZ_DIMENSIONS.some((key) => answers[key].length > 0);
+}
 
-  for (const spec of ARRAY_FILTER_SPECS) {
-    const values = getUniqueAllowedValues(answers[spec.key], spec.allowedValues);
-    if (values.length === 0) continue;
-
-    filters[spec.key] = values;
-    values.forEach((value) => params.append(spec.queryParam, value));
-    explanations.push(
-      `${spec.explanationLabel}: ${values
-        .map((value) => spec.labels[value] ?? value)
-        .join(', ')}.`
-    );
+type ParamSource = URLSearchParams | Record<string, string | string[] | undefined>;
+/** Accepts `taste=Fruity,Floral` and repeated keys; keeps only known option ids, deduped, in option order. Anything else is dropped. */
+export function parseQuizAnswers(source: ParamSource): QuizAnswers {
+  const answers = createInitialQuizAnswers();
+  for (const step of QUIZ_STEPS) {
+    const input = source instanceof URLSearchParams ? source.getAll(step.id) : [source[step.id] ?? []].flat();
+    const wanted = new Set(input.filter((value) => value.length <= 300).flatMap((value) => value.split(',')).map((value) => value.trim().toLowerCase()));
+    answers[step.id] = step.options.map((option) => option.value).filter((value) => wanted.has(value.toLowerCase()));
   }
-
-  const query = params.toString();
-
-  return {
-    url: query ? `/kahveler?${query}` : '/kahveler',
-    explanations,
-    filters,
-  };
+  return answers;
 }
 
-export function hasQuizSelections(answers: Partial<QuizAnswers | CoffeeFilters>) {
-  return ARRAY_FILTER_SPECS.some((spec) => {
-    const value = answers[spec.key];
-    return Array.isArray(value) && value.length > 0;
+/** Option ids are fixed ASCII tokens, so they go into the URL unescaped and stay readable: `?brew=filter&taste=Fruity,Floral`. */
+export function quizQuery(answers: QuizAnswers): string {
+  return QUIZ_DIMENSIONS.filter((key) => answers[key].length).map((key) => `${key}=${answers[key].join(',')}`).join('&');
+}
+export function quizResultUrl(answers: QuizAnswers): string {
+  const query = quizQuery(answers);
+  return query ? `/quiz/sonuc?${query}` : '/quiz/sonuc';
+}
+
+const LABELS: Record<QuizDimension, Record<string, string>> = { brew: BREW_METHOD_LABELS, taste: FLAVOR_CATEGORY_LABELS, roast: ROAST_LABELS, process: PROCESS_LABELS };
+const TASTE_WORDS: Record<string, string> = { Fruity: 'meyvemsi', Floral: 'çiçeksi', Chocolate: 'çikolatalı', Sweet: 'tatlı', Nutty: 'kuruyemişli', Spicy: 'baharatlı', Roasted: 'kavrulmuş', Herbal: 'bitkisel' };
+const list = (values: string[]) => new Intl.ListFormat('tr', { type: 'conjunction' }).format(values);
+const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase('tr') + text.slice(1);
+const label = (dimension: QuizDimension, values: string[]) => list(values.map((value) => LABELS[dimension][value] ?? value));
+
+/** Chip text for the answer summary on the result page. */
+export function quizAnswerSummary(answers: QuizAnswers): string[] {
+  return QUIZ_STEPS.map(({ id, short }) => {
+    const values = answers[id];
+    if (!values.length) return `${short}: fark etmez`;
+    if (id === 'taste') return capitalize(list(values.map((value) => TASTE_WORDS[value] ?? value)));
+    if (id === 'roast') return `${label(id, values)} kavrum`;
+    if (id === 'process') return `${label(id, values)} işlem`;
+    return label(id, values);
   });
+}
+
+const SOURCE_TEXT = { manual: 'doğrulanmış düzeltme', stated: 'kavurucu belirtiyor', labelled: 'kavurucu belirtiyor', inferred: 'açıklamadan çıkarıldı' } as const;
+const MISSING_TEXT: Record<QuizDimension, string> = { brew: 'Demleme önerisi yok', taste: 'Tat bilgisi yok', roast: 'Kavrum bilgisi yok', process: 'İşlem bilgisi yok' };
+/** One line per reason, always saying where the fact came from. Never a number. */
+export function formatQuizReason(reason: QuizReason): { dimension: QuizDimension; kind: QuizReason['kind']; text: string; source: string | null } {
+  const { dimension, kind, values } = reason;
+  const source = reason.provenance ? SOURCE_TEXT[reason.provenance] : null;
+  if (kind === 'missing') return { dimension, kind, text: MISSING_TEXT[dimension], source };
+  const fact = dimension === 'taste' ? `${capitalize(list(values.map((value) => TASTE_WORDS[value] ?? value)))} notalar`
+    : dimension === 'brew' ? `${label(dimension, values)} için uygun`
+      : dimension === 'roast' ? `${label(dimension, values)} kavrum` : `${label(dimension, values)} işlem`;
+  const suffix = kind === 'near' ? ', seçimine yakın' : kind === 'conflict' ? ', seçiminden farklı' : '';
+  return { dimension, kind, text: fact + suffix, source };
+}
+
+/** For /api/quiz/match. `limit`: whole number, 1–12, default 4. Anything else falls back to the default rather than failing a widget. */
+export function parseMatchLimit(value: string | null): number {
+  if (!value || !/^\d{1,3}$/.test(value)) return 4;
+  return Math.min(12, Math.max(1, Number(value)));
+}
+
+/** The taste profile lives only on this device. Storage can be blocked or full; the quiz works without it. */
+export const TASTE_STORAGE_KEY = 'kahvedrop:taste';
+export function saveTasteProfile(answers: QuizAnswers, storage?: Storage) {
+  try {
+    const { brew, taste, roast, process } = answers;
+    (storage ?? window.localStorage).setItem(TASTE_STORAGE_KEY, JSON.stringify({ brew, taste, roast, process, savedAt: new Date().toISOString() }));
+  } catch { /* Private mode, quota or disabled storage: nothing to remember, nothing breaks. */ }
+}
+export function loadTasteProfile(storage?: Storage): QuizAnswers | null {
+  try {
+    const saved: unknown = JSON.parse((storage ?? window.localStorage).getItem(TASTE_STORAGE_KEY) ?? 'null');
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return null;
+    const record = saved as Record<string, unknown>;
+    return parseQuizAnswers(Object.fromEntries(QUIZ_DIMENSIONS.map((key) => [key, Array.isArray(record[key]) ? record[key].filter((value): value is string => typeof value === 'string') : []])));
+  } catch { return null; }
 }
 
 function optionsFromLabels(
@@ -222,17 +197,4 @@ function optionsFromLabels(
     label: labels[value] ?? value,
     description: descriptions[value],
   }));
-}
-
-function getUniqueAllowedValues(values: string[], allowedValues: ReadonlySet<string>) {
-  const seen = new Set<string>();
-  const uniqueValues: string[] = [];
-
-  for (const value of values) {
-    if (!allowedValues.has(value) || seen.has(value)) continue;
-    seen.add(value);
-    uniqueValues.push(value);
-  }
-
-  return uniqueValues;
 }
