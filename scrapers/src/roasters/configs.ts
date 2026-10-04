@@ -217,6 +217,7 @@ export const poka: RoasterConfig = {
 
 export const sezy: RoasterConfig = {
   slug: 'sezy',
+  runsFrom: 'local',
   name: 'Sezy Coffee',
   websiteUrl: 'https://sezycoffee.com',
   shopUrl: 'https://sezycoffee.com',
@@ -470,6 +471,7 @@ export const kafeinKultur: RoasterConfig = {
 
 export const coffeerem: RoasterConfig = {
   slug: 'coffeerem',
+  runsFrom: 'local',
   name: 'Coffeerem Roastery',
   websiteUrl: 'https://coffeerem.com',
   shopUrl: 'https://coffeerem.com/magaza/',

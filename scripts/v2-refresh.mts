@@ -29,7 +29,9 @@ export async function refreshCatalog(db: CatalogDatabase, options: { slugs?: str
   const active = (await db.prepare('SELECT id,slug FROM roasters WHERE active=1 ORDER BY slug').all<{id:string;slug:string}>()).results;
   if (options.slugs?.some(slug => !active.some(row => row.slug === slug))) throw new Error('Requested roaster is not active.');
   const results: Record<string, unknown>[] = [];
-  const pending = active.filter(r => !options.slugs?.length || options.slugs.includes(r.slug)).values();
+  // With no slugs requested, skip sources that only answer from the owner's machine (runsFrom: 'local').
+  const localOnly = new Set(ALL_ROASTER_CONFIGS.filter(config => config.runsFrom === 'local').map(config => config.slug));
+  const pending = active.filter(r => options.slugs?.length ? options.slugs.includes(r.slug) : !localOnly.has(r.slug)).values();
   // Each worker crawls a different storefront; per-source pacing remains unchanged.
   const workers = await Promise.allSettled(Array.from({length:3}, async () => {
     for (const roaster of pending) {
@@ -83,7 +85,7 @@ async function main() {
     // Idempotent index installation also repairs deployments awaiting the quota reset.
     await db.batch([db.prepare(await readFile(new URL('../migrations/d1/0004_alias_lookup.sql',import.meta.url),'utf8')),db.prepare("INSERT OR IGNORE INTO d1_migrations(name) VALUES ('0004_alias_lookup.sql')")]);
     await syncRoasters(db);
-    results=await refreshCatalog(db,{scheduledAt,slugs:process.argv.slice(2),report:async result=>{results.push(result);console.log(JSON.stringify(result));await appendFile(resolve(directory,'results.jsonl'),JSON.stringify(result)+'\n');}});
+    results=await refreshCatalog(db,{scheduledAt,slugs:process.argv[2]==='--local'?ALL_ROASTER_CONFIGS.filter(config=>config.runsFrom==='local'&&config.active!==false).map(config=>config.slug):process.argv.slice(2),report:async result=>{results.push(result);console.log(JSON.stringify(result));await appendFile(resolve(directory,'results.jsonl'),JSON.stringify(result)+'\n');}});
   } catch(error) { failure=safeDiagnostic(error instanceof Error?error.message:String(error));console.error(failure);process.exitCode=1; }
   const summary={scheduledAt,results,failure,elapsedMs:Math.round(performance.now()-started),rowsRead:db.rowsRead,rowsWritten:db.rowsWritten};
   await writeFile(resolve(directory,'summary.json'),JSON.stringify(summary,null,2));
