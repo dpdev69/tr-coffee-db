@@ -21,7 +21,7 @@ export default async function RoasterPage({ params }: { params: Promise<{ slug: 
   if (unavailable) return <div className="page-shell section-space"><DataSourceNotice title="Kavurucu bilgileri şu an yüklenemiyor." message="Biraz sonra yeniden deneyebilirsin." actionHref="/kavurucular" actionLabel="Kavuruculara dön" /></div>;
   if (!result) notFound();
   const { roaster, catalog } = result;
-  return <div className="page-shell section-space"><Link href="/kavurucular" className="text-sm underline underline-offset-4">← Kavurucular</Link><p className="eyebrow mt-8">{roaster.city || 'Bağımsız kavurucu'}</p><h1 className="mt-3 font-display text-5xl">{roaster.name}</h1><p className="mb-9 mt-4 text-sm leading-7 text-[#625e57]">Satışta {roaster.coffeeCount} kahve, {roaster.offerCount} paket. Sipariş kavurucunun sitesinde tamamlanır.</p>
+  return <div className="page-shell section-space"><Link href="/kavurucular" className="text-sm underline underline-offset-4">← Kavurucular</Link><p className="eyebrow mt-8">{roaster.city || 'Bağımsız kavurucu'}</p><h1 className="mt-3 font-display text-5xl">{roaster.name}</h1><p className="mb-9 mt-4 text-sm leading-7 text-muted">Satışta {roaster.coffeeCount} kahve, {roaster.offerCount} paket. Sipariş kavurucunun sitesinde tamamlanır.</p>
     {catalog.coffees.length ? <DiscoveryGrid coffees={catalog.coffees} /> : <DiscoveryEmpty title="Şu an satışta doğrulanmış bir kahve yok.">Kavurucunun sayfasını koruyoruz. Yeniden satışa çıkan kahveler burada yer alacak.</DiscoveryEmpty>}
     {catalog.total > catalog.coffees.length ? <div className="mt-8 text-center"><Link className="button-dark" href={`/kahveler?roaster=${encodeURIComponent(roaster.slug)}`}>Tüm {catalog.total} kahveyi gör →</Link></div> : null}
   </div>;

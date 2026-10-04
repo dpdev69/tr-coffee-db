@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: { absolute: brand.title }, descriptio
 
 function FeedSection({ title, href, coffees }: { title: string; href: string; coffees: CatalogCoffee[] }) {
   if (!coffees.length) return null;
-  return <section className="section-space border-t border-[#dedfd7]"><div className="section-heading"><h2>{title}</h2><Link href={href} className="text-link">Tümünü gör ↗</Link></div><DiscoveryGrid coffees={coffees} source="home" /></section>;
+  return <section className="section-space border-t border-line"><div className="section-heading"><h2>{title}</h2><Link href={href} className="text-link">Tümünü gör ↗</Link></div><DiscoveryGrid coffees={coffees} source="home" /></section>;
 }
 
 export default async function HomePage() {
@@ -50,7 +50,7 @@ export default async function HomePage() {
     </nav>
     {data ? <>
       <section className="section-space studio-latest">
-        <div className="section-heading"><div><p className="eyebrow">Keşif defteri</p><h2>Yeni keşifler.</h2><p className="mt-3 max-w-xl text-sm leading-7 text-[#625e57]">Farklı kavuruculardan, farklı karakterlerde çekirdekler. Bir sonraki favorini bul.</p></div><Link href="/yeni" className="text-link">Tümünü keşfet ↗</Link></div>
+        <div className="section-heading"><div><p className="eyebrow">Keşif defteri</p><h2>Yeni keşifler.</h2><p className="mt-3 max-w-xl text-sm leading-7 text-muted">Farklı kavuruculardan, farklı karakterlerde çekirdekler. Bir sonraki favorini bul.</p></div><Link href="/yeni" className="text-link">Tümünü keşfet ↗</Link></div>
         {data.catalog.length ? <DiscoveryGrid coffees={data.catalog} source="home" /> : <DiscoveryEmpty>Henüz satışta bir kahve yok. Yeni paketler eklendiğinde burada bulacaksın.</DiscoveryEmpty>}
         <div className="studio-counts"><span><strong>{data.counts.coffees.toLocaleString('tr-TR')}</strong> kahve</span><span><strong>{data.counts.roasters}</strong> kavurucu</span><p>Tek bir yerde. Kendi fiyatlarıyla.</p></div>
       </section>

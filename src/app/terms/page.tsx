@@ -9,11 +9,11 @@ export const metadata: Metadata = pageMetadata('Kullanım Şartları', `${SITE_N
 export default function TermsPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#244b3d]">
+      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">
         Güven
       </p>
-      <h1 className="mt-3 font-display text-5xl leading-none text-[#1f1d1b]">Kullanım Şartları</h1>
-      <p className="mt-4 text-sm leading-6 text-[#5d5853]">
+      <h1 className="mt-3 font-display text-5xl leading-none text-ink">Kullanım Şartları</h1>
+      <p className="mt-4 text-sm leading-6 text-muted">
         {SITE_NAME}, Türkiye&apos;deki bağımsız kavurucuların kahvelerini keşfetmeye
         yardımcı olan bilgilendirme amaçlı bir katalogdur.
       </p>
@@ -53,9 +53,9 @@ export default function TermsPage() {
         </TermsSection>
       </div>
 
-      <p className="mt-10 text-sm text-[#5d5853]">
+      <p className="mt-10 text-sm text-muted">
         Veri kullanımı hakkında bilgi için{' '}
-        <Link href="/privacy" className="font-semibold text-[#1f1d1b] underline-offset-4 hover:underline">
+        <Link href="/privacy" className="font-semibold text-ink underline-offset-4 hover:underline">
           Gizlilik
         </Link>{' '}
         sayfasına bakın.
@@ -73,8 +73,8 @@ function TermsSection({
 }) {
   return (
     <section>
-      <h2 className="text-lg font-semibold text-[#1f1d1b]">{title}</h2>
-      <div className="mt-3 space-y-3 text-sm leading-6 text-[#5d5853]">
+      <h2 className="text-lg font-semibold text-ink">{title}</h2>
+      <div className="mt-3 space-y-3 text-sm leading-6 text-muted">
         {children}
       </div>
     </section>

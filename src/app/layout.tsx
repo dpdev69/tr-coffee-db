@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { brand } from "@/lib/brand";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -14,6 +14,13 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin", "latin-ext"],
+});
+
+// Display serif (SIL OFL) with Turkish glyphs (ı İ ş ğ) in latin-ext: 500 for headings, 600 for the wordmark.
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "600"],
 });
 
 const geistMono = Geist_Mono({
@@ -68,10 +75,10 @@ export default async function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-[#faf7f0] font-sans text-[#1f1d1b]">
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:p-4">İçeriğe geç</a>
+      <body className="flex min-h-full flex-col bg-paper font-sans text-ink">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-surface focus:p-4">İçeriğe geç</a>
         <Header />
         <main id="main-content" className="flex-1">{children}</main>
         <CompareDock />

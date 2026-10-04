@@ -27,6 +27,6 @@ export default async function CoffeePage({ params }: { params: Promise<{ slug: s
   return <div className="page-shell section-space">
     <DetailViewTracker coffeeId={coffee.id} />
     <DiscoveryDetail coffee={coffee} />
-    {similar.length > 0 ? <section className="mt-14"><p className="eyebrow">Keşfe devam</p><h2 className="mt-2 font-display text-3xl">Benzer çekirdekler.</h2><p className="mb-6 mt-3 text-sm text-[#625e57]">Paylaşılan köken, işlem veya tat bilgilerine göre seçildi.</p><DiscoveryGrid coffees={similar} source="similar" /></section> : null}
+    {similar.length > 0 ? <section className="mt-14"><p className="eyebrow">Keşfe devam</p><h2 className="mt-2 font-display text-3xl">Benzer çekirdekler.</h2><p className="mb-6 mt-3 text-sm text-muted">Paylaşılan köken, işlem veya tat bilgilerine göre seçildi.</p><DiscoveryGrid coffees={similar} source="similar" /></section> : null}
   </div>;
 }

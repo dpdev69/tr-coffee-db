@@ -12,9 +12,9 @@ export default function GuidePage() {
         <h1 className="mt-4 font-display text-5xl leading-[1.08] sm:text-6xl">
           Kahveni biraz
           <br />
-          <em className="text-[#244b3d]">daha yakından tanı.</em>
+          <em className="text-accent">daha yakından tanı.</em>
         </h1>
-        <p className="mt-5 max-w-xl text-base leading-7 text-[#625e57]">
+        <p className="mt-5 max-w-xl text-base leading-7 text-muted">
           Seçmek için uzman olman gerekmiyor. Pakette neye bakacağını bil,
           ölçerek demle ve sevdiğin tadı bulana kadar küçük değişiklikler yap.
         </p>
@@ -31,19 +31,19 @@ export default function GuidePage() {
         <article className="guide-copy">
           <h2>Pakette üç şeye bak.</h2>
           <p>
-            <strong className="text-[#1f1d1b]">Demleme önerisi.</strong>{' '}
+            <strong className="text-ink">Demleme önerisi.</strong>{' '}
             Ekipmanına uygun önerisi olan bir kahveyle başlamak işini
             kolaylaştırır. Katalogda yöntem yazmıyorsa kahve o yöntemle
             demlenemez anlamına gelmez; kavurucu bu bilgiyi paylaşmamış
             olabilir.
           </p>
           <p>
-            <strong className="text-[#1f1d1b]">Tadım notları.</strong> Sevdiğin
+            <strong className="text-ink">Tadım notları.</strong> Sevdiğin
             tatlardan yola çık. Bu notlar bir deneyimi tarif eder; fincanda ne
             algılayacağın demleme, su ve damak tadına göre değişir.
           </p>
           <p>
-            <strong className="text-[#1f1d1b]">Paket miktarı ve fiyat.</strong>{' '}
+            <strong className="text-ink">Paket miktarı ve fiyat.</strong>{' '}
             200 g ile 1 kg paketi yalnızca etiket fiyatından kıyaslama.
             Kavurucunun sunduğu gramajı, paket fiyatını ve ne kadar kahve
             tükettiğini birlikte değerlendir. Kargo ücretini ayrıca hesaba kat.
@@ -88,13 +88,13 @@ export default function GuidePage() {
             başlangıç noktalarıdır; kavurucunun kahveye özel tarifi varsa onu da
             dene.
           </p>
-          <p className="border-t border-[#dedfd7] pt-5 text-sm">
+          <p className="border-t border-line pt-5 text-sm">
             İşleme ve tat konusunda daha fazlası:{' '}
             <a
               href="https://counterculturecoffee.com/blogs/counter-culture-coffee/coffee-basics-honey-processing-2"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#244b3d] underline underline-offset-4"
+              className="text-accent underline underline-offset-4"
             >
               Counter Culture’ın honey işleme rehberi ↗
             </a>
@@ -102,7 +102,7 @@ export default function GuidePage() {
         </article>
         <BrewCalculator />
       </div>
-      <div className="mt-12 border-t border-[#dedfd7] pt-6">
+      <div className="mt-12 border-t border-line pt-6">
         <Link href="/kahveler" className="button-dark">
           Şimdi çekirdekleri keşfet ↗
         </Link>

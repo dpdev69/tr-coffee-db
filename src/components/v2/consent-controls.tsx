@@ -18,10 +18,10 @@ export function ConsentControls({ initialChoice }: { initialChoice: ConsentChoic
     if (revoke) window.location.reload();
   }
   return <>
-    <div className="page-shell pb-5"><button type="button" onClick={() => setOpen(true)} className="min-h-11 text-xs text-[#625e57] underline underline-offset-4">Çerez tercihleri</button></div>
-    {open || choice === null ? <section aria-label="Çerez tercihleri" className="fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-2xl rounded-2xl border border-[#d6cdbd] bg-[#fffdf7] p-5 shadow-lg sm:inset-x-6">
-      <h2 className="font-display text-xl">Tercih senin.</h2><p className="mt-2 text-sm leading-6 text-[#625e57]">Karşılaştırma seçimin ve bu tercihin cihazında tutulur. İzin verirsen siteyi geliştirmek için anonim kullanım ölçümünü açarız. <Link href="/privacy" className="underline underline-offset-4">Gizlilik</Link></p>
-      <div className="mt-4 flex flex-wrap gap-3"><button type="button" onClick={() => choose('essential')} className="button-light border border-[#d6cdbd]">Yalnızca gerekli</button><button type="button" onClick={() => choose('analytics')} className="button-dark">Ölçüme izin ver</button></div>
+    <div className="page-shell pb-5"><button type="button" onClick={() => setOpen(true)} className="min-h-11 text-xs text-muted underline underline-offset-4">Çerez tercihleri</button></div>
+    {open || choice === null ? <section aria-label="Çerez tercihleri" className="fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-2xl rounded-2xl border border-line bg-surface p-5 shadow-lg sm:inset-x-6">
+      <h2 className="font-display text-xl">Tercih senin.</h2><p className="mt-2 text-sm leading-6 text-muted">Karşılaştırma seçimin ve bu tercihin cihazında tutulur. İzin verirsen siteyi geliştirmek için anonim kullanım ölçümünü açarız. <Link href="/privacy" className="underline underline-offset-4">Gizlilik</Link></p>
+      <div className="mt-4 flex flex-wrap gap-3"><button type="button" onClick={() => choose('essential')} className="button-light border border-line">Yalnızca gerekli</button><button type="button" onClick={() => choose('analytics')} className="button-dark">Ölçüme izin ver</button></div>
     </section> : null}
   </>;
 }
