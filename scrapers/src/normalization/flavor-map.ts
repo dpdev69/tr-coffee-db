@@ -1,3 +1,5 @@
+import { foldTr, tokenRegex } from './text-match.js';
+
 // Maps Turkish and English tasting note terms to standardized notes + SCA categories
 // Format: [search terms] → { note: "English Name", category: "SCA Category" }
 
@@ -94,17 +96,24 @@ const FLAVOR_MAPPINGS: FlavorMapping[] = [
   { keywords: ['asidik', 'acidic', 'bright', 'parlak'], note: 'Bright Acidity', category: 'Other' },
 ];
 
-export function matchFlavorNotes(text: string, strictWords = false): {
+// Everyday words that are also tasting notes. In a tasting section they are notes; in running prose "bal" is a
+// process, "tatlı" is praise, "date" is "Roast Date" and "parlak" is "bright" for anything.
+const PROSE_AMBIGUOUS = new Set(['bal', 'tatlı', 'date', 'parlak']);
+
+/** `prose`: the text is a name, description or tags rather than a tasting section, so ambiguous words are skipped. */
+export function matchFlavorNotes(text: string, strictWords = false, prose = false): {
   notes: string[];
   categories: string[];
 } {
   const lower = text.toLowerCase();
+  const folded = foldTr(text);
   const matchedNotes = new Set<string>();
   const matchedCategories = new Set<string>();
 
   for (const mapping of FLAVOR_MAPPINGS) {
     for (const keyword of mapping.keywords) {
-      if (strictWords ? new RegExp(`(?:^|[^\\p{L}\\p{N}])${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=$|[^\\p{L}\\p{N}])`, 'iu').test(text) : lower.includes(keyword.toLowerCase())) {
+      if (prose && PROSE_AMBIGUOUS.has(keyword)) continue;
+      if (strictWords ? tokenRegex(foldTr(keyword).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(folded) : lower.includes(keyword.toLowerCase())) {
         matchedNotes.add(mapping.note);
         matchedCategories.add(mapping.category);
         break;

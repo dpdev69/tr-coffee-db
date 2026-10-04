@@ -4,7 +4,7 @@ const RECIPE_HEADING =
   /(demleme\s*(reçetesi|recetesi|önerisi|onerisi)|referans\s*reçete|referans\s*recete|reçete|recete|brew\s*recipe|brew\s*guide|recipe|nasıl\s*demlemeli|nasil\s*demlemeli)/i;
 
 const METHOD_PATTERNS: Array<[RegExp, string]> = [
-  [/\b(v60|pour\s*over|pourover|filter|filtre|chemex|dripper|origami)\b/i, 'Filter / Pour Over'],
+  [/\b(v60|pour\s*over|pourover|filter|filtre|chemex|dripper|origami)\b/i, 'Filtre / Pour Over'],
   [/\bespresso\b/i, 'Espresso'],
   [/\baeropress\b/i, 'Aeropress'],
   [/\b(french\s*press|cafetiere)\b/i, 'French Press'],

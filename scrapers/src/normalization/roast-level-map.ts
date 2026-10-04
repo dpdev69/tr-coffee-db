@@ -1,6 +1,6 @@
 // Detect roast level from product text and tags
 
-import { tokenRegex } from './text-match.js';
+import { foldTr, tokenRegex } from './text-match.js';
 
 const ROAST_LABEL = String.raw`(?:kavrum|kavurma|kavrulma|roast)(?:\s*(?:profili|profile|seviyesi|level|derecesi))?`;
 
@@ -38,7 +38,8 @@ const STANDALONE_ROAST_MAP: [RegExp, string][] = [
   [/^(?:koyu|dark|french)$/iu, 'dark'],
 ];
 
-export function detectRoastLevel(text: string): string {
+export function detectRoastLevel(rawText: string): string {
+  const text = foldTr(rawText); // every pattern below has an ASCII spelling, so "AÇIK KAVRUM" reads like "acik kavrum"
   for (const [regex, level] of [...LABELED_ROAST_MAP, ...PHRASE_ROAST_MAP]) {
     if (regex.test(text)) {
       return level;
@@ -50,7 +51,7 @@ export function detectRoastLevel(text: string): string {
 }
 
 export function detectStandaloneRoastLevel(text: string): string {
-  const normalized = text.replace(/\s+/g, ' ').trim();
+  const normalized = foldTr(text).replace(/\s+/g, ' ').trim();
 
   for (const [regex, level] of STANDALONE_ROAST_MAP) {
     if (regex.test(normalized)) {
