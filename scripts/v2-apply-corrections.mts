@@ -11,13 +11,15 @@ import { pathToFileURL } from 'node:url';
 import { fold } from '../shared/v2/coffee-eligibility';
 import type { CatalogDatabase, Statement } from '../shared/v2/database';
 import { safeDiagnostic } from '../shared/v2/ingestion';
-import { cleanCoffeeName } from '../shared/v2/profile-truth';
+import { cleanCoffeeName, FACT_FEATURES } from '../shared/v2/profile-truth';
 import type { Json } from '../shared/v2/types';
 import { D1RestDatabase } from './v2-d1-rest';
 
 export interface Correction { coffeeSlug: string; features?: Record<string, Json>; visibility?: 'public' | 'hidden'; canonicalOf?: string | null }
 interface CoffeeRow { id: string; roaster_id: string; name: string; slug: string; visibility: string; first_seen_at: string; current: number }
 const VERSION = 'corrections';
+// Only features the read path lets a MANUAL row override; any other name would be stored and silently ignored.
+const CORRECTABLE = new Set([...Object.values(FACT_FEATURES).flat(), 'is_decaf']);
 
 /** "KOYU 2.5KG", "Kenya (1000 gr)" and "Kenya 250 g" share a key with "KOYU" and "Kenya". "Espresso" stays: the roast can differ. */
 export function sizeKey(name: string): { folded: string; key: string } {
@@ -38,10 +40,13 @@ export async function applyCorrections(db: CatalogDatabase, corrections: Correct
     return coffee;
   };
   const statements: Statement[] = [], manualKeys: string[] = [], overrides = new Map<string, string>(), links = new Map<string, string>(), optOut = new Set<string>();
+  const corrected = new Set<string>();
   for (const entry of corrections) {
     const coffee = find(entry.coffeeSlug);
+    if (corrected.has(coffee.id)) throw new Error(`Duplicate corrections entry for ${entry.coffeeSlug}; merge them into one.`);
+    corrected.add(coffee.id);
     for (const [feature, value] of Object.entries(entry.features ?? {})) {
-      if (!/^[a-z][a-z_]*$/.test(feature)) throw new Error(`Invalid feature name for ${entry.coffeeSlug}: ${feature}`);
+      if (!CORRECTABLE.has(feature)) throw new Error(`Uncorrectable feature for ${entry.coffeeSlug}: ${feature} (use one of ${[...CORRECTABLE].join(', ')})`);
       manualKeys.push(`${coffee.id}|${feature}`);
       statements.push(db.prepare(`INSERT INTO coffee_feature_values(coffee_id,feature,value_json,source_type,confidence,version,source_reference,created_at,updated_at)
         VALUES(?,?,?,'MANUAL',NULL,'${VERSION}','data/corrections.json',?,?)

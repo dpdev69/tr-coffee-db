@@ -48,6 +48,10 @@ test('corrections link size twins, override visibility and MANUAL facts across c
   assert.equal(db.sqlite.prepare("SELECT count(*) n FROM coffee_feature_values WHERE source_type='MANUAL'").get()?.n,0);
   assert.equal(db.sqlite.prepare('SELECT count(*) n FROM coffees WHERE visibility_override IS NOT NULL OR canonical_coffee_id IS NOT NULL').get()?.n,0);
   await assert.rejects(applyCorrections(db,[{coffeeSlug:'missing'}]),/Unknown coffee slug/);
+  // A misspelt feature or a second entry for one coffee fails before anything is written.
+  await assert.rejects(applyCorrections(db,[{coffeeSlug:slug('esp'),visibility:'hidden'},{coffeeSlug:slug('koyu'),features:{origin:'Kenya'}}]),/Uncorrectable feature/);
+  await assert.rejects(applyCorrections(db,[{coffeeSlug:slug('esp'),visibility:'hidden'},{coffeeSlug:slug('esp'),visibility:'public'}]),/Duplicate corrections entry/);
+  assert.equal(db.sqlite.prepare('SELECT count(*) n FROM coffees WHERE visibility_override IS NOT NULL').get()?.n,0);
   db.sqlite.close();
 });
 
