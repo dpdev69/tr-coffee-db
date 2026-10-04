@@ -11,7 +11,7 @@ import { getCatalogDatabase } from '@/lib/v2-runtime';
 import { RoasterInitial } from '@/components/v2/discovery-detail';
 import { getCatalogCounts, getCoffeeOfTheDay, listCatalog, listRoasters, type CatalogCoffee, type CatalogRoaster } from '../../shared/v2/catalog';
 import { CoffeeImage } from '@/components/v2/coffee-image';
-import { SAVED_KEY } from '@/lib/device-store';
+import { SAVED_KEY } from '@/lib/device-keys';
 import { SavedPanel, SinceLastVisit, TasteArrivals } from '@/components/v2/home-personal';
 
 // Matches the 5-minute D1 read cache: the edge may serve a page this stale, never older.
