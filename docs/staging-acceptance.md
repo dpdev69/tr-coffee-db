@@ -27,7 +27,7 @@ Updated 2026-09-15 Istanbul. [Review staging](https://coffeedb-v2-web-staging.he
 
 ## Verification and limitations
 
-284 tests passed with zero failures/skips. Full ESLint, Next route typecheck, scraper typecheck, Next production build and Cloudflare web build passed using Node 22.23.2. The deployed artifact was exercised in WebKit and native Safari. Remote CI has not run because the branch has not been pushed.
+The test suite passed with zero failures/skips (run `npm test` for the current count). Full ESLint, Next route typecheck, scraper typecheck, Next production build and Cloudflare web build passed using Node 22.23.2. The deployed artifact was exercised in WebKit and native Safari. Remote CI was not run at the time of this snapshot.
 
 Staging catalog counts reflect availability; the sitemap includes 741 durable public coffee pages and 39 active roaster pages, including pages with no current available offer. This difference is intentional.
 
