@@ -88,3 +88,9 @@ test('legacy migration package placeholders stay out of public price labels', ()
   assert.doesNotMatch(html, /Legacy|SKU|unverified/);
   assert.match(html, /Paket ağırlığı belirtilmemiş/);
 });
+
+test('a Shopify placeholder label is never shown as a package name', () => {
+  const html = renderToStaticMarkup(createElement(OfferPrice, { offer: { ...offer, weightG: null, label: 'Default Title' } }));
+  assert.doesNotMatch(html, /Default Title/);
+  assert.match(html, /Paket ağırlığı belirtilmemiş/);
+});

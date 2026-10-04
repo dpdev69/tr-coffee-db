@@ -4,7 +4,7 @@ import type { RawMetadata } from './types';
 const EQUIPMENT = ['ekipman', 'equipment', 'aksesuar', 'accessories', 'seramik', 'ceramic', 'stoneware', 'fincan', 'kupa', 'mug', 'dripper', 'grinder', 'ogutucu', 'degirmen', 'terazi', 'kettle', 'filter paper', 'filtre kagidi', 'filtre kagit', 'kahvesi setleri', 'kahve setleri', 'cup set', 'tea set', 'gift set', 'hediye set', 'workshop', 'atolye', 'egitim', 'makinesi', 'machine', 'bardak', 'surahi', 'tote bag', 'bez canta', 'termos', 'thermos', 'tumbler', 'flask', 'matara'];
 const NON_COFFEE_NAMES = ['matcha', 'chasen', 'chawan', 'paper chocolate', 'mixed fruit box', 'kakao tozu', 'cikolata bar', 'chocolate bar', 'green tea', 'black tea', 'herbal tea', 'yesil cay', 'siyah cay', 'bitki cayi', 'ekmek', 'ekmegi', 'bread',
   // Not a comparable bean package: subscriptions, multi-coffee sets, drip bags and wholesale cases (names only; tags/notes can mention these).
-  'kahve plani', 'abonelik', 'subscription', 'seti', 'ikili paket', 'uclu paket', 'dortlu paket', 'fuar paket', 'drip bag', 'hazir filtre', 'koli'];
+  'kahve plani', 'abonelik', 'abonelig', 'subscription', 'seti', 'ikili paket', 'uclu paket', 'dortlu paket', 'fuar paket', 'drip bag', 'hazir filtre', 'koli'];
 // Sets and multi-packs by name: the word "set" ("İKİLİ SET") and a pack count ("3x75GR", "2 x 100 g").
 // GLOB on the folded name, so SQL and JS agree; [^a-z0-9] is the word edge.
 const SET_GLOBS = ['set', 'set[^a-z0-9]*', '*[^a-z0-9]set', '*[^a-z0-9]set[^a-z0-9]*', '*[2-9]x[0-9]*', '*[2-9] x[0-9]*', '*[2-9]x [0-9]*', '*[2-9] x [0-9]*'];

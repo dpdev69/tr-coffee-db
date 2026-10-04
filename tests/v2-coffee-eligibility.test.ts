@@ -15,7 +15,7 @@ const excluded=[product('ying-yang','Ying Yang'),product('new-ceramic','Yeni tas
   product('thermos-taxonomy','Yeni tasarım',['TERMOSLAR']),product('tumbler','Coffee Tumbler'),product('flask','Coffee Flask'),product('bottle','Kahve Matarası'),product('bread-en','Sourdough Bread'),
   product('plan','12 Haftalık Kahve Planı · 4 × 250 g / 2 Haftada Bir'),product('drip','Burundi Baho / Drip Bag Kahve'),product('drip-tr','Drip Hazır Filtre Kahve'),product('set','Best of Panama Seti'),product('case','Colombia Supremo Huila Çekirdek Kahve 1 Kg x 10 Adet (Koli)'),product('fair','Fuar Paket'),
   // Coffee Sapiens and Vitus, 2026-10-05: two 100 g packs, and a box of three 75 g coffees.
-  product('sapiens-set','EVOLUTION & MUTATION İKİLİ SET'),product('vitus-box','XOX Espresso Experience 3x75GR'),product('two-pack','Kenya & Ethiopia 2 x 100 g'),product('trio','Üçlü Paket Filtre')];
+  product('sapiens-set','EVOLUTION & MUTATION İKİLİ SET'),product('vitus-box','XOX Espresso Experience 3x75GR'),product('two-pack','Kenya & Ethiopia 2 x 100 g'),product('trio','Üçlü Paket Filtre'),product('sub','Aylık Kahve Aboneliği')];
 const allowed=[product('colombia','Colombia China Alta Ibagué Washed'),{...product('fruit','Berry coffee'),rawMetadata:{description:'Seramik V60 dripper, filtre kağıdı ve fincan kullanın. Termosta içebilir, ekmek ile servis edebilirsiniz.',tastingNotes:['green tea','chocolate bar','bread']}},product('unknown-weight','Ethiopia'),
   product('cascara-process','Colombia San Adolfo Cascara'),product('decaf-water','Lala Salama Sparkling Water Kafeinsiz'),product('sugar-decaf','Colombia Sugar Cane Decaf'),
   product('sunset','Sunset Espresso'),product('one-bag','Ethiopia Guji 1x250 g')];
