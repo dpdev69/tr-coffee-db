@@ -6,6 +6,7 @@ import { formatMoney, formatPackageWeight } from '@/lib/coffee-display';
 import { PROCESS_LABELS } from '@/lib/constants/filter-options';
 import type { CatalogCoffee, CatalogOffer } from '../../../shared/v2/catalog';
 import type { CoffeeEvent } from '../../../shared/v2/types';
+import { unitPriceTry } from '../../../shared/v2/identity';
 
 const TASTES:Record<string,string>={fruity:'Meyvemsi',floral:'Çiçeksi',chocolate:'Çikolatalı',chocolatey:'Çikolatalı',sweet:'Tatlı',nutty:'Kuruyemişli',spicy:'Baharatlı',herbal:'Bitkisel',roasted:'Kavrulmuş',funky:'Fermente',fermented:'Fermente',clean:'Temiz'};
 export const EVENT_LABELS:Record<CoffeeEvent['type'],string>={NEW:'Yeni',PRICE_DROP:'Fiyatı düştü',RESTOCKED:'Geri geldi',DEAL:'Doğrulanmış fırsat',OUT_OF_STOCK:'Tükendi'};
@@ -37,9 +38,14 @@ export function currentBadges(coffee:CatalogCoffee,now=Date.now()):CoffeeEvent[]
 export function publicOfferLabel(offer:CatalogOffer|undefined){
   return offer?.label&&!/^legacy package\b/i.test(offer.label)?offer.label:offer?.weightG?formatPackageWeight(offer.weightG):'Paket ağırlığı belirtilmemiş';
 }
+/** Price per 100 g of this package alone: its own price over its own weight. A package without a weight never gets one. */
+function UnitPrice({offer}:{offer:CatalogOffer}){
+  const unit=unitPriceTry(offer.priceMinor,offer.weightG,offer.currency);
+  return unit?<p className="offer-unit-price mt-0.5 text-xs text-muted">₺{Math.round(unit).toLocaleString('tr-TR')} / 100 g</p>:null;
+}
 export function OfferPrice({offer}:{offer:CatalogOffer|undefined}){
   return <div className="tabular-nums"><p className="flex flex-wrap items-baseline gap-x-1.5"><strong className="text-[19px] font-semibold">{offer?.priceMinor!=null&&offer.priceMinor>0?formatMoney(offer.priceMinor/100,offer.currency??'(para birimi belirtilmemiş)'): 'Fiyat paylaşılmamış'}</strong>{offer?.weightG?<span className="text-[13px] text-muted">/ {formatPackageWeight(offer.weightG)}</span>:null}</p>
-    {offer?.weightG==null?<p className="mt-1 text-xs text-muted">{publicOfferLabel(offer)}</p>:null}</div>;
+    {offer?.weightG==null?<p className="mt-1 text-xs text-muted">{publicOfferLabel(offer)}</p>:<UnitPrice offer={offer}/>}</div>;
 }
 export function DiscoveryCard({coffee,source='catalog'}:{coffee:CatalogCoffee;source?:string}){
   const offer=preferredOffer(coffee),badges=currentBadges(coffee);

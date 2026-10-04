@@ -28,7 +28,10 @@ describe('UX and compliance surfaces', () => {
     assert.doesNotMatch(surfaces, /Adil Karşılaştır/);
     assert.doesNotMatch(surfaces, /Tercihime Göre/);
     assert.doesNotMatch(surfaces, /fiyat filtresi|bütçe|5 kısa/i);
-    assert.doesNotMatch(surfaces, /100 g fiyatı|\/ 100 g/);
+    assert.doesNotMatch(surfaces, /100 g fiyatı/);
+    // A per-100 g price exists only as this package's own price over its own weight, never a cross-package figure.
+    assert.match(surfaces, /unitPriceTry\(offer\.priceMinor,offer\.weightG,offer\.currency\)/);
+    assert.equal(surfaces.match(/\/ 100 g/g)?.length, 1, 'one unit-price renderer');
     assert.match(surfaces, /4 kısa soruyu/);
     assert.match(surfaces, /Kahve veya kavurucu ara/);
   });
