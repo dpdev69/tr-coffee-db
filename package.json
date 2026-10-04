@@ -30,6 +30,7 @@
     "db:migrate:staging": "wrangler d1 migrations apply coffeedb-v2-staging --remote",
     "v2:export": "tsx scripts/v2-export.ts",
     "v2:quality": "tsx scripts/v2-quality.ts --write-reports",
+    "digest": "tsx scripts/v2-digest.mts",
     "dev:next": "rm -rf .next/dev && next dev ."
   },
   "dependencies": {

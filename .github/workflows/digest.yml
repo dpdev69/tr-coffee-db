@@ -1,0 +1,46 @@
+name: Weekly Digest Draft
+
+on:
+  schedule:
+    # Mondays at 06:00 Istanbul. Creates a Kit draft only; the owner reviews and sends it in Kit.
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-digest-draft
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_ACCOUNT_ID: '4c1a4493b8584296f35c3eddc8279112'
+      CLOUDFLARE_D1_DATABASE_ID: '5090f52d-546e-4ba6-bdcd-b4ee531a29a3'
+      CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build digest and create Kit draft
+        env:
+          KIT_API_KEY: ${{ secrets.KIT_API_KEY }}
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: npx tsx scripts/v2-digest.mts --create-draft
+      - name: Keep the digest preview
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-preview-${{ github.run_id }}
+          path: .local/v2/digest-preview.html
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: ignore

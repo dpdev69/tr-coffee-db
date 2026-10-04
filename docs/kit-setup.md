@@ -23,6 +23,20 @@ See [P7 evidence](evidence/p7-kit.md). The owner reported confirmation and the s
 - [Eventual consistency](https://developers.kit.com/api-reference/eventual-consistency): list views may lag writes; ID lookups are strongly consistent.
 
 
+## Weekly draft digest
+
+`.github/workflows/digest.yml` runs Mondays at 06:00 Istanbul (`0 3 * * 1` UTC) or manually. `scripts/v2-digest.mts` reads D1 over the REST API with the same `listCatalog` 7-day event feeds as the home page (price drops and verified deals, new coffees, restocks; at most 8 each) and builds Turkish HTML and plain-text content linking to `/kahve/<slug>` with `utm_source=kit&utm_medium=email&utm_campaign=haftalik-drop-YYYY-MM-DD`. Every run uploads `digest-preview.html` as a 30-day workflow artifact. With fewer than 3 items it stops without contacting Kit.
+
+Otherwise it creates **one draft** through [Create a broadcast](https://developers.kit.com/api-reference/broadcasts/create-a-broadcast): `send_at: null` (draft), `public: false`, 8 s deadline, `redirect: manual`. It never schedules or sends, and logs only the broadcast ID or HTTP status. The Classic email template adds Kit's unsubscribe link and address footer. The API filters recipients by segment or tag only, not by form, so no `subscriber_filter` is sent: **before sending, the owner opens the draft in Kit, picks the Haftalık Drop recipients (form 9918321 subscribers), reviews the content and sends it manually.**
+
+Repository settings needed (Settings → Secrets and variables → Actions):
+
+- Secret `KIT_API_KEY`: the Kit V4 API key. Without it the workflow builds the preview only.
+- Variable `SITE_URL`: the public site origin used in links (falls back to the provisional brand domain).
+- The existing `CLOUDFLARE_D1_API_TOKEN` secret is reused; the digest only reads.
+
+Local preview: `npm run digest` with the same `CLOUDFLARE_*` variables writes `.local/v2/digest-preview.html`; it creates nothing in Kit without `--create-draft`.
+
 ## Signup telemetry
 
 The server emits `newsletter_signup_success` only after Kit accepts the form association. This counts accepted requests, not confirmed subscribers or unique new subscribers. Suppressed addresses, honeypots and provider failures emit no success event. Only a whitelisted page and placement source are passed to the shared analytics helper; email, referrer, subscriber ID and provider state are excluded. A missing or failing analytics binding cannot fail a successful signup. The telemetry branch passed mocked tests and the later deployed staging form test using the same already-confirmed address. Actual signup-submit and signup-success events persisted in Analytics Engine; see [P9 integration](evidence/p9-integration.md).
