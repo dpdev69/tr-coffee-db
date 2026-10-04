@@ -68,3 +68,13 @@ test('source context is enum-only and same-origin feed paths reduce to page enum
   assert.equal(points[1].blobs?.[3], 'other'); assert.equal(points[1].blobs?.[4], 'unknown'); assert.equal(points[1].blobs?.[9], '');
   assert.doesNotMatch(JSON.stringify(points), /private|example\.com|https|search=/); db.sqlite.close();
 });
+test('a stale offer (unvalidated for over 7 days of its roaster\'s successful crawls) has no redirect until it is observed again', async () => {
+  const { db, offerId, env } = await setup();
+  const offer = (sku: string, currency = 'TRY') => ({ sourceVariantId: sku, label: '250g', weightG: 250, price: 100, compareAtPrice: null, currency, inStock: true, purchaseUrl: `https://shop.kimmacoffee.com/p?variant=${sku}` });
+  const crawl = (day: string, currency: string) => ingestCrawl(db, { id: `live-${day}`, roasterId, startedAt: `2026-09-${day}T00:00:00Z`, completedAt: `2026-09-${day}T00:01:00Z`, status: 'success', parserVersion: 'test', diagnostics: [], products: [
+    { sourceProductId: 'p', canonicalUrl: 'https://shop.kimmacoffee.com/p', name: 'Coffee', visibility: 'public', rawMetadata: {}, offers: [offer('sku', currency), offer('other')] }] });
+  await crawl('08', 'TL'); assert.equal((await handleOutbound(request(offerId), offerId, db, env)).status, 302, 'seven days is still current');
+  await crawl('09', 'TL'); assert.equal((await handleOutbound(request(offerId), offerId, db, env)).status, 404);
+  await crawl('10', 'TRY'); assert.equal((await handleOutbound(request(offerId), offerId, db, env)).status, 302);
+  db.sqlite.close();
+});

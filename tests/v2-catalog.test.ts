@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import type {CatalogDatabase,SqlValue,Statement} from '../shared/v2/database';
 import {ingestCrawl,registerRoaster} from '../shared/v2/ingestion';
-import {getCatalogCounts,getCoffeeDetail,getRoasterDetail,getSimilarCoffees,listCatalog,listEvents,listRoasters} from '../shared/v2/catalog';
+import {getCatalogCounts,getCoffeeDetail,getRoasterDetail,getSavedCoffees,getSimilarCoffees,listCatalog,listEvents,listRoasters} from '../shared/v2/catalog';
+import {rankQuizMatches} from '../shared/v2/quiz-rank';
 import type {CrawlInput,SourceCoffee} from '../shared/v2/types';
 import {applyMigrations} from './helpers/v2-sqlite';
 
@@ -245,4 +246,56 @@ test('price sort/filter use the package the card shows; search folds Turkish cas
   for(const search of ['etiyopya','ethiopia','geisha','GESHA'])assert.equal((await listCatalog(db,{search})).total,1,search);
   assert.equal((await listCatalog(db,{search:'brazil'})).total,1);
   assert.equal((await listCatalog(db,{search:'50%_'})).total,0,'LIKE wildcards stay literal');
+});
+test('an offer skipped nightly stops reading as current after 7 days in every reader; a valid sighting brings it straight back',async()=>{
+  const db=await setup();
+  const at=(day:number,products:SourceCoffee[],status:CrawlInput['status']='success'):CrawlInput=>{const d=String(day).padStart(2,'0');return {...run(1,products),id:`run-${d}`,startedAt:`2026-01-${d}T00:00:00.000Z`,completedAt:`2026-01-${d}T00:01:00.000Z`,status};};
+  const pack=(sku:string,price:number,inStock=true,currency='TRY')=>({sourceVariantId:sku,label:sku,weightG:250,price,compareAtPrice:null,currency,inStock,purchaseUrl:`https://shop.test/p?${sku}`});
+  // a: one steady bag plus a cheaper grind variant that drops in price, then fails validation ("TL") every night.
+  // b: its only in-stock offer goes invalid; the valid one is sold out. c: a size twin of a whose extra offer goes invalid.
+  const products=(day:number)=>[
+    product('a',{offers:[pack('a1',100),pack('a2',day===1?80:50,true,day<=2||day>=26?'TRY':'TL')]}),
+    product('b',{offers:[pack('b1',100,false),pack('b2',100,true,day===1||day>=26?'TRY':'TL')]}),
+    product('c',{offers:[pack('c1',300),pack('c2',40,true,day===1||day>=26?'TRY':'TL')]}),
+  ];
+  await ingestCrawl(db,at(1,products(1)));
+  db.db.exec("UPDATE coffees SET canonical_coffee_id=(SELECT id FROM coffees WHERE source_product_id='a') WHERE source_product_id='c'");
+  await ingestCrawl(db,at(2,products(2)));
+  const idOf=(source:string)=>String(db.db.prepare('SELECT id FROM coffees WHERE source_product_id=?').get(source)?.id);
+  const offerIds=async(source:string)=>(await getCoffeeDetail(db,idOf(source)))!.offers.flatMap(o=>o.variantOfferIds.map(v=>String(db.db.prepare('SELECT source_variant_id s FROM offers WHERE id=?').get(v)?.s))).sort();
+  const listed=async(filters={})=>(await listCatalog(db,filters)).coffees.map(c=>c.sourceProductId);
+  const history=()=>db.db.prepare('SELECT id,price_minor,observed_at FROM price_observations ORDER BY id').all();
+  assert.deepEqual(await listed(),['a','b']);
+  assert.deepEqual(await listed({priceMax:45}),['a'],'the twin offer c2 is the cheapest 250 g package');
+  assert.deepEqual(await listed({event:'PRICE_DROP'}),['a']);
+  assert.deepEqual(await offerIds('a'),['a1','a2','c1','c2']);
+  for(let day=3;day<=9;day++)await ingestCrawl(db,at(day,products(day)));
+  assert.deepEqual(await listed(),['a'],'b2 last validated on day 1 is stale on day 9; b keeps only a sold-out offer');
+  assert.deepEqual(await offerIds('a'),['a1','a2','c1'],'a2 validated exactly 7 days ago is still current; c2 is not');
+  for(let day=10;day<=12;day++)await ingestCrawl(db,at(day,products(day)));
+  const before=history();
+  const a=(await getCoffeeDetail(db,idOf('a')))!,b=(await getCoffeeDetail(db,idOf('b')))!;
+  assert.deepEqual(await offerIds('a'),['a1','c1'],'the coffee page and card show only current packages');
+  assert.deepEqual(b.offers.map(o=>o.inStock),[false]);
+  assert.deepEqual(await listed({priceMax:60}),[],'price filters ignore stale packages');
+  assert.equal((await listCatalog(db,{sort:'price_asc'})).coffees.length,1);
+  assert.deepEqual(await listed({event:'PRICE_DROP'}),[],'a drop on a stale offer is no longer a current deal');
+  assert.deepEqual({...await getCatalogCounts(db)},{coffees:1,roasters:1,offers:2});
+  assert.equal(db.db.prepare('SELECT offers FROM catalog_counts').get()?.offers,2);
+  assert.equal((await listRoasters(db))[0].offerCount,2);
+  assert.equal((await rankQuizMatches(db,{brew:[],taste:[],roast:[],process:[]})).total,1);
+  assert.deepEqual((await getSavedCoffees(db,[a.slug,b.slug])).map(item=>item.availability),['listed','sold_out']);
+  assert.equal(a.priceHistory.length+b.priceHistory.length,before.length,'price history keeps every observation of stale offers');
+  assert.equal(db.db.prepare("SELECT count(*) n FROM offers WHERE retired_at IS NOT NULL").get()?.n,0,'nothing is retired');
+  // A roaster whose crawls stop succeeding is measured against its own last success: nothing more goes stale.
+  await ingestCrawl(db,at(20,[],'failed'));await ingestCrawl(db,at(25,[],'failed'));
+  assert.deepEqual({...await getCatalogCounts(db)},{coffees:1,roasters:1,offers:2});
+  assert.deepEqual(await offerIds('a'),['a1','c1']);
+  // One valid observation makes every stale offer current again.
+  await ingestCrawl(db,at(26,products(26)));
+  assert.deepEqual(await listed(),['a','b']);
+  assert.deepEqual(await offerIds('a'),['a1','a2','c1','c2']);
+  assert.deepEqual(await listed({event:'PRICE_DROP'}),['a']);
+  assert.deepEqual(history().filter(row=>before.some(old=>JSON.stringify(old)===JSON.stringify(row))),before,'existing observations are unchanged');
+  db.db.close();
 });
