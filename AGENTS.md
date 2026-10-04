@@ -1,3 +1,5 @@
+**Start with [docs/HANDOFF.md](docs/HANDOFF.md)** for current state, owner-blocked items and next work.
+
 <!-- BEGIN:nextjs-agent-rules -->
 # This is NOT the Next.js you know
 
