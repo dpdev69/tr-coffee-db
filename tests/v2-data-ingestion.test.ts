@@ -109,6 +109,15 @@ test('a bad offer or product is skipped with a diagnostic and cannot retire its 
   assert.match(String(db.sqlite.prepare("SELECT diagnostics_json FROM crawl_runs WHERE id='r2'").get()?.diagnostics_json),/Invalid currency/);
   db.sqlite.close();
 });
+test('a crawl whose every product is skipped fails without moving the success clock', async () => {
+  const db = await setup();
+  await ingestCrawl(db,crawl(1));
+  const broken = crawl(2); broken.products[0].offers = broken.products[0].offers.map(offer => ({ ...offer, currency: 'TL' }));
+  await assert.rejects(ingestCrawl(db,broken),/Every product was skipped/);
+  assert.equal(db.sqlite.prepare('SELECT last_success_at FROM roasters').get()?.last_success_at,crawl(1).startedAt);
+  assert.equal(count(db,'price_observations'),1);
+  db.sqlite.close();
+});
 test('unchanged features are not rewritten; any change replaces that provenance; observations still repeat', async () => {
   const db = await setup();
   const withFeatures = (day: number, process = 'washed') => { const input = crawl(day); input.products[0].features = [

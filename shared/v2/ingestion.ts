@@ -215,6 +215,9 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
         before_json: JSON.stringify(event.before),after_json: JSON.stringify(event.after),idempotency_key: event.idempotencyKey,observation_id: event.observationId }));
       eventCount += events.length;
     }
+    // A parser or format change that invalidates every row must fail like an empty crawl: a "success" here would
+    // move last_success_at and let every coffee of this roaster expire in 7 days while the nightly job stays green.
+    if (!seenCoffees.size) throw new Error('Every product was skipped; empty successful crawl requires review');
   }
   // A complete first baseline supersedes all imported synthetic offers, including
   // unmatched old listings. Historical observations are retained without stock events.
