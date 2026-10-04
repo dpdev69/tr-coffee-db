@@ -21,3 +21,10 @@ test('card translations are case insensitive labels without mutating declared so
   coffee.rawMetadata.process='Washed with special fermentation';assert.equal(coffeeProcess(coffee),'Washed with special fermentation');
   coffee.rawMetadata.process='Unknown';assert.equal(coffeeProcess(coffee),null);
 });
+test('cards list every stated origin and process in Turkish',()=>{
+  const feature=(name:string,value:string[])=>({feature:name,value,sourceType:'RULE_INFERRED',confidence:null,version:'v2-profile-3',sourceReference:null});
+  const coffee={rawMetadata:{},features:[feature('normalized_origin',['Brazil','Ethiopia','Kenya']),feature('process_family',['anaerobic','natural'])]}as unknown as CatalogCoffee;
+  assert.equal(coffeeOrigin(coffee),'Brezilya, Etiyopya ve Kenya');
+  assert.equal(coffeeProcess(coffee),'Anaerobik ve Natürel');
+  assert.equal(coffeeOrigin({rawMetadata:{},features:[feature('normalized_origin',['Brazil'])]}as unknown as CatalogCoffee),'Brezilya');
+});
