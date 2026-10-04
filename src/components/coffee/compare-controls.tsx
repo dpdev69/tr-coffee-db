@@ -2,35 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSyncExternalStore, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { deviceStore } from '@/lib/device-store';
 
-const STORAGE_KEY = 'coffeedb:compare:v1';
-const CHANGE_EVENT = 'coffeedb:compare-change';
+const store = deviceStore('coffeedb:compare:v1');
 const MAX_COFFEES = 3;
-let memorySnapshot = '';
-let useMemoryFallback = false;
-
-function subscribe(callback: () => void) {
-  window.addEventListener('storage', callback);
-  window.addEventListener(CHANGE_EVENT, callback);
-  return () => {
-    window.removeEventListener('storage', callback);
-    window.removeEventListener(CHANGE_EVENT, callback);
-  };
-}
-function getSnapshot() {
-  if (useMemoryFallback) return memorySnapshot;
-  try {
-    memorySnapshot = window.localStorage.getItem(STORAGE_KEY) ?? '';
-    return memorySnapshot;
-  } catch {
-    useMemoryFallback = true;
-    return memorySnapshot;
-  }
-}
-function getServerSnapshot() {
-  return '';
-}
 function parseSelection(value: string): string[] {
   try {
     const parsed: unknown = JSON.parse(value);
@@ -49,20 +25,10 @@ function parseSelection(value: string): string[] {
   }
 }
 function setSelection(slugs: string[]) {
-  memorySnapshot = JSON.stringify(parseSelection(JSON.stringify(slugs)));
-  try {
-    window.localStorage.setItem(STORAGE_KEY, memorySnapshot);
-    useMemoryFallback = false;
-  } catch {
-    // A denied write must not let an older stored value replace this tab's selection.
-    useMemoryFallback = true;
-  }
-  window.dispatchEvent(new Event(CHANGE_EVENT));
+  store.set(JSON.stringify(parseSelection(JSON.stringify(slugs))));
 }
 function useSelection() {
-  return parseSelection(
-    useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot),
-  );
+  return parseSelection(store.useValue());
 }
 
 export function CompareToggle({ slug, name }: { slug: string; name: string }) {
@@ -84,7 +50,7 @@ export function CompareToggle({ slug, name }: { slug: string; name: string }) {
         full ? 'En fazla 3 kahve. Önce seçtiklerinden birini çıkar.' : undefined
       }
       onClick={() => {
-        const current = parseSelection(getSnapshot());
+        const current = parseSelection(store.get());
         setSelection(
           current.includes(slug)
             ? current.filter((value) => value !== slug)
