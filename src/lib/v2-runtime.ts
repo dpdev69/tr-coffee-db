@@ -12,5 +12,5 @@ export async function getCatalogDatabase(): Promise<CatalogDatabase> {
   const env = await getV2Environment();
   if (!env.DB) throw new Error('Catalog binding unavailable');
   const cache = typeof caches !== 'undefined' ? (caches as CacheStorage & { default?: Cache }).default : undefined;
-  return cache ? cacheCatalogReads(env.DB, cache, 'coffeedb-v2-staging:coffee-only-v6', 300) : env.DB;
+  return cache ? cacheCatalogReads(env.DB, cache, `coffeedb-v2-${env.DEPLOYMENT_STAGE || 'local'}:coffee-only-v6`, 300) : env.DB;
 }

@@ -1,15 +1,15 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
-import {readFileSync} from 'node:fs';
 import type {CatalogDatabase,SqlValue,Statement} from '../shared/v2/database';
 import {ingestCrawl,registerRoaster} from '../shared/v2/ingestion';
 import {getCatalogCounts,getCoffeeDetail,getRoasterDetail,getSimilarCoffees,listCatalog,listEvents,listRoasters} from '../shared/v2/catalog';
 import type {CrawlInput,SourceCoffee} from '../shared/v2/types';
+import {applyMigrations} from './helpers/v2-sqlite';
 
 class SQLite implements CatalogDatabase {
   db=new DatabaseSync(':memory:');
-  constructor(){for(const file of ['0001_catalog.sql','0002_queue_job_idempotency.sql'])this.db.exec(readFileSync(new URL(`../migrations/d1/${file}`,import.meta.url),'utf8'));}
+  constructor(){applyMigrations(this.db);}
   prepare(sql:string):Statement{return new Prepared(this,sql);}
   async batch(statements:Statement[]){this.db.exec('BEGIN');try{const results=statements.map(s=>{const p=s as Prepared;return this.db.prepare(p.sql).run(...p.values);});this.db.exec('COMMIT');return results;}catch(error){this.db.exec('ROLLBACK');throw error;}}
 }
@@ -38,6 +38,23 @@ test('canonical current counts agree across catalog, roasters and detail with un
   assert.equal(detail?.latestEvents[0].type,'OUT_OF_STOCK');
   assert.equal(await getCoffeeDetail(db,'hidden'),null);
   assert.equal((await listEvents(db,'OUT_OF_STOCK')).length,1);
+  db.db.close();
+});
+test('a coffee absent from successful crawls for over 7 days leaves the catalog; failed crawls never hide it',async()=>{
+  const db=await setup();const a=product('a'),b=product('b');
+  const at=(day:string,products:SourceCoffee[],status:CrawlInput['status']='success'):CrawlInput=>({...run(1,products),id:`run-${day}`,startedAt:`2026-01-${day}T00:00:00.000Z`,completedAt:`2026-01-${day}T00:01:00.000Z`,status});
+  await ingestCrawl(db,at('01',[a,b]));
+  await ingestCrawl(db,at('08',[a]));
+  assert.equal((await getCatalogCounts(db)).coffees,2,'exactly 7 days since last sighting is still current');
+  await ingestCrawl(db,at('09',[a]));
+  assert.deepEqual((await listCatalog(db)).coffees.map(c=>c.sourceProductId),['a']);
+  assert.equal((await getCatalogCounts(db)).coffees,1);
+  assert.equal(db.db.prepare('SELECT coffees FROM catalog_counts').get()?.coffees,1);
+  assert.equal(db.db.prepare("SELECT in_stock FROM offers WHERE source_variant_id='sku-b'").get()?.in_stock,1,'no stock state is written');
+  await ingestCrawl(db,at('30',[],'failed'));
+  assert.equal((await getCatalogCounts(db)).coffees,1,'an outage keeps the last successful catalog');
+  await ingestCrawl(db,at('31',[a,b]));
+  assert.equal((await getCatalogCounts(db)).coffees,2,'a returning coffee is current again');
   db.db.close();
 });
 test('filters use declared and inferred features without misrepresenting raw source, search is parameterized, bounds safe',async()=>{
@@ -196,7 +213,7 @@ test('traceability filters actual public linked archive sources, not inferred or
 });
 
 test('detail identity lookup seeks indexed candidates instead of scanning aliases per coffee',async()=>{
-  const db=await setup();db.db.exec(readFileSync(new URL('../migrations/d1/0004_alias_lookup.sql',import.meta.url),'utf8'));
+  const db=await setup();
   let query='';const prepare=db.prepare.bind(db);db.prepare=(sql)=>{if(sql.includes('FROM coffees c JOIN roasters'))query=sql;return prepare(sql);};
   assert.equal(await getCoffeeDetail(db,'missing'),null);
   const plan=db.db.prepare('EXPLAIN QUERY PLAN '+query).all('missing','missing','missing').map(row=>row.detail).join('\n');

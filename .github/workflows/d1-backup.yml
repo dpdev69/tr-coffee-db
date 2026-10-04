@@ -1,0 +1,43 @@
+name: Back Up D1 Catalog
+
+on:
+  schedule:
+    # Sundays 02:30 UTC, clear of the 00:00 refresh: a running export blocks other D1 requests.
+    - cron: '30 2 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: d1-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_ACCOUNT_ID: '4c1a4493b8584296f35c3eddc8279112'
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install Wrangler from the lockfile
+        run: npm ci
+      - name: Export D1
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo '::error::CLOUDFLARE_D1_API_TOKEN is missing'; exit 1; }
+          # stdout carries a one-hour signed download URL; keep it out of the job log.
+          npx wrangler d1 export coffeedb-v2-staging --remote --output d1-backup.sql > /dev/null
+          test -s d1-backup.sql
+          gzip -9 d1-backup.sql
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d1-backup-${{ github.run_id }}
+          path: d1-backup.sql.gz
+          retention-days: 30
+          if-no-files-found: error

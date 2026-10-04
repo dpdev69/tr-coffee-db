@@ -25,6 +25,24 @@ describe('GitHub Actions workflows', () => {
     assert.match(scrape, /npm ci/);
   });
 
+  it('creates only a weekly Kit draft with read-only permissions', () => {
+    const digest = readSource('.github/workflows/digest.yml');
+    assert.match(digest, /cron: '0 3 \* \* 1'/);
+    assert.match(digest, /contents: read/);
+    assert.match(digest, /node-version-file: \.nvmrc/);
+    assert.match(digest, /v2-digest\.mts --create-draft/);
+    assert.match(digest, /KIT_API_KEY: \$\{\{ secrets\.KIT_API_KEY \}\}/);
+  });
+
+  it('exports a weekly read-only D1 backup kept as a private 30-day artifact', () => {
+    const backup = readSource('.github/workflows/d1-backup.yml');
+    assert.match(backup, /contents: read/);
+    assert.match(backup, /wrangler d1 export coffeedb-v2-staging --remote --output d1-backup\.sql > \/dev\/null/);
+    assert.match(backup, /CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_D1_API_TOKEN \}\}/);
+    assert.match(backup, /retention-days: 30/);
+    assert.doesNotMatch(backup, /d1 execute|migrations apply/);
+  });
+
   it('persists the Next.js build cache between CI runs', () => {
     const ci = readSource('.github/workflows/ci.yml');
 

@@ -31,6 +31,12 @@ export function createCrawlerWorker(sourceOptions:CrawlOptions={},now=()=>new Da
         const job=parseJob(message.body);
         const config=job&&ALL_ROASTER_CONFIGS.find(roaster=>roaster.slug===job.slug);
         if(!job||!config||!isQualifiedSource(job.slug)||!Number.isInteger(message.attempts)||message.attempts<1){message.ack();continue;}
+        const deadLetter=batch.queue===env.CRAWL_DLQ_QUEUE;
+        // Kill switch. retry() counts toward max_retries and would drain held jobs into the DLQ,
+        // so the job is re-sent as a fresh message (attempts restart at 1) and this delivery acked.
+        // DLQ deliveries only record exhaustion and never crawl, so they still close normally.
+        // ponytail: a held job cycles every 12h while disabled; pause queue delivery for long outages.
+        if(!deadLetter&&String(env.CRAWLS_ENABLED)!=='true'){await env.CRAWL_QUEUE.send(job,{contentType:'json',delaySeconds:43200});message.ack();continue;}
         const jobKey=await stableId('job',job.roasterId,job.scheduledAt);
         const id=`${jobKey}:${message.attempts}`;
         let startedAt=now();
@@ -42,7 +48,7 @@ export function createCrawlerWorker(sourceOptions:CrawlOptions={},now=()=>new Da
           const registered=await db.prepare('SELECT slug,active FROM roasters WHERE id=?').bind(job.roasterId).first<{slug:string;active:number}>();
           if(!registered||registered.slug!==job.slug||registered.active!==1){message.ack();continue;}
           const completed=await db.prepare("SELECT id FROM crawl_runs WHERE job_key=? AND status='success' LIMIT 1").bind(jobKey).first();
-          if(batch.queue==='coffeedb-v2-crawls-dlq-staging') {
+          if(deadLetter) {
             const pending=await db.prepare("SELECT id,status,started_at,parser_version,mode FROM crawl_runs WHERE job_key=? AND status='running'").bind(jobKey).all<Attempt>();
             for(const attempt of pending.results) await ingestCrawl(db,{id:attempt.id,jobKey,roasterId:job.roasterId,startedAt:attempt.started_at,completedAt:now(),mode:attempt.mode,parserVersion:attempt.parser_version,status:'failed',products:[],diagnostics:[{stage:'queue',code:'retries_exhausted',message:'Queue retries exhausted; catalog state preserved.'}]});
             if(!await db.prepare('SELECT id FROM crawl_runs WHERE job_key=? LIMIT 1').bind(jobKey).first()) await ingestCrawl(db,{id:`${jobKey}:exhausted`,jobKey,roasterId:job.roasterId,startedAt:job.scheduledAt,completedAt:now(),mode,parserVersion,status:'failed',products:[],diagnostics:[{stage:'queue',code:'retries_exhausted',message:'Queue retries exhausted; catalog state preserved.'}]});

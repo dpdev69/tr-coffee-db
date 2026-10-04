@@ -28,7 +28,9 @@
   },
   "vars": {
     "CRAWLS_ENABLED": "false",
-    "CRAWL_MODE": "live"
+    "CRAWL_MODE": "live",
+    // Must equal the main consumer's dead_letter_queue; the handler only closes jobs there.
+    "CRAWL_DLQ_QUEUE": "coffeedb-v2-crawls-dlq-staging"
   },
   "triggers": {
     "crons": []

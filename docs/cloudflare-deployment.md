@@ -40,6 +40,14 @@ KIT_FORM_ID=9918321, KIT_API_KEY secret server-only; NEXT_PUBLIC_SITE_URL must b
 
 Sources checked 2026-09-14: https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/ ; https://developers.cloudflare.com/queues/configuration/batching-retries/ ; https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/ ; https://developers.cloudflare.com/analytics/analytics-engine/get-started/ .
 
+## Production checklist (not configured)
+No production env block exists; do not invent resource IDs. A production deploy needs its own:
+- D1 database (name + ID) for both Workers, its migrations applied, and the `db:migrate`/refresh/backup workflows pointed at it.
+- Queues: main crawl queue and its DLQ; crawler var `CRAWL_DLQ_QUEUE` must equal the main consumer's `dead_letter_queue`.
+- Web vars: `DEPLOYMENT_STAGE=production` (also namespaces the catalog read cache), `NEXT_PUBLIC_SITE_URL` at build and as a runtime var (the web Worker throws at startup without it), Web Analytics token/host, `KIT_FORM_ID`.
+- Secrets: `KIT_API_KEY`. Analytics Engine dataset; rate-limit namespace IDs.
+- Crawler vars: `CRAWLS_ENABLED`, `CRAWL_MODE`; worker names without the `-staging` suffix.
+
 ## Deployed staging evidence — 2026-09-15 Istanbul
 
 Web: https://coffeedb-v2-web-staging.hellobasalt.workers.dev, deployment 651be3b2-9e3d-4dad-8974-05e662d5d390 followed by Kit secret upload. Crawler: https://coffeedb-v2-crawler-staging.hellobasalt.workers.dev, version 92c0f8c0-18eb-44c4-b47a-98184f7bc553. Analytics Engine was enabled through the authenticated dashboard and dataset coffeedb_v2_staging contains all seven expected QA event types. CWA site 8e122cb650b5451891d84327f7c98e1e is dedicated to the staging host. No production routing changed.

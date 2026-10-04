@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { describe, it } from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -60,6 +61,16 @@ describe('trusted URL policy', () => {
 });
 
 describe('security hardening guardrails', () => {
+  it('refuses to boot production without its own site URL; staging keeps its fallback', () => {
+    const load = (env: Record<string, string>) => spawnSync(process.execPath, ['--import', 'tsx', '--input-type=module', '-e',
+      "const { brand } = await import('./src/lib/brand.ts'); console.log(brand.domain, brand.production);"], { env: { PATH: process.env.PATH ?? '', ...env }, encoding: 'utf8' });
+    const missing = load({ DEPLOYMENT_STAGE: 'production' });
+    assert.notEqual(missing.status, 0);
+    assert.match(missing.stderr, /NEXT_PUBLIC_SITE_URL is required/);
+    assert.equal(load({ DEPLOYMENT_STAGE: 'production', NEXT_PUBLIC_SITE_URL: 'https://kahve.example' }).stdout.trim(), 'https://kahve.example true');
+    assert.equal(load({ DEPLOYMENT_STAGE: 'staging' }).stdout.trim(), 'https://coffeedb-v2-web-staging.hellobasalt.workers.dev false');
+  });
+
   it('keeps public URL database constraints in the latest migration', () => {
     const migration = readFileSync('supabase/migrations/017_constrain_public_urls.sql', 'utf8');
 

@@ -18,6 +18,10 @@ Record deployment IDs, source timestamp, DB/schema checksums and current Vercel 
 ## Rollback
 If source data corrupted, queue duplicate events, signup failure, unsafe redirect, unavailable pages or crawler coverage drops materially: stop new Cron enqueue (CRAWLS_ENABLED=false) and pause queue delivery. Keep evidence/logs and D1 snapshots. Restore prior DNS/routing to retained Vercel deployment and original Supabase read connection, then verify home/detail/purchase/utility paths. Re-enable the legacy scheduler only after confirming its last write state and no competing writers. Never delete new observations/events to conceal failure. Kit subscriber data remains in Kit and must not be rolled back with the catalog. New analytics remain separated by environment.
 
+D1 backup restore: download the weekly `d1-backup` Actions artifact (30-day retention) and `gunzip` it.
+Create a NEW empty database, then `npx wrangler d1 execute <new-db> --remote --file d1-backup.sql`; never execute it over a database already in use.
+Verify counts against the backup, then repoint the Workers' `database_id`; D1 Time Travel (`wrangler d1 time-travel`) also covers the last 7 days on Workers Free without a file.
+
 Workers code rollback does not restore D1/Queues/resources. A database correction needs a separately reviewed forward repair or verified backup restore. Do not combine code rollback with destructive DB reset. No secret values belong in this runbook.
 
 ## Remaining cutover requirements

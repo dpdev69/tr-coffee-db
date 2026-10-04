@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync } from 'node:fs';
+import { applyMigrations } from './helpers/v2-sqlite';
 import type { CatalogDatabase, SqlValue, Statement } from '../shared/v2/database';
 import { ingestCrawl, registerRoaster } from '../shared/v2/ingestion';
 import type { CrawlInput, SourceCoffee } from '../shared/v2/types';
@@ -10,7 +10,7 @@ import { rankCoffees } from '../src/lib/coffee-rankings';
 
 class SQLite implements CatalogDatabase {
   db = new DatabaseSync(':memory:');
-  constructor() { for (const file of ['0001_catalog.sql', '0002_queue_job_idempotency.sql']) this.db.exec(readFileSync(new URL(`../migrations/d1/${file}`, import.meta.url), 'utf8')); }
+  constructor() { applyMigrations(this.db); }
   prepare(sql: string): Statement { return new Prepared(this, sql); }
   async batch(statements: Statement[]) { this.db.exec('BEGIN'); try { const results = statements.map(s => { const p = s as Prepared; return this.db.prepare(p.sql).run(...p.values); }); this.db.exec('COMMIT'); return results; } catch (error) { this.db.exec('ROLLBACK'); throw error; } }
 }
