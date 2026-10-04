@@ -95,13 +95,18 @@ describe('UX and compliance surfaces', () => {
     assert.match(sitemap, /url:absoluteUrl\(path\)/);
   });
 
-  it('keeps migrated roaster navigation internal instead of exposing unchecked website fields', () => {
+  it('links a roaster website only through the checked redirect, rendered only when that check passes', () => {
     const oldRoute = readSource('src/app/roasters/[slug]/page.tsx');
     const source = readSource('src/app/kavurucu/[slug]/page.tsx');
+    const redirect = readSource('src/app/go/kavurucu/[slug]/route.ts');
     assert.match(oldRoute, /permanentRedirect\(`\/kavurucu\//);
     assert.match(source, /href="\/kavurucular"/);
     assert.match(source, /href=\{`\/kahveler\?roaster=/);
-    assert.doesNotMatch(source, /href=\{roaster\.(?:website_url|websiteUrl|shop_url)\}/);
+    // The stored website field never reaches markup; the link is the redirect, shown only if roasterSiteUrl validated it.
+    assert.doesNotMatch(source, /websiteUrl|website_url|shop_url/);
+    assert.match(source, /roasterSiteUrl\(db, slug\)/);
+    assert.match(source, /\{hasSite \? <a href=\{`\/go\/kavurucu\/\$\{roaster\.slug\}`\}/);
+    assert.match(redirect, /handleRoasterOutbound\(/);
   });
 
   it('uses real validated offer links without requiring a browser analytics request first', () => {
