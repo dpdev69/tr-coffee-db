@@ -1,7 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-/** Key of the saved list (Listem); here so the server page's pre-paint script can read it too. */
-export const SAVED_KEY = 'kahvedrop:saved:v1';
+export { SAVED_KEY } from './device-keys';
 
 /**
  * One localStorage key as an external store. Blocked storage (private windows, disabled site data)
