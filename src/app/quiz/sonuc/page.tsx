@@ -55,9 +55,9 @@ export default async function QuizResultPage({ searchParams }: { searchParams: P
             {result.coffees.map((coffee, index) => {
               const offer = preferredOffer(coffee);
               return (
-                <li key={coffee.id} className="flex flex-wrap items-start gap-x-6 gap-y-4 rounded-[14px] border border-line bg-surface p-5 sm:p-6">
-                  <span className="w-9 font-display text-[40px] leading-none text-warm" aria-hidden="true">{index + 1}</span>
-                  <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-1.5">
+                <li key={coffee.id} className="flex flex-wrap items-start gap-x-4 gap-y-4 rounded-[14px] sm:gap-x-6 border border-line bg-surface p-5 sm:p-6">
+                  <span className="w-8 font-display text-[32px] leading-none text-warm sm:w-9 sm:text-[40px]" aria-hidden="true">{index + 1}</span>
+                  <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-1.5">
                     <h2 className="font-display text-2xl leading-tight text-ink"><Link href={`/kahve/${coffee.slug}`} prefetch={false} className="hover:underline">{coffee.name}</Link></h2>
                     <p className="text-sm text-muted"><Link href={`/kavurucu/${coffee.roaster.slug}`} className="hover:text-accent hover:underline">{coffee.roaster.name}</Link>{coffee.roaster.city ? ` · ${coffee.roaster.city}` : ''}</p>
                     {coffee.quizReasons.length ? (
@@ -66,10 +66,9 @@ export default async function QuizResultPage({ searchParams }: { searchParams: P
                           const line = formatQuizReason(reason);
                           const good = line.kind === 'match' || line.kind === 'near';
                           return (
-                            <li key={line.dimension} className={`flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[15px] ${good ? 'text-ink' : 'text-muted'}`}>
+                            <li key={line.dimension} className={`flex items-baseline gap-2 text-[15px] ${good ? 'text-ink' : 'text-muted'}`}>
                               <span aria-hidden="true" className={`w-3.5 shrink-0 ${good ? 'text-accent' : 'text-muted'}`}>{good ? '✓' : '–'}</span>
-                              <span>{line.text}</span>
-                              {line.source ? <span className="text-[13px] text-muted">({line.source})</span> : null}
+                              <span>{line.text}{line.source ? <span className="text-[13px] text-muted"> ({line.source})</span> : null}</span>
                             </li>
                           );
                         })}

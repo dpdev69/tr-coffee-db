@@ -82,6 +82,8 @@ export function QuizContainer() {
     setAnswers(createInitialQuizAnswers());
     setPrefilled(false);
     setStepIndex(0);
+    // The button that had focus disappears with the notice; keep the keyboard on the question.
+    questionRef.current?.focus();
   }
 
   return (
