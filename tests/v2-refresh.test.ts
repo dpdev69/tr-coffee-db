@@ -92,3 +92,15 @@ test('D1 concurrent batches recover after an error and stop at the settled quota
   assert.match(String((results[2] as PromiseRejectedResult).reason),/budget reached/);
   assert.equal(peak,1);assert.equal(calls,2);assert.equal(db.rowsWritten,65_000);assert.equal(db.rowsRead,1);
 });
+
+test('the scheduled refresh skips local-only sources unless they are requested by name',async()=>{
+  const db=new TestCatalogDatabase();
+  for(const config of ALL_ROASTER_CONFIGS.filter(config=>['petra','sezy'].includes(config.slug)))await registerRoaster(db,{id:config.slug,slug:config.slug,name:config.name,websiteUrl:config.websiteUrl,adapter:config.platform});
+  assert.equal(ALL_ROASTER_CONFIGS.find(config=>config.slug==='sezy')?.runsFrom,'local');
+  const payload=JSON.parse(readFileSync(new URL('./fixtures/v2/shopify.json',import.meta.url),'utf8'));
+  const source={requestDelayMs:0,fetch:async()=>Response.json(payload)};
+  const scheduled=await refreshCatalog(db,{scheduledAt:'2026-01-01T00:00:00Z',now:()=> '2026-01-01T01:00:00Z',source});
+  assert.deepEqual(scheduled.map(result=>result.slug),['petra']);
+  const named=await refreshCatalog(db,{scheduledAt:'2026-01-01T00:00:00Z',now:()=> '2026-01-01T01:00:00Z',slugs:['sezy'],source});
+  assert.deepEqual(named.map(result=>result.slug),['sezy']);db.sqlite.close();
+});

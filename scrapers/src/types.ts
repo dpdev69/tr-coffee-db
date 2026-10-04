@@ -92,6 +92,8 @@ export interface RoasterConfig {
   city: string | null;
   /** false keeps the roaster registered but out of crawls and the catalog. configs.ts is the source of truth. */
   active?: boolean;
+  /** 'local': the shop blocks GitHub's network, so the scheduled job skips it and scripts/local-refresh.sh crawls it from the owner's machine. */
+  runsFrom?: 'local';
   priceFormat: PriceFormat;
   // Shopify-specific
   collectionHandle?: string;
