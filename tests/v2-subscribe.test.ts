@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { newsletterConsent } from '../src/lib/brand';
 import { handleSubscribe, sanitizeSubscribeReferrer, subscribeResponse, SUBSCRIBE_MESSAGE, type SubscribeEnvironment } from '../src/lib/v2-subscribe';
 
 const origin = 'https://kahvedrop.test';
 const fakeKey = 'test-key-only-not-a-real-credential';
 const email = 'Reader+coffee@example.test';
-function request(body: unknown = { email, website: '', source: 'home-hero', referrer: `${origin}/?utm_source=community` }, headers: Record<string, string> = {}) {
+function request(body: unknown = { email, website: '', consent: true, source: 'home-hero', referrer: `${origin}/?utm_source=community` }, headers: Record<string, string> = {}) {
   return new Request(`${origin}/api/subscribe`, { method: 'POST', headers: { origin, 'Content-Type': 'application/json', 'cf-connecting-ip': '192.0.2.4', ...headers }, body: JSON.stringify(body) });
 }
 function environment(success = true): SubscribeEnvironment {
@@ -25,7 +26,8 @@ test('new signup creates inactive subscriber without first_name and attaches to 
   const result = await handleSubscribe(request(), env, { fetch: kit.fetcher });
   assert.equal(result.status, 200); assert.equal(result.outcome, 'accepted');
   assert.deepEqual(result.body, { ok: true, message: SUBSCRIBE_MESSAGE });
-  assert.deepEqual(kit.calls[0].body, { email_address: email, state: 'inactive' });
+  assert.deepEqual(kit.calls[0].body, { email_address: email, state: 'inactive', fields: { consent_at: (kit.calls[0].body.fields as Record<string, string>).consent_at, consent_version: newsletterConsent.version } });
+  assert.match((kit.calls[0].body.fields as Record<string, string>).consent_at, /^\d{4}-\d\d-\d\dT[\d:.]+Z$/);
   assert.equal(kit.calls[0].url, 'https://api.kit.com/v4/subscribers');
   assert.equal(kit.calls[1].url, 'https://api.kit.com/v4/forms/9918321/subscribers/735');
   assert.deepEqual(kit.calls[1].body, { referrer: `${origin}/?utm_source=community&utm_content=home-hero` });
@@ -45,7 +47,7 @@ test('existing active/inactive and repeated submissions preserve provider state,
     const kit = provider(state, 200);
     for (let attempt = 0; attempt < 2; attempt++) assert.equal((await handleSubscribe(request(), environment(), { fetch: kit.fetcher })).status, 200);
     assert.equal(kit.calls.length, 4);
-    assert.deepEqual(kit.calls[0].body, kit.calls[2].body);
+    assert.equal(kit.calls[0].body.email_address, kit.calls[2].body.email_address);
     assert.deepEqual(kit.calls[1].body, kit.calls[3].body);
     assert(!kit.calls.some(call => 'first_name' in call.body));
     assert(!kit.calls.some(call => call.body.state === 'active'));
@@ -86,7 +88,7 @@ test('cancelled, bounced and complained addresses are not attached or reactivate
     const result = await handleSubscribe(request(), environment(), { fetch: kit.fetcher });
     assert.equal(result.outcome, 'suppressed'); assert.equal(kit.calls.length, 1);
     assert.deepEqual(result.body, { ok: true, message: SUBSCRIBE_MESSAGE });
-    assert.deepEqual(kit.calls[0].body, { email_address: email, state: 'inactive' });
+    assert.equal(kit.calls[0].body.state, 'inactive');
   }
 });
 test('invalid JSON, content type, origin, emails and streaming byte limits fail before provider calls', async () => {
@@ -151,13 +153,13 @@ test('newsletter success telemetry is accepted-request only, allowlisted and can
   const events: unknown[] = [];
   const env = { ...environment(), ANALYTICS: { writeDataPoint: (point: unknown) => { events.push(point); } } };
   const kit = provider();
-  const result = await handleSubscribe(request({ email, website: '', source: 'detail', referrer: `${origin}/kahve/a?email=${email}&utm_campaign=September` }), env, { fetch: kit.fetcher });
+  const result = await handleSubscribe(request({ email, website: '', consent: true, source: 'detail', referrer: `${origin}/kahve/a?email=${email}&utm_campaign=September` }), env, { fetch: kit.fetcher });
   assert.equal(result.status, 200); assert.equal(events.length, 1);
   const encoded = JSON.stringify(events);
   assert.match(encoded, /newsletter_signup_success/); assert.match(encoded, /coffee/); assert.match(encoded, /detail/);
   for (const privateValue of [email, fakeKey, 'September', 'referrer', '735', 'inactive']) assert(!encoded.includes(privateValue));
   // Every accepted request is counted; this is not a confirmed or unique-subscriber metric.
-  await handleSubscribe(request({ email, source: 'attacker@evil.test' }), env, { fetch: kit.fetcher });
+  await handleSubscribe(request({ email, consent: true, source: 'attacker@evil.test' }), env, { fetch: kit.fetcher });
   assert.equal(events.length, 2); assert(!JSON.stringify(events).includes('attacker'));
   for (const state of ['cancelled', 'bounced', 'complained']) await handleSubscribe(request(), env, { fetch: provider(state).fetcher });
   await handleSubscribe(request({ email, website: 'spam' }), env, { fetch: kit.fetcher });
@@ -165,4 +167,59 @@ test('newsletter success telemetry is accepted-request only, allowlisted and can
   assert.equal(events.length, 2);
   const broken = { ...environment(), ANALYTICS: { writeDataPoint: () => { throw new Error('analytics unavailable'); } } };
   assert.equal((await handleSubscribe(request(), broken, { fetch: kit.fetcher })).status, 200);
+});
+
+function formPost(fields: Record<string, string>, headers: Record<string, string> = {}, query = '?source=catalog') {
+  return new Request(`${origin}/api/subscribe${query}`, { method: 'POST', headers: { origin, referer: `${origin}/kahveler?page=2`, 'Content-Type': 'application/x-www-form-urlencoded', 'cf-connecting-ip': '192.0.2.4', ...headers }, body: new URLSearchParams(fields) });
+}
+const formFields = { email, website: '', consent: 'on', source: 'catalog' };
+
+test('consent missing or false is rejected for JSON and form posts before any provider call', async () => {
+  const kit = provider();
+  for (const input of [request({ email, consent: false }), request({ email }), request({ email, consent: 'yes' }), formPost({ email, source: 'catalog' })]) {
+    const result = await handleSubscribe(input, environment(), { fetch: kit.fetcher });
+    assert.equal(result.status, 400); assert.equal(result.outcome, 'consent');
+  }
+  assert.equal(kit.calls.length, 0);
+});
+test('form-encoded success stores consent evidence, redirects to /tesekkurler and uses the Referer', async () => {
+  const kit = provider();
+  const result = await handleSubscribe(formPost(formFields), environment(), { fetch: kit.fetcher });
+  assert.equal(result.outcome, 'accepted');
+  const response = subscribeResponse(result);
+  assert.equal(response.status, 303); assert.equal(response.headers.get('location'), '/tesekkurler');
+  assert.equal((kit.calls[0].body.fields as Record<string, string>).consent_version, newsletterConsent.version);
+  assert.deepEqual(kit.calls[1].body, { referrer: `${origin}/kahveler?utm_content=catalog` });
+});
+test('form-encoded failures redirect back to the page at that form\'s own error anchor', async () => {
+  const kit = provider();
+  const back = async (input: Request, env = environment()) => subscribeResponse(await handleSubscribe(input, env, { fetch: kit.fetcher })).headers.get('location');
+  assert.equal(await back(formPost({ ...formFields, email: 'nope' })), '/kahveler#nl-catalog-gecersiz');
+  assert.equal(await back(formPost({ email, source: 'catalog' })), '/kahveler#nl-catalog-onay');
+  assert.equal(await back(formPost(formFields), environment(false)), '/kahveler#nl-catalog-cok-sik');
+  assert.equal(await back(formPost(formFields, { origin: 'https://evil.test' })), '/kahveler#nl-catalog-gecersiz');
+  assert.equal(await back(formPost({ ...formFields, email: 'nope' }, { referer: 'https://evil.test/x' }, '?source=<script>')), '/');
+  assert.equal(kit.calls.length, 0);
+  const down = await handleSubscribe(formPost(formFields), environment(), { fetch: async () => new Response(null, { status: 500 }) });
+  assert.equal(subscribeResponse(down).headers.get('location'), '/kahveler#nl-catalog-hata');
+});
+test('form posts keep honeypot, limit, byte cap and cross-site protections', async () => {
+  const kit = provider();
+  const trapped = await handleSubscribe(formPost({ ...formFields, website: 'spam' }), environment(), { fetch: kit.fetcher });
+  assert.equal(trapped.outcome, 'honeypot'); assert.equal(kit.calls.length, 0);
+  assert.equal((await handleSubscribe(formPost(formFields, { 'sec-fetch-site': 'cross-site' }), environment(), { fetch: kit.fetcher })).status, 400);
+  assert.equal((await handleSubscribe(formPost({ ...formFields, junk: 'a'.repeat(5000) }), environment(), { fetch: kit.fetcher })).status, 400);
+  assert.equal((await handleSubscribe(formPost(formFields), environment(false), { fetch: kit.fetcher })).status, 429);
+  assert.equal(kit.calls.length, 0);
+});
+test('signup still succeeds, without consent fields, when Kit has no such custom fields yet', async () => {
+  const calls: Array<Record<string, unknown>> = [];
+  const fetcher: typeof fetch = async (url, init) => {
+    const body = JSON.parse(String(init!.body)); calls.push(body);
+    if (String(url).endsWith('/subscribers') && body.fields) return new Response('{}', { status: 422 });
+    return Response.json({ subscriber: { id: 735, state: 'inactive' } }, { status: 200 });
+  };
+  const result = await handleSubscribe(request(), environment(), { fetch: fetcher });
+  assert.equal(result.status, 200); assert.equal(result.consentFieldsSkipped, true);
+  assert.deepEqual(calls[1], { email_address: email, state: 'inactive' });
 });

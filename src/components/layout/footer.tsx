@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
+import { NewsletterForm } from '@/components/v2/newsletter-form';
 
 export function Footer() {
   return (
     <footer className="mt-auto border-t border-line bg-ground text-ink">
       <div className="page-shell py-10">
+        <NewsletterForm source="footer" variant="card" compact className="mb-8" title="Ayda bir bülten, haftada bir fiyat özeti" description="İstediğin an çıkarsın." />
         <div className="grid gap-8 sm:grid-cols-[1.3fr_1fr_1fr]">
           <div>
             <Link
