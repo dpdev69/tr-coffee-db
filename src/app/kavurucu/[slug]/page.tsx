@@ -9,6 +9,7 @@ import { JsonLd, breadcrumbList } from '@/components/layout/json-ld';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
 import { getRoasterDetail } from '../../../../shared/v2/catalog';
+import { NewsletterForm } from '@/components/v2/newsletter-form';
 
 // Matches the 5-minute D1 read cache: the edge may serve a page this stale, never older.
 export const revalidate = 300;
@@ -31,5 +32,6 @@ export default async function RoasterPage({ params }: { params: Promise<{ slug: 
     <section className="mb-10 flex flex-wrap items-center gap-x-10 gap-y-6"><RoasterInitial name={roaster.name} size="lg"/><div className="min-w-0 flex-[1_1_360px]"><h1 className="mb-2 font-display text-[clamp(36px,4.4vw,56px)] leading-[1.05]">{roaster.name}</h1><p className="text-[17px] text-muted">{roaster.city || 'Bağımsız kavurucu'} · Satışta {roaster.coffeeCount} kahve, {roaster.offerCount} paket. Sipariş kavurucunun sitesinde tamamlanır.</p></div></section>
     {catalog.coffees.length ? <DiscoveryGrid coffees={catalog.coffees} /> : <DiscoveryEmpty title="Şu an satışta doğrulanmış bir kahve yok.">Kavurucunun sayfasını koruyoruz. Yeniden satışa çıkan kahveler burada yer alacak.</DiscoveryEmpty>}
     {catalog.total > catalog.coffees.length ? <div className="mt-8 text-center"><Link className="button-dark" href={`/kahveler?roaster=${encodeURIComponent(roaster.slug)}`}>Tüm {catalog.total} kahveyi gör →</Link></div> : null}
+    <NewsletterForm source="roaster" variant="card" className="mt-12" title="Bu kavurucudan yeni kahve gelince" description="Haftalık özet ve aylık bültende haber veririz." />
   </div>;
 }
