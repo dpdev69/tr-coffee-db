@@ -2,7 +2,7 @@
 
 ## Source counts — 2026-10-05
 
-44 configured sources (43 active, Cho Coffee inactive), 38 qualified, 5 newly added and awaiting qualification (`coffee-sapiens`, `lot-coffee`, `caffe-di-toee`, `mayard`, `vitus`). The "39 active sources" wording elsewhere in this file is historical. See [data-quality.md](data-quality.md) for the qualification step.
+44 configured sources (43 active, Cho Coffee inactive), 42 qualified. Of the 5 added on 2026-10-05, `caffe-di-toee`, `coffee-sapiens`, `lot-coffee` and `mayard` are qualified; `vitus` awaits restock (sold out). The "39 active sources" wording elsewhere in this file is historical. See [data-quality.md](data-quality.md) for the qualification step.
 
 ## Current staging verification — 2026-09-14 UTC
 

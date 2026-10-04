@@ -79,10 +79,10 @@ describe('wave-2 sources are proven offline from recorded responses', () => {
     assert.deepEqual(summary(result.products)[0], ['Italian Espresso Blend', [[250, 435, false], [1000, 1566, false]]]);
   });
 
-  it('are configured and unique; only Caffe Di Toee passed the 2026-10-05 storefront review', () => {
+  it('are configured and unique; all but Vitus (sold out) passed the 2026-10-05 review', () => {
     const added = ['coffee-sapiens', 'lot-coffee', 'caffe-di-toee', 'mayard', 'vitus'];
     assert.equal(new Set(ALL_ROASTER_CONFIGS.map(c => c.slug)).size, ALL_ROASTER_CONFIGS.length);
-    for (const slug of added) { assert.ok(config(slug), slug); assert.equal(isQualifiedSource(slug), slug === 'caffe-di-toee', slug); }
+    for (const slug of added) { assert.ok(config(slug), slug); assert.equal(isQualifiedSource(slug), slug !== 'vitus', slug); }
     assert.equal(config('caffe-di-toee').city, 'Ankara');
     assert.equal(config('lot-coffee').city, null);
   });

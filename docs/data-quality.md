@@ -2,9 +2,46 @@
 
 ## Source counts — 2026-10-05
 
-`scrapers/src/roasters/configs.ts` now holds **44 configured sources**: 43 active and Cho Coffee inactive (HTTP 403). `shared/v2/qualified-sources.ts` lists **39 qualified sources**. Of the five sources added on 2026-10-05, `caffe-di-toee` passed the storefront review below and is qualified; `coffee-sapiens`, `lot-coffee`, `mayard` and `vitus` remain configured but **unqualified**. The nightly refresh still attempts them; because they are unqualified, `scripts/v2-refresh.mts` records their snapshots as partial and publishes nothing. The counts in the sections below describe their earlier dates (the 39-source and 14-source figures are historical).
+`scrapers/src/roasters/configs.ts` now holds **44 configured sources**: 43 active and Cho Coffee inactive (HTTP 403). `shared/v2/qualified-sources.ts` lists **42 qualified sources**. Of the five sources added on 2026-10-05, `caffe-di-toee` passed the storefront review below, and `coffee-sapiens`, `lot-coffee` and `mayard` passed once the shared attribute defects it found were fixed (next section). `vitus` remains configured but **unqualified**: its shop is sold out. The nightly refresh still attempts it; because it is unqualified, `scripts/v2-refresh.mts` records its snapshot as partial and publishes nothing. The counts in the sections below describe their earlier dates (the 39-source and 14-source figures are historical).
 
 To qualify a source (the process in [crawler-comparison.md](crawler-comparison.md) and [free-catalog-refresh.md](free-catalog-refresh.md)): capture a complete paced snapshot with `crawlRoaster` (it reports `complete: true` only when pagination and every SKU were covered), review its product identities, prices, weights and stock against the live storefront, run the staging baseline for the slug and compare it with that review, and only then add the slug to `QUALIFIED_SOURCE_SLUGS` and update the length assertions in `tests/v2-crawler-worker.test.ts`. The staging baseline writes to the remote database and needs the owner's go-ahead. Fixture tests alone do not qualify a source.
+
+## Attribute fixes and qualification — 2026-10-05
+
+The storefront review below held back Coffee Sapiens, Lot Coffee and Mayard only for profile values their pages do not support. Each came from shared code, so each was fixed at the root, with a fixture from the real strings:
+
+| Defect | Root cause | Fix |
+| --- | --- | --- |
+| Sets public as one coffee | `shared/v2/coffee-eligibility.ts` matched "seti", not "set" | The word "set", a pack count ("3x75GR", "2 x 100 g") and "ikili/üçlü/dörtlü paket" in the name exclude, in JS and in the SQL guard (GLOB on the folded name) |
+| "Honey" note from a honey process in the name, "Orange" from "Orange Bourbon" | `flavor-map.ts` read process and variety words as flavors | In names and prose, spans the process map recognises, colour-named cultivars, "wine yeast" and "tropikal iklim" are not flavors; a tasting section is read as before |
+| Brew `moka_pot` from "(Moka Trade)" | `index.ts` `detectBrewMethods` matched any "moka" | Only "moka pot" |
+| Roast `medium_dark` from "Kavurma Profili Espresso/Filtre" | `roast-level-map.ts` mapped "Espresso"/"Filtre" beside a roast label (and "espresso/filter roast") to a level | Removed; explicit levels and Agtron unchanged |
+| IKAS shops' own fields ignored | the IKAS query fetched no product attributes | The query reads `attributes { value productAttribute { name } productAttributeOption { name } }`; the tasting-notes and details ("Künye") fields are kept as `{name, value}` and a tasting-notes field is the declared taste. Farm story and recipe fields are not read |
+| Found while auditing Mayard's own notes | "Bal Kavunu", "Kiraz Çiçeği", "Beyaz Çay" read as Honey, Cherry, Black Tea | Read as nothing |
+
+`PROFILE_VERSION` is now `v2-profile-4`.
+
+**Catalog-wide effect**, measured by running the old and new rules over every coffee in a copy of the local D1 catalog (1,030 coffees, 729 marked public, 471 in the public view; Coffee Sapiens, Lot, Mayard and Vitus are not in it):
+
+| Change | Coffees changed (in public view) | Judgement |
+| --- | ---: | --- |
+| Set rule | 5 newly excluded (0) | all five already hidden and all real sample packs: A Roasting Lab Aurora/Espresso/Seçkin/Zamansız "Deneme Paketi 4–5x50 g", Boxx "SAMPLE BOXX 5x50 Gr." No public coffee is newly hidden. |
+| Moka pot | 0 | all 17 existing `moka_pot` values come from "moka pot" |
+| Roast | 4 lose a guessed level (1) | all corrections: Aristocrat Filtre/Espresso ("Kavurma Profili: Filtre kahve için ideal"), Coach Bench Blend ("Kavurma: Filtre kahveye uygun"), Milestones "ESPRESSO ROAST" |
+| Notes from process/variety words | 38 (24) | 37 corrections (Honey from "Red Honey", "Honey Geisha", "honey işleminden"; Orange from Orange Bourbon; Wine from "Wine Yeast"); 1 loss: Cup of Joy Ethiopia Chelbesa's prose list "Notes : lime, honey, raspberry" loses Honey |
+| "tropikal iklimi" | 1 (1) | correction (NOK Ethiopia Limu Grade 2) |
+| Honeydew, cherry blossom, white tea; IKAS fields | 0 | stored IKAS records hold no attributes yet; they change on the next crawl |
+
+**IKAS attributes.** The `searchProducts` result type `SearchProductAttributeValue` has no id fields but exposes `value`, `productAttribute { name }` and `productAttributeOption { name }` (one validation request, then a live Mayard crawl with the new query: 17 results, 15 carrying attributes). Mayard's catalog listing page embeds the same values. Whether the other ten live IKAS shops fill in such fields is unknown until their next crawl; fields with other names are ignored.
+
+**Decisions.** Each source's saved snapshot was re-parsed with the fixed code (Mayard from the new live capture, whose prices, stock and visibility equal the reviewed snapshot) and every public coffee's derived origin, process, roast, notes, variety, brew and decaf value was traced to the page text:
+
+- **Coffee Sapiens — qualified.** "EVOLUTION & MUTATION İKİLİ SET" is hidden; Gigi Manis has Cherry only (page: nar, kiraz, naşi armudu). 7 public coffees, every value traced.
+- **Lot Coffee — qualified.** Santa Helena has no brew method; Honduras Tutule has no roast (its espresso/filter brew compatibility stays: the line names both); Boledu lost Tropical Fruit from "tropikal iklimi". 9 public coffees, every value traced.
+- **Mayard — qualified.** Notes now come from its "Tadım Notları" (El Mango: Mango, Vanilla; Liberica: Peach), varieties from "Kahvenin Künyesi". 13 public coffees (11 in stock), every value traced.
+- **Vitus — not qualified** (sold out). "XOX Espresso Experience 3x75GR" is now hidden.
+
+Remaining approximations judged supported, not wrong: "Sweet" beside Brown Sugar for "esmer şeker" and for "şeker kamışı"/"şeker pancarı", "Chocolate" beside Dark Chocolate for "bitter çikolata", Grape for "kuru üzüm". Notes the map does not hold (nektarin, liçi, karpuz, Earl Grey) stay unknown.
 
 ## Storefront review of the five new sources — 2026-10-05
 
