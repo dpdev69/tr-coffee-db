@@ -130,3 +130,13 @@ test('a source awaiting qualification never succeeds by design, so it does not t
   assert.deepEqual(await attentionNeeded(db,[{status:'success'},{status:'partial'}].concat(Array(8).fill({status:'success'})),'2026-01-06T00:00:00.000Z'),[]);
   db.sqlite.close();
 });
+
+test('the relay refuses non-default ports and credentials in the target, and only talks to an https relay',async()=>{
+  const hosts=new Set(['sezycoffee.com']);let upstreamCalls=0;
+  const upstream:typeof fetch=async()=>{upstreamCalls++;return new Response('[]');};
+  const call=(url:string)=>relayRequest(new Request(`https://relay.test/relay?url=${encodeURIComponent(url)}`,{headers:{Authorization:'Bearer secret'}}),'secret',hosts,{},upstream);
+  for(const url of ['https://sezycoffee.com:8443/x','https://sezycoffee.com:22/x','https://user:pw@sezycoffee.com/x','https://user@sezycoffee.com/x'])assert.equal((await call(url)).status,403,url);
+  assert.equal((await call('https://SEZYCOFFEE.com:443/x')).status,200,'default port and case are normalised');
+  assert.equal(upstreamCalls,1);
+  assert.throws(()=>relayFetch('http://relay.test/relay','secret',upstream),/https/);
+});

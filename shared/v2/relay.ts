@@ -14,7 +14,7 @@ export async function relayRequest(request: Request, token: string | undefined, 
   if (request.method !== 'GET') return new Response('GET only.', { status: 405 });
   let target: URL;
   try { target = new URL(new URL(request.url).searchParams.get('url') ?? ''); } catch { return new Response('Bad url.', { status: 400 }); }
-  if (target.protocol !== 'https:' || !allowedHosts.has(target.hostname)) return new Response('Host not allowed.', { status: 403 });
+  if (target.protocol !== 'https:' || target.port || target.username || target.password || !allowedHosts.has(target.hostname)) return new Response('Host not allowed.', { status: 403 });
   const upstream = await fetcher(target, { redirect: 'manual', headers });
   const out = new Headers();
   for (const name of PASS_THROUGH) { const value = upstream.headers.get(name); if (value) out.set(name, value); }
@@ -23,6 +23,8 @@ export async function relayRequest(request: Request, token: string | undefined, 
 
 /** Caller side: a fetch that sends GET requests through the relay and leaves everything else to the crawler. */
 export function relayFetch(relayUrl: string, token: string, fetcher: typeof fetch = fetch): typeof fetch {
+  // The token travels in a header, so it must never leave over plain http.
+  if (new URL(relayUrl).protocol !== 'https:') throw new Error('The relay URL must use https.');
   return (input, init) => {
     if (init?.method && init.method !== 'GET') throw new Error('The relay only carries GET requests.');
     const url = new URL(relayUrl); url.searchParams.set('url', String(input instanceof Request ? input.url : input));
