@@ -24,8 +24,11 @@ async function crawlIkas(slug: string, file: string) {
 describe('wave-2 sources are proven offline from recorded responses', () => {
   it('Coffee Sapiens (Shopify): coffee parsed, grinder left to the eligibility rule', async () => {
     const fixture = await json('coffee-sapiens-shopify.json');
-    const result = await crawlRoaster(config('coffee-sapiens'), { ...noWait, fetch: async () => respond({ products: fixture.products }) });
+    const urls: string[] = [];
+    const result = await crawlRoaster(config('coffee-sapiens'), { ...noWait, fetch: async url => { urls.push(String(url)); return respond({ products: fixture.products }); } });
     assert.equal(result.complete, true);
+    // The full catalog also lists zero-price brew guides; only the coffee collection is read.
+    assert.deepEqual(urls, ['https://www.coffeesapiens.com/collections/coffee-collection/products.json?limit=250&page=1']);
     assert.deepEqual(summary(result.products).slice(0, 2), [
       ['INDONESIA MAS IYAN GIGI JERUK', [[250, 1150, true], [250, 1150, true]]],
       ['KOLOMBİYA SUPREMO HUILA', [[250, 555, true], [1000, 2000, true]]],
@@ -63,10 +66,10 @@ describe('wave-2 sources are proven offline from recorded responses', () => {
     assert.deepEqual(summary(result.products)[0], ['Italian Espresso Blend', [[250, 435, false], [1000, 1566, false]]]);
   });
 
-  it('are configured, unique and still awaiting qualification', () => {
+  it('are configured and unique; only Caffe Di Toee passed the 2026-10-05 storefront review', () => {
     const added = ['coffee-sapiens', 'lot-coffee', 'caffe-di-toee', 'mayard', 'vitus'];
     assert.equal(new Set(ALL_ROASTER_CONFIGS.map(c => c.slug)).size, ALL_ROASTER_CONFIGS.length);
-    for (const slug of added) { assert.ok(config(slug), slug); assert.equal(isQualifiedSource(slug), false, slug); }
+    for (const slug of added) { assert.ok(config(slug), slug); assert.equal(isQualifiedSource(slug), slug === 'caffe-di-toee', slug); }
     assert.equal(config('caffe-di-toee').city, 'Ankara');
     assert.equal(config('lot-coffee').city, null);
   });
