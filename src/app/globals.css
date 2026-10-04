@@ -11,6 +11,7 @@
   --color-accent: #244b3d; /* brand green: buttons, links, focus */
   --color-accent-strong: #163629; /* hover on accent; text on lime */
   --color-lime: #e3ecbd; /* chips, badges, selected; text on accent */
+  --color-on-accent: #ffffff; /* text and icons on accent fills */
   --color-clay: #936044; /* small eyebrows and numerals on paper/surface only (4.3:1 on tint) */
 }
 @theme inline {
@@ -47,6 +48,10 @@
   }
   [id] {
     scroll-margin-top: 100px;
+  }
+  /* Set by the inline script in layout.tsx when a consent choice exists; avoids a banner flash before hydration. */
+  html[data-consent] .consent-banner:not([data-open]) {
+    display: none;
   }
 }
 
@@ -92,7 +97,7 @@
   }
   .button-dark {
     background: var(--color-accent);
-    color: white;
+    color: var(--color-on-accent);
   }
   .button-dark:hover {
     background: var(--color-accent-strong);
@@ -131,7 +136,7 @@
     color: var(--color-ink);
   }
   .mobile-menu::backdrop {
-    background: rgb(48 40 31 / 0.45);
+    background: color-mix(in srgb, var(--color-ink) 45%, transparent);
   }
 
   /* Sections */
@@ -413,7 +418,7 @@
     gap: 8px;
     align-items: center;
     background: var(--color-accent);
-    color: white;
+    color: var(--color-on-accent);
     padding: 12px;
     border-radius: 14px;
   }
@@ -491,10 +496,13 @@
     appearance: none;
     min-height: 44px;
     padding-right: 32px;
-    /* Chevron stroke is --color-accent; data URIs cannot read variables. */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%23244b3d' stroke-width='1.5'/%3E%3C/svg%3E");
+    /* Chevron drawn with two gradients so it follows --color-accent (a data-URI SVG cannot read tokens). */
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--color-accent) 50%),
+      linear-gradient(135deg, var(--color-accent) 50%, transparent 50%);
+    background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
-    background-position: right 10px center;
+    background-position: right 17px center, right 12px center;
   }
   .filter-option {
     display: inline-flex;
@@ -600,7 +608,7 @@
   }
   .calculator-result {
     background: var(--color-accent);
-    color: white;
+    color: var(--color-on-accent);
     border-radius: 10px;
     padding: 22px;
     margin-block: 24px 16px;

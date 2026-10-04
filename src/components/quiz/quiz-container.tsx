@@ -206,7 +206,7 @@ export function QuizContainer() {
               <span
                 className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
                   isSelected
-                    ? 'border-accent bg-accent text-white'
+                    ? 'border-accent bg-accent text-on-accent'
                     : 'border-line bg-surface text-transparent'
                 }`}
                 aria-hidden="true"
