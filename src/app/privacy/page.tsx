@@ -30,7 +30,7 @@ export default function PrivacyPage() {
           </p>
         </PolicySection>
 
-        <PolicySection title="Haftalık Drop aboneliği">
+        <PolicySection title="Bülten aboneliği">
           <p>
             Bülten için yalnızca e-posta adresini isteriz. Adresin sunucumuz üzerinden
             Kit’e iletilir; katalog veritabanımıza, uygulama günlüklerine veya ürün
@@ -46,8 +46,9 @@ export default function PrivacyPage() {
             inceleyebilirsin.
           </p>
           <p>
-            Amaç: sana haftalık kahve bülteni (yeni gelenler, fiyat düşüşleri, tekrar stoğa girenler)
-            göndermek. Hukuki sebep: abonelik formunda ve onay e-postasında verdiğin açık rıza. Bülten,
+            Amaç: sana iki gönderim yapmak: ayda bir aylık bülten (ayın favori kahveleri, sahneden haberler,
+            etkinlikler) ve haftada bir otomatik fiyat özeti (fiyat düşüşleri, yeni gelenler, tekrar stoğa girenler).
+            Abonelik formunda bu iki gönderim için onay kutusunu işaretlediğinde, onay zamanını ve onay metninin sürümünü de Kit’te abone kaydınla birlikte saklarız. Hukuki sebep: abonelik formunda ve onay e-postasında verdiğin açık rıza. Bülten,
             kavurucuların ürünlerini tanıttığı için ticari elektronik ileti sayılabilir; onayını dilediğin an
             her e-postadaki bağlantıyla geri alabilirsin.
           </p>
