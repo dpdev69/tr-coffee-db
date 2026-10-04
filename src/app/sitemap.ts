@@ -2,6 +2,7 @@ import { coffeeOnlySql } from '../../shared/v2/coffee-eligibility';
 import type { MetadataRoute } from 'next';
 import { absoluteUrl } from '@/lib/site';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
+import { issues } from './bulten/issues.generated';
 
 export const revalidate = 3600;
 const CATALOG_ROUTES = new Set(['/', '/yeni', '/firsatlar', '/kahveler', '/kavurucular']);
@@ -16,7 +17,7 @@ const CHANGED_SQL = `max(c.first_seen_at,
 const date = (iso: string | undefined) => (iso ? new Date(iso) : undefined);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const paths = ['/', '/yeni', '/firsatlar', '/kahveler', '/kavurucular', '/quiz', '/guide', '/privacy', '/terms'];
+  const paths = ['/', '/yeni', '/firsatlar', '/kahveler', '/kavurucular', '/quiz', '/guide', '/privacy', '/terms', '/bulten', ...issues.filter(issue => issue.published).map(issue => `/bulten/${issue.month}`)];
   const routes = (latest?: string): MetadataRoute.Sitemap => paths.map(path => ({url:absoluteUrl(path), lastModified:CATALOG_ROUTES.has(path)?date(latest):undefined, changeFrequency:'weekly', priority:path==='/'?1:0.7}));
   try {
     const db=await getCatalogDatabase();
