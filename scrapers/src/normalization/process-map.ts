@@ -23,6 +23,11 @@ const PROCESS_MAP = PROCESS_SOURCES.map(([process, source, ambiguous]): [string,
   ambiguous,
 ]);
 
+/** The text with every process phrase blanked, for readers that must not take "Honey" in "Full Honey Anaerobic" as anything else. */
+export function blankProcesses(folded: string): string {
+  return PROCESS_MAP.reduce((text, [, regex]) => text.replace(regex, (span) => ' '.repeat(span.length)), folded);
+}
+
 export const PROCESS_LABEL = 'islem|isleme|islemi|process|processing|proses|yontem|yontemi';
 const LABEL = `(?:${PROCESS_LABEL})[a-z]*`; // Turkish suffixes: "işlemin", "işlemle"
 const ADJECTIVE = '(?:natural|naturel|dogal|kuru|experimental|deneysel)';

@@ -119,3 +119,13 @@ test('roast comes only from a roast label, never from brew words (failure 6)',()
   assert.equal(derive('Filtre Kahve / Kolombiya','Espresso ve filtre için uygundur.',undefined,{product_type:'Filtre Kahve'}).roast_classification,undefined);
   assert.equal(derive('Filtre Kahve / Kolombiya','Kavrum: Orta.').roast_classification,'medium');
 });
+test('a word of a process or variety phrase is not a tasting note; a tasting section keeps it',()=>{
+  // Mayard and Coffee Sapiens, 2026-10-05: honey is the process, Orange Bourbon the variety; the pages list other notes.
+  for(const name of ['Costa Rica El Mango "Full Honey Anaerobic"','Colombia LA Sirena "Honey Peach"','Indonesia Liberica "Honey Mosto"','Costa Rica Las Torres "Full Anaerobic Honey"'])
+    assert.ok(!(derive(name,'').flavor_notes_normalized as string[]|undefined)?.includes('Honey'),name);
+  const gigi=derive('INDONESIA MAS IYAN GIGI MANIS','Gunung Suket\'teki 1.700 metrelik bahçesinde Orange Bourbon kirazlarını 120 saatlik anaerobik fermantasyondan geçiriyor.\nLezzet Notları: Nar, kiraz, naşi armudu, tatlı şekerleme.');
+  assert.deepEqual(gigi.flavor_notes_normalized,['Cherry']);
+  assert.deepEqual(gigi.normalized_variety,['Bourbon']);
+  assert.equal(derive('Colombia – Santa Monica Honey + Wine Yeast / Lulo','').flavor_notes_normalized,undefined);
+  assert.deepEqual(derive('Kolombiya','<h3>Tadım Notları</h3><p>Honey, orange.</p>').flavor_notes_normalized,['Orange','Honey']);
+});
