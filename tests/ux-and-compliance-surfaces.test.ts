@@ -79,9 +79,10 @@ describe('UX and compliance surfaces', () => {
 
     assert.match(source, /scrollIntoView/);
     assert.match(source, /questionRef/);
-    assert.match(source, /hasQuizSelections/);
     assert.match(source, /role="progressbar"/);
-    assert.match(source, /Tüm kataloğu aç/);
+    assert.match(source, /aria-pressed=\{pressed\}/);
+    assert.match(source, /QUIZ_ANY/);
+    assert.match(source, /saveTasteProfile\(answers\)/);
   });
 
   it('exposes privacy and terms routes in navigation and sitemap', () => {
