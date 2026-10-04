@@ -78,7 +78,7 @@ export function BrewCalculator() {
           <li key={step}>{step}</li>
         ))}
       </ol>
-      <p className="border-t border-[#bbc6ad] pt-4">
+      <p className="border-t border-line pt-4">
         Kaynak:{' '}
         <a href={recipe.source} target="_blank" rel="noopener noreferrer">
           {recipe.sourceName} ↗

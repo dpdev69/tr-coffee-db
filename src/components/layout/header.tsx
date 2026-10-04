@@ -1,10 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { brand } from '@/lib/brand';
 import { usePathname } from 'next/navigation';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useRef, useState } from 'react';
 import { SearchInput } from '@/components/ui/search-input';
 
 const links = [
@@ -13,111 +12,103 @@ const links = [
   { href: '/firsatlar', label: 'Fırsatlar' },
   { href: '/kavurucular', label: 'Kavurucular' },
 ];
+const searchFallback = <div className="h-11 rounded-full bg-tint" />;
+const iconButton = 'grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line bg-surface text-ink';
+
+/**
+ * Phones get a native modal <dialog> (focus containment, Escape and an inert page come from the browser;
+ * globals.css locks scroll). Animation hooks: .site-header, .mobile-menu[open], .mobile-menu::backdrop.
+ */
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDialogElement>(null);
   const pathname = usePathname();
-  useEffect(() => {
-    if (!mobileMenuOpen) return;
-    const close = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setMobileMenuOpen(false);
-        buttonRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', close);
-    return () => window.removeEventListener('keydown', close);
-  }, [mobileMenuOpen]);
+  const closeMenu = () => menuRef.current?.close();
+  const current = (href: string) => (pathname.startsWith(href) ? 'page' : undefined);
+  const wordmark = <span className="font-display text-[22px] font-semibold text-accent lg:text-[26px]">{brand.name}</span>;
   return (
-    <header className="sticky top-0 z-50 border-b border-[#dedfd7] bg-[#faf9f6]/95 backdrop-blur-md">
-      <div className="page-shell flex h-[76px] items-center justify-between gap-3">
-        <Link
-          href="/"
-          aria-label={`${brand.name} ana sayfa`}
-          onClick={() => setMobileMenuOpen(false)}
-          className="flex min-h-11 shrink-0 items-center gap-2.5"
-        >
-          <Image src={brand.logoPath} alt="" width={36} height={36} className="h-8 w-8 sm:h-9 sm:w-9" />
-          <span className="text-lg font-bold tracking-tight sm:text-xl text-[#1f1d1b]">
-            {brand.name}<span className="ml-1 text-[#507960]">.</span>
-          </span>
+    <header className="site-header sticky top-0 z-50 border-b border-line bg-ground/95 backdrop-blur-md">
+      <div className="page-shell flex h-16 items-center gap-7 lg:h-[72px]">
+        <Link href="/" aria-label={`${brand.name} ana sayfa`} className="inline-flex min-h-11 shrink-0 items-center">
+          {wordmark}
         </Link>
-        <nav
-          aria-label="Ana menü"
-          className="hidden items-center gap-1 lg:flex"
-        >
+        <nav aria-label="Ana menü" className="hidden items-center gap-6 lg:flex">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              aria-current={pathname.startsWith(link.href) ? 'page' : undefined}
-              className={`inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium transition-colors hover:bg-[#e9edde] ${pathname.startsWith(link.href) ? 'bg-[#e9edde] text-[#244b3d]' : 'text-[#625e57]'}`}
+              aria-current={current(link.href)}
+              className="inline-flex min-h-11 items-center text-[15px] text-ink hover:text-accent aria-[current=page]:font-semibold aria-[current=page]:text-accent"
             >
               {link.label}
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/quiz"
-            className="hidden min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg bg-[#244b3d] px-3 text-sm font-semibold text-white hover:bg-[#163629] inline-flex"
-          >
-            Kahvemi bul <span aria-hidden="true">↗</span>
+        <div className="ml-auto flex items-center gap-3">
+          <div className="hidden w-56 lg:block xl:w-64">
+            <Suspense fallback={searchFallback}>
+              <SearchInput />
+            </Suspense>
+          </div>
+          <Link href="/quiz" className="button-dark hidden whitespace-nowrap lg:inline-flex">
+            Kahvemi bul
           </Link>
           <button
-            ref={buttonRef}
             type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+            onClick={() => {
+              menuRef.current?.showModal();
+              setMobileMenuOpen(true);
+            }}
+            aria-label="Menüyü aç"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-menu"
-            className="grid h-11 w-11 place-items-center rounded-lg border border-[#cbd0c2] text-[#244b3d] lg:hidden"
+            className={`${iconButton} lg:hidden`}
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              aria-hidden="true"
-            >
-              <path
-                d={
-                  mobileMenuOpen
-                    ? 'M6 6l12 12M6 18 18 6'
-                    : 'M4 7h16M4 12h16M4 17h16'
-                }
-              />
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+              <path d="M3 6h14M3 10h14M3 14h14" />
             </svg>
           </button>
         </div>
       </div>
-      {mobileMenuOpen && (
-        <div
-          id="mobile-menu"
-          className="border-t border-[#dedfd7] bg-[#faf9f6] px-5 pb-5 pt-3 lg:hidden"
-        >
-          <nav aria-label="Mobil menü" className="mb-4 grid">
-            {[...links, { href: '/quiz', label: 'Kahvemi bul' }].map((link) => (
+      <dialog
+        id="mobile-menu"
+        ref={menuRef}
+        aria-label="Menü"
+        className="mobile-menu lg:hidden"
+        onClose={() => setMobileMenuOpen(false)}
+        // A click on the ::backdrop targets the dialog itself; the panel fills the dialog, so inside clicks never do.
+        onClick={(event) => event.target === event.currentTarget && closeMenu()}
+      >
+        <div className="flex min-h-full flex-col gap-[18px] px-5 pb-6 pt-3.5">
+          <div className="flex items-center justify-between">
+            <Link href="/" onClick={closeMenu} className="inline-flex min-h-11 items-center">{wordmark}</Link>
+            <button type="button" onClick={closeMenu} aria-label="Menüyü kapat" className={iconButton}>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <path d="M3 3l12 12M15 3L3 15" />
+              </svg>
+            </button>
+          </div>
+          <Suspense fallback={searchFallback}>
+            <SearchInput onSearch={closeMenu} />
+          </Suspense>
+          <nav aria-label="Mobil menü" className="grid">
+            {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                aria-current={
-                  pathname.startsWith(link.href) ? 'page' : undefined
-                }
-                className="flex min-h-12 items-center border-b border-[#dedfd7] py-3 text-base font-medium text-[#244b3d]"
+                onClick={closeMenu}
+                aria-current={current(link.href)}
+                className="flex min-h-14 items-center border-b border-line font-display text-[30px] text-ink aria-[current=page]:text-accent"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
-          <Suspense fallback={<div className="h-11 rounded-lg bg-stone-100" />}>
-            <SearchInput onSearch={() => setMobileMenuOpen(false)} />
-          </Suspense>
+          <Link href="/quiz" onClick={closeMenu} className="button-dark button-lg mt-auto w-full">
+            Kahvemi bul
+          </Link>
         </div>
-      )}
+      </dialog>
     </header>
   );
 }

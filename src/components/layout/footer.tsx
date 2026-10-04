@@ -3,17 +3,17 @@ import { brand } from '@/lib/brand';
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-[#dedfd7] bg-[#faf9f6] text-[#1f1d1b]">
+    <footer className="mt-auto border-t border-line bg-ground text-ink">
       <div className="page-shell py-10">
         <div className="grid gap-8 sm:grid-cols-[1.3fr_1fr_1fr]">
           <div>
             <Link
               href="/"
-              className="inline-flex min-h-11 items-center text-xl font-bold tracking-tight"
+              className="inline-flex min-h-11 items-center font-display text-[22px] font-semibold text-accent"
             >
               {brand.name}.
             </Link>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-[#625e57]">
+            <p className="mt-2 max-w-sm text-sm leading-6 text-muted">
               Türkiye’nin bağımsız kavurucularını keşfet. Çekirdekleri
               karşılaştır, kahveni tanı, kavurucusundan satın al.
             </p>
@@ -33,7 +33,7 @@ export function Footer() {
             </FooterLink>
           </nav>
         </div>
-        <div className="mt-8 flex flex-col justify-between gap-3 border-t border-[#dedfd7] pt-5 text-xs text-[#625e57] sm:flex-row sm:items-center">
+        <div className="mt-8 flex flex-col justify-between gap-3 border-t border-line pt-5 text-xs text-muted sm:flex-row sm:items-center">
           <p>
             Bir mağaza değil, bağımsız bir keşif rehberi. Son fiyat ve stok
             kavurucunun sitesindedir.
@@ -67,7 +67,7 @@ function FooterLink({
   return (
     <Link
       href={href}
-      className="flex min-h-10 items-center text-sm text-[#625e57] hover:text-[#244b3d] hover:underline hover:underline-offset-4"
+      className="flex min-h-11 items-center text-sm text-muted hover:text-accent hover:underline hover:underline-offset-4"
     >
       {children}
     </Link>

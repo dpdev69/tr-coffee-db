@@ -1,5 +1,8 @@
 import { normalizeSearchTerm } from '@/lib/filter-contract';
 
+const CATALOG_PATH = '/kahveler';
+
+/** Header search lands on the catalog; searching from the catalog keeps its other filters. */
 export function buildGlobalSearchUrl({
   pathname,
   currentQuery,
@@ -10,7 +13,7 @@ export function buildGlobalSearchUrl({
   nextSearch: string;
 }) {
   const params =
-    pathname === '/coffees' && currentQuery
+    pathname === CATALOG_PATH && currentQuery
       ? new URLSearchParams(currentQuery)
       : new URLSearchParams();
   const search = normalizeSearchTerm(nextSearch);
@@ -21,10 +24,8 @@ export function buildGlobalSearchUrl({
     params.delete('search');
   }
 
-  params.delete('priceMin');
-  params.delete('priceMax');
   params.delete('page');
 
   const query = params.toString();
-  return query ? `/coffees?${query}` : '/coffees';
+  return query ? `${CATALOG_PATH}?${query}` : CATALOG_PATH;
 }

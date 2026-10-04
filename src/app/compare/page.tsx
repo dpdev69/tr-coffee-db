@@ -130,7 +130,7 @@ export default async function ComparePage({
           Kahve ekle ↗
         </CompareCatalogLink>
       </div>
-      <p className="mb-8 max-w-2xl text-base leading-7 text-[#625e57]">
+      <p className="mb-8 max-w-2xl text-base leading-7 text-muted">
         Kavurucuların sunduğu paketleri, fiyatları ve tat profillerini yan yana incele. Fiyatı değerlendirirken paket gramajına da bak.
       </p>
       {failed && (
@@ -144,7 +144,7 @@ export default async function ComparePage({
         </div>
       )}
       {missing && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6">
+        <div className="mb-6 rounded-lg border border-line bg-tint p-4 text-sm leading-6">
           <p role="status">
             Seçtiğin kahvelerden bazıları artık güncel katalogda bulunmuyor.
             Satış durumu değişmiş olabilir. Listeden çıkarıp
@@ -166,7 +166,7 @@ export default async function ComparePage({
       )}
       {coffees.length ? (
         <>
-          <p className="mb-3 text-sm text-[#625e57]">
+          <p className="mb-3 text-sm text-muted">
             {coffees.length === 1
               ? 'Karşılaştırmak için katalogdan bir kahve daha seç.'
               : 'Bu sayfanın adresini paylaşarak aynı kahveleri birlikte inceleyebilirsin.'}{' '}
@@ -190,7 +190,7 @@ export default async function ComparePage({
                   <th scope="col">Özellik</th>
                   {coffees.map((coffee) => (
                     <th scope="col" key={coffee.id}>
-                      <p className="text-xs font-semibold text-[#244b3d]">
+                      <p className="text-xs font-semibold text-accent">
                         {coffee.roasters.name}
                       </p>
                       <h2>

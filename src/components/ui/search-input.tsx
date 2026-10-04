@@ -33,7 +33,7 @@ export function SearchInput({ onSearch }: { onSearch?: () => void }) {
       className="relative"
     >
       <svg
-        className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#1f1d1b]/45"
+        className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth="2"
@@ -59,11 +59,11 @@ export function SearchInput({ onSearch }: { onSearch?: () => void }) {
             submitSearch();
           }
         }}
-        className="h-11 w-full rounded-lg border border-[#1f1d1b]/20 bg-white pl-10 pr-14 text-base sm:text-sm text-[#1f1d1b] placeholder:text-[#1f1d1b]/40 focus:border-[#1f1d1b] focus:outline-none focus:ring-1 focus:ring-[#1f1d1b]"
+        className="h-11 w-full rounded-full border border-line bg-surface pl-11 pr-12 text-base sm:text-sm text-ink placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
       />
       <button
         type="submit"
-        className="absolute right-0 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-r-lg text-[#1f1d1b]/55 transition-colors hover:bg-[#e3ecbd] hover:text-[#1f1d1b]"
+        className="absolute right-0 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-r-full text-muted transition-colors hover:bg-chip hover:text-ink"
         aria-label="Aramayı uygula"
       >
         <svg
