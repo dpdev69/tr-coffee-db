@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
-import { QuizSceneSlot } from '@/components/quiz/scene-slot';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { DiscoveryEmpty, OfferPrice, preferredOffer } from '@/components/v2/discovery-card';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
@@ -33,7 +32,6 @@ export default async function QuizResultPage({ searchParams }: { searchParams: P
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="quiz-result-head">
-        <QuizSceneSlot step="result" answers={answers} />
         <div className="min-w-0">
           <p className="eyebrow">Damak testi sonucu</p>
           <h1 className="mt-3 font-display text-[clamp(34px,4.6vw,52px)] leading-[1.08] text-ink">{heading}</h1>

@@ -14,7 +14,6 @@ import {
   saveTasteProfile,
   type QuizAnswers,
 } from '@/lib/quiz-filters';
-import { QuizSceneSlot } from './scene-slot';
 
 export function QuizContainer() {
   const router = useRouter();
@@ -88,7 +87,6 @@ export function QuizContainer() {
 
   return (
     <div className="quiz-layout">
-      <QuizSceneSlot step={String(stepIndex + 1) as '1' | '2' | '3' | '4'} answers={answers} />
       <div ref={cardRef} className="scroll-mt-28 rounded-[18px] border border-line bg-surface p-5 sm:p-6">
         <div className="mb-7">
           <div className="flex items-center justify-between gap-4 text-sm text-muted">

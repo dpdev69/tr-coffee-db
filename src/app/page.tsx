@@ -51,8 +51,6 @@ export default async function HomePage() {
         <div className="studio-actions"><Link href="/quiz" className="button-dark button-lg">Kahvemi bul</Link><Link href="/kahveler" className="button-light button-lg">Kataloğu keşfet</Link></div>
         <p className="studio-small">4 kısa soru · Damak tadına göre keşif</p>
       </div>
-      {/* Mount point for the hero scene (three.js, owned by the animation pass). Intentionally empty. */}
-      <div className="hero-scene" data-scene-slot="home-hero" aria-hidden="true" />
     </section>
     <nav className="studio-paths" aria-label="Kahveni keşfet">
       <Link href="/quiz"><span className="studio-path-number">01</span><div><strong>Damak tadını keşfet</strong><p>Kısa bir testle başla.</p></div><span aria-hidden="true">↗</span></Link>

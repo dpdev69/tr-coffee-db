@@ -190,7 +190,6 @@
   }
 
   /* Home */
-  /* Hero: copy left, .hero-scene right (an empty, sized mount point for the scene). */
   .studio-hero {
     display: flex;
     flex-wrap: wrap;
@@ -202,55 +201,10 @@
     flex: 1 1 440px;
     min-width: 0;
   }
-  .hero-scene {
-    position: relative;
-    flex: 1 1 380px;
-    aspect-ratio: 5 / 4;
-    min-width: 0;
-  }
-  .hero-scene:empty {
-    display: none; /* no blank block until the scene mounts */
-  }
-  /* Quiz: .quiz-scene is the reserved, empty mount point for the quiz scene (animation pass).
-     Phones: a short band above the question. Wide screens: a column beside it. Sized up front so nothing shifts on mount. */
   .quiz-layout,
   .quiz-result-head {
     display: grid;
     gap: 20px;
-  }
-  .quiz-scene {
-    position: relative;
-    height: 132px;
-    min-width: 0;
-    overflow: hidden;
-    border-radius: 18px;
-    background: radial-gradient(circle at 70% 30%, var(--color-chip), var(--color-tint) 70%);
-  }
-  @media (min-width: 1024px) {
-    .quiz-layout {
-      grid-template-columns: minmax(0, 1fr) 340px;
-      align-items: start;
-      gap: 32px;
-    }
-    .quiz-layout > .quiz-scene {
-      grid-column: 2;
-      grid-row: 1;
-      position: sticky;
-      top: 112px;
-      height: auto;
-      aspect-ratio: 4 / 5;
-    }
-    .quiz-result-head {
-      grid-template-columns: minmax(0, 1fr) 300px;
-      align-items: center;
-      gap: 40px;
-    }
-    .quiz-result-head > .quiz-scene {
-      grid-column: 2;
-      grid-row: 1;
-      height: auto;
-      aspect-ratio: 1;
-    }
   }
   .studio-hero h1 {
     margin-top: 24px;
@@ -361,11 +315,6 @@
     line-height: 1.8;
     color: var(--color-muted);
   }
-  /* Applied by coffee-scene.tsx (animation pass) when it mounts into .hero-scene. */
-  .coffee-scene-background {
-    mask-image: linear-gradient(180deg, #00000018 0%, #00000018 72%, #00000099 100%);
-  }
-
   /* Coffee card. Hooks: .coffee-card, -image, -body, -price, -footer */
   .coffee-card {
     display: flex;
@@ -754,11 +703,6 @@
     }
     .calculator {
       padding: 28px;
-    }
-  }
-  @media (min-width: 651px) {
-    .coffee-scene-background {
-      mask-image: linear-gradient(100deg, transparent 10%, #00000008 35%, #00000099 65%, black 100%);
     }
   }
   @media (min-width: 1024px) {
