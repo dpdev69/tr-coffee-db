@@ -1,14 +1,28 @@
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { beginCrawl, expireCrawls, ingestCrawl, safeDiagnostic } from '../shared/v2/ingestion';
+import { beginCrawl, expireCrawls, ingestCrawl, registerRoaster, safeDiagnostic } from '../shared/v2/ingestion';
 import { stableId } from '../shared/v2/identity';
 import type { CatalogDatabase } from '../shared/v2/database';
 import { isQualifiedSource } from '../shared/v2/qualified-sources';
 import { ALL_ROASTER_CONFIGS } from '../scrapers/src/roasters/configs';
 import { crawlRoaster, PARSER_VERSION, type CrawlOptions } from '../scrapers/src/v2/crawl';
+import { collectRoasterProductHosts } from '../scrapers/src/url-policy';
 import { D1RestDatabase } from './v2-d1-rest';
 
+/** configs.ts is the single source of truth for roasters; one missing from it is deactivated, never deleted. */
+export async function syncRoasters(db: CatalogDatabase, configs = ALL_ROASTER_CONFIGS, now = new Date().toISOString()) {
+  for (const config of configs) await registerRoaster(db, { id: config.slug, slug: config.slug, name: config.name, websiteUrl: config.websiteUrl, city: config.city,
+    adapter: config.platform, active: config.active !== false, trustedHosts: collectRoasterProductHosts(config) }, now);
+  await db.batch([db.prepare('UPDATE roasters SET active=0,revision=revision+1,updated_at=? WHERE active=1 AND slug NOT IN (SELECT value FROM json_each(?))').bind(now, JSON.stringify(configs.map(config => config.slug)))]);
+}
+/** Red means attention: an active source without a successful crawl for 3 days, or under 80% of this run succeeding. One-night blips stay green. */
+export async function attentionNeeded(db: CatalogDatabase, results: Record<string, unknown>[], now: string): Promise<string[]> {
+  const cutoff = new Date(Date.parse(now) - 3 * 86_400_000).toISOString();
+  const stale = (await db.prepare('SELECT slug FROM roasters WHERE active=1 AND (last_success_at IS NULL OR last_success_at<?) ORDER BY slug').bind(cutoff).all<{ slug: string }>()).results.map(row => row.slug);
+  const succeeded = results.filter(result => result.status === 'success' || result.status === 'already_completed').length;
+  return [...(stale.length ? [`No successful crawl for 3 days: ${stale.join(', ')}`] : []), ...(succeeded < results.length * 0.8 ? [`Only ${succeeded}/${results.length} sources succeeded in this run`] : [])];
+}
 export async function refreshCatalog(db: CatalogDatabase, options: { slugs?: string[]; scheduledAt: string; source?: CrawlOptions; now?: () => string; report?: (result: Record<string, unknown>) => Promise<void> }) {
   const now = options.now ?? (() => new Date().toISOString());
   await expireCrawls(db, now());
@@ -68,12 +82,16 @@ async function main() {
   try {
     // Idempotent index installation also repairs deployments awaiting the quota reset.
     await db.batch([db.prepare(await readFile(new URL('../migrations/d1/0004_alias_lookup.sql',import.meta.url),'utf8')),db.prepare("INSERT OR IGNORE INTO d1_migrations(name) VALUES ('0004_alias_lookup.sql')")]);
+    await syncRoasters(db);
     results=await refreshCatalog(db,{scheduledAt,slugs:process.argv.slice(2),report:async result=>{results.push(result);console.log(JSON.stringify(result));await appendFile(resolve(directory,'results.jsonl'),JSON.stringify(result)+'\n');}});
   } catch(error) { failure=safeDiagnostic(error instanceof Error?error.message:String(error));console.error(failure);process.exitCode=1; }
   const summary={scheduledAt,results,failure,elapsedMs:Math.round(performance.now()-started),rowsRead:db.rowsRead,rowsWritten:db.rowsWritten};
   await writeFile(resolve(directory,'summary.json'),JSON.stringify(summary,null,2));
   if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,`${failure?`**Refresh stopped:** ${failure}\n\n`:''}Catalog refresh: ${results.filter(r=>r.status==='success'||r.status==='already_completed').length}/${results.length} successful. D1 rows read ${db.rowsRead}; written ${db.rowsWritten}.\n\n| Source | Status | Products | Offers |\n|---|---|---:|---:|\n${results.map(r=>`| ${r.slug} | ${r.status} | ${r.products??0} | ${r.offers??0} |`).join('\n')}\n`);
-  if(results.some(r=>r.status!=='success'&&r.status!=='already_completed'))process.exitCode=1;
+  const attention=failure?[]:await attentionNeeded(db,results,new Date().toISOString());
+  for(const reason of attention)console.error(`::error::${reason}`);
+  if(process.env.GITHUB_STEP_SUMMARY&&attention.length)await appendFile(process.env.GITHUB_STEP_SUMMARY,`\n**Needs attention:**\n${attention.map(reason=>`- ${reason}`).join('\n')}\n`);
+  if(attention.length)process.exitCode=1;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) main().catch(error => { console.error(safeDiagnostic(error instanceof Error ? error.message : String(error))); process.exitCode = 1; });

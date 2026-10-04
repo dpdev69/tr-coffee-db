@@ -1,24 +1,57 @@
 import type { RawProduct, NormalizedCoffee } from '../types.js';
 import { matchFlavorNotes } from './flavor-map.js';
-import { detectProcess, detectStandaloneProcess } from './process-map.js';
-import { detectOrigin } from './origin-map.js';
+import { PROCESS_LABEL, processesStatedIn } from './process-map.js';
+import { detectCountries, detectOrigin } from './origin-map.js';
+import { foldTr, labelContexts, stripRoasterName, tokenRegex } from './text-match.js';
 import { detectRoastLevel, detectStandaloneRoastLevel } from './roast-level-map.js';
 import { extractBrewRecipes } from './brew-recipes.js';
 
+/** The v2 pipeline names the roaster here so its own name is never read as an attribute ("Old Java" is not Java). */
+const ROASTER_NAME_KEY = 'v2RoasterName';
+
+/**
+ * Origins, processes and varieties the text states, every one of them. Declared text (the name, roaster-labelled
+ * fields, text beside a label) wins over running prose, and an empty result means the text does not say.
+ */
+export function detectStatedAttributes(raw: RawProduct): {
+  countries: string[];
+  processes: { process: string; detail: string }[];
+  varieties: string[];
+} {
+  const roaster = raw.rawData?.[ROASTER_NAME_KEY];
+  const name = stripRoasterName(raw.name, roaster);
+  const allText = stripRoasterName(collectAllText(raw), roaster);
+
+  const declaredOrigin = [
+    name,
+    ...collectLabeledTextCandidates(raw.rawData, /\b(?:ulke|country|mensei|mense|origin|koken)\b/),
+    ...collectNamedRawDataText(raw.rawData, new Set(['origin', 'koken_tr', 'country'])),
+    ...labelContexts(allText, 'ulke|country|mensei|mense', 40),
+  ].join(' | ');
+  const countries = detectCountries(declaredOrigin);
+
+  // islem_tr is Parsa's own process field ("Natürel"), declared like koken_tr and cultivar.
+  const labelledProcess = [...collectLabeledTextCandidates(raw.rawData, new RegExp(`\\b(?:${PROCESS_LABEL})\\b`)), ...collectNamedRawDataText(raw.rawData, new Set(['islem_tr']))].join(' | ');
+  const processes = processesStatedIn(name, labelledProcess, allText);
+
+  const declaredVariety = [...labelContexts(allText, VARIETY_LABEL, 80), ...collectNamedRawDataText(raw.rawData, new Set(['cultivar']))].join(' | ');
+  return {
+    countries: countries.length ? countries : detectCountries(allText).slice(0, 1),
+    processes,
+    varieties: detectVarieties(name, declaredVariety, allText),
+  };
+}
+
 export function normalize(raw: RawProduct): NormalizedCoffee {
+  const stated = detectStatedAttributes(raw);
   // Combine all text sources for analysis
-  const allText = [
-    raw.name,
-    raw.description,
-    ...(raw.tags || []),
-    ...collectRawDataText(raw.rawData),
-  ].join(' ');
+  const allText = stripRoasterName(collectAllText(raw), raw.rawData?.[ROASTER_NAME_KEY]);
 
   // Origin detection
-  const origin = detectOrigin(allText);
+  const origin = { ...detectOrigin(allText), country: stated.countries[0] ?? null };
 
-  // Process detection
-  const { process, processDetail } = detectProcessFromRawProduct(raw, allText);
+  // Process detection: the primary (first) process for the single-valued legacy field
+  const { process, detail: processDetail } = stated.processes[0] ?? { process: 'unknown', detail: null };
 
   const roastLevel = detectRoastLevelFromRawProduct(raw, allText);
 
@@ -26,7 +59,7 @@ export function normalize(raw: RawProduct): NormalizedCoffee {
   const { notes, categories } = matchFlavorNotes(allText);
 
   // Variety detection
-  const variety = detectVariety(allText);
+  const variety = stated.varieties[0] ?? null;
 
   const harvestYear = detectHarvestYear(allText);
   const roastDate = detectRoastDate(allText);
@@ -87,6 +120,11 @@ export function normalize(raw: RawProduct): NormalizedCoffee {
   };
 }
 
+function collectAllText(raw: RawProduct): string {
+  // Addresses name shops and files, never coffees ("oldjavacoffee.com", "…/panama-2024.jpg").
+  return [raw.name, raw.description, ...(raw.tags || []), ...collectRawDataText(raw.rawData)].join(' ').replace(/https?:\/\/\S+/gi, ' ');
+}
+
 function trustedPositiveWeight(weightGrams: number | null): number | null {
   if (weightGrams === null) return null;
   if (!Number.isFinite(weightGrams)) return null;
@@ -127,44 +165,15 @@ function collectRawDataText(
 function detectRoastLevelFromRawProduct(raw: RawProduct, allText: string): string {
   for (const candidate of collectLabeledTextCandidates(
     raw.rawData,
-    /\b(kavrum|kavurma|kavrulma|roast|profil|profile)\b/i
+    /\b(?:kavrum|kavurma|kavrulma|roast|profil|profile)\b/
   )) {
     const detected = detectStandaloneRoastLevel(candidate);
     if (detected !== 'unknown') return detected;
   }
 
-  const detectedFromText = detectRoastLevel(allText);
-  if (detectedFromText !== 'unknown') return detectedFromText;
-
-  return detectRoastProfileFromTaxonomy(raw);
-}
-
-function detectRoastProfileFromTaxonomy(raw: RawProduct): string {
-  const taxonomyText = collectTaxonomyText(raw).join(' ').toLocaleLowerCase('tr-TR');
-  if (!taxonomyText) return 'unknown';
-
-  if (/\b(?:dark|koyu)\b/i.test(taxonomyText)) return 'dark';
-
-  const hasEspresso = /\bespresso(?:ya)?\b|\bespressolar\b/i.test(taxonomyText);
-  const hasFilter =
-    /\bfiltre(?:ye)?\b|\bfilter\b|\bpour\s*over\b|\bv60\b/i.test(taxonomyText);
-  const hasTurkish = /\bt[üu]rk\s+kahvesi\b|\bturk\s+kahvesi\b/i.test(taxonomyText);
-
-  if (hasEspresso && hasFilter) return 'medium';
-  if (hasEspresso || hasTurkish) return 'medium_dark';
-  if (hasFilter) return 'medium_light';
-
-  return 'unknown';
-}
-
-function collectTaxonomyText(raw: RawProduct): string[] {
-  const output = [
-    raw.name,
-    ...(raw.tags ?? []),
-    ...collectNamedRawDataText(raw.rawData, new Set(['product_type', 'categories', 'category'])),
-  ];
-
-  return output.filter((item): item is string => Boolean(item?.trim()));
+  // Only an explicit roast statement counts. "Espresso" or "Filtre" in a name, tag or category says how to brew
+  // the coffee, not how dark it is roasted.
+  return detectRoastLevel(allText);
 }
 
 function collectNamedRawDataText(
@@ -194,20 +203,7 @@ function collectNamedRawDataText(
   return output;
 }
 
-function detectProcessFromRawProduct(
-  raw: RawProduct,
-  allText: string
-): { process: string; processDetail: string | null } {
-  for (const candidate of collectLabeledTextCandidates(
-    raw.rawData,
-    /\b(işlem|islem|işleme|isleme|process|processing|proses)\b/i
-  )) {
-    const detected = detectStandaloneProcess(candidate);
-    if (detected.process !== 'unknown') return detected;
-  }
-
-  return detectProcess(allText);
-}
+const VARIETY_LABEL = 'varyete|varyetesi|varyeteler|varyeteleri|variety|varieties|cultivar|cultivars|tur|turu|cesit|cesidi|cesitler|cesitleri';
 
 function collectLabeledTextCandidates(
   value: unknown,
@@ -230,7 +226,7 @@ function collectLabeledTextCandidates(
     .filter((item): item is string => typeof item === 'string')
     .join(' ');
 
-  if (labelPattern.test(fieldName)) {
+  if (labelPattern.test(foldTr(fieldName))) {
     collectTextLeaves(record.value, output);
     collectTextLeaves(record.values, output);
     collectTextLeaves(record.term, output);
@@ -265,32 +261,40 @@ function collectTextLeaves(value: unknown, output: string[]): void {
   }
 }
 
-function detectVariety(text: string): string | null {
-  const varieties: [RegExp, string][] = [
-    [/\b(geisha|gesha)\b/i, 'Gesha'],
-    [/\b(bourbon|burbon)\b/i, 'Bourbon'],
-    [/\b(typica|tipica)\b/i, 'Typica'],
-    [/\b(caturra)\b/i, 'Caturra'],
-    [/\b(catuai|catuaí)\b/i, 'Catuai'],
-    [/\b(sl[\s-]*28)\b/i, 'SL28'],
-    [/\b(sl[\s-]*34)\b/i, 'SL34'],
-    [/\b(heirloom|yerel)\b/i, 'Heirloom'],
-    [/\b(pacamara)\b/i, 'Pacamara'],
-    [/\b(maragogype|maragogipe)\b/i, 'Maragogype'],
-    [/\b(castillo)\b/i, 'Castillo'],
-    [/\b(catimor)\b/i, 'Catimor'],
-    [/\b(java)\b/i, 'Java'],
-    [/\b(pink\s*bourbon)\b/i, 'Pink Bourbon'],
-    [/\b(sidra)\b/i, 'Sidra'],
-    [/\b(tabi)\b/i, 'Tabi'],
-    [/\b(mundo\s*novo|mundo\s*nuovo)\b/i, 'Mundo Novo'],
-    [/\b(74110|74112|74158)\b/i, 'Ethiopian Landrace'],
-  ];
+// [pattern on foldTr text, variety, where it may be read]. "tabi" (of course) and "java" (an island) are ordinary
+// words, so Tabi counts only in the name or beside a variety label and Java only beside a variety label.
+const VARIETIES: [RegExp, string, 'any' | 'name' | 'declared'][] = [
+  [tokenRegex('geisha|gesha'), 'Gesha', 'any'],
+  [tokenRegex('(?<!pink\\s*)(?:bourbon|burbon)'), 'Bourbon', 'any'],
+  [tokenRegex('typica|tipica'), 'Typica', 'any'],
+  [tokenRegex('caturra'), 'Caturra', 'any'],
+  [tokenRegex('catuai'), 'Catuai', 'any'],
+  [tokenRegex('sl[\\s-]*28'), 'SL28', 'any'],
+  [tokenRegex('sl[\\s-]*34'), 'SL34', 'any'],
+  [tokenRegex('heirloom'), 'Heirloom', 'any'],
+  [tokenRegex('pacamara'), 'Pacamara', 'any'],
+  [tokenRegex('maragogype|maragogipe'), 'Maragogype', 'any'],
+  [tokenRegex('castillo'), 'Castillo', 'any'],
+  [tokenRegex('catimor'), 'Catimor', 'any'],
+  [tokenRegex('java'), 'Java', 'declared'],
+  [tokenRegex('pink\\s*bourbon'), 'Pink Bourbon', 'any'],
+  [tokenRegex('sidra'), 'Sidra', 'any'],
+  [tokenRegex('tabi'), 'Tabi', 'name'],
+  [tokenRegex('mundo\\s*novo|mundo\\s*nuovo'), 'Mundo Novo', 'any'],
+  [tokenRegex('74110|74112|74158'), 'Ethiopian Landrace', 'any'],
+];
 
-  for (const [regex, name] of varieties) {
-    if (regex.test(text)) return name;
-  }
-  return null;
+/** Every variety the name or a variety-labelled field states; running prose is a last resort. */
+function detectVarieties(name: string, declared: string, prose: string): string[] {
+  const named = foldTr(name);
+  const labelled = foldTr(declared);
+  const stated = VARIETIES.filter(([regex, , scope]) => regex.test(labelled) || (scope !== 'declared' && regex.test(named)));
+  if (stated.length) return stated.map(([, variety]) => variety);
+
+  // ponytail: prose often lists the farm's or the country's varieties, not this lot's. More than two = a list, so say nothing.
+  const text = foldTr(prose);
+  const mentioned = VARIETIES.filter(([regex, , scope]) => scope === 'any' && regex.test(text));
+  return mentioned.length <= 2 ? mentioned.map(([, variety]) => variety) : [];
 }
 
 function detectScaScore(text: string): number | null {
@@ -358,12 +362,7 @@ function normalizeProductName(name: string): string {
     .trim();
 }
 
+/** A tag is a tasting note only when it names a flavor. Shop tags ("Kahve", "reklam", "Fresh Roasted") never do. */
 function isTastingNote(tag: string): boolean {
-  // Filter out non-tasting-note tags
-  const excluded = [
-    'indirim', 'kampanya', 'yeni', 'new', 'sale', 'black friday',
-    'online', 'paket', '1 kg', '250', '500', 'avantajli',
-  ];
-  const lower = tag.toLowerCase().trim();
-  return lower.length > 1 && !excluded.some((e) => lower.includes(e));
+  return matchFlavorNotes(tag, true, true).notes.length > 0;
 }

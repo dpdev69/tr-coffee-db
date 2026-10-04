@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { normalize } from '../scrapers/src/normalization/index';
+import { detectStatedAttributes, normalize } from '../scrapers/src/normalization/index';
 import type { RawProduct } from '../scrapers/src/types';
 
 describe('normalize price per 100g', () => {
@@ -243,26 +243,16 @@ describe('normalize coffee metadata', () => {
     assert.equal(espressoProfile.roast_level, 'medium_dark');
   });
 
-  it('derives roast profile from product taxonomy when roasters publish it there', () => {
-    const filterCoffee = normalize(
-      makeRawProduct({
-        rawData: { product_type: 'Filtre Kahve' },
-      })
-    );
-    const espressoCoffee = normalize(
-      makeRawProduct({
-        rawData: { categories: [{ name: 'Espressolar' }] },
-      })
-    );
-    const omniCoffee = normalize(
-      makeRawProduct({
-        tags: ['Espresso', 'Filtre'],
-      })
-    );
-
-    assert.equal(filterCoffee.roast_level, 'medium_light');
-    assert.equal(espressoCoffee.roast_level, 'medium_dark');
-    assert.equal(omniCoffee.roast_level, 'medium');
+  it('never guesses a roast from brew words in names, tags or categories', () => {
+    for (const product of [
+      makeRawProduct({ name: 'Filtre Kahve / Kolombiya' }),
+      makeRawProduct({ name: 'Espresso Kahve / Kolombiya', rawData: { product_type: 'Filtre Kahve' } }),
+      makeRawProduct({ rawData: { categories: [{ name: 'Espressolar' }] } }),
+      makeRawProduct({ tags: ['Espresso', 'Filtre'] }),
+      makeRawProduct({ tags: ['Koyu'], rawData: { product_type: 'Türk Kahvesi' } }),
+    ]) {
+      assert.equal(normalize(product).roast_level, 'unknown', product.name);
+    }
   });
 
   it('maps Agtron roast readings to catalog roast levels', () => {
@@ -294,7 +284,7 @@ describe('normalize coffee metadata', () => {
     );
 
     assert.equal(coffee.brew_recipes.length, 1);
-    assert.equal(coffee.brew_recipes[0].method, 'Filter / Pour Over');
+    assert.equal(coffee.brew_recipes[0].method, 'Filtre / Pour Over');
     assert.equal(coffee.brew_recipes[0].dose_grams, 16);
     assert.equal(coffee.brew_recipes[0].water_grams, 250);
     assert.equal(coffee.brew_recipes[0].ratio, '1:15');
@@ -321,6 +311,118 @@ describe('normalize coffee metadata', () => {
 
     assert.equal(coffee.harvest_year, '2024/25');
     assert.equal(coffee.roast_date, '10.05.2026');
+  });
+});
+
+describe('normalize stated attributes', () => {
+  const roaster = 'Old Java Coffee Roasters';
+
+  it('keeps the roaster name and ordinary Turkish words out of variety (failure 1)', () => {
+    const bread = normalize(
+      makeRawProduct({
+        name: 'Ekşi Maya Tam Çavdar Ekmeği',
+        description: 'Old Java Coffee Roasters mutfağından, Old Java ekşi mayalı ekmek.',
+        rawData: { v2RoasterName: roaster },
+      })
+    );
+    const paper = normalize(
+      makeRawProduct({ name: 'Cafec Traditional Filtre Kağıdı', description: 'Tabi ki her V60 ile uyumludur.' })
+    );
+    const farm = normalize(
+      makeRawProduct({
+        name: 'Peru Finca Rosenheim',
+        description: 'Kahve ağaçları yerel ve yeniden ormanlandırılmış ağaçların gölgesinde büyüyor.',
+      })
+    );
+
+    assert.equal(bread.variety, null);
+    assert.equal(paper.variety, null);
+    assert.equal(farm.variety, null);
+    assert.equal(detectStatedAttributes(makeRawProduct({ name: 'Colombia – Elkin Guzman Thermal Shock Tabi' })).varieties[0], 'Tabi');
+    assert.deepEqual(
+      detectStatedAttributes(makeRawProduct({ name: 'Indonesia Mas Iyan', description: 'REGION BONDOWOSO TÜR JAVA, USDA ÜRETİCİ MAS IYAN' })).varieties,
+      ['Java']
+    );
+    assert.deepEqual(detectStatedAttributes(makeRawProduct({ name: 'Colombia – Finca La Portada Pink Bourbon' })).varieties, ['Pink Bourbon']);
+  });
+
+  it('shop tags are never tasting notes (failure 2)', () => {
+    const coffee = normalize(
+      makeRawProduct({ tags: ['Kahve', 'Nitelikli Kahve', 'reklam', '3al2öde', 'Fresh Roasted', 'Çilek'] })
+    );
+
+    assert.deepEqual(coffee.flavor_notes, ['Çilek']);
+  });
+
+  it('reads natural only beside a process label, in the name or in a labelled field (failure 3)', () => {
+    const prose = normalize(
+      makeRawProduct({
+        name: 'Pink Lasso Filtre',
+        description: 'Pink Bourbon’un doğal zarafetini ileri seviye işleme teknikleriyle buluşturan bir kahve.',
+      })
+    );
+    const washed = makeRawProduct({
+      name: 'Kolombiya Filtre Kahve',
+      description: 'Yıkanmış işleme yöntemi çekirdeğin doğal karakterini koruyor.',
+    });
+
+    assert.equal(prose.process, 'unknown');
+    assert.deepEqual(detectStatedAttributes(makeRawProduct({ description: 'Anaerobic natural işlemin getirdiği parfümsü tat.' })).processes.map((p) => p.process), ['anaerobic', 'natural']);
+    assert.deepEqual(detectStatedAttributes(makeRawProduct({ description: 'İşlem: Doğal' })).processes.map((p) => p.process), ['natural']);
+    assert.deepEqual(detectStatedAttributes(makeRawProduct({ rawData: { attributes: [{ name: 'İşleme', value: 'Doğal' }] } })).processes.map((p) => p.process), ['natural']);
+    assert.deepEqual(detectStatedAttributes(washed).processes.map((p) => p.process), ['washed']);
+    // Roaster-declared fields: Parsa's islem_tr, and "Çeşit:" as a variety label.
+    assert.deepEqual(detectStatedAttributes(makeRawProduct({ name: 'Ethiopia Guji', rawData: { islem_tr: 'Natürel' } })).processes.map((p) => p.process), ['natural']);
+    assert.deepEqual(detectStatedAttributes(makeRawProduct({ description: 'Çeşit: Caturra, Bourbon Hasat: 2025' })).varieties, ['Bourbon', 'Caturra']);
+  });
+
+  it('emits every stated process (failure 4)', () => {
+    const processes = (name: string) => detectStatedAttributes(makeRawProduct({ name })).processes.map((p) => p.process);
+
+    assert.deepEqual(processes('Rwanda – Shyira Natural Anaerobic'), ['anaerobic', 'natural']);
+    assert.deepEqual(processes('Etiyopya Rumudamo Yıkanmış Anaerobik'), ['anaerobic', 'washed']);
+    assert.deepEqual(processes('Semi Washed'), ['semi_washed']);
+    assert.deepEqual(processes('Pulped Natural'), ['honey']);
+    assert.equal(normalize(makeRawProduct({ name: 'Rwanda – Shyira Natural Anaerobic' })).process, 'anaerobic');
+  });
+
+  it('emits every stated country but not countries named in passing (failure 5)', () => {
+    const countries = (raw: Partial<RawProduct>) => detectStatedAttributes(makeRawProduct(raw)).countries;
+
+    assert.deepEqual(
+      countries({
+        name: 'Italiano Espresso Kahve Harmanı Çekirdek (Öğütülmemiş) - 1 Kg',
+        description: 'Italiano Espresso Menşei: Brezilya, Etiyopya Italiano Espresso, Brezilya ve Etiyopya’nın özenle seçilmiş çekirdekleri.',
+      }),
+      ['Brazil', 'Ethiopia']
+    );
+    assert.deepEqual(countries({ name: 'Brazil / Colombia Blend' }), ['Brazil', 'Colombia']);
+    assert.deepEqual(countries({ name: 'Colombia China Alta Ibagué Washed' }), ['Colombia']);
+    assert.deepEqual(
+      countries({
+        name: 'Brezilya Santuario Sul',
+        description: 'Kolombiya, Kosta Rika ve Ruanda lotları kadar canlı bir Brezilya kahvesi.',
+      }),
+      ['Brazil']
+    );
+  });
+
+  it('maps every raw process spelling in the catalog, with Turkish case folding (failure 7)', () => {
+    const cases: [string, string[]][] = [
+      ['Yıkanmış', ['washed']], ['YIKANMIŞ', ['washed']], ['Washed', ['washed']], ['fully washed', ['washed']],
+      ['NATURAL', ['natural']], ['Natürel', ['natural']], ['NATÜREL', ['natural']], ['naturel', ['natural']], ['doğal', ['natural']], ['DOĞAL', ['natural']],
+      ['Anaerobik', ['anaerobic']], ['ANAEROBİK', ['anaerobic']], ['Karbonik Maserasyon', ['anaerobic']], ['KARBONİK MASERASYON', ['anaerobic']], ['Carbonic', ['anaerobic']],
+      ['HONEY', ['honey']], ['Black Honey', ['honey']], ['Pulped Natural', ['honey']],
+      ['Yarı Yıkanmış', ['semi_washed']], ['Semi washed', ['semi_washed']], ['Wet-hulled', ['wet_hulled']],
+      ['THERMAL SHOCK', ['experimental']], ['deneysel', ['experimental']], ['Double Fermentation', ['experimental']],
+      ['Fermantasyon (Honey Wine +Lulo)', ['experimental']],
+      ['Natürel (Anaerobic)', ['anaerobic', 'natural']], ['Natürel (termal şok)', ['experimental', 'natural']],
+    ];
+
+    for (const [label, expected] of cases) {
+      const coffee = makeRawProduct({ name: 'Kolombiya Monteblanco', rawData: { specs: [{ name: 'İşlem', value: label }] } });
+      assert.deepEqual(detectStatedAttributes(coffee).processes.map((p) => p.process), expected, label);
+    }
   });
 });
 

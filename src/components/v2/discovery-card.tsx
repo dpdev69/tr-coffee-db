@@ -13,8 +13,8 @@ export const EVENT_LABELS:Record<CoffeeEvent['type'],string>={NEW:'Yeni',PRICE_D
 export function featureText(coffee:CatalogCoffee,...names:string[]):string[]{
   return [...new Set(coffee.features.filter(feature=>names.includes(feature.feature)).flatMap(feature=>typeof feature.value==='string'?[feature.value]:Array.isArray(feature.value)?feature.value.filter((value):value is string=>typeof value==='string'):[]))].filter(value=>value&&value!=='unknown');
 }
-export function coffeeOrigin(coffee:CatalogCoffee){const origin=coffee.rawMetadata.country??featureText(coffee,'normalized_origin','origin_country')[0];return origin&&origin.toLowerCase()!=='unknown'?countryLabel(origin):null;}
-export function coffeeProcess(coffee:CatalogCoffee){const process=coffee.rawMetadata.process??featureText(coffee,'process_family','process')[0];return process&&process.trim().toLowerCase()!=='unknown'?(PROCESS_LABELS[process.trim().toLowerCase()]??process):null;}
+export function coffeeOrigin(coffee:CatalogCoffee){const inferred=featureText(coffee,'normalized_origin');const origins=coffee.rawMetadata.country!=null?[coffee.rawMetadata.country]:inferred.length?inferred:featureText(coffee,'origin_country');const labels=[...new Set(origins.filter(origin=>origin&&origin.toLowerCase()!=='unknown').map(countryLabel))];return labels.length?new Intl.ListFormat('tr',{type:'conjunction'}).format(labels):null;}
+export function coffeeProcess(coffee:CatalogCoffee){const inferred=featureText(coffee,'process_family');const processes=coffee.rawMetadata.process!=null?[coffee.rawMetadata.process]:inferred.length?inferred:featureText(coffee,'process');const labels=[...new Set(processes.filter(process=>process&&process.trim().toLowerCase()!=='unknown').map(process=>PROCESS_LABELS[process.trim().toLowerCase()]??process))];return labels.length?new Intl.ListFormat('tr',{type:'conjunction'}).format(labels):null;}
 export function tasteSummary(coffee:CatalogCoffee):string[]{return [...new Set(featureText(coffee,'flavor_families','flavor_categories').map(value=>TASTES[value.toLowerCase()]).filter(Boolean))].slice(0,3);}
 export function preferredOffer(coffee:CatalogCoffee):CatalogOffer|undefined {
   const available=coffee.offers.filter(offer=>offer.inStock===true);
@@ -38,27 +38,28 @@ export function publicOfferLabel(offer:CatalogOffer|undefined){
   return offer?.label&&!/^legacy package\b/i.test(offer.label)?offer.label:offer?.weightG?formatPackageWeight(offer.weightG):'Paket ağırlığı belirtilmemiş';
 }
 export function OfferPrice({offer}:{offer:CatalogOffer|undefined}){
-  return <div className="tabular-nums"><p className="flex flex-wrap items-baseline gap-x-2"><strong className="text-xl">{offer?.priceMinor!=null&&offer.priceMinor>0?formatMoney(offer.priceMinor/100,offer.currency??'(para birimi belirtilmemiş)'): 'Fiyat paylaşılmamış'}</strong>{offer?.weightG?<span className="text-sm text-[#625e57]">/ {formatPackageWeight(offer.weightG)}</span>:null}</p>
-    {offer?.weightG==null?<p className="mt-1 text-xs text-[#625e57]">{publicOfferLabel(offer)}</p>:null}</div>;
+  return <div className="tabular-nums"><p className="flex flex-wrap items-baseline gap-x-1.5"><strong className="text-[19px] font-semibold">{offer?.priceMinor!=null&&offer.priceMinor>0?formatMoney(offer.priceMinor/100,offer.currency??'(para birimi belirtilmemiş)'): 'Fiyat paylaşılmamış'}</strong>{offer?.weightG?<span className="text-[13px] text-muted">/ {formatPackageWeight(offer.weightG)}</span>:null}</p>
+    {offer?.weightG==null?<p className="mt-1 text-xs text-muted">{publicOfferLabel(offer)}</p>:null}</div>;
 }
 export function DiscoveryCard({coffee,source='catalog'}:{coffee:CatalogCoffee;source?:string}){
-  const offer=preferredOffer(coffee),tastes=tasteSummary(coffee),badges=currentBadges(coffee);
+  const offer=preferredOffer(coffee),badges=currentBadges(coffee);
+  const notes=coffee.rawMetadata.tastingNotes?.length?coffee.rawMetadata.tastingNotes.slice(0,3):tasteSummary(coffee);
   const image=coffee.rawMetadata.imageUrl;
   return <article className="coffee-card">
     <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="coffee-card-image block" aria-label={`${coffee.name} detayları`}>
-      {image&&/^https?:\/\//.test(image)?<CoffeeImage source={image} alt={coffee.name} sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 28vw" className="absolute inset-0 h-full w-full object-contain p-5"/>:<div className="flex h-full items-center justify-center px-8 text-center font-display text-4xl text-[#244b3d]">{coffee.roaster.name}</div>}
-      {badges.length>0?<span className="absolute left-3 top-3 flex flex-wrap gap-1">{badges.map(event=><span key={event.id} className="rounded bg-[#244b3d] px-2.5 py-1.5 text-xs font-semibold text-white">{EVENT_LABELS[event.type]}</span>)}</span>:null}
+      {image&&/^https?:\/\//.test(image)?<CoffeeImage source={image} alt={coffee.name} sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 28vw" className="absolute inset-0 h-full w-full object-contain p-5"/>:<div className="flex h-full items-center justify-center px-8 text-center font-display text-3xl text-accent">{coffee.roaster.name}</div>}
+      {badges.length>0?<span className="absolute left-3 top-3 flex flex-wrap gap-1">{badges.map(event=><span key={event.id} className="coffee-card-badge">{EVENT_LABELS[event.type]}</span>)}</span>:null}
     </Link>
     <div className="coffee-card-body">
-      <Link href={`/kavurucu/${coffee.roaster.slug}`} className="text-xs font-semibold text-[#244b3d] hover:underline">{coffee.roaster.name}</Link>
+      <p className="text-[13px] text-muted"><Link href={`/kavurucu/${coffee.roaster.slug}`} className="py-1 hover:text-accent hover:underline">{coffee.roaster.name}</Link>{coffee.roaster.city?` · ${coffee.roaster.city}`:''}</p>
       <h3><Link href={`/kahve/${coffee.slug}`} prefetch={false} className="line-clamp-2 hover:underline">{coffee.name}</Link></h3>
-      <p className="mt-3 min-h-6 text-sm font-medium text-[#244b3d]">{tastes.length?tastes.join(' · '):coffee.rawMetadata.tastingNotes?.slice(0,3).join(' · ')||'Tat profili henüz belirtilmemiş'}</p>
-      <p className="mb-4 mt-1 line-clamp-2 text-sm text-[#625e57]">{[coffeeOrigin(coffee),coffeeProcess(coffee)].filter(Boolean).join(' · ')||'Köken ve işlem bilgisi bekleniyor'}</p>
-      <div className="coffee-card-price"><OfferPrice offer={offer}/></div>
-      {offer?.purchaseUrl?<a href={`/go/${offer.id}?source=${encodeURIComponent(source)}`} className="button-dark mt-4 w-full" rel="nofollow">Kavurucuda gör <span aria-hidden="true">↗</span></a>:<Link href={`/kahve/${coffee.slug}`} className="button-dark mt-4 w-full">Paketleri incele →</Link>}
+      <p className="line-clamp-2 text-sm">{[coffeeOrigin(coffee),coffeeProcess(coffee)].filter(Boolean).join(' · ')||<span className="italic text-muted">Köken ve işlem bilgisi bekleniyor</span>}</p>
+      {notes.length?<ul className="flex flex-wrap gap-1.5" aria-label="Tadım notları">{notes.map(note=><li key={note} className="coffee-card-note">{note}</li>)}</ul>:<p className="text-xs italic text-muted">Tat profili henüz belirtilmemiş</p>}
+      <div className="coffee-card-price"><OfferPrice offer={offer}/>
+        {offer?.purchaseUrl?<a href={`/go/${offer.id}?source=${encodeURIComponent(source)}`} className="text-link shrink-0" rel="nofollow">Kavurucuda gör <span aria-hidden="true">↗</span></a>:<Link href={`/kahve/${coffee.slug}`} className="text-link shrink-0">Paketleri incele →</Link>}</div>
     </div>
     <div className="coffee-card-footer justify-end"><CompareToggle slug={coffee.slug} name={coffee.name}/></div>
   </article>;
 }
-export function DiscoveryGrid({coffees,source='catalog'}:{coffees:CatalogCoffee[];source?:string}){return <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{coffees.map(coffee=><DiscoveryCard key={coffee.id} coffee={coffee} source={source}/>)}</div>;}
+export function DiscoveryGrid({coffees,source='catalog'}:{coffees:CatalogCoffee[];source?:string}){return <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{coffees.map(coffee=><DiscoveryCard key={coffee.id} coffee={coffee} source={source}/>)}</div>;}
 export function DiscoveryEmpty({title='Burada henüz kahve yok.',children}:{title?:string;children:React.ReactNode}){return <div className="empty-catalog"><h3>{title}</h3><p>{children}</p><Link href="/kahveler" className="text-link mt-4 inline-flex min-h-11 items-center">Tüm kahveleri keşfet ↗</Link></div>;}

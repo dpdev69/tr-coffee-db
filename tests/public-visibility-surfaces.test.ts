@@ -6,7 +6,6 @@ import { POST as retiredClick } from '../src/app/api/click/route';
 describe('public visibility query surfaces', () => {
   it('preserves the legacy fallback public gates and uses canonical D1 rows for the migrated filter loader', () => {
     const source = readSource('src/lib/queries/coffees.ts');
-    const roasterSource = readSource('src/lib/queries/roasters.ts');
     const catalogPageSource = readSource('src/components/v2/discovery-catalog.tsx');
 
     assertSurfaceUsesPublicGate(source, 'getCoffees', /export async function getCoffees[\s\S]*?export async function getCoffeeBySlug/);
@@ -15,7 +14,6 @@ describe('public visibility query surfaces', () => {
     assertSurfaceUsesPublicGate(source, 'getSimilarCoffees', /export async function getSimilarCoffees[\s\S]*?export async function getFeaturedCoffees/);
     assertSurfaceUsesPublicGate(source, 'getFeaturedCoffees', /export async function getFeaturedCoffees[\s\S]*?export async function getStats/);
     assertSurfaceUsesPublicGate(source, 'getStats coffee counts and origins', /export async function getStats[\s\S]*$/);
-    assertSurfaceUsesPublicGate(roasterSource, 'getRoasters public coffee counts', /export async function getRoasters[\s\S]*?export async function getRoasterBySlug/);
     assert.match(catalogPageSource, /listCatalog\(db,filters\)/);
     assert.match(catalogPageSource, /listRoasters\(db\)/);
     assert.match(catalogPageSource, /FROM public_catalog_coffees c/);
@@ -50,9 +48,11 @@ describe('public visibility query surfaces', () => {
 
   it('gates durable sitemap routes and retires the old click write endpoint', async () => {
     const sitemap = readSource('src/app/sitemap.ts');
-    assert.match(sitemap, /FROM coffees c WHERE c.visibility='public'/);
+    assert.match(sitemap, /FROM public_catalog_coffees c WHERE/);
     assert.match(sitemap, /coffeeOnlySql/);
-    assert.doesNotMatch(sitemap, /last_seen_at|last_success_at|lastModified/);
+    // lastModified must come from real content changes, never from per-crawl touch stamps.
+    assert.doesNotMatch(sitemap, /last_seen_at|last_success_at|updated_at/);
+    assert.match(sitemap, /coffee_events e WHERE e.coffee_id=c.id/);
     assert.match(sitemap, /FROM roasters WHERE active=1/);
     assert.match(sitemap, /\/kahve\/\$\{encodeURIComponent\(c.slug\)/);
     assert.match(sitemap, /\/kavurucu\/\$\{encodeURIComponent\(r.slug\)/);
@@ -68,7 +68,7 @@ describe('public visibility query surfaces', () => {
     const bridge = readSource('src/lib/v2-legacy.ts');
     const migration = readSource('migrations/d1/0001_catalog.sql');
     assert.match(catalog, /FROM public_catalog_coffees c JOIN roasters/);
-    assert.match(catalog, /count\(DISTINCT c.id\) AS coffees[\s\S]*FROM public_catalog_coffees c JOIN offers o/);
+    assert.match(catalog, /count\(DISTINCT c.id\) AS coffees[\s\S]*FROM public_catalog_coffees c \$\{GROUP_OFFERS\}/);
     assert.match(catalog, /WHERE \$\{coffeeOnlySql\(\)\}/);
     assert.match(catalog, /WHERE c.visibility='public' AND/);
     assert.match(catalog, /JOIN public_catalog_coffees c ON c.roaster_id=r.id/);

@@ -1,6 +1,6 @@
-# KahveDrop / TR CoffeeDB
+# KahveDrop
 
-KahveDrop runs on Cloudflare Workers/D1 through vinext, with a Three.js coffee studio and a Turkish coffee discovery catalog. The original Next/Supabase paths remain for rollback. The product goal is simple: help buyers compare beans across roasters without opening a dozen separate storefronts.
+KahveDrop runs on Cloudflare Workers/D1 through vinext, with a Three.js coffee studio and a Turkish coffee discovery catalog. The public name is set in [`src/lib/brand.ts`](src/lib/brand.ts) and is provisional; the repository and some infrastructure names still use the earlier project name. The original Next/Supabase (v1) paths remain only for rollback and export. The product goal is simple: help buyers compare beans across roasters without opening a dozen separate storefronts.
 
 ## Choosing a coffee
 
@@ -12,17 +12,21 @@ KahveDrop runs on Cloudflare Workers/D1 through vinext, with a Three.js coffee s
 
 ## What Is In This Repo
 
-- `src/app`: Next.js App Router pages for the catalog, coffee journeys, rankings, quiz, roasters, and click tracking.
-- `src/components`: shared UI, coffee cards, journey evidence, filters, and quiz flow.
-- `src/lib`: Supabase clients, lot-journey and ranking logic, queries, constants, and shared types.
-- `scrapers`: Node-based scraper pipeline and migration helper.
-- `supabase/migrations`: canonical coffee-lot and supply-chain schema, evidence policies, indexes, functions, and seed data.
+- `src/app`: Next.js App Router pages (catalog, coffee detail, roasters, quiz, guide, compare) and the `/go` outbound-link route.
+- `src/components`: UI; the live catalog UI is in `components/v2`.
+- `src/lib`: brand config, D1 catalog access, and legacy Supabase query helpers (still used by `/compare`).
+- `shared/v2`: catalog, qualification, ingestion and profile logic shared by the web app, crawler and scripts.
+- `scrapers`: source adapters and parsers (its own `package.json`).
+- `workers`, `wrangler*.jsonc`: the web Worker and the crawler Worker (Cloudflare cron is currently off).
+- `migrations`: D1 schema. `supabase/migrations`: legacy Postgres schema, kept for rollback and export.
+- `scripts`: refresh, digest, export and audit scripts.
 
 ## Requirements
 
 - Node.js 22
 - npm 10+
-- A Supabase project for app data and scraper writes
+- For the Workers runtime locally: `wrangler` (installed as a dev dependency); the local D1 database is created by `npm run db:migrate:local`.
+- Remote work needs Cloudflare credentials (`CLOUDFLARE_D1_API_TOKEN` for refresh and migrations) and a Kit API key for the newsletter; see [`.env.example`](.env.example). Supabase credentials are needed only for the legacy rollback paths below.
 
 Use the checked-in [`.nvmrc`](.nvmrc) to align local and CI Node versions.
 
@@ -98,18 +102,15 @@ npm run scrapers:scrape -- --roaster <slug>
 
 Run `npm test && npm run check` before opening or updating a PR. The first command runs the automated tests; `npm run check` runs linting, TypeScript checks, the production build, and the scraper typecheck.
 
-## Scraper Workflow
+## Legacy Scraper Workflow
 
-- Use `npm run scrapers:migrate` to apply the SQL files in [`supabase/migrations`](supabase/migrations).
+- Legacy (Supabase) only: use `npm run scrapers:migrate` to apply the SQL files in [`supabase/migrations`](supabase/migrations).
 - Migration connections verify TLS certificates. If your pooler connection reports a
   self-signed certificate chain, download the Server root certificate from Supabase
   Database Settings and set `SUPABASE_DB_SSL_CA_FILE` to its absolute path.
 - Use `npm run scrapers:scrape` to run all configured scrapers.
 - Use `npm run scrapers:scrape -- --roaster <slug>` when you only want one roaster.
-- GitHub Actions also runs [`.github/workflows/scrape.yml`](.github/workflows/scrape.yml) on a schedule or manual dispatch.
-- Scheduled scrapes tolerate known external runner failures for roasters that
-  preserve existing availability on failure. Dispatching a specific roaster slug
-  remains a hard probe and should fail if that adapter is broken.
+- The scheduled GitHub Actions refresh is described under Catalog refresh behavior; it writes to D1, not Supabase.
 
 ## Git Workflow
 
@@ -132,21 +133,13 @@ The contributor rules live in [CONTRIBUTING.md](CONTRIBUTING.md). The short vers
 - automated tests
 - PostgreSQL migration replay and service-role coffee INSERT/UPDATE checks
 
-The database job installs `uuid-ossp` in Supabase's `extensions` schema before replaying every migration. It exercises the journey trigger as `service_role`, so a function search-path regression fails CI before reaching scheduled ingestion. The image-health audit also fails if there are no current coffees; an expired empty catalog is not healthy.
+The database job replays the legacy Supabase migrations against PostgreSQL and is retained with them for rollback. The web job also builds the Cloudflare web Worker and validates the crawler Worker bundle.
 
-The web job persists `.next/cache` between runs so unchanged work can be reused by
-subsequent Next.js builds.
+## Catalog refresh behavior
 
-Scheduled catalog refreshes use a health gate instead of requiring every external
-storefront to respond perfectly in the same run:
+The daily D1 refresh ([`scrape.yml`](.github/workflows/scrape.yml) running `scripts/v2-refresh.mts`) crawls every active qualified source once. There is no retry and no success-rate gate: the run exits non-zero if any requested source does not finish as `success`, and the refresh report is uploaded as an artifact. Dispatching with specific slugs refreshes only those sources.
 
-- broad scheduled or manually dispatched refreshes retry a failed roaster once
-- at least 90% of attempted roasters must succeed
-- failed roasters are still emitted as GitHub warnings and listed in the run summary
-- a manual dispatch for specific roaster slugs remains a strict probe and fails if any
-  requested roaster fails
-- the image-health audit still runs after a degraded scrape so the workflow reports both
-  ingestion and public-catalog health
+The retry (`SCRAPE_MAX_ATTEMPTS`) and success-rate (`MIN_SCRAPE_SUCCESS_RATE`) policy in `scrapers/src/run-policy.ts` belongs to the legacy Supabase scraper (`npm run scrapers:scrape`) and is not used by the scheduled refresh.
 
 ## Next Steps From The Product Plan
 
@@ -154,4 +147,4 @@ The approved implementation plan is preserved in [PLAN.md](PLAN.md). Current def
 
 ## D1 catalog refresh
 
-The daily catalog refresh now runs on GitHub Actions at 03:00 Istanbul using the scoped `CLOUDFLARE_D1_API_TOKEN` secret. Cloudflare cron is disabled. See [the data pipeline runbook](docs/free-catalog-refresh.md) for source coverage, quota recovery and verification.
+The daily catalog refresh runs on GitHub Actions at 03:00 Istanbul using the scoped `CLOUDFLARE_D1_API_TOKEN` secret. Cloudflare cron is disabled. See [the data pipeline runbook](docs/free-catalog-refresh.md) for source coverage, quota recovery and verification.

@@ -82,30 +82,30 @@ export function QuizContainer() {
     return (
       <div
         ref={cardRef}
-        className="scroll-mt-28 rounded-[24px] border border-[#30251f]/10 bg-[#fffdf8] p-5 text-center sm:p-8"
+        className="scroll-mt-28 rounded-[18px] border border-line bg-surface p-5 text-center sm:p-8"
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#ead9c5] text-[#30251f]">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-tint text-ink">
           <CheckIcon />
         </div>
         <h2
           ref={questionRef}
           tabIndex={-1}
-          className="mt-4 font-display text-3xl leading-none text-[#30251f]"
+          className="mt-4 font-display text-3xl leading-none text-ink"
         >
           {hasAnySelections ? 'Bir sonraki kahven bu seçimlerde.' : 'Keşfe açık bir fincan.'}
         </h2>
-        <p className="mt-2 text-[#716257]">
+        <p className="mt-2 text-muted">
           {hasAnySelections ? 'Aradığın tatlara ve demleme rutinine uyan kahveleri keşfet.' : 'Güncel kahveleri birlikte keşfedelim.'}
         </p>
         {result.explanations.length > 0 && (
-          <div className="mx-auto mt-5 max-w-xl rounded-2xl border border-[#30251f]/10 bg-[#fbf6ed] p-4 text-left">
-            <h3 className="text-sm font-semibold text-[#30251f]">
+          <div className="mx-auto mt-5 max-w-xl rounded-2xl border border-line bg-tint p-4 text-left">
+            <h3 className="text-sm font-semibold text-ink">
               Senin kahve profilin
             </h3>
-            <ul className="mt-3 space-y-2 text-sm text-[#716257]">
+            <ul className="mt-3 space-y-2 text-sm text-muted">
               {result.explanations.map((item) => (
                 <li key={item} className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#30251f]" />
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -113,14 +113,14 @@ export function QuizContainer() {
           </div>
         )}
         {result.explanations.length === 0 && (
-          <p className="mx-auto mt-5 max-w-xl rounded-2xl border border-[#30251f]/10 bg-[#fbf6ed] p-4 text-sm text-[#716257]">
+          <p className="mx-auto mt-5 max-w-xl rounded-2xl border border-line bg-tint p-4 text-sm text-muted">
             Henüz bir tercihin yok. Katalogda tatları ve kavurucuları keşfederek başlayabilirsin.
           </p>
         )}
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             href={result.url}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#30251f] px-6 py-3 text-sm font-semibold text-white hover:bg-[#6d3d2a]"
+            className="button-dark button-lg"
           >
             Kahvelerimi keşfet
             <ArrowRightIcon />
@@ -128,14 +128,14 @@ export function QuizContainer() {
           <button
             type="button"
             onClick={() => setStepIndex(QUIZ_STEPS.length - 1)}
-            className="button-light border border-[#d7c5b4]"
+            className="button-light button-lg"
           >
             Seçimlerimi düzenle
           </button>
           <button
             type="button"
             onClick={resetQuiz}
-            className="inline-flex items-center justify-center rounded-lg border border-[#30251f] px-6 py-3 text-sm font-semibold text-[#30251f] hover:bg-[#f6f1e8]"
+            className="button-light button-lg"
           >
             Tercihleri Yeniden Seç
           </button>
@@ -147,10 +147,10 @@ export function QuizContainer() {
   return (
     <div
       ref={cardRef}
-      className="scroll-mt-28 rounded-[24px] border border-[#30251f]/10 bg-[#fffdf8] p-5 sm:p-6"
+      className="scroll-mt-28 rounded-[18px] border border-line bg-surface p-5 sm:p-6"
     >
       <div className="mb-7">
-        <div className="flex items-center justify-between gap-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#30251f]/45">
+        <div className="flex items-center justify-between gap-4 text-sm text-muted">
           <span>
             Soru {stepIndex + 1} / {QUIZ_STEPS.length}
           </span>
@@ -171,7 +171,7 @@ export function QuizContainer() {
             <div
               key={stepItem.id}
               className={`h-1.5 flex-1 rounded-full ${
-                index <= stepIndex ? 'bg-[#30251f]' : 'bg-[#30251f]/10'
+                index <= stepIndex ? 'bg-accent' : 'bg-line'
               }`}
             />
           ))}
@@ -181,11 +181,11 @@ export function QuizContainer() {
       <h2
         ref={questionRef}
         tabIndex={-1}
-        className="rounded-md font-display text-3xl leading-none text-[#30251f] focus:outline-none focus:ring-2 focus:ring-[#30251f] focus:ring-offset-4"
+        className="rounded-md font-display text-[30px] leading-tight text-ink focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-4"
       >
         {current.question}
       </h2>
-      <p className="mt-3 text-sm leading-6 text-[#716257]">{current.helper}</p>
+      <p className="mt-3 text-sm leading-6 text-muted">{current.helper}</p>
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {current.options.map((opt) => {
@@ -197,28 +197,28 @@ export function QuizContainer() {
               key={opt.value}
               onClick={() => toggleOption(opt.value)}
               aria-pressed={isSelected}
-              className={`flex min-h-[96px] items-start gap-3 rounded-xl border px-4 py-4 text-left transition-colors ${
+              className={`flex min-h-[60px] items-start gap-3 rounded-[14px] px-4 py-3 text-left transition-colors ${
                 isSelected
-                  ? 'border-[#30251f] bg-[#ead9c5] text-[#30251f]'
-                  : 'border-[#30251f]/12 bg-[#fffdf8] text-[#30251f] hover:border-[#30251f]/30 hover:bg-[#f6f1e8]'
+                  ? 'border-2 border-accent bg-chip text-ink'
+                  : 'border border-line bg-surface text-ink hover:border-accent'
               }`}
             >
               <span
                 className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
                   isSelected
-                    ? 'border-[#30251f] bg-[#30251f] text-white'
-                    : 'border-[#30251f]/25 bg-[#fffdf8] text-transparent'
+                    ? 'border-accent bg-accent text-on-accent'
+                    : 'border-line bg-surface text-transparent'
                 }`}
                 aria-hidden="true"
               >
                 <SmallCheckIcon />
               </span>
               <span className="min-w-0">
-                <span className="block text-sm font-semibold leading-5">
+                <span className="block font-display text-[19px] leading-6">
                   {opt.label}
                 </span>
                 {opt.description && (
-                  <span className="mt-1 block text-xs leading-5 text-[#716257]">
+                  <span className="mt-1 block text-xs leading-5 text-muted">
                     {opt.description}
                   </span>
                 )}
@@ -230,7 +230,7 @@ export function QuizContainer() {
 
       <div className="mt-5 flex min-h-8 items-center justify-between gap-3 text-sm">
         <div>
-          <span className="text-[#716257]">
+          <span className="text-muted">
             {selectedCount > 0
               ? `${selectedCount} seçim eklendi`
               : 'Bu adımı boş geçebilirsin'}
@@ -241,7 +241,7 @@ export function QuizContainer() {
           <button
             type="button"
             onClick={resetCurrentStep}
-            className="font-semibold text-[#30251f] underline-offset-4 hover:underline"
+            className="inline-flex min-h-11 items-center font-semibold text-accent underline-offset-4 hover:underline"
           >
             Bu adımı temizle
           </button>
@@ -253,7 +253,7 @@ export function QuizContainer() {
           type="button"
           onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
           disabled={stepIndex === 0}
-          className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-[#30251f]/70 hover:bg-[#f6f1e8] disabled:cursor-not-allowed disabled:opacity-40"
+          className="button-light button-lg disabled:cursor-not-allowed disabled:border-line disabled:text-muted"
         >
           <ArrowLeftIcon />
           Geri
@@ -262,7 +262,7 @@ export function QuizContainer() {
           {isLastStep && !hasAnySelections && (
             <Link
               href="/kahveler"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#30251f] px-4 py-2 text-sm font-semibold text-[#30251f] hover:bg-[#f6f1e8]"
+              className="button-light button-lg"
             >
               Tüm kataloğu aç
             </Link>
@@ -270,7 +270,7 @@ export function QuizContainer() {
           <button
             type="button"
             onClick={advanceStep}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#30251f] px-6 py-2 text-sm font-semibold text-white hover:bg-[#6d3d2a]"
+            className="button-dark button-lg"
           >
             {isLastStep ? 'Sonuçları Gör' : selectedCount > 0 ? 'İleri' : 'Bu adımı geç'}
             <ArrowRightIcon />

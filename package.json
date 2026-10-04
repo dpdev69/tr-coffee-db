@@ -36,7 +36,6 @@
   "dependencies": {
     "@supabase/ssr": "0.9.0",
     "@supabase/supabase-js": "2.110.2",
-    "@vercel/analytics": "^2.0.1",
     "@vinext/cloudflare": "1.0.0-beta.7",
     "next": "16.2.6",
     "react": "19.3.0",

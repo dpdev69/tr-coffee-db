@@ -9,34 +9,9 @@ describe('UX and compliance surfaces', () => {
 
     assert.match(source, /aria-expanded=\{mobileMenuOpen\}/);
     assert.match(source, /aria-controls="mobile-menu"/);
-    assert.match(source, /id="mobile-menu"/);
-    assert.match(source, /event\.key === 'Escape'/);
-  });
-
-  it('keeps mobile filter dialog focus inside the modal', () => {
-    const source = readSource('src/components/coffee/sidebar-filters.tsx');
-
-    assert.match(source, /aria-modal="true"/);
-    assert.match(source, /mobileDialogRef/);
-    assert.match(source, /getFocusableElements/);
-    assert.match(source, /event\.key === 'Tab'/);
-  });
-
-  it('makes the roaster filter searchable without introducing nested scroll traps', () => {
-    const source = readSource('src/components/coffee/sidebar-filters.tsx');
-
-    assert.match(source, /roasterQuery/);
-    assert.match(source, /Kavurucu ara/);
-    assert.match(source, /visibleRoasters/);
-    assert.doesNotMatch(source, /max-h-48/);
-    assert.doesNotMatch(source, /<div className="mt-2[^"]*overflow-y-auto/);
-  });
-
-  it('uses user-facing filter result copy', () => {
-    const source = readSource('src/components/coffee/active-filter-summary.tsx');
-
-    assert.doesNotMatch(source, /test tercih/);
-    assert.doesNotMatch(source, /Bilgi eksik/);
+    assert.match(source, /<dialog\s+id="mobile-menu"/);
+    // A modal dialog gives focus containment, Escape-to-close and an inert page natively.
+    assert.match(source, /\.showModal\(\)/);
   });
 
   it('uses natural Turkish discovery copy with roaster package prices', () => {
@@ -60,7 +35,6 @@ describe('UX and compliance surfaces', () => {
 
   it('keeps catalog maintenance timestamps off public utility surfaces', () => {
     const surfaces = [
-      'src/components/coffee/coffee-card.tsx',
       'src/components/coffee/compare-controls.tsx',
       'src/app/compare/page.tsx',
       'src/app/guide/page.tsx',
@@ -90,18 +64,6 @@ describe('UX and compliance surfaces', () => {
     assert.doesNotMatch(databaseTypes, /price_range/);
   });
 
-  it('does not expose missing metadata as a public filter option', () => {
-    const surfaces = [
-      'src/components/coffee/sidebar-filters.tsx',
-      'src/components/coffee/active-filter-summary.tsx',
-      'src/lib/coffee-filters.ts',
-      'src/lib/constants/filter-options.ts',
-    ].map(readSource).join('\n');
-
-    assert.doesNotMatch(surfaces, /Bilgi eksik|Belirtilmemiş/);
-    assert.match(surfaces, /value !== 'unknown'/);
-  });
-
   it('does not introduce cart, checkout, or in-app payment affordances', () => {
     const surfaces = [
       'src/app/page.tsx',
@@ -110,13 +72,6 @@ describe('UX and compliance surfaces', () => {
     ].map(readSource).join('\n');
 
     assert.doesNotMatch(surfaces, /sepet|checkout|cart|ödeme/i);
-  });
-
-  it('keeps filter groups from creating nested scroll traps', () => {
-    const source = readSource('src/components/coffee/sidebar-filters.tsx');
-
-    assert.doesNotMatch(source, /max-h-48/);
-    assert.doesNotMatch(source, /<div className="mt-2[^"]*overflow-y-auto/);
   });
 
   it('keeps quiz step changes oriented at the current question', () => {

@@ -3,51 +3,85 @@
 import Link from 'next/link';
 import { useId, useState, type FormEvent } from 'react';
 import { trackProductEvent } from '@/lib/product-events';
-import { brand } from '@/lib/brand';
+import { brand, newsletterConsent } from '@/lib/brand';
+import { SUBSCRIBE_SOURCES, analyticsSource } from '@/lib/v2-subscribe';
 
-export function NewsletterForm({ source = 'home' }: { source?: string }) {
+const SKIN = {
+  band: {
+    box: 'bg-accent text-on-accent', title: 'text-on-accent', text: 'text-chip', label: 'text-on-accent', consent: 'text-chip',
+    check: 'accent-chip', button: 'bg-chip text-accent-deep hover:bg-surface', box2: 'bg-on-accent/15', link: 'text-on-accent',
+  },
+  card: {
+    box: 'border border-line bg-surface text-ink', title: 'text-ink', text: 'text-muted', label: 'text-ink', consent: 'text-muted',
+    check: 'accent-accent', button: 'bg-accent text-on-accent hover:bg-accent-deep', box2: 'bg-tint', link: 'text-accent',
+  },
+} as const;
+
+/** What a form post without JavaScript can show: the server redirects back to `#nl-<source>-<code>`. */
+const FORM_ERRORS = {
+  gecersiz: 'Geçerli bir e-posta adresiyle yeniden deneyebilirsin.',
+  onay: 'Devam etmek için onay kutusunu işaretlemelisin.',
+  'cok-sik': 'Çok fazla deneme yaptın. Bir dakika sonra yeniden deneyebilirsin.',
+  hata: 'Şu an kaydını tamamlayamadık. Biraz sonra tekrar dene.',
+} as const;
+
+export function NewsletterForm({ source = 'home-bottom', variant = 'band', compact = false, className = '', title = 'Ayda bir bülten, haftada bir fiyat özeti', description = brand.signupPromise }: {
+  source?: string; variant?: 'band' | 'card'; compact?: boolean; className?: string; title?: string; description?: string;
+}) {
   const id = useId();
+  const skin = SKIN[variant];
   const [pending, setPending] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const [before, after] = newsletterConsent.text.split(newsletterConsent.linkText);
 
   async function subscribe(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
     const data = new FormData(event.currentTarget);
     setPending(true); setMessage('');
-    trackProductEvent({ event: 'newsletter_signup_submit', page: source.startsWith('home') ? 'home' : source === 'detail' ? 'coffee' : 'catalog', source: source === 'home-hero' || source === 'home-bottom' || source === 'catalog' || source === 'detail' ? source : 'home' });
+    trackProductEvent({ event: 'newsletter_signup_submit', page: SUBSCRIBE_SOURCES[source] ?? 'other', source: analyticsSource(source) });
     try {
       const response = await fetch('/api/subscribe', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: data.get('email'), website: data.get('website'), source, referrer: window.location.href }),
+        body: JSON.stringify({ email: data.get('email'), website: data.get('website'), consent: data.get('consent') === 'on', source, referrer: window.location.href }),
         signal: AbortSignal.timeout(20000),
       });
       const result = await response.json() as { ok?: boolean; message?: string };
-      if (!response.ok || !result.ok) {
-        setMessage(response.status === 429 ? 'Çok sık deneme yaptın. Bir dakika sonra tekrar dene.' : response.status === 400 ? 'E-posta adresini kontrol edip tekrar dene.' : 'Şu an kaydını tamamlayamadık. Biraz sonra tekrar dene.');
-        return;
-      }
-      setSuccess(true);
-      setMessage('Başvurun alındı. Gerekliyse aboneliğini onaylamak için e-posta kutunu kontrol et.');
-      window.location.assign('/tesekkurler');
+      if (!response.ok || !result.ok) { setMessage(result.message || FORM_ERRORS.hata); return; }
+      setSuccess(result.message ?? '');
     } catch { setMessage('Bağlantı kurulamadı. Biraz sonra tekrar deneyebilirsin.'); }
     finally { setPending(false); }
   }
 
-  return <section id={source === 'home-hero' || source === 'home' || source === 'home-bottom' ? 'haftalik-drop' : undefined} className="rounded-3xl bg-[#244b3d] p-6 text-white sm:p-9">
-    <p className="text-xs font-semibold uppercase tracking-widest text-[#d9e5ba]">{brand.newsletterName}</p>
-    <h2 className="mt-3 font-display text-3xl sm:text-4xl">Bir sonraki kahven, gelen kutunda.</h2>
-    <p className="mt-3 max-w-xl text-sm leading-6 text-white/85">{brand.newsletterPromise}</p>
-    {success ? <div className="mt-6"><p role="status" className="rounded-xl bg-white/10 p-4 text-sm leading-6">{message}</p><Link href="/quiz" className="mt-4 inline-flex min-h-11 items-center text-sm underline underline-offset-4">İstersen damak zevkini anlat →</Link></div> : <form method="post" action="/api/subscribe" onSubmit={subscribe} className="relative mt-6">
-      <label htmlFor={id + '-email'} className="mb-2 block text-sm font-medium">E-posta adresin</label>
-      <input id={id + '-email'} name="email" type="email" autoComplete="email" required maxLength={254} placeholder="sen@ornek.com" className="min-h-12 w-full rounded-lg border border-transparent bg-white px-4 text-base text-[#1f1d1b] outline-offset-4" disabled={pending} />
-      <div className="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden="true"><label htmlFor={id + '-website'}>Website</label><input id={id + '-website'} name="website" tabIndex={-1} autoComplete="off" /></div>
-      <label className="mt-3 flex items-start gap-3 text-xs leading-5 text-white/90"><input type="checkbox" name="consent" required className="mt-0.5 h-5 w-5 shrink-0 accent-[#e3ecbd]" disabled={pending} /><span>Haftalık kahve bülteni ve kavurucu ürün tanıtımları içeren e-postalar almayı kabul ediyorum. <Link href="/privacy" className="underline underline-offset-2">Aydınlatma metnini</Link> okudum.</span></label>
-      <button type="submit" disabled={pending} className="mt-3 min-h-12 w-full rounded-lg bg-[#e3ecbd] px-4 py-3 text-sm font-semibold text-[#18372b] hover:bg-[#edf4d9] disabled:cursor-wait disabled:opacity-70">{pending ? 'Kaydediliyor…' : brand.newsletterName + '’a katıl'}</button>
-      {message ? <p role="alert" className="mt-3 rounded-lg bg-white/10 p-3 text-sm leading-6">{message}</p> : null}
-      <p className="mt-4 text-xs leading-6 text-white/80">Ücretsiz. Hesap açman gerekmez. Her e-postadaki bağlantıyla istediğinde ayrılabilirsin. E-postanı bülteni göndermek için ABD merkezli Kit ile işleriz.</p>
-      <noscript><p className="mt-3 text-sm">Bu form için JavaScript’i açman gerekiyor.</p></noscript>
-    </form>}
+  return <section id={source.startsWith('home') ? 'haftalik-drop' : undefined} className={`flex flex-wrap items-center gap-6 rounded-[18px] ${compact ? 'p-5 sm:p-6' : 'p-6 sm:p-9 lg:gap-x-12'} ${skin.box} ${className}`}>
+    <div className={compact ? 'basis-full' : 'min-w-0 flex-[1_1_300px]'}>
+      <h2 className={`font-display ${compact ? 'text-xl' : 'text-2xl sm:text-3xl'} leading-tight ${skin.title}`}>{title}</h2>
+      <p className={`mt-2 text-base leading-relaxed ${skin.text}`}>{description}</p>
+    </div>
+    <div className={compact ? 'basis-full' : 'min-w-0 flex-[1_1_320px]'}>
+      {/* Live region exists before the message does, so screen readers announce the swap. The hook for a later animation pass. */}
+      <div aria-live="polite" className="newsletter-success" data-newsletter-success={success !== null ? 'true' : undefined}>
+        {success !== null ? <>
+          <p className={`rounded-xl p-4 text-base leading-relaxed ${skin.box2}`}>{success}</p>
+          <Link href="/quiz" className={`mt-3 inline-flex min-h-11 items-center text-sm underline underline-offset-4 ${skin.link}`}>İstersen damak zevkini anlat →</Link>
+        </> : null}
+      </div>
+      {success === null ? <form method="post" action={`/api/subscribe?source=${encodeURIComponent(source)}`} onSubmit={subscribe} className="relative flex flex-col gap-3">
+        <input type="hidden" name="source" value={source} />
+        <label htmlFor={id + '-email'} className={`text-sm font-medium ${skin.label}`}>E-posta adresin</label>
+        <div className="flex flex-wrap gap-2.5">
+          <input id={id + '-email'} name="email" type="email" autoComplete="email" required maxLength={254} placeholder="ornek@eposta.com" disabled={pending} className="min-h-12 min-w-0 flex-[1_1_200px] rounded-[10px] border border-line bg-surface px-3.5 text-base text-ink outline-offset-4" />
+          <button type="submit" disabled={pending} className={`min-h-12 rounded-[10px] px-5 text-base font-semibold disabled:cursor-wait disabled:opacity-70 ${skin.button}`}>{pending ? 'Kaydediliyor…' : 'Abone ol'}</button>
+        </div>
+        <div className="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden="true"><label htmlFor={id + '-website'}>Website</label><input id={id + '-website'} name="website" tabIndex={-1} autoComplete="off" /></div>
+        <label className={`flex items-start gap-2.5 text-[13px] leading-normal ${skin.consent}`}>
+          <input type="checkbox" name="consent" required disabled={pending} className={`mt-0.5 h-5 w-5 shrink-0 ${skin.check}`} />
+          <span>{before}<Link href="/privacy" className="underline underline-offset-2">{newsletterConsent.linkText}</Link>{after}</span>
+        </label>
+        {message ? <p role="alert" className={`rounded-lg p-3 text-sm leading-6 ${skin.box2}`}>{message}</p> : null}
+        {Object.entries(FORM_ERRORS).map(([code, text]) => <p key={code} id={`nl-${source}-${code}`} className={`hidden rounded-lg p-3 text-sm leading-6 target:block ${skin.box2}`}>{text}</p>)}
+      </form> : null}
+    </div>
   </section>;
 }

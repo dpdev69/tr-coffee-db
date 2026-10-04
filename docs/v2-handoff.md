@@ -4,7 +4,7 @@
 
 V2 is deployed to isolated Cloudflare staging with a reconciled catalog, Turkish discovery UI, confirmed Kit signup and measured roaster referrals. The live catalog has 481 available coffees, 38 represented roasters and 1,170 available offers. All original 1,030 identities and 13,452 archives remain intact. Fourteen adapters completed real source baselines. This is ready for owner review; production cutover, domain registration, acquisition and personalization have not occurred.
 
-284 tests, lint, Next and scraper typechecks, Next and Workers builds passed. Actual remote browser tests and Analytics Engine queries cover the working product paths. The complete [acceptance matrix](staging-acceptance.md) distinguishes implemented behavior, real evidence and remaining limits.
+The test suite, lint, Next and scraper typechecks, Next and Workers builds passed. Actual remote browser tests and Analytics Engine queries cover the working product paths. The complete [acceptance matrix](staging-acceptance.md) distinguishes implemented behavior, real evidence and remaining limits.
 
 ## Architecture and infrastructure
 

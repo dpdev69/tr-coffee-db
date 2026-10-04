@@ -1,10 +1,10 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
-import {readFileSync} from 'node:fs';
 import type {CatalogDatabase,Statement,SqlValue} from '../shared/v2/database';
 import {ingestCrawl,registerRoaster} from '../shared/v2/ingestion';
 import type {SourceCoffee} from '../shared/v2/types';
+import {applyMigrations} from './helpers/v2-sqlite';
 import {applyProfileRefresh,planProfileRefresh,type ProfileCapture} from '../scripts/v2-refresh-local-profiles';
 
 class SQLiteD1 implements CatalogDatabase {
@@ -22,7 +22,7 @@ const now='2026-09-14T20:00:00.000Z';
 const eligibility={feature:'catalog_eligibility',value:{is_public:true},sourceType:'RULE_INFERRED' as const,confidence:null,version:'eligibility-v1',sourceReference:'https://shop.test/a'};
 const profile={feature:'normalized_origin',value:'Guatemala',sourceType:'RULE_INFERRED' as const,confidence:null,version:'v2-profile-1',sourceReference:'https://shop.test/a'};
 async function setup(){
- const sqlite=new DatabaseSync(':memory:');for(const file of ['0001_catalog.sql','0002_queue_job_idempotency.sql'])sqlite.exec(readFileSync(new URL(`../migrations/d1/${file}`,import.meta.url),'utf8'));
+ const sqlite=new DatabaseSync(':memory:');applyMigrations(sqlite);
  const db=new SQLiteD1(sqlite);await registerRoaster(db,{id:'r',slug:'petra',name:'Petra',websiteUrl:'https://shop.test',adapter:'test'});
  const product:SourceCoffee={sourceProductId:'a',canonicalUrl:'https://shop.test/a',name:'Guatemala Coffee',visibility:'public',rawMetadata:{description:'Guatemala washed'},features:[eligibility],offers:[{sourceVariantId:'sku',label:'250g',weightG:250,price:100,compareAtPrice:null,currency:'TRY',inStock:true,purchaseUrl:'https://shop.test/a'}]};
  await ingestCrawl(db,{id:'baseline',roasterId:'r',startedAt:now,completedAt:now,status:'success',parserVersion:'v2-source-2-eligibility',mode:'baseline',products:[product],diagnostics:[]});

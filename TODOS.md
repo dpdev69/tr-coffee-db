@@ -1,3 +1,5 @@
+> Current state and next work: see [docs/HANDOFF.md](docs/HANDOFF.md). This file predates the v2 rewrite and may be stale.
+
 # TODOS
 
 ## Infrastructure

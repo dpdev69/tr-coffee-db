@@ -1,4 +1,4 @@
-title = "TR CoffeeDB secret scanning"
+title = "Secret scanning"
 
 [extend]
 useDefault = true

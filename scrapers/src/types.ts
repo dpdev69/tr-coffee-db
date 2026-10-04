@@ -89,7 +89,9 @@ export interface RoasterConfig {
   websiteUrl: string;
   shopUrl: string;
   platform: Platform;
-  city: string;
+  city: string | null;
+  /** false keeps the roaster registered but out of crawls and the catalog. configs.ts is the source of truth. */
+  active?: boolean;
   priceFormat: PriceFormat;
   // Shopify-specific
   collectionHandle?: string;

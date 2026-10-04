@@ -93,3 +93,29 @@ test('coffee names decode storefront entities and drop promo prefixes',()=>{
   assert.equal(cleanCoffeeName('Yeni Gine Elimbari'),'Yeni Gine Elimbari','"Yeni" without a separator is part of the name');
   assert.equal(cleanCoffeeName('&#0;'),'&#0;');
 });
+
+const derive=(name:string,description:string,roaster='Test Roastery',raw:Record<string,unknown>={})=>Object.fromEntries(deriveProfileFeatures(profileInput({description,...raw},name,'https://shop.test/p','id',description,roaster)).map(f=>[f.feature,f.value]));
+test('origin, process and variety are arrays of every stated value (failures 4, 5)',()=>{
+  const values=derive('Rwanda – Shyira Natural Anaerobic','Menşei: Ruanda. Varyete: Red Bourbon, Caturra.');
+  assert.deepEqual(values.normalized_origin,['Rwanda']);
+  assert.deepEqual(values.process_family,['anaerobic','natural']);
+  assert.deepEqual(values.normalized_variety,['Bourbon','Caturra']);
+  assert.deepEqual(derive('Italiano Espresso Kahve Harmanı','Italiano Espresso Menşei: Brezilya, Etiyopya Italiano Espresso, Brezilya ve Etiyopya’nın özenle seçilmiş çekirdekleri.').normalized_origin,['Brazil','Ethiopia']);
+});
+test('the roaster name and ordinary Turkish words are not varieties (failure 1)',()=>{
+  const bread=derive('Ekşi Maya Tam Çavdar Ekmeği','Old Java Coffee Roasters fırınından.','Old Java Coffee Roasters');
+  assert.equal(bread.normalized_variety,undefined);
+  assert.equal(derive('Cafec Traditional Filtre Kağıdı','Tabi ki her V60 ile uyumludur.').normalized_variety,undefined);
+  assert.equal(derive('Peru Finca Rosenheim','Kahve ağaçları yerel ve yeniden ormanlandırılmış ağaçların gölgesinde büyüyor.').normalized_variety,undefined);
+});
+test('without a tasting section running prose gives no everyday-word notes; a section keeps them (failure 2)',()=>{
+  const prose=derive('Kolombiya Filtre','Roast Date 2026. Tatlı ve parlak bir kahve, bal gibi.',undefined,{tags:'Kahve,Nitelikli Kahve,reklam,3al2öde,Fresh Roasted'});
+  assert.equal(prose.flavor_notes_normalized,undefined);
+  assert.equal(prose.flavor_families,undefined);
+  const section=derive('Kolombiya Filtre','<h3>Bu kahve nasıl bir tada sahiptir?</h3><p>Bal, karamel.</p><h3>Diğer</h3><p>Roast Date.</p>');
+  assert.deepEqual(section.flavor_notes_normalized,['Caramel','Honey']);
+});
+test('roast comes only from a roast label, never from brew words (failure 6)',()=>{
+  assert.equal(derive('Filtre Kahve / Kolombiya','Espresso ve filtre için uygundur.',undefined,{product_type:'Filtre Kahve'}).roast_classification,undefined);
+  assert.equal(derive('Filtre Kahve / Kolombiya','Kavrum: Orta.').roast_classification,'medium');
+});

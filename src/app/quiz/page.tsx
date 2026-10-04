@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { QuizContainer } from '@/components/quiz/quiz-container';
 import { SITE_NAME } from '@/lib/site';
 
+// Static copy: cacheable at the edge, re-rendered at most hourly (so a deploy shows within the hour).
+export const revalidate = 3600;
+
 const description =
   '4 kısa soruyu yanıtla; damak tadınıza, demleme yönteminize ve kavrum tercihinize uygun nitelikli kahveleri filtreleyelim.';
 
@@ -28,13 +31,13 @@ export default function QuizPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:px-8">
       <div className="text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#8b5035]">
+        <p className="eyebrow">
           Fincanını bul
         </p>
-        <h1 className="mt-3 font-display text-5xl leading-none text-[#30251f]">
+        <h1 className="mt-3 font-display text-5xl leading-none text-ink">
           Damak tadına göre kahve bul.
         </h1>
-        <p className="mt-4 text-[#716257]">
+        <p className="mt-4 text-muted">
           4 kısa soruyu yanıtla; demleme rutinine ve sevdiğin tatlara uyan kahveleri keşfet.
         </p>
       </div>
