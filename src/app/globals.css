@@ -88,6 +88,7 @@
     border-radius: 999px;
     font-size: 15px;
     font-weight: 600;
+    white-space: nowrap;
     transition: background 0.2s;
   }
   .button-lg {
@@ -725,10 +726,7 @@
     .guide-layout {
       gap: 48px;
     }
-    /* Phones fold these filters into a <details>; desktop shows them inline. */
-    .filter-more > summary {
-      display: none;
-    }
+    /* Phones fold these filters into a <details>; desktop shows them inline (its summary is lg:hidden). */
     .filter-more::details-content {
       display: block;
       content-visibility: visible;

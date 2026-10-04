@@ -60,7 +60,7 @@ export async function DiscoveryCatalog({params,path='/kahveler',event}:{params:D
       <label className="flex flex-col gap-2 text-[13px] font-medium text-muted">Kahve veya kavurucu ara<input type="search" name="search" defaultValue={first(params.search)} placeholder="Bir isimle başla…" className="min-h-12 rounded-[10px] border border-line bg-surface px-4 text-base font-normal text-ink"/></label>
       {/* Phones fold the filters behind one summary (the chips below say what is applied); from lg up globals.css shows .filter-more inline. */}
       <details className="filter-more mt-4">
-        <summary className="inline-flex min-h-11 items-center text-sm font-semibold text-accent">Tat, köken, kavurucu ve fiyat</summary>
+        <summary className="inline-flex min-h-11 items-center text-sm font-semibold text-accent lg:hidden">Tat, köken, kavurucu ve fiyat</summary>
         <div className="mt-2 lg:mt-0"><Options legend="Tat" name="taste" labels={FLAVOR_CATEGORY_LABELS} selected={filters.taste}/></div>
         <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Field label="Köken" name="origin" defaultValue={filters.origin?.[0]}>{origins.map(({value,label})=><option key={value} value={value}>{label}</option>)}</Field>
