@@ -9,8 +9,9 @@ describe('UX and compliance surfaces', () => {
 
     assert.match(source, /aria-expanded=\{mobileMenuOpen\}/);
     assert.match(source, /aria-controls="mobile-menu"/);
-    assert.match(source, /id="mobile-menu"/);
-    assert.match(source, /event\.key === 'Escape'/);
+    assert.match(source, /<dialog\s+id="mobile-menu"/);
+    // A modal dialog gives focus containment, Escape-to-close and an inert page natively.
+    assert.match(source, /\.showModal\(\)/);
   });
 
   it('keeps mobile filter dialog focus inside the modal', () => {
