@@ -4,7 +4,7 @@
 
 The verified remote current public available catalog contains **481 coffees / 38 roasters / 1,170 offers**. D1 holds **2,786 price observations**, including 1,030 imported snapshot observations, and **13,452 immutable archive rows**. There are **zero coffee events, zero crawl errors and zero duplicate observation groups**. The archived legacy records remain available for traceability; current offers and source-derived profiles are separate from that archive.
 
-All **14 qualified sources** have successful real baselines. Petra, Daphne and Parsa also passed a second baseline and an unchanged LIVE cycle. The combined reviewed captures contain 281 products and 1,286 offers; 232 products are public, 49 hidden, and 156 public products have an available offer. Profiles come from current captured text as versioned `RULE_INFERRED` values with null confidence and source references. Raw source facts remain separate, and manual provenance is protected.
+`shared/v2/qualified-sources.ts` now lists **38 qualified sources**. This snapshot (2026-09-14) covers the original 14, which all had successful real baselines. Petra, Daphne and Parsa also passed a second baseline and an unchanged LIVE cycle. The combined reviewed captures contain 281 products and 1,286 offers; 232 products are public, 49 hidden, and 156 public products have an available offer. Profiles come from current captured text as versioned `RULE_INFERRED` values with null confidence and source references. Raw source facts remain separate, and manual provenance is protected.
 
 | Current quality measure | Verified value |
 | --- | ---: |
