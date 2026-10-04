@@ -159,3 +159,17 @@ test('a MANUAL brew correction listing many methods still counts; only non-manua
   assert.deepEqual(scoreCandidate(want, manual).reasons.map(reason => [reason.kind, reason.provenance]), [['match', 'manual']]);
   assert.deepEqual(scoreCandidate(want, guessed).reasons.map(reason => reason.kind), ['missing']);
 });
+
+test('a MANUAL correction of the tasting notes silences inferred flavour families in the quiz, as it does in the filters', async () => {
+  const db = new TestCatalogDatabase();
+  await registerRoaster(db, { id: 'r', slug: 'roaster', name: 'Roaster', websiteUrl: 'https://shop.test', adapter: 'test' });
+  await ingestCrawl(db, { id: 'run1', roasterId: 'r', startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:01:00.000Z', status: 'success', parserVersion: 'test', diagnostics: [],
+    products: [{ sourceProductId: 'a', canonicalUrl: 'https://shop.test/a', name: 'Coffee a', visibility: 'public', rawMetadata: {},
+      features: [{ feature: 'flavor_families', value: ['Fruity'], sourceType: 'RULE_INFERRED', confidence: null, version: 'test' }],
+      offers: [{ sourceVariantId: 'sku-a', label: '250g', weightG: 250, price: 500, compareAtPrice: null, currency: 'TRY', inStock: true, purchaseUrl: 'https://shop.test/a' }] }] });
+  const id = (db.sqlite.prepare("SELECT id FROM coffees WHERE source_product_id='a'").get() as { id: string }).id;
+  assert.equal((await rankQuizMatches(db, answers({ taste: ['Fruity'] }), 4)).coffees[0].quizReasons[0].kind, 'match');
+  db.sqlite.prepare('INSERT INTO coffee_feature_values VALUES(?,?,?,?,?,?,?,?,?)').run(id, 'flavor_notes_normalized', 'null', 'MANUAL', 1, 'corrections', 'review', '2026-01-02', '2026-01-02');
+  assert.deepEqual((await rankQuizMatches(db, answers({ taste: ['Fruity'] }), 4)).coffees[0].quizReasons.map(reason => reason.kind), ['missing']);
+  db.sqlite.close();
+});

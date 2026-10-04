@@ -127,7 +127,8 @@ export function rankCandidates(answers: QuizAnswers, candidates: QuizCandidate[]
 export type QuizMatch = CatalogCoffee & { quizReasons: QuizReason[]; quizExact: boolean };
 /** One candidate query on the public view, scoring in TypeScript, hydration of the winners only (as getSimilarCoffees). */
 export async function rankQuizMatches(db: CatalogDatabase, answers: QuizAnswers, limit = 8): Promise<{ coffees: QuizMatch[]; exact: boolean; total: number }> {
-  const names = [...new Set(Object.values(FEATURES).flat())].map(name => `'${name}'`).join(',');
+  // Whole fact groups, not only the features scored: a MANUAL row on any member (say flavor_notes_normalized) must silence the rest.
+  const names = [...new Set(['brewMethods', 'tastingNotes', 'roast', 'process'].flatMap(fact => FACT_FEATURES[fact]))].map(name => `'${name}'`).join(',');
   // ponytail: same 5,000 newest cap as getSimilarCoffees; move scoring into SQL if the catalog outgrows it.
   const rows = await db.prepare(`SELECT ${COFFEE_COLUMNS},(SELECT json_group_array(json_object('feature',f.feature,'value',json(f.value_json),'sourceType',f.source_type,'version',f.version)) FROM coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN (${names})) AS quiz_features_json FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} ORDER BY c.first_seen_at DESC,c.id LIMIT 5000`).all<CoffeeRow & { quiz_features_json: string }>();
   const candidates = rows.results.map(row => toCandidate(row));
