@@ -1,5 +1,9 @@
 # Crawler health
 
+## Source counts — 2026-10-05
+
+44 configured sources (43 active, Cho Coffee inactive), 38 qualified, 5 newly added and awaiting qualification (`coffee-sapiens`, `lot-coffee`, `caffe-di-toee`, `mayard`, `vitus`). The "39 active sources" wording elsewhere in this file is historical. See [data-quality.md](data-quality.md) for the qualification step.
+
 ## Current staging verification — 2026-09-14 UTC
 
 Remote D1 and Cloudflare Queues were checked at **21:52:49 UTC**. All **14 qualified sources** completed real staging baselines successfully. Petra, Daphne and Parsa additionally completed a second baseline and an unchanged LIVE cycle; the other 11 completed one baseline each. These checks produced 20 successful non-import runs with **2,786 total observations** (including 1,030 imported observations), **zero events** and **zero crawl errors**. One duplicate Petra queue message produced no duplicate persisted run or observations.
