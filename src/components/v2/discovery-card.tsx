@@ -36,7 +36,7 @@ export function currentBadges(coffee:CatalogCoffee,now=Date.now()):CoffeeEvent[]
   }).sort((a,b)=>Number(b.type==='DEAL')-Number(a.type==='DEAL')).slice(0,2);
 }
 export function publicOfferLabel(offer:CatalogOffer|undefined){
-  return offer?.label&&!/^legacy package\b/i.test(offer.label)?offer.label:offer?.weightG?formatPackageWeight(offer.weightG):'Paket ağırlığı belirtilmemiş';
+  return offer?.label&&!/^(legacy package\b|default title$)/i.test(offer.label)?offer.label:offer?.weightG?formatPackageWeight(offer.weightG):'Paket ağırlığı belirtilmemiş';
 }
 export function OfferPrice({offer}:{offer:CatalogOffer|undefined}){
   return <div className="tabular-nums"><p className="flex flex-wrap items-baseline gap-x-1.5"><strong className="text-[19px] font-semibold">{offer?.priceMinor!=null&&offer.priceMinor>0?formatMoney(offer.priceMinor/100,offer.currency??'(para birimi belirtilmemiş)'): 'Fiyat paylaşılmamış'}</strong>{offer?.weightG?<span className="text-[13px] text-muted">/ {formatPackageWeight(offer.weightG)}</span>:null}</p>
