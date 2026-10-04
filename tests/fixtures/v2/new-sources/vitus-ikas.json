@@ -1,0 +1,261 @@
+{
+ "recorded": "2026-10-05 https://vituscoffee.com/niteliklikahveler page and POST https://api.myikas.com/api/sf/graphql?op=searchProducts (count 47); trimmed to 2 products and their first two variants. Storefront API key replaced.",
+ "context": {
+  "apiUrl": "https://api.myikas.com/api/sf/graphql",
+  "apiKey": "redacted-test-fixture",
+  "storefrontId": "fixture",
+  "storefrontRoutingId": "route",
+  "routings": [
+   {
+    "id": "route",
+    "currencyCode": "TRY",
+    "locale": "tr",
+    "priceListId": null
+   }
+  ],
+  "salesChannelId": "fixture",
+  "stockLocationIds": [
+   "b2c32422-b278-4d71-b63e-9c27a0fb6868"
+  ],
+  "cdnUrl": "https://cdn.myikas.com/",
+  "merchantSettings": {
+   "merchantId": "fixture"
+  }
+ },
+ "searchProducts": {
+  "count": 2,
+  "page": 1,
+  "limit": 50,
+  "results": [
+   {
+    "id": "858f361e-02c5-4fc9-8242-99aa7be6c629",
+    "name": "Italian Espresso Blend",
+    "description": "<p><strong>Italian Espresso Blend</strong>, koyu kavrulmuş kahve sevenler için özel olarak hazırlanmış, zengin ve karakteristik bir lezzet sunan eşsiz bir karışımdır. Bu blend, %70 oranında Peru Arabica ve %30 oranında Hindistan Robusta çekirdeklerinin özenle harmanlanmasıyla oluşturulmuştur. Peru'n",
+    "shortDescription": null,
+    "deleted": false,
+    "type": "PHYSICAL",
+    "metaData": {
+     "slug": "italian-espresso-blend"
+    },
+    "categories": [
+     {
+      "name": "Blend Kahveler"
+     },
+     {
+      "name": "Toptan Satış"
+     }
+    ],
+    "tags": [],
+    "productVariantTypes": [
+     {
+      "variantType": {
+       "id": "db60c379-60ef-4b8d-894f-5a9caa2edef4",
+       "name": "MİKTAR",
+       "values": [
+        {
+         "id": "26e65221-c9dc-4902-bfc4-15feebd8082e",
+         "name": "250 GR"
+        },
+        {
+         "id": "82063a9d-b001-4cca-840b-41f9ae26a4f8",
+         "name": "1000 GR"
+        },
+        {
+         "id": "a620f9e3-c608-4f8b-a865-3a36096d38be",
+         "name": "5x1000 GR"
+        }
+       ]
+      }
+     }
+    ],
+    "variants": [
+     {
+      "id": "0b4112ca-d6c5-4a53-a444-d9d0c16cf89c",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": false,
+      "variantValues": [
+       {
+        "variantTypeId": "db60c379-60ef-4b8d-894f-5a9caa2edef4",
+        "variantValueId": "26e65221-c9dc-4902-bfc4-15feebd8082e"
+       }
+      ],
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 435,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "b2c32422-b278-4d71-b63e-9c27a0fb6868",
+        "stockCount": 0
+       }
+      ],
+      "images": [
+       {
+        "id": "c87b3f5b-9f6e-4d08-a311-1d0163e129d7",
+        "isMain": true,
+        "isVideo": false,
+        "order": 0
+       },
+       {
+        "id": "4b6db89d-1332-4274-bece-2ae009ade7b0",
+        "isMain": true,
+        "isVideo": false,
+        "order": 0
+       }
+      ]
+     },
+     {
+      "id": "caa33403-46e4-4aaa-9a29-1626f578e4e0",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": false,
+      "variantValues": [
+       {
+        "variantTypeId": "db60c379-60ef-4b8d-894f-5a9caa2edef4",
+        "variantValueId": "82063a9d-b001-4cca-840b-41f9ae26a4f8"
+       }
+      ],
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 1566,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "b2c32422-b278-4d71-b63e-9c27a0fb6868",
+        "stockCount": 0
+       }
+      ],
+      "images": [
+       {
+        "id": "642674f4-fff5-41cc-82b0-63630a922198",
+        "isMain": true,
+        "isVideo": false,
+        "order": 0
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "4048fed1-7516-4ec8-bca8-a9652dcf29a6",
+    "name": "Ethiopia Yirgacheffe ",
+    "description": "<div>Etiyopya Yirgacheffe kahvesi, dünyaca ünlü Yirgacheffe bölgesinin 1800-2000 metre yüksekliklerinde yetişen Heirloom türündeki Coffea Arabica çekirdeklerinden özenle seçilmiştir. 2023 hasat yılına ait bu çekirdekler, yıkanmış işlem yöntemiyle işlenmiş ve hafif-orta bir kavurma profiliyle (4,5/10",
+    "shortDescription": null,
+    "deleted": false,
+    "type": "PHYSICAL",
+    "metaData": {
+     "slug": "ethiopia-yirgacheffe-gr2"
+    },
+    "categories": [
+     {
+      "name": "Nitelikli Kahveler"
+     }
+    ],
+    "tags": [],
+    "productVariantTypes": [
+     {
+      "variantType": {
+       "id": "db60c379-60ef-4b8d-894f-5a9caa2edef4",
+       "name": "MİKTAR",
+       "values": [
+        {
+         "id": "26e65221-c9dc-4902-bfc4-15feebd8082e",
+         "name": "250 GR"
+        },
+        {
+         "id": "82063a9d-b001-4cca-840b-41f9ae26a4f8",
+         "name": "1000 GR"
+        }
+       ]
+      }
+     }
+    ],
+    "variants": [
+     {
+      "id": "eaaeff27-f523-4ced-9d21-355fa444788b",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": false,
+      "variantValues": [
+       {
+        "variantTypeId": "db60c379-60ef-4b8d-894f-5a9caa2edef4",
+        "variantValueId": "26e65221-c9dc-4902-bfc4-15feebd8082e"
+       }
+      ],
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 550,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "b2c32422-b278-4d71-b63e-9c27a0fb6868",
+        "stockCount": 0
+       }
+      ],
+      "images": [
+       {
+        "id": "11f3d9dc-aa0a-4a12-b776-5b47de004f41",
+        "isMain": true,
+        "isVideo": false,
+        "order": 0
+       },
+       {
+        "id": "572b6127-0030-4ac2-8296-3ae02eb9f1e6",
+        "isMain": false,
+        "isVideo": false,
+        "order": 1
+       }
+      ]
+     },
+     {
+      "id": "6e6bce24-68ab-4e59-9558-6d0d99b0f6b3",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": false,
+      "variantValues": [
+       {
+        "variantTypeId": "db60c379-60ef-4b8d-894f-5a9caa2edef4",
+        "variantValueId": "82063a9d-b001-4cca-840b-41f9ae26a4f8"
+       }
+      ],
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 1980,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "b2c32422-b278-4d71-b63e-9c27a0fb6868",
+        "stockCount": 0
+       }
+      ],
+      "images": [
+       {
+        "id": "3a98138d-ca4d-4106-800b-39445b7a3c23",
+        "isMain": true,
+        "isVideo": false,
+        "order": 0
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

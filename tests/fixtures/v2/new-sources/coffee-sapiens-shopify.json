@@ -1,0 +1,359 @@
+{
+ "recorded": "2026-10-05 GET https://www.coffeesapiens.com/products.json?limit=250&page=1, trimmed to 3 of 36 products and their first variants",
+ "products": [
+  {
+   "id": 7579545632850,
+   "title": "INDONESIA MAS IYAN GIGI JERUK",
+   "handle": "indonesia-mas-iyan-jeruk",
+   "body_html": "<p>Jeruk, Endonezyaca'da \"narenciye\" anlamına geliyor; ismin kendisi zaten ilk ipucu. Çiftlik ve çeşit değişmedi; değişen tek şey Mas Iyan'ın bu kez sorduğu soru: bir Endonezya kahvesi ne kadar parlak olabilir? Yanıtı Carbonic Maceration Natural. Şarapçılıktan ödünç alınan bu yöntem, bütün kirazları",
+   "published_at": "2026-05-17T22:55:12+03:00",
+   "created_at": "2026-05-17T20:26:04+03:00",
+   "updated_at": "2026-10-05T01:09:58+03:00",
+   "vendor": "Coffee Sapiens",
+   "product_type": "",
+   "tags": [],
+   "variants": [
+    {
+     "id": 42405963595858,
+     "title": "250 gr. / Çekirdek Kahve",
+     "option1": "250 gr.",
+     "option2": "Çekirdek Kahve",
+     "option3": null,
+     "sku": null,
+     "requires_shipping": true,
+     "taxable": true,
+     "featured_image": {
+      "id": 33816882610258,
+      "product_id": 7579545632850,
+      "position": 1,
+      "created_at": "2026-05-17T21:23:30+03:00",
+      "updated_at": "2026-05-17T21:23:32+03:00",
+      "alt": "INDONESIA MAS IYAN JERUK - Coffee Sapiens ",
+      "width": 4160,
+      "height": 4160,
+      "src": "https://cdn.shopify.com/s/files/1/0956/1562/files/mas_iyan_jeruk_site_resmi_c142d0e0-5fa8-4442-9064-da5b6c26c39e.jpg?v=1779042212",
+      "variant_ids": [
+       42405963595858,
+       42405963628626,
+       42405963661394,
+       42405963694162,
+       42405963726930,
+       42405963759698,
+       42405963792466,
+       42405963825234,
+       42405963858002,
+       42405963890770,
+       42405963923538
+      ]
+     },
+     "available": true,
+     "price": "1150.00",
+     "grams": 0,
+     "compare_at_price": null,
+     "position": 1,
+     "product_id": 7579545632850,
+     "created_at": "2026-05-17T20:26:04+03:00",
+     "updated_at": "2026-10-05T01:09:58+03:00"
+    },
+    {
+     "id": 42405963628626,
+     "title": "250 gr. / Aeropress",
+     "option1": "250 gr.",
+     "option2": "Aeropress",
+     "option3": null,
+     "sku": null,
+     "requires_shipping": true,
+     "taxable": true,
+     "featured_image": {
+      "id": 33816882610258,
+      "product_id": 7579545632850,
+      "position": 1,
+      "created_at": "2026-05-17T21:23:30+03:00",
+      "updated_at": "2026-05-17T21:23:32+03:00",
+      "alt": "INDONESIA MAS IYAN JERUK - Coffee Sapiens ",
+      "width": 4160,
+      "height": 4160,
+      "src": "https://cdn.shopify.com/s/files/1/0956/1562/files/mas_iyan_jeruk_site_resmi_c142d0e0-5fa8-4442-9064-da5b6c26c39e.jpg?v=1779042212",
+      "variant_ids": [
+       42405963595858,
+       42405963628626,
+       42405963661394,
+       42405963694162,
+       42405963726930,
+       42405963759698,
+       42405963792466,
+       42405963825234,
+       42405963858002,
+       42405963890770,
+       42405963923538
+      ]
+     },
+     "available": true,
+     "price": "1150.00",
+     "grams": 0,
+     "compare_at_price": null,
+     "position": 2,
+     "product_id": 7579545632850,
+     "created_at": "2026-05-17T20:26:04+03:00",
+     "updated_at": "2026-10-05T01:09:58+03:00"
+    }
+   ],
+   "images": [
+    {
+     "id": 33816882610258,
+     "created_at": "2026-05-17T21:23:30+03:00",
+     "position": 1,
+     "updated_at": "2026-05-17T21:23:32+03:00",
+     "product_id": 7579545632850,
+     "variant_ids": [
+      42405963595858,
+      42405963628626,
+      42405963661394,
+      42405963694162,
+      42405963726930,
+      42405963759698,
+      42405963792466,
+      42405963825234,
+      42405963858002,
+      42405963890770,
+      42405963923538
+     ],
+     "src": "https://cdn.shopify.com/s/files/1/0956/1562/files/mas_iyan_jeruk_site_resmi_c142d0e0-5fa8-4442-9064-da5b6c26c39e.jpg?v=1779042212",
+     "width": 4160,
+     "height": 4160
+    }
+   ],
+   "options": [
+    {
+     "name": "BOYUT",
+     "position": 1,
+     "values": [
+      "250 gr."
+     ]
+    },
+    {
+     "name": "ÖĞÜTME TÜRLERİ",
+     "position": 2,
+     "values": [
+      "Çekirdek Kahve",
+      "Aeropress",
+      "Chemex",
+      "Espresso",
+      "French Press",
+      "Kağıt Filtre",
+      "Metal Filtre",
+      "Moka Pot",
+      "Türk Kahvesi",
+      "V60",
+      "Cold Brew"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 1179092036,
+   "title": "KOLOMBİYA SUPREMO HUILA",
+   "handle": "colombia-supremo-huila",
+   "body_html": "<p class=\"font-claude-response-body break-words whitespace-normal leading-[1.7]\"><strong>Huila</strong>, Kolombiya'nın en çok kahve üreten bölgesi. Üretimin büyük kısmını 1.500–1.900 metrede, birkaç hektarlık parselleri işleyen küçük kooperatifler karşılıyor; hasat geleneksel yöntemle tamamen yıkanı",
+   "published_at": "2026-02-17T13:26:38+03:00",
+   "created_at": "2015-08-19T12:51:53+03:00",
+   "updated_at": "2026-10-05T01:09:58+03:00",
+   "vendor": "Coffee Sapiens",
+   "product_type": "",
+   "tags": [],
+   "variants": [
+    {
+     "id": 21826977668,
+     "title": "250 gr. / Çekirdek Kahve",
+     "option1": "250 gr.",
+     "option2": "Çekirdek Kahve",
+     "option3": null,
+     "sku": "",
+     "requires_shipping": true,
+     "taxable": true,
+     "featured_image": {
+      "id": 30541046972498,
+      "product_id": 1179092036,
+      "position": 1,
+      "created_at": "2023-07-26T20:46:22+03:00",
+      "updated_at": "2023-07-26T20:46:24+03:00",
+      "alt": "COLOMBIA SUPREMO HUILA - Coffee Sapiens ",
+      "width": 840,
+      "height": 840,
+      "src": "https://cdn.shopify.com/s/files/1/0956/1562/files/250-gr-colombia-huila.jpg?v=1690393584",
+      "variant_ids": [
+       21826977668,
+       21826977732,
+       21826977796,
+       21826977860,
+       21826977924,
+       21826977988,
+       21826978052,
+       21826978116,
+       21826978180,
+       32133703794770,
+       39265874509906
+      ]
+     },
+     "available": true,
+     "price": "555.00",
+     "grams": 250,
+     "compare_at_price": null,
+     "position": 1,
+     "product_id": 1179092036,
+     "created_at": "2016-07-29T14:39:12+03:00",
+     "updated_at": "2026-10-05T01:09:58+03:00"
+    },
+    {
+     "id": 42487389028434,
+     "title": "1000 gr. / Çekirdek Kahve",
+     "option1": "1000 gr.",
+     "option2": "Çekirdek Kahve",
+     "option3": null,
+     "sku": null,
+     "requires_shipping": true,
+     "taxable": true,
+     "featured_image": {
+      "id": 30541102514258,
+      "product_id": 1179092036,
+      "position": 2,
+      "created_at": "2023-07-26T20:55:51+03:00",
+      "updated_at": "2023-07-26T20:55:52+03:00",
+      "alt": "COLOMBIA SUPREMO HUILA 1000 GR. - Coffee Sapiens ",
+      "width": 840,
+      "height": 840,
+      "src": "https://cdn.shopify.com/s/files/1/0956/1562/files/1000-gr-colombia-huila.jpg?v=1690394152",
+      "variant_ids": [
+       42487389028434,
+       42487389225042,
+       42487389290578,
+       42487389519954,
+       42487389552722,
+       42487389978706,
+       42487390273618,
+       42487390306386,
+       42487390699602,
+       42487390928978,
+       42487391354962
+      ]
+     },
+     "available": true,
+     "price": "2000.00",
+     "grams": 250,
+     "compare_at_price": null,
+     "position": 12,
+     "product_id": 1179092036,
+     "created_at": "2026-07-06T14:36:35+03:00",
+     "updated_at": "2026-10-05T01:09:58+03:00"
+    }
+   ],
+   "images": [
+    {
+     "id": 30541046972498,
+     "created_at": "2023-07-26T20:46:22+03:00",
+     "position": 1,
+     "updated_at": "2023-07-26T20:46:24+03:00",
+     "product_id": 1179092036,
+     "variant_ids": [
+      21826977668,
+      21826977732,
+      21826977796,
+      21826977860,
+      21826977924,
+      21826977988,
+      21826978052,
+      21826978116,
+      21826978180,
+      32133703794770,
+      39265874509906
+     ],
+     "src": "https://cdn.shopify.com/s/files/1/0956/1562/files/250-gr-colombia-huila.jpg?v=1690393584",
+     "width": 840,
+     "height": 840
+    }
+   ],
+   "options": [
+    {
+     "name": "BOYUT",
+     "position": 1,
+     "values": [
+      "250 gr.",
+      "1000 gr."
+     ]
+    },
+    {
+     "name": "ÖĞÜTME TÜRLERİ",
+     "position": 2,
+     "values": [
+      "Çekirdek Kahve",
+      "Aeropress",
+      "Espresso",
+      "Chemex",
+      "French Press",
+      "Kağıt Filtre",
+      "Metal Filtre",
+      "Moka Pot",
+      "Türk Kahvesi",
+      "V60",
+      "Soğuk Kahve"
+     ]
+    }
+   ]
+  },
+  {
+   "id": 7406997274706,
+   "title": "Wilfa - Uniform 58mm Düz Dişli Kahve Öğütücü - Gümüş - WSFB-100S",
+   "handle": "wilfa-uniform-58mm-flat-gear-coffee-grinder-silver-wsfb-100s",
+   "body_html": "<p>Evde ve ofiste mükemmel kahve lezzetini arayanlar, Wilfa’nın üstün kahve öğütücüsü Uniform 58mm Düz Dişli Kahve Öğütücü ile tanışıyor. 58 mm paslanmaz çelik düz öğütme sistemi sayesinde, bu öğütücüyle öğütülen kahveler damakta daha dolgun bir lezzet bırakır. Yavaş ve hassas öğütme özelliği, kahve",
+   "published_at": "2024-11-13T11:38:57+03:00",
+   "created_at": "2024-11-13T11:11:53+03:00",
+   "updated_at": "2026-10-05T01:09:58+03:00",
+   "vendor": "Coffee Sapiens",
+   "product_type": "",
+   "tags": [],
+   "variants": [
+    {
+     "id": 41272910512210,
+     "title": "Default Title",
+     "option1": "Default Title",
+     "option2": null,
+     "option3": null,
+     "sku": null,
+     "requires_shipping": true,
+     "taxable": true,
+     "featured_image": null,
+     "available": true,
+     "price": "29700.00",
+     "grams": 250,
+     "compare_at_price": null,
+     "position": 1,
+     "product_id": 7406997274706,
+     "created_at": "2024-11-13T11:11:53+03:00",
+     "updated_at": "2026-10-05T01:09:58+03:00"
+    }
+   ],
+   "images": [
+    {
+     "id": 31910935068754,
+     "created_at": "2024-11-13T11:33:51+03:00",
+     "position": 1,
+     "updated_at": "2024-11-13T11:33:53+03:00",
+     "product_id": 7406997274706,
+     "variant_ids": [],
+     "src": "https://cdn.shopify.com/s/files/1/0956/1562/files/wilfa-uniform-58mm-flat-disli-kahve-og-1faf4b.jpg?v=1731486833",
+     "width": 550,
+     "height": 550
+    }
+   ],
+   "options": [
+    {
+     "name": "Başlık",
+     "position": 1,
+     "values": [
+      "Default Title"
+     ]
+    }
+   ]
+  }
+ ]
+}
