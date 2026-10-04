@@ -16,7 +16,7 @@ import type { Json } from '../shared/v2/types';
 import { D1RestDatabase } from './v2-d1-rest';
 
 export interface Correction { coffeeSlug: string; features?: Record<string, Json>; visibility?: 'public' | 'hidden'; canonicalOf?: string | null }
-interface CoffeeRow { id: string; roaster_id: string; name: string; slug: string; visibility: string; first_seen_at: string }
+interface CoffeeRow { id: string; roaster_id: string; name: string; slug: string; visibility: string; first_seen_at: string; current: number }
 const VERSION = 'corrections';
 
 /** "KOYU 2.5KG", "Kenya (1000 gr)" and "Kenya 250 g" share a key with "KOYU" and "Kenya". "Espresso" stays: the roast can differ. */
@@ -26,7 +26,10 @@ export function sizeKey(name: string): { folded: string; key: string } {
 }
 
 export async function applyCorrections(db: CatalogDatabase, corrections: Correction[], now = new Date().toISOString()) {
-  const coffees = (await db.prepare('SELECT id,roaster_id,name,slug,visibility,first_seen_at FROM coffees').all<CoffeeRow>()).results;
+  // `current` is the 7-day rule of public_catalog_coffees: a stale parent would hide every twin linked to it.
+  const coffees = (await db.prepare(`SELECT c.id,c.roaster_id,c.name,c.slug,c.visibility,c.first_seen_at,
+    (c.discontinued_at IS NULL AND (r.last_success_at IS NULL OR datetime(c.last_seen_at)>=datetime(r.last_success_at,'-7 days'))) AS current
+    FROM coffees c JOIN roasters r ON r.id=c.roaster_id`).all<CoffeeRow>()).results;
   const aliases = (await db.prepare("SELECT alias,coffee_id FROM coffee_aliases WHERE alias_type='slug'").all<{ alias: string; coffee_id: string }>()).results;
   const find = (slug: unknown) => {
     const id = coffees.find(row => row.slug === slug)?.id ?? aliases.find(row => row.alias === slug)?.coffee_id;
@@ -57,12 +60,12 @@ export async function applyCorrections(db: CatalogDatabase, corrections: Correct
     }
   }
   if ([...links.values()].some(parent => links.has(parent))) throw new Error('canonicalOf cannot point at a coffee that is itself a child.');
-  // Automatic links only for the safe case: same roaster, public, names equal once a size suffix is removed, and every name distinct
+  // Automatic links only for the safe case: same roaster, public, currently listed, names equal once a size suffix is removed, and every name distinct
   // (identical names may be a relisted lot). The oldest coffee is the parent, so its URL stays the group's URL.
   const explicit = new Set([...links.keys(), ...links.values(), ...optOut]);
   const groups = new Map<string, (CoffeeRow & { folded: string })[]>();
   for (const coffee of coffees) {
-    if ((overrides.get(coffee.id) ?? coffee.visibility) !== 'public' || explicit.has(coffee.id)) continue;
+    if ((overrides.get(coffee.id) ?? coffee.visibility) !== 'public' || !coffee.current || explicit.has(coffee.id)) continue;
     const { folded, key } = sizeKey(coffee.name);
     if (!key) continue;
     groups.set(`${coffee.roaster_id}|${key}`, [...(groups.get(`${coffee.roaster_id}|${key}`) ?? []), { ...coffee, folded }]);

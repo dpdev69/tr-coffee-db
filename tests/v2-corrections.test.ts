@@ -50,3 +50,23 @@ test('corrections link size twins, override visibility and MANUAL facts across c
   await assert.rejects(applyCorrections(db,[{coffeeSlug:'missing'}]),/Unknown coffee slug/);
   db.sqlite.close();
 });
+
+test('automatic links only join currently listed coffees, so a delisted size never hides the sizes still sold',async()=>{
+  const db=new TestCatalogDatabase();await registerRoaster(db,{id:'r',slug:'roaster',name:'Roaster',websiteUrl:'https://shop.test',adapter:'test'});
+  const day=(d:number):CrawlInput=>({...run(1,[]),id:`run${d}`,startedAt:new Date(Date.UTC(2026,0,d)).toISOString(),completedAt:new Date(Date.UTC(2026,0,d,0,1)).toISOString()});
+  const small=product('small','Kenya 50g',50),big=product('big','Kenya 250g');
+  await ingestCrawl(db,{...day(1),products:[small],mode:'baseline'});
+  await ingestCrawl(db,{...day(2),products:[small,big]});
+  assert.equal((await applyCorrections(db,[],'2026-01-02T01:00:00.000Z')).links.length,1);
+  // The 50 g bag is withdrawn; the 250 g bag keeps selling past the 7-day window.
+  for(let d=3;d<=12;d++){await ingestCrawl(db,{...day(d),products:[big]});await applyCorrections(db,[],new Date(Date.UTC(2026,0,d,1)).toISOString());}
+  assert.deepEqual((await listCatalog(db)).coffees.map(c=>c.sourceProductId),['big']);
+  // A long-gone listing is never chosen as the parent of a new one.
+  const old=product('old','Brazil'),fresh=product('fresh','Brazil 250 g');
+  await ingestCrawl(db,{...day(13),products:[big,old]});
+  for(let d=14;d<=22;d++)await ingestCrawl(db,{...day(d),products:[big]});
+  await ingestCrawl(db,{...day(23),products:[big,fresh]});
+  assert.deepEqual((await applyCorrections(db,[],'2026-01-23T01:00:00.000Z')).links,[]);
+  assert.deepEqual((await listCatalog(db)).coffees.map(c=>c.sourceProductId).sort(),['big','fresh']);
+  db.sqlite.close();
+});
