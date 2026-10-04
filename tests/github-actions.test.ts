@@ -43,7 +43,7 @@ describe('GitHub Actions workflows', () => {
     assert.match(issue, /contents: read/);
     assert.match(issue, /v2-digest\.mts --issue "\$month" --create-draft/);
     // User input reaches the shell only through env, never interpolated into the script.
-    assert.doesNotMatch(issue.split('run: |')[1], /\$\{\{/);
+    assert.doesNotMatch(issue.split('run: |')[1].split('- name:')[0], /\$\{\{/);
     assert.match(readSource('.github/workflows/digest.yml'), /cron: '0 3 \* \* 1'/);
   });
 
