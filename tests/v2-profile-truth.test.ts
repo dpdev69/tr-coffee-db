@@ -129,3 +129,9 @@ test('a word of a process or variety phrase is not a tasting note; a tasting sec
   assert.equal(derive('Colombia – Santa Monica Honey + Wine Yeast / Lulo','').flavor_notes_normalized,undefined);
   assert.deepEqual(derive('Kolombiya','<h3>Tadım Notları</h3><p>Honey, orange.</p>').flavor_notes_normalized,['Orange','Honey']);
 });
+test('honeydew, cherry blossom and white tea are not Honey, Cherry or Black Tea, even in a tasting section',()=>{
+  // Mayard's own "Tadım Notları", 2026-10-05: Liberica "Honey Mosto" and Frinsa Edun #2.
+  assert.deepEqual(derive('Indonesia Liberica','<h3>Tadım Notları</h3><p>Şeftali, Beyaz Çay, Nektar, Bal Kavunu</p>').flavor_notes_normalized,['Peach']);
+  assert.deepEqual(derive('Indonesia Frinsa Edun #2','<h3>Tadım Notları</h3><p>Karpuz, Dağ Çileği, Kiraz Çiçeği, Kan Portakal</p>').flavor_notes_normalized,['Orange']);
+  assert.deepEqual(derive('Rwanda','<h3>Tadım Notları</h3><p>Vişne, Erik, Kuru Üzüm ve Siyah Çay, bal</p>').flavor_notes_normalized,['Cherry','Plum','Grape','Honey','Black Tea']);
+});

@@ -104,6 +104,11 @@ const PROSE_AMBIGUOUS = new Set(['bal', 'tatlı', 'date', 'parlak']);
 // Phrases whose words are not flavors: cultivars named by a colour ("Orange Bourbon") and a fermentation yeast ("Wine Yeast").
 const NOT_FLAVOR = /(?:^|[^a-z0-9])(?:(?:pink|red|yellow|orange|striped)\s*(?:bourbon|burbon|catuai|caturra)|wine\s*yeast)(?=$|[^a-z0-9])/g;
 
+// Notes whose words name a different flavor the map does not hold: honeydew melon and pumpkin are not Honey, cherry
+// blossom is not Cherry, white tea is not Black Tea. Unknown beats wrong, so they are read as nothing.
+const OTHER_FLAVOR = /(?:^|[^a-z0-9])(?:bal\s*kavun[a-z]*|bal\s*kaba[a-z]*|honeydew|kiraz\s*cice[gk][a-z]*|cherry\s*blossom[a-z]*|beyaz\s*cay[a-z]*|white\s*tea)(?=$|[^a-z0-9])/g;
+const blank = (span: string) => ' '.repeat(span.length);
+
 /**
  * `prose`: the text is a name, description or tags rather than a tasting section, so ambiguous words are skipped and
  * words of a process or variety phrase ("Full Honey Anaerobic", "Orange Bourbon") are not read as flavors.
@@ -113,7 +118,7 @@ export function matchFlavorNotes(text: string, strictWords = false, prose = fals
   categories: string[];
 } {
   const lower = text.toLowerCase();
-  const folded = prose ? blankProcesses(foldTr(text)).replace(NOT_FLAVOR, (span) => ' '.repeat(span.length)) : foldTr(text);
+  const folded = (prose ? blankProcesses(foldTr(text)).replace(NOT_FLAVOR, blank) : foldTr(text)).replace(OTHER_FLAVOR, blank);
   const matchedNotes = new Set<string>();
   const matchedCategories = new Set<string>();
 
