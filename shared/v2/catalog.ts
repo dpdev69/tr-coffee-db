@@ -1,4 +1,4 @@
-import { cleanCoffeeName, truthfulFeatures, truthfulMetadata } from './profile-truth';
+import { cleanCoffeeName, FACT_FEATURES, truthfulFeatures, truthfulMetadata } from './profile-truth';
 import { coffeeOnlySql, fold, foldSql } from './coffee-eligibility';
 import { countryFilterAliases } from './country-labels';
 import type { CatalogDatabase, SqlValue } from './database';
@@ -82,20 +82,23 @@ export async function listCatalog(db:CatalogDatabase,filters:CatalogFilters={},n
 function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
   const conditions=[coffeeOnlySql()];const values:SqlValue[]=[];
   // Querying declared and inferred fields together is useful; their display/provenance remains separate.
-  const metadata=(rawPath:string,features:string[],accepted?:string[],expand?:(input:string[])=>string[])=>{
+  const metadata=(field:string,accepted?:string[],expand?:(input:string[])=>string[])=>{
     const selected=accepted?.map(value=>value.trim()).filter(Boolean).slice(0,20);
     if(!selected?.length)return;
     const input=JSON.stringify(expand?expand(selected):selected);
     // JSON arrays bound as values keep alias expansion and combined filters below D1's parameter limit.
     const matches="IN (SELECT value FROM json_each(?))";
-    conditions.push(`(json_extract(c.raw_metadata_json,?) ${matches} OR EXISTS(SELECT 1 FROM json_each(c.raw_metadata_json,?) j WHERE j.value ${matches}) OR EXISTS(SELECT 1 FROM coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN (SELECT value FROM json_each(?)) AND (json_extract(f.value_json,'$') ${matches} OR EXISTS(SELECT 1 FROM json_each(f.value_json) j WHERE j.value ${matches}))))`);
-    values.push(rawPath,input,rawPath,input,JSON.stringify(features),input,input);
+    // Feature names are code constants, not input. A reviewed MANUAL row decides alone: raw and inferred values it contradicts never match.
+    const features=FACT_FEATURES[field].map(feature=>`'${feature}'`).join(',');
+    const manual=`EXISTS(SELECT 1 FROM coffee_feature_values m WHERE m.coffee_id=c.id AND m.source_type='MANUAL' AND m.feature IN (${features}))`;
+    conditions.push(`(NOT ${manual} AND (json_extract(c.raw_metadata_json,?) ${matches} OR EXISTS(SELECT 1 FROM json_each(c.raw_metadata_json,?) j WHERE j.value ${matches})) OR EXISTS(SELECT 1 FROM coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN (${features}) AND (f.source_type='MANUAL' OR NOT ${manual}) AND (json_extract(f.value_json,'$') ${matches} OR EXISTS(SELECT 1 FROM json_each(f.value_json) j WHERE j.value ${matches}))))`);
+    values.push(`$.${field}`,input,`$.${field}`,input,input,input);
   };
-  metadata('$.country',['normalized_origin','origin_country'],filters.origin,countryFilterAliases);
-  metadata('$.process',['process_family','process'],filters.process);
-  metadata('$.roast',['roast_classification','roast_level'],filters.roast);
-  metadata('$.tastingNotes',['flavor_families','flavor_categories','flavor_notes_normalized'],filters.taste);
-  metadata('$.brewMethods',['brew_compatibility','brew_methods'],filters.brewMethod);
+  metadata('country',filters.origin,countryFilterAliases);
+  metadata('process',filters.process);
+  metadata('roast',filters.roast);
+  metadata('tastingNotes',filters.taste);
+  metadata('brewMethods',filters.brewMethod);
   if(filters.roaster?.length){const input=filters.roaster.slice(0,20);conditions.push(`r.slug IN (${placeholders(input.length)})`);values.push(...input);}
   if(filters.search?.trim()){
     // SQLite LIKE only folds ASCII case, so both sides are folded (İ/ı/ş/ğ/ü/ö/ç) before matching.
@@ -105,9 +108,9 @@ function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
     conditions.push(`(${terms.flatMap(()=>fields.map(field=>`${field} LIKE ? ESCAPE '\\'`)).join(' OR ')})`);
     values.push(...terms.flatMap(value=>fields.map(()=>`%${value.replace(/[\\%_]/g,'\\$&')}%`)));
   }
-  for(const [field,feature] of [['farm','origin_farm'],['producer','origin_producer'],['variety','variety']] as const){
-    const input=filters[field];
-    if(input?.trim())metadata(field==='variety'?'$.varieties':`$.${field}`,[feature,...(field==='variety'?['normalized_variety']:[])],[input.trim()]);
+  for(const [filter,field] of [['farm','farm'],['producer','producer'],['variety','varieties']] as const){
+    const input=filters[filter];
+    if(input?.trim())metadata(field,[input.trim()]);
   }
   if(filters.altitude?.trim()){
     // Source text only: a digit sequence is not evidence of a numeric altitude/range.
@@ -165,10 +168,12 @@ async function hydrate(db:CatalogDatabase,rows:CoffeeRow[],now:number):Promise<C
     db.prepare(`SELECT * FROM coffee_feature_values WHERE coffee_id IN (${list}) ORDER BY feature,source_type`).bind(...ids).all<FeatureRow>(),
     db.prepare(`SELECT * FROM (SELECT e.*,g.group_id,row_number() OVER(PARTITION BY g.group_id,e.type ORDER BY e.created_at DESC,e.id DESC) AS position FROM coffee_group_members g JOIN coffee_events e ON e.coffee_id=g.coffee_id WHERE g.group_id IN (${list})) WHERE position=1 ORDER BY created_at DESC`).bind(...ids).all<EventRow&{group_id:string}>(),
   ]);
-  return rows.map(row=>({id:row.id,name:cleanCoffeeName(row.name),slug:row.slug,canonicalUrl:row.canonical_url,sourceUrl:trustedSourceUrl(row),sourceProductId:row.source_product_id,
+  return rows.map(row=>{
+    const own=features.results.filter(f=>f.coffee_id===row.id).map(f=>({feature:f.feature,value:parseJson<Json>(f.value_json,null),sourceType:f.source_type,confidence:f.confidence,version:f.version,sourceReference:f.source_reference}));
+    return {id:row.id,name:cleanCoffeeName(row.name),slug:row.slug,canonicalUrl:row.canonical_url,sourceUrl:trustedSourceUrl(row),sourceProductId:row.source_product_id,
     roaster:{id:row.roaster_id,slug:row.roaster_slug,name:row.roaster_name,websiteUrl:row.website_url,city:row.city},
-    rawMetadata:truthfulMetadata(parseJson<RawMetadata>(row.raw_metadata_json,{}),row.name),
-    features:truthfulFeatures(features.results.filter(f=>f.coffee_id===row.id).map(f=>({feature:f.feature,value:parseJson<Json>(f.value_json,null),sourceType:f.source_type,confidence:f.confidence,version:f.version,sourceReference:f.source_reference})),parseJson<RawMetadata>(row.raw_metadata_json,{})),
+    rawMetadata:truthfulMetadata(parseJson<RawMetadata>(row.raw_metadata_json,{}),row.name,own),
+    features:truthfulFeatures(own,parseJson<RawMetadata>(row.raw_metadata_json,{})),
     offers:collapsePackages(offers.results.filter(o=>o.group_id===row.id).map(o=>{
       let purchaseUrl:string|null=null;
       try{const hosts=parseJson<string[]>(row.trusted_hosts_json,[]);if(hosts.length)purchaseUrl=canonicalizeUrl(o.purchase_url,hosts);}catch{/* Invalid imported URL has no purchase action. */}
@@ -177,7 +182,7 @@ async function hydrate(db:CatalogDatabase,rows:CoffeeRow[],now:number):Promise<C
     })),
     latestEvents:events.results.filter(e=>e.group_id===row.id).map(eventFromRow),
     firstSeenAt:row.first_seen_at,lastSeenAt:row.last_seen_at,discontinuedAt:row.discontinued_at,stale:now-Date.parse(row.last_seen_at)>3*86400000,
-  }));
+  };});
 }
 
 /** Rows arrive in display order (in stock, cheapest first); the first variant of each package keeps its purchase link. */
