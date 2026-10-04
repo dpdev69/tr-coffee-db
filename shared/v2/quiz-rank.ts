@@ -71,8 +71,8 @@ export function evidence(candidate: QuizCandidate, dimension: QuizDimension): { 
   ];
   for (const [provenance, read] of tiers) {
     const values = read();
-    // "Fits every brew method" is a legacy blanket guess, not information about this coffee.
-    if (dimension === 'brew' && values.length >= 5) continue;
+    // "Fits every brew method" is a legacy blanket guess, not information about this coffee. A reviewed correction is not a guess.
+    if (dimension === 'brew' && values.length >= 5 && provenance !== 'manual') continue;
     if (values.length) return { values, provenance };
   }
   return null;

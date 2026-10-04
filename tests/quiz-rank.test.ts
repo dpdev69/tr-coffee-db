@@ -150,3 +150,12 @@ test('a signup from the result page never carries the answers to the newsletter 
   const referrer = sanitizeSubscribeReferrer('https://kahvedrop.test/quiz/sonuc?brew=filter&taste=Fruity,Floral', 'https://kahvedrop.test/api/subscribe', 'quiz');
   assert.equal(referrer, 'https://kahvedrop.test/quiz/sonuc?utm_content=quiz');
 });
+
+test('a MANUAL brew correction listing many methods still counts; only non-manual blanket guesses are ignored', () => {
+  const all = ['espresso', 'filter', 'french_press', 'aeropress', 'turkish'];
+  const manual = coffee('manual-brew', { features: [{ feature: 'brew_methods', value: all, sourceType: 'MANUAL' }] });
+  const guessed = coffee('guessed-brew', { features: [inferred('brew_methods', all)] });
+  const want = answers({ brew: ['filter'] });
+  assert.deepEqual(scoreCandidate(want, manual).reasons.map(reason => [reason.kind, reason.provenance]), [['match', 'manual']]);
+  assert.deepEqual(scoreCandidate(want, guessed).reasons.map(reason => reason.kind), ['missing']);
+});
