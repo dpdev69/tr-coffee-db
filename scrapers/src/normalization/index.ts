@@ -342,7 +342,8 @@ function detectBrewMethods(text: string): string[] {
     [/\b(aeropress)\b/i, 'aeropress'],
     [/\b(türk\s*kahvesi|turkish|cezve|ibrik)\b/i, 'turkish'],
     [/\b(cold[\s-]*brew|soğuk[\s-]*demleme)\b/i, 'cold_brew'],
-    [/\b(moka[\s-]*pot|moka)\b/i, 'moka_pot'],
+    // "Moka" alone is also a supplier ("Moka Trade") or a variety (Mokka); only the pot is a brew method.
+    [/\b(moka[\s-]*pot)\b/i, 'moka_pot'],
   ];
 
   const found = new Set<string>();

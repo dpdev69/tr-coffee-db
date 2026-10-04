@@ -243,6 +243,12 @@ describe('normalize coffee metadata', () => {
     assert.equal(espressoProfile.roast_level, 'medium_dark');
   });
 
+  it('reads a moka pot, not a supplier or variety named Moka, as a brew method', () => {
+    // Lot Coffee, Kolombiya Santa Helena (2026-10-05): the importer, not a brew method.
+    assert.deepEqual(normalize(makeRawProduct({ description: 'Gövde Orta-Yoğun • Tedarik Rehm&Co (Moka Trade)' })).brew_methods, []);
+    assert.deepEqual(normalize(makeRawProduct({ description: 'Moka pot ve espresso için uygundur.' })).brew_methods, ['espresso', 'moka_pot']);
+  });
+
   it('never guesses a roast from brew words in names, tags or categories', () => {
     for (const product of [
       makeRawProduct({ name: 'Filtre Kahve / Kolombiya' }),
