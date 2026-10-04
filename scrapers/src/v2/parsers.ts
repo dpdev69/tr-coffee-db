@@ -73,6 +73,10 @@ export function parseShopifyPage(payload: unknown, config: RoasterConfig): Sourc
       const id = sourceId(variant.id);
       if (!id) throw new Error('Shopify variant is missing its ID.');
       const purchase = new URL(url); purchase.searchParams.set('variant', id);
+      // TODO(currency): /products.json carries no currency, so TRY is assumed for every Shopify shop. A per-shop
+      // lookup (/meta.json or /cart.js "currency") is one request each, but its shape is unverified offline; capture
+      // one response per shop before replacing this constant, and fail the crawl if it is not TRY rather than guess.
+
       return [{ sourceVariantId: id, label, weightG: weight(label) ?? weight(name) ?? shopifyGramWeight(raw, variant),
         price: money(variant.price), compareAtPrice: variant.compare_at_price != null && Number(variant.compare_at_price) === 0 ? null : money(variant.compare_at_price), currency: 'TRY',
         inStock: bool(variant.available), purchaseUrl: purchase.toString() }];
