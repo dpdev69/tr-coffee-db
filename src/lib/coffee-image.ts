@@ -3,7 +3,15 @@ import { imageHosts } from '../../shared/v2/image-hosts';
 export const COFFEE_IMAGE_WIDTHS = [256, 384, 640, 960, 1280] as const;
 const allowedHosts = new Set<string>(imageHosts);
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
-const UNAVAILABLE_IMAGE = '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320"><rect width="320" height="320" fill="#f0ece3"/><text x="160" y="165" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#625e57">Görsel mevcut değil</text></svg>';
+// An <img> SVG cannot read CSS variables: these mirror --color-tint and --color-muted in src/app/globals.css.
+const FALLBACK_COLORS = { background: '#e9edf8', text: '#555a6e' } as const;
+const xml = (value: string) => value.replace(/[&<>"']/g, char => `&#${char.charCodeAt(0)};`);
+/** A dead source image shows whose coffee it is (the roaster's name) instead of an apology. */
+function unavailableImage(name: string) {
+  const label = name.replace(/\s+/g, ' ').trim().slice(0, 40) || 'Kahve';
+  const size = Math.min(32, Math.floor(520 / label.length));
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320"><rect width="320" height="320" fill="${FALLBACK_COLORS.background}"/><text x="160" y="160" dominant-baseline="middle" text-anchor="middle" font-family="'Bricolage Grotesque',system-ui,sans-serif" font-weight="500" font-size="${size}" fill="${FALLBACK_COLORS.text}">${xml(label)}</text></svg>`;
+}
 export function trustedCoffeeImageUrl(value: string): URL | null {
   try {
     const url = new URL(value);
@@ -13,8 +21,8 @@ export function trustedCoffeeImageUrl(value: string): URL | null {
     return url;
   } catch { return null; }
 }
-export function coffeeImageUrl(source: string, width: number) {
-  return `/api/coffee-image?src=${encodeURIComponent(trustedCoffeeImageUrl(source)?.href ?? source)}&w=${width}`;
+export function coffeeImageUrl(source: string, width: number, name?: string) {
+  return `/api/coffee-image?src=${encodeURIComponent(trustedCoffeeImageUrl(source)?.href ?? source)}&w=${width}${name ? `&name=${encodeURIComponent(name.slice(0, 40))}` : ''}`;
 }
 async function boundedImage(source: Response): Promise<ReadableStream<Uint8Array>> {
   if (Number(source.headers.get('content-length') || 0) > MAX_IMAGE_BYTES || !source.body) throw new Error('Image too large');
@@ -69,6 +77,6 @@ export async function serveCoffeeImage(request: Request, images: ImagesBinding |
     await cache?.put(cacheKey, response.clone()).catch(() => undefined);
     return response;
   } catch {
-    return new Response(UNAVAILABLE_IMAGE, { headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=300', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; sandbox" } });
+    return new Response(unavailableImage(requestUrl.searchParams.get('name') ?? ''), { headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=300', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; sandbox" } });
   }
 }

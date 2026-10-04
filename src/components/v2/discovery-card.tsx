@@ -47,7 +47,7 @@ export function DiscoveryCard({coffee,source='catalog'}:{coffee:CatalogCoffee;so
   const image=coffee.rawMetadata.imageUrl;
   return <article className="coffee-card">
     <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="coffee-card-image block" aria-label={`${coffee.name} detayları`}>
-      {image&&/^https?:\/\//.test(image)?<CoffeeImage source={image} alt={coffee.name} sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 28vw" className="absolute inset-0 h-full w-full object-contain p-5"/>:<div className="flex h-full items-center justify-center px-8 text-center font-display text-3xl text-accent">{coffee.roaster.name}</div>}
+      {image&&/^https?:\/\//.test(image)?<CoffeeImage roaster={coffee.roaster.name} source={image} alt={coffee.name} sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 28vw" className="absolute inset-0 h-full w-full object-contain p-5"/>:<div className="flex h-full items-center justify-center px-8 text-center font-display text-3xl text-accent">{coffee.roaster.name}</div>}
       {badges.length>0?<span className="absolute left-3 top-3 flex flex-wrap gap-1">{badges.map(event=><span key={event.id} className="coffee-card-badge">{EVENT_LABELS[event.type]}</span>)}</span>:null}
     </Link>
     <div className="coffee-card-body">
