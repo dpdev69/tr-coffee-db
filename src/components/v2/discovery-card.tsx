@@ -39,7 +39,7 @@ export function publicOfferLabel(offer:CatalogOffer|undefined){
 }
 export function OfferPrice({offer}:{offer:CatalogOffer|undefined}){
   return <div className="tabular-nums"><p className="flex flex-wrap items-baseline gap-x-1.5"><strong className="text-[19px] font-semibold">{offer?.priceMinor!=null&&offer.priceMinor>0?formatMoney(offer.priceMinor/100,offer.currency??'(para birimi belirtilmemiş)'): 'Fiyat paylaşılmamış'}</strong>{offer?.weightG?<span className="text-[13px] text-muted">/ {formatPackageWeight(offer.weightG)}</span>:null}</p>
-    {offer?.unitPriceTry!=null?<p className="text-xs text-muted">{formatMoney(offer.unitPriceTry)} / 100 g</p>:offer?.weightG==null?<p className="mt-1 text-xs text-muted">{publicOfferLabel(offer)}</p>:null}</div>;
+    {offer?.weightG==null?<p className="mt-1 text-xs text-muted">{publicOfferLabel(offer)}</p>:null}</div>;
 }
 export function DiscoveryCard({coffee,source='catalog'}:{coffee:CatalogCoffee;source?:string}){
   const offer=preferredOffer(coffee),badges=currentBadges(coffee);
