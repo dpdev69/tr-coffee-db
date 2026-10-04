@@ -1,5 +1,8 @@
 import { useSyncExternalStore } from 'react';
 
+/** Key of the saved list (Listem); here so the server page's pre-paint script can read it too. */
+export const SAVED_KEY = 'kahvedrop:saved:v1';
+
 /**
  * One localStorage key as an external store. Blocked storage (private windows, disabled site data)
  * falls back to memory for this tab, so a page never breaks and a denied write is not undone by a stale read.
