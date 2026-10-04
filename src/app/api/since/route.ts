@@ -1,12 +1,10 @@
-import { catalogChangesSince } from '../../../../shared/v2/catalog';
+import { catalogChangesByDay } from '../../../../shared/v2/catalog';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
 
-/** GET ?since=<ISO UTC time> → { since, counts: { NEW, PRICE_DROP, RESTOCKED } }. Not personal: any visitor with the same time gets the same counts. */
-export async function GET(request: Request) {
+/** GET → { days: [{ day: 'YYYY-MM-DD' (Istanbul), NEW, PRICE_DROP, RESTOCKED }] }, 30 days, oldest first. Identical for everyone; query parameters are ignored so the edge can cache one copy. */
+export async function GET() {
   try {
-    const result = await catalogChangesSince(await getCatalogDatabase(), new URL(request.url).searchParams.get('since'));
-    if (!result) return Response.json({ error: 'since must be an ISO UTC time that is not in the future.' }, { status: 400, headers: { 'Cache-Control': 'no-store' } });
-    return Response.json(result, { headers: { 'Cache-Control': 'public, max-age=300' } });
+    return Response.json({ days: await catalogChangesByDay(await getCatalogDatabase()) }, { headers: { 'Cache-Control': 'public, max-age=300, s-maxage=300' } });
   } catch {
     return Response.json({ error: 'Değişiklikler şu anda yüklenemiyor.' }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }

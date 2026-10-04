@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {advanceVisit,parseProfile,profileWords} from '../src/components/v2/home-personal';
+import {advanceVisit,countSince,parseProfile,profileWords} from '../src/components/v2/home-personal';
 import {parseSaved,savedStatus,type SavedCoffee,type SavedItem} from '../src/components/coffee/saved-list';
 
 test('the last visit advances only after a session ends, never on reloads within one',()=>{
@@ -36,4 +36,15 @@ test('a taste profile from the quiz is read defensively and described in words',
   const profile=parseProfile('{"brew":["filter"],"taste":["Floral","fruity","<script>"],"roast":["light"],"process":[],"savedAt":"2026-10-05T00:00:00Z"}')!;
   assert.deepEqual(profile.taste,['Floral','fruity']);
   assert.equal(profileWords(profile),'çiçeksi, meyvemsi · açık kavrum · filtre / pour over');
+});
+
+test('buckets are summed from the visit\'s Istanbul day: boundaries, first visit, same day, older than 30 days',()=>{
+  const days=Array.from({length:30},(_,i)=>({day:new Date(Date.UTC(2026,8,6+i)).toISOString().slice(0,10),NEW:1,PRICE_DROP:2,RESTOCKED:0}));
+  const now=Date.parse('2026-10-05T10:00:00Z');
+  assert.equal(days[29].day,'2026-10-05');
+  assert.equal(countSince(days,'2026-10-05T01:00:00Z',now).NEW,1,'earlier today counts today only');
+  assert.equal(countSince(days,'2026-10-04T20:59:59Z',now).NEW,2,'23:59:59 Istanbul is still yesterday');
+  assert.equal(countSince(days,'2026-10-04T21:00:00Z',now).NEW,1,'midnight Istanbul starts today');
+  assert.deepEqual(countSince(days,null,now),{NEW:8,PRICE_DROP:16,RESTOCKED:0},'first visit: now-7 days, as before');
+  assert.equal(countSince(days,'2025-01-01T00:00:00Z',now).NEW,30,'older than 30 days = all 30');
 });

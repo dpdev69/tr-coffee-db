@@ -85,13 +85,17 @@ export async function countCatalog(db:CatalogDatabase,filters:CatalogFilters):Pr
 }
 
 export const CHANGE_EVENTS=['NEW','PRICE_DROP','RESTOCKED'] as const;
-/** Listed coffees with a NEW, PRICE_DROP or RESTOCKED event since a time no older than 30 days. Future or malformed times are refused. */
-export async function catalogChangesSince(db:CatalogDatabase,input:string|null,now=Date.now()):Promise<{since:string;counts:Record<typeof CHANGE_EVENTS[number],number>}|null> {
-  const time=input&&input.length<=30&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?Z$/.test(input)?Date.parse(input):NaN;
-  if(!Number.isFinite(time)||time>now+60000)return null;
-  const since=new Date(Math.max(time,now-30*86400000)).toISOString();
-  const counts=await Promise.all(CHANGE_EVENTS.map(event=>countCatalog(db,{event,since})));
-  return {since,counts:{NEW:counts[0],PRICE_DROP:counts[1],RESTOCKED:counts[2]}};
+export type ChangeDay={day:string}&Record<typeof CHANGE_EVENTS[number],number>;
+const ISTANBUL_MS=3*3600000;
+/** Same for every visitor: per Istanbul calendar day (oldest first, 30 days ending today), the listed coffees whose latest NEW, PRICE_DROP or RESTOCKED event fell on that day.
+ * A coffee counts once per type, in the bucket of its latest event, so summing the days since a date equals the old "has an event since" count. */
+export async function catalogChangesByDay(db:CatalogDatabase,now=Date.now()):Promise<ChangeDay[]> {
+  const days=Array.from({length:30},(_,i)=>({day:new Date(now+ISTANBUL_MS-(29-i)*86400000).toISOString().slice(0,10),NEW:0,PRICE_DROP:0,RESTOCKED:0}));
+  const from=new Date(Date.parse(`${days[0].day}T00:00:00Z`)-ISTANBUL_MS).toISOString();
+  const perType=CHANGE_EVENTS.map(type=>`(e.type='${type}'${eventValidity(type)})`).join(' OR ');
+  const rows=await db.prepare(`SELECT day,type,count(*) AS count FROM (SELECT date(max(e.created_at),'+3 hours') AS day,e.type AS type FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id JOIN coffee_events e ON e.coffee_id ${IN_GROUP} WHERE ${coffeeOnlySql()} AND e.created_at>=? AND (${perType}) GROUP BY c.id,e.type) GROUP BY day,type`).bind(from).all<{day:string;type:typeof CHANGE_EVENTS[number];count:number}>();
+  for(const row of rows.results)days.find(d=>d.day===row.day)![row.type]=row.count;
+  return days;
 }
 
 /** One listed coffee per Istanbul calendar day, the same for everyone, chosen among coffees with tasting notes and an image.
@@ -131,6 +135,15 @@ export async function listOrigins(db:CatalogDatabase):Promise<string[]> {
   const manual=`EXISTS(SELECT 1 FROM coffee_feature_values m WHERE m.coffee_id=c.id AND m.source_type='MANUAL' AND m.feature IN (${features}))`;
   const rows=await db.prepare(`SELECT DISTINCT value FROM (SELECT json_extract(c.raw_metadata_json,'$.country') AS value FROM public_catalog_coffees c WHERE NOT ${manual} UNION ALL SELECT j.value FROM coffee_feature_values f JOIN public_catalog_coffees c ON c.id=f.coffee_id JOIN json_each(f.value_json) j WHERE f.feature IN (${features}) AND j.type='text' AND (f.source_type='MANUAL' OR NOT ${manual})) WHERE value IS NOT NULL AND value<>'unknown' ORDER BY value`).all<{value:string}>();
   return rows.results.map(row=>row.value);
+}
+
+/** Extra rule an event must meet to still count, as " AND ..." SQL (alias e = the event). */
+function eventValidity(type:string):string {
+  // A deal/drop badge is valid only while its triggering observation still matches the current offer price.
+  if(type==='DEAL'||type==='PRICE_DROP')return " AND EXISTS(SELECT 1 FROM offers o JOIN price_observations p ON p.id=e.observation_id WHERE o.id=e.offer_id AND o.retired_at IS NULL AND o.in_stock=1 AND o.current_price_minor=p.price_minor AND o.currency=p.currency AND o.weight_g=p.weight_g)";
+  // Another available SKU cannot keep a sold-out/retired package in the restock feed.
+  if(type==='RESTOCKED')return " AND EXISTS(SELECT 1 FROM offers o WHERE o.id=e.offer_id AND o.coffee_id=e.coffee_id AND o.retired_at IS NULL AND o.in_stock=1)";
+  return '';
 }
 
 function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
@@ -190,10 +203,7 @@ function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
   if(filters.event&&EVENT_TYPES.has(filters.event)){
     const eventConditions=[`e.coffee_id ${IN_GROUP}`,'e.type=?'];values.push(filters.event);
     if(filters.since&&Number.isFinite(Date.parse(filters.since))){eventConditions.push('e.created_at>=?');values.push(new Date(filters.since).toISOString());}
-    // A deal/drop badge is valid only while its triggering observation still matches the current offer price.
-    if(filters.event==='DEAL'||filters.event==='PRICE_DROP')eventConditions.push("EXISTS(SELECT 1 FROM offers o JOIN price_observations p ON p.id=e.observation_id WHERE o.id=e.offer_id AND o.retired_at IS NULL AND o.in_stock=1 AND o.current_price_minor=p.price_minor AND o.currency=p.currency AND o.weight_g=p.weight_g)");
-    // Another available SKU cannot keep a sold-out/retired package in the restock feed.
-    if(filters.event==='RESTOCKED')eventConditions.push('EXISTS(SELECT 1 FROM offers o WHERE o.id=e.offer_id AND o.coffee_id=e.coffee_id AND o.retired_at IS NULL AND o.in_stock=1)');
+    const validity=eventValidity(filters.event);if(validity)eventConditions.push(validity.slice(5));
     conditions.push(`EXISTS(SELECT 1 FROM coffee_events e WHERE ${eventConditions.join(' AND ')})`);
   }
   return {where:conditions.join(' AND '),values};
