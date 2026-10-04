@@ -2,6 +2,7 @@ import { pageMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/site';
+import { CONTACT_EMAIL, LEGAL_PENDING, LEGAL_UPDATED } from '@/lib/legal';
 
 export const metadata: Metadata = pageMetadata('Kullanım Şartları', `${SITE_NAME} kahve rehberinin kapsamını, fiyat uygunluğu uyarılarını ve dış bağlantı sorumluluklarını açıklar.`, '/terms');
 
@@ -13,7 +14,7 @@ export default function TermsPage() {
       </p>
       <h1 className="mt-3 font-display text-5xl leading-none text-[#1f1d1b]">Kullanım Şartları</h1>
       <p className="mt-4 text-sm leading-6 text-[#5d5853]">
-        TR CoffeeDB, Türkiye&apos;deki bağımsız kavurucuların kahvelerini keşfetmeye
+        {SITE_NAME}, Türkiye&apos;deki bağımsız kavurucuların kahvelerini keşfetmeye
         yardımcı olan bilgilendirme amaçlı bir katalogdur.
       </p>
 
@@ -44,9 +45,10 @@ export default function TermsPage() {
 
         <TermsSection title="Yürürlük ve iletişim">
           <p>
-            Bu şartlar 25 Mayıs 2026 tarihinde güncellenmiştir. Katalogdaki bir
-            hata, kırık bağlantı veya kullanım koşullarıyla ilgili soru için GitHub
-            Issues kanalından iletişim kurabilirsiniz.
+            Bu şartlar {LEGAL_UPDATED} tarihinde güncellenmiştir. Katalogdaki bir
+            hata, kırık bağlantı veya kullanım koşullarıyla ilgili soru için{' '}
+            {CONTACT_EMAIL ? <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-4">{CONTACT_EMAIL}</a> : <strong>{LEGAL_PENDING}</strong>}{' '}
+            adresinden iletişim kurabilirsiniz.
           </p>
         </TermsSection>
       </div>

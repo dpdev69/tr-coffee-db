@@ -175,8 +175,11 @@ describe('UX and compliance surfaces', () => {
     assert.match(source, /e-posta, IP adresi, kullanıcı kimliği/);
     assert.doesNotMatch(source, /Vercel Analytics|redirect_events|correction_reports/);
     assert.match(source, /saklama|retention|30 gün|90 gün/i);
-    assert.match(source, /GitHub Issues|iletişim/i);
-    assert.match(source, /Veri talepleri ve iletişim/);
+    assert.match(source, /iletişim/i);
+    assert.match(source, /Veri sorumlusu/);
+    assert.match(source, /KVKK’nın 11\. maddesi/);
+    assert.match(source, /Yurt dışına aktarım/);
+    assert.doesNotMatch(source, /github\.com\/dpdev69/, 'private repo issues are not a public contact channel');
     assert.match(source, /abonelikten ayrılma|abonelikten çıkma/);
     assert.match(source, /site verilerini silerek/);
   });

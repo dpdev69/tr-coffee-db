@@ -2,6 +2,7 @@ import { pageMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/site';
+import { CONTACT_EMAIL, DATA_CONTROLLER, LEGAL_PENDING, LEGAL_UPDATED } from '@/lib/legal';
 
 export const metadata: Metadata = pageMetadata('Gizlilik', `${SITE_NAME} hangi verileri neden kullandığını ve dış bağlantıların nasıl çalıştığını açıklar.`, '/privacy');
 
@@ -18,6 +19,14 @@ export default function PrivacyPage() {
       </p>
 
       <div className="mt-8 space-y-8">
+        <PolicySection title="Veri sorumlusu">
+          <p>
+            Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu’nun (KVKK) 10. maddesi kapsamında
+            aydınlatma amacıyla hazırlanmıştır. Veri sorumlusu: <strong>{DATA_CONTROLLER ?? LEGAL_PENDING}</strong>.
+            İletişim: <strong>{CONTACT_EMAIL ? <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-4">{CONTACT_EMAIL}</a> : LEGAL_PENDING}</strong>.
+          </p>
+        </PolicySection>
+
         <PolicySection title="Haftalık Drop aboneliği">
           <p>
             Bülten için yalnızca e-posta adresini isteriz. Adresin sunucumuz üzerinden
@@ -32,6 +41,18 @@ export default function PrivacyPage() {
             bilgilere eklenmez. Kit’in abone verilerini işleme koşulları için{' '}
             <a href="https://kit.com/dpa" className="underline underline-offset-4">veri işleme ekini</a>{' '}
             inceleyebilirsin.
+          </p>
+          <p>
+            Amaç: sana haftalık kahve bülteni (yeni gelenler, fiyat düşüşleri, tekrar stoğa girenler)
+            göndermek. Hukuki sebep: abonelik formunda ve onay e-postasında verdiğin açık rıza. Bülten,
+            kavurucuların ürünlerini tanıttığı için ticari elektronik ileti sayılabilir; onayını dilediğin an
+            her e-postadaki bağlantıyla geri alabilirsin.
+          </p>
+          <p>
+            Yurt dışına aktarım: e-posta adresin, bülteni gönderen ABD merkezli Kit (ConvertKit LLC)
+            tarafından; sitenin altyapı ve ölçüm verileri ise Cloudflare tarafından yurt dışındaki
+            sunucularda işlenir. Saklama: adresin abonelik sürdükçe Kit’te tutulur. Ayrıldığında, sana
+            yeniden e-posta gönderilmemesi için yalnızca Kit’in gönderim engeli kaydında kalır.
           </p>
         </PolicySection>
 
@@ -64,6 +85,18 @@ export default function PrivacyPage() {
           </p>
         </PolicySection>
 
+        <PolicySection title="KVKK kapsamındaki hakların">
+          <p>
+            KVKK’nın 11. maddesi uyarınca kişisel verinin işlenip işlenmediğini öğrenme, işlenmişse bilgi
+            talep etme, işlenme amacını ve amaca uygun kullanılıp kullanılmadığını öğrenme, aktarıldığı
+            üçüncü kişileri bilme, eksik veya yanlış işlenmişse düzeltilmesini, silinmesini ya da yok
+            edilmesini isteme, bu işlemlerin aktarılan kişilere bildirilmesini isteme, otomatik analiz
+            sonucu aleyhine bir sonuca itiraz etme ve kanuna aykırı işleme nedeniyle zararın giderilmesini
+            talep etme haklarına sahipsin. Taleplerini yukarıdaki iletişim adresine iletebilirsin; en geç
+            30 gün içinde yanıtlanır.
+          </p>
+        </PolicySection>
+
         <PolicySection title="Kontrol sizde">
           <p>
             Çerez tercihin bir yıl boyunca kahvedrop_consent çerezinde tutulur. Sayfanın altındaki Çerez tercihleri düğmesiyle değiştirebilirsin. Ölçümü reddedersen kullanım olayları gönderilmez; bültene kaydolmaya ve kavurucuya gitmeye devam edebilirsin. Karşılaştırma listeniz, bu tarayıcının yerel depolamasında en fazla üç kahvenin
@@ -79,14 +112,7 @@ export default function PrivacyPage() {
         <Link href="/terms" className="font-semibold text-[#1f1d1b] underline-offset-4 hover:underline">
           Kullanım Şartları
         </Link>{' '}
-        sayfasına bakın. Veri talepleri ve iletişim için{' '}
-        <Link
-          href="https://github.com/dpdev69/tr-coffee-db/issues"
-          className="font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
-        >
-          GitHub Issues
-        </Link>
-        {' '}kanalını kullanın.
+        sayfasına bakın. Son güncelleme: {LEGAL_UPDATED}.
       </p>
     </div>
   );

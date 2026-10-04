@@ -25,7 +25,7 @@ export function NewsletterForm({ source = 'home' }: { source?: string }) {
       });
       const result = await response.json() as { ok?: boolean; message?: string };
       if (!response.ok || !result.ok) {
-        setMessage(response.status === 429 ? 'Çok sık deneme yaptın. Bir dakika sonra tekrar dene.' : 'Şu an kaydını tamamlayamadık. Biraz sonra tekrar dene.');
+        setMessage(response.status === 429 ? 'Çok sık deneme yaptın. Bir dakika sonra tekrar dene.' : response.status === 400 ? 'E-posta adresini kontrol edip tekrar dene.' : 'Şu an kaydını tamamlayamadık. Biraz sonra tekrar dene.');
         return;
       }
       setSuccess(true);
@@ -43,9 +43,10 @@ export function NewsletterForm({ source = 'home' }: { source?: string }) {
       <label htmlFor={id + '-email'} className="mb-2 block text-sm font-medium">E-posta adresin</label>
       <input id={id + '-email'} name="email" type="email" autoComplete="email" required maxLength={254} placeholder="sen@ornek.com" className="min-h-12 w-full rounded-lg border border-transparent bg-white px-4 text-base text-[#1f1d1b] outline-offset-4" disabled={pending} />
       <div className="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden="true"><label htmlFor={id + '-website'}>Website</label><input id={id + '-website'} name="website" tabIndex={-1} autoComplete="off" /></div>
+      <label className="mt-3 flex items-start gap-3 text-xs leading-5 text-white/90"><input type="checkbox" name="consent" required className="mt-0.5 h-5 w-5 shrink-0 accent-[#e3ecbd]" disabled={pending} /><span>Haftalık kahve bülteni ve kavurucu ürün tanıtımları içeren e-postalar almayı kabul ediyorum. <Link href="/privacy" className="underline underline-offset-2">Aydınlatma metnini</Link> okudum.</span></label>
       <button type="submit" disabled={pending} className="mt-3 min-h-12 w-full rounded-lg bg-[#e3ecbd] px-4 py-3 text-sm font-semibold text-[#18372b] hover:bg-[#edf4d9] disabled:cursor-wait disabled:opacity-70">{pending ? 'Kaydediliyor…' : brand.newsletterName + '’a katıl'}</button>
       {message ? <p role="alert" className="mt-3 rounded-lg bg-white/10 p-3 text-sm leading-6">{message}</p> : null}
-      <p className="mt-4 text-xs leading-6 text-white/80">Ücretsiz. Hesap açman gerekmez. İstediğinde ayrılabilirsin. E-postanı bülteni göndermek için Kit ile işleriz. <Link href="/privacy" className="underline underline-offset-2">Gizlilik</Link></p>
+      <p className="mt-4 text-xs leading-6 text-white/80">Ücretsiz. Hesap açman gerekmez. Her e-postadaki bağlantıyla istediğinde ayrılabilirsin. E-postanı bülteni göndermek için ABD merkezli Kit ile işleriz.</p>
       <noscript><p className="mt-3 text-sm">Bu form için JavaScript’i açman gerekiyor.</p></noscript>
     </form>}
   </section>;
