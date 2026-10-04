@@ -239,7 +239,7 @@ export const lotCoffee: RoasterConfig = {
 
 export const sezy: RoasterConfig = {
   slug: 'sezy',
-  runsFrom: 'local',
+  runsFrom: 'relay',
   name: 'Sezy Coffee',
   websiteUrl: 'https://sezycoffee.com',
   shopUrl: 'https://sezycoffee.com',
@@ -526,7 +526,7 @@ export const kafeinKultur: RoasterConfig = {
 
 export const coffeerem: RoasterConfig = {
   slug: 'coffeerem',
-  runsFrom: 'local',
+  runsFrom: 'relay',
   name: 'Coffeerem Roastery',
   websiteUrl: 'https://coffeerem.com',
   shopUrl: 'https://coffeerem.com/magaza/',

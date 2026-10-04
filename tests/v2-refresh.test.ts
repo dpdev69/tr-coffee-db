@@ -6,6 +6,7 @@ import {registerRoaster} from '../shared/v2/ingestion';
 import {attentionNeeded,refreshCatalog,syncRoasters} from '../scripts/v2-refresh.mts';
 import {crawlRoaster} from '../scrapers/src/v2/crawl';
 import {D1RestDatabase} from '../scripts/v2-d1-rest';
+import {relayFetch,relayRequest} from '../shared/v2/relay';
 import {ALL_ROASTER_CONFIGS} from '../scrapers/src/roasters/configs';
 
 test('refresh overlaps at most three storefronts and retains every snapshot and daily deduplication',async()=>{
@@ -93,14 +94,31 @@ test('D1 concurrent batches recover after an error and stop at the settled quota
   assert.equal(peak,1);assert.equal(calls,2);assert.equal(db.rowsWritten,65_000);assert.equal(db.rowsRead,1);
 });
 
-test('the scheduled refresh skips local-only sources unless they are requested by name',async()=>{
+test('relay sources are fetched through the relay and nothing else is',async()=>{
   const db=new TestCatalogDatabase();
   for(const config of ALL_ROASTER_CONFIGS.filter(config=>['petra','sezy'].includes(config.slug)))await registerRoaster(db,{id:config.slug,slug:config.slug,name:config.name,websiteUrl:config.websiteUrl,adapter:config.platform});
-  assert.equal(ALL_ROASTER_CONFIGS.find(config=>config.slug==='sezy')?.runsFrom,'local');
   const payload=JSON.parse(readFileSync(new URL('./fixtures/v2/shopify.json',import.meta.url),'utf8'));
-  const source={requestDelayMs:0,fetch:async()=>Response.json(payload)};
-  const scheduled=await refreshCatalog(db,{scheduledAt:'2026-01-01T00:00:00Z',now:()=> '2026-01-01T01:00:00Z',source});
-  assert.deepEqual(scheduled.map(result=>result.slug),['petra']);
-  const named=await refreshCatalog(db,{scheduledAt:'2026-01-01T00:00:00Z',now:()=> '2026-01-01T01:00:00Z',slugs:['sezy'],source});
-  assert.deepEqual(named.map(result=>result.slug),['sezy']);db.sqlite.close();
+  const direct:string[]=[],relayed:string[]=[];
+  await refreshCatalog(db,{scheduledAt:'2026-01-01T00:00:00Z',now:()=> '2026-01-01T01:00:00Z',
+    source:{requestDelayMs:0,fetch:async input=>{direct.push(new URL(String(input)).hostname);return Response.json(payload);}},
+    relay:async input=>{relayed.push(new URL(String(input)).hostname);return Response.json([]);}});
+  assert.deepEqual([...new Set(direct)],['petracoffee.com']);assert.deepEqual([...new Set(relayed)],['sezycoffee.com']);db.sqlite.close();
+});
+
+test('the relay refuses callers without the token, other hosts and non-GET requests',async()=>{
+  const hosts=new Set(['sezycoffee.com']),headers={'User-Agent':'test'};
+  const upstream:typeof fetch=async(input,init)=>{assert.equal(new Headers(init?.headers).get('user-agent'),'test');return new Response('[]',{status:200,headers:{'content-type':'application/json','set-cookie':'a=b'}});};
+  const call=(url:string,init?:RequestInit,token:string|undefined='secret')=>relayRequest(new Request(`https://relay.test/relay?url=${encodeURIComponent(url)}`,init),token,hosts,headers,upstream);
+  const auth={headers:{Authorization:'Bearer secret'}};
+  assert.equal((await call('https://sezycoffee.com/x')).status,401);
+  assert.equal((await call('https://sezycoffee.com/x',{headers:{Authorization:'Bearer wrong!'}})).status,401);
+  assert.equal((await relayRequest(new Request('https://relay.test/relay?url=https%3A%2F%2Fsezycoffee.com%2Fx',auth),undefined,hosts,headers,upstream)).status,503);
+  assert.equal((await call('https://evil.example/x',auth)).status,403);
+  assert.equal((await call('http://sezycoffee.com/x',auth)).status,403);
+  assert.equal((await call('not a url',auth)).status,400);
+  assert.equal((await call('https://sezycoffee.com/x',{...auth,method:'POST'})).status,405);
+  const ok=await call('https://sezycoffee.com/x',auth);
+  assert.equal(ok.status,200);assert.equal(ok.headers.get('content-type'),'application/json');assert.equal(ok.headers.get('set-cookie'),null);
+  const seen:string[]=[];const viaRelay=relayFetch('https://relay.test/relay','secret',async(input,init)=>{seen.push(String(input),new Headers(init?.headers).get('authorization')??'');return new Response('ok');});
+  await viaRelay('https://sezycoffee.com/a?b=1');assert.deepEqual(seen,['https://relay.test/relay?url=https%3A%2F%2Fsezycoffee.com%2Fa%3Fb%3D1','Bearer secret']);
 });
