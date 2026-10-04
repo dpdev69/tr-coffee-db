@@ -32,7 +32,7 @@ export interface CatalogRoaster {
   id: string; slug: string; name: string; websiteUrl: string; city: string | null; adapter: string;
   coffeeCount: number; offerCount: number; lastAttemptAt: string | null; lastSuccessAt: string | null; crawlHealth: string;
 }
-interface CoffeeRow {
+export interface CoffeeRow {
   id:string;roaster_id:string;source_product_id:string|null;canonical_url:string;name:string;slug:string;raw_metadata_json:string;
   first_seen_at:string;last_seen_at:string;discontinued_at:string|null;
   roaster_slug:string;roaster_name:string;website_url:string;city:string|null;trusted_hosts_json:string;
@@ -40,7 +40,7 @@ interface CoffeeRow {
 interface OfferRow {id:string;coffee_id:string;source_variant_id:string|null;label:string|null;weight_g:number|null;currency:string|null;current_price_minor:number|null;compare_at_price_minor:number|null;in_stock:number|null;purchase_url:string;first_seen_at:string;last_seen_at:string;last_price_change_at:string|null}
 interface FeatureRow {coffee_id:string;feature:string;value_json:string;source_type:FeatureValue['sourceType'];confidence:number|null;version:string;source_reference:string|null}
 interface EventRow {id:string;coffee_id:string;offer_id:string|null;type:CoffeeEvent['type'];created_at:string;before_json:string;after_json:string;idempotency_key:string;observation_id:string|null}
-const COFFEE_COLUMNS='c.*,r.slug AS roaster_slug,r.name AS roaster_name,r.website_url,r.city,r.trusted_hosts_json';
+export const COFFEE_COLUMNS='c.*,r.slug AS roaster_slug,r.name AS roaster_name,r.website_url,r.city,r.trusted_hosts_json';
 const EVENT_TYPES=new Set(['NEW','PRICE_DROP','RESTOCKED','DEAL','OUT_OF_STOCK']);
 // One package = coffee + weight + price + currency. Grind options at the same price are not separate packages.
 const PACKAGE_KEY="o.coffee_id||'|'||coalesce(o.weight_g,'')||'|'||coalesce(o.current_price_minor,'')||'|'||coalesce(o.currency,'')";
@@ -160,7 +160,7 @@ function trustedSourceUrl(row:CoffeeRow):string|null {
   try{return canonicalizeUrl(row.canonical_url,hosts);}catch{return null;}
 }
 
-async function hydrate(db:CatalogDatabase,rows:CoffeeRow[],now:number):Promise<CatalogCoffee[]> {
+export async function hydrate(db:CatalogDatabase,rows:CoffeeRow[],now:number):Promise<CatalogCoffee[]> {
   if(!rows.length)return [];
   const ids=rows.map(row=>row.id);const list=placeholders(ids.length);
   const [offers,features,events]=await Promise.all([
