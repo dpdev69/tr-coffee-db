@@ -29,6 +29,15 @@ export function advanceVisit(stored: string, now: number): { previous: string | 
 }
 
 type Counts = { NEW: number; PRICE_DROP: number; RESTOCKED: number };
+type Day = Counts & { day: string };
+const istanbulDay = (time: number) => new Date(time + 3 * 3600000).toISOString().slice(0, 10);
+/** Sums the daily buckets from the visit's Istanbul day on; a visit earlier today counts today's bucket. No visit = the past 7 days; older than the buckets reach (30 days) = all of them. */
+export function countSince(days: Day[], previous: string | null, now: number): Counts {
+  const from = istanbulDay(previous ? Date.parse(previous) : now - 7 * 86400000);
+  const counts: Counts = { NEW: 0, PRICE_DROP: 0, RESTOCKED: 0 };
+  for (const day of days) if (day.day >= from) for (const type of Object.keys(counts) as Array<keyof Counts>) counts[type] += day[type];
+  return counts;
+}
 const CHANGES: Array<[keyof Counts, string, string]> = [['NEW', 'yeni kahve', '/yeni'], ['PRICE_DROP', 'fiyat düşüşü', '/firsatlar'], ['RESTOCKED', 'yeniden stokta', '/yeni?event=RESTOCKED']];
 
 /** Same structure from first paint (placeholders until counts arrive), so nothing below it moves. */
@@ -38,10 +47,9 @@ export function SinceLastVisit() {
     const now = Date.now();
     const { previous, next } = advanceVisit(visits.get(), now);
     visits.set(next);
-    const since = previous ?? new Date(now - 7 * 86400000).toISOString();
-    fetch(`/api/since?since=${encodeURIComponent(since)}`)
-      .then(response => (response.ok ? response.json() as Promise<{ counts?: Counts }> : null))
-      .then(data => setState({ returning: Boolean(previous), counts: data?.counts ?? null }))
+    fetch('/api/since')
+      .then(response => (response.ok ? response.json() as Promise<{ days?: Day[] }> : null))
+      .then(data => setState({ returning: Boolean(previous), counts: data?.days ? countSince(data.days, previous, now) : null }))
       .catch(() => setState({ returning: Boolean(previous), counts: null }));
   }, []);
   return <section className="mb-10 mt-8 flex flex-wrap content-start items-center gap-x-4 gap-y-3 sm:min-h-16" aria-live="polite" aria-busy={!state}>

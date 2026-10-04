@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {TestCatalogDatabase} from './helpers/v2-sqlite';
 import {ingestCrawl,registerRoaster} from '../shared/v2/ingestion';
-import {catalogChangesSince,getCoffeeOfTheDay,getSavedCoffees,getSimilarCoffees,listCatalog,listOrigins,withoutTrailingSize} from '../shared/v2/catalog';
+import {catalogChangesByDay,getCoffeeOfTheDay,getSavedCoffees,getSimilarCoffees,listCatalog,listOrigins,withoutTrailingSize} from '../shared/v2/catalog';
 import {handleRoasterOutbound,roasterSiteUrl} from '../shared/v2/outbound';
 import type {CrawlInput,SourceCoffee} from '../shared/v2/types';
 
@@ -13,15 +13,17 @@ const run=(day:number,products:SourceCoffee[],roasterId='r'):CrawlInput=>({id:`r
 async function setup(){const db=new TestCatalogDatabase();await registerRoaster(db,{id:'r',slug:'roaster',name:'Roaster',websiteUrl:'https://shop.test',adapter:'test'});return db;}
 const slug=(db:TestCatalogDatabase,id:string)=>String(db.sqlite.prepare('SELECT slug FROM coffees WHERE source_product_id=?').get(id)?.slug);
 
-test('changes since a visit count NEW, PRICE_DROP and RESTOCKED; malformed or future times are refused, old ones clamp to 30 days',async()=>{
+test('daily change buckets are per Istanbul day, 30 days long, count a coffee once in its latest event day',async()=>{
   const db=await setup();
   await ingestCrawl(db,{...run(1,[product('a'),product('b',{},100,false)]),mode:'baseline'});
   await ingestCrawl(db,run(3,[product('a',{},80),product('b'),product('c')]));
-  const now=Date.UTC(2026,9,4);
-  assert.deepEqual(await catalogChangesSince(db,'2026-10-02T00:00:00Z',now),{since:'2026-10-02T00:00:00.000Z',counts:{NEW:1,PRICE_DROP:1,RESTOCKED:1}});
-  assert.deepEqual((await catalogChangesSince(db,'2026-10-03T12:00:00.000Z',now))?.counts,{NEW:0,PRICE_DROP:0,RESTOCKED:0});
-  assert.equal((await catalogChangesSince(db,'2025-01-01T00:00:00Z',now))?.since,new Date(now-30*86400000).toISOString());
-  for(const bad of [null,'','yesterday','2026-10-09T00:00:00Z','1e12',`2026-10-01T00:00:00Z${'0'.repeat(40)}`])assert.equal(await catalogChangesSince(db,bad,now),null,String(bad));
+  const now=Date.UTC(2026,9,4,12);
+  const days=await catalogChangesByDay(db,now);
+  assert.equal(days.length,30);assert.equal(days[29].day,'2026-10-04');assert.equal(days[0].day,'2026-09-05');
+  assert.deepEqual(days.filter(d=>d.NEW+d.PRICE_DROP+d.RESTOCKED).map(d=>[d.day,d.NEW,d.PRICE_DROP,d.RESTOCKED]),[['2026-10-03',1,1,1]],'run times 00:00 UTC are 03:00 Istanbul, same day');
+  // 21:00 UTC is already the next Istanbul day.
+  assert.equal((await catalogChangesByDay(db,Date.UTC(2026,9,4,21)))[29].day,'2026-10-05');
+  assert.equal((await catalogChangesByDay(db,Date.UTC(2026,10,10))).every(d=>!d.NEW),true,'events older than 30 days drop out');
   db.sqlite.close();
 });
 
