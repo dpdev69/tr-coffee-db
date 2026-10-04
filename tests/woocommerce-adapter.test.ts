@@ -69,7 +69,7 @@ describe('WooCommerceAdapter', () => {
             name: 'Brazil Yellow Bourbon – Espresso',
             categories: ['Espresso Kahveler', 'KAHVELER'],
             description: '<p>Long origin story without an explicit roast label.</p>',
-            shortDescription: '<p><strong>Kavurma profili: Espresso</strong></p>',
+            shortDescription: '<p><strong>Kavurma profili: Orta-Koyu</strong></p>',
           }),
         ],
         headers: { 'x-wp-totalpages': '1' },
@@ -80,7 +80,7 @@ describe('WooCommerceAdapter', () => {
       const coffee = normalize(products[0]);
 
       assert.match(products[0].description, /Long origin story/);
-      assert.match(products[0].description, /Kavurma profili: Espresso/);
+      assert.match(products[0].description, /Kavurma profili: Orta-Koyu/);
       assert.equal(coffee.roast_level, 'medium_dark');
     } finally {
       axios.get = originalGet;

@@ -4,9 +4,9 @@ import { foldTr, tokenRegex } from './text-match.js';
 
 const ROAST_LABEL = String.raw`(?:kavrum|kavurma|kavrulma|roast)(?:\s*(?:profili|profile|seviyesi|level|derecesi))?`;
 
+// A roast labelled or called "Espresso" or "Filtre" ("Kavurma Profili Espresso/Filtre", "Espresso Roast") names the brew
+// it suits, not how dark it is.
 const LABELED_ROAST_MAP: [RegExp, string][] = [
-  [tokenRegex(String.raw`${ROAST_LABEL}\s*[:\-]?\s*(?:filtre|filter)`), 'medium_light'],
-  [tokenRegex(String.raw`${ROAST_LABEL}\s*[:\-]?\s*(?:espresso)`), 'medium_dark'],
   [tokenRegex(String.raw`${ROAST_LABEL}\s*[:\-]?\s*(?:açık[\s–-]*orta|acik[\s–-]*orta|light[\s–-]*medium)`), 'medium_light'],
   [tokenRegex(String.raw`${ROAST_LABEL}\s*[:\-]?\s*(?:orta[\s-]*açık|orta[\s-]*acik|medium[\s-]*light)`), 'medium_light'],
   [tokenRegex(String.raw`${ROAST_LABEL}\s*[:\-]?\s*(?:orta[\s-]*koyu|medium[\s-]*dark)`), 'medium_dark'],
@@ -17,8 +17,6 @@ const LABELED_ROAST_MAP: [RegExp, string][] = [
 
 const PHRASE_ROAST_MAP: [RegExp, string][] = [
   [tokenRegex(String.raw`(?:dark|koyu)\s*(?:filtre|filter|espresso|kahve)`), 'dark'],
-  [tokenRegex(String.raw`(?:filtre|filter)\s*roast|(?:filtre|filter)\s*kavrum(?:u)?`), 'medium_light'],
-  [tokenRegex(String.raw`espresso\s*roast|espresso\s*kavrum(?:u)?`), 'medium_dark'],
   [tokenRegex(String.raw`açık[\s–-]*orta\s*(?:kavrum|kavurma)|acik[\s–-]*orta\s*(?:kavrum|kavurma)|light[\s–-]*medium\s*roast`), 'medium_light'],
   [tokenRegex(String.raw`orta[\s-]*açık\s*(?:kavrum|kavurma)|medium[\s-]*light\s*roast`), 'medium_light'],
   [tokenRegex(String.raw`orta[\s-]*koyu\s*(?:kavrum|kavurma)|medium[\s-]*dark\s*roast`), 'medium_dark'],
@@ -28,8 +26,6 @@ const PHRASE_ROAST_MAP: [RegExp, string][] = [
 ];
 
 const STANDALONE_ROAST_MAP: [RegExp, string][] = [
-  [/^(?:filtre|filter)$/iu, 'medium_light'],
-  [/^(?:espresso)$/iu, 'medium_dark'],
   [/^(?:açık[\s–-]*orta|acik[\s–-]*orta|light[\s–-]*medium)$/iu, 'medium_light'],
   [/^(?:orta[\s-]*açık|orta[\s-]*acik|medium[\s-]*light)$/iu, 'medium_light'],
   [/^(?:orta[\s-]*koyu|medium[\s-]*dark)$/iu, 'medium_dark'],
