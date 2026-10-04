@@ -9,7 +9,7 @@ export function Footer() {
           <div>
             <Link
               href="/"
-              className="inline-flex min-h-11 items-center text-xl font-bold tracking-tight"
+              className="inline-flex min-h-11 items-center font-display text-[22px] font-semibold text-accent"
             >
               {brand.name}.
             </Link>
@@ -67,7 +67,7 @@ function FooterLink({
   return (
     <Link
       href={href}
-      className="flex min-h-10 items-center text-sm text-muted hover:text-accent hover:underline hover:underline-offset-4"
+      className="flex min-h-11 items-center text-sm text-muted hover:text-accent hover:underline hover:underline-offset-4"
     >
       {children}
     </Link>
