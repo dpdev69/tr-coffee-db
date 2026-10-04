@@ -88,7 +88,7 @@ test('catalog rows and hydration do not wait for the independent total query',as
   let hydrated=false;
   const concurrent:CatalogDatabase={...db,batch:statements=>db.batch(statements),prepare(sql){
     const statement=db.prepare(sql);
-    if(sql.startsWith('SELECT * FROM offers'))hydrated=true;
+    if(sql.startsWith('SELECT o.*,g.group_id'))hydrated=true;
     return {bind(...values){statement.bind(...values);return this;},first:async<T>()=>{if(sql.startsWith('SELECT count(*) AS count'))await pending;return statement.first<T>();},all:<T>()=>statement.all<T>()};
   }};
   const result=listCatalog(concurrent);
@@ -119,7 +119,7 @@ test('similarity ranks declared/inferred values with Turkish duplicates excluded
   await ingestCrawl(db,{...run(2,[product('same-url',{canonicalUrl:a.canonicalUrl,rawMetadata:facts,features})]),roasterId:'r2',mode:'baseline'});
   const all=(await listCatalog(db)).coffees;const current=all.find(c=>c.sourceProductId==='a')!;
   let reads=0;let hydratedIds:SqlValue[]=[];
-  const counted:CatalogDatabase={batch:statements=>db.batch(statements),prepare(sql){reads++;const statement=db.prepare(sql);return {bind(...values){if(sql.startsWith('SELECT * FROM offers'))hydratedIds=values;statement.bind(...values);return this;},first:<T>()=>statement.first<T>(),all:<T>()=>statement.all<T>()};}};
+  const counted:CatalogDatabase={batch:statements=>db.batch(statements),prepare(sql){reads++;const statement=db.prepare(sql);return {bind(...values){if(sql.startsWith('SELECT o.*,g.group_id'))hydratedIds=values;statement.bind(...values);return this;},first:<T>()=>statement.first<T>(),all:<T>()=>statement.all<T>()};}};
   const result=await getSimilarCoffees(counted,current,2);
   const winners=all.filter(c=>['strongest','inferred'].includes(c.sourceProductId!)).sort((a,b)=>a.id.localeCompare(b.id));
   assert.deepEqual(result,winners.map(c=>({...c,similarityReasons:['Aynı kökenden','Benzer işleme yöntemi','Benzer tat profili']})));

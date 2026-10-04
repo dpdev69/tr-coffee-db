@@ -144,7 +144,8 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
       statements.push(insert(db, 'coffees', { id: coffeeId, roaster_id: input.roasterId, source_product_id: product.sourceProductId ?? existing?.source_product_id ?? null,
         identity_key: existing?.identity_key ?? identity, canonical_url: url, name: product.name.trim(), slug, raw_metadata_json: JSON.stringify(product.rawMetadata),
         visibility: excluded ? 'hidden' : product.visibility ?? 'unclassified', first_seen_at: startedAt, last_seen_at: startedAt, created_at: completedAt, updated_at: completedAt },
-      `ON CONFLICT(id) ${upsertColumns(['source_product_id','canonical_url','name','raw_metadata_json','visibility','last_seen_at','updated_at'])}`));
+      // A reviewed override (data/corrections.json) outlives every crawl.
+      `ON CONFLICT(id) ${upsertColumns(['source_product_id','canonical_url','name','raw_metadata_json','last_seen_at','updated_at'])},visibility=coalesce(coffees.visibility_override,excluded.visibility)`));
       for (const [type, alias] of [['url',url],['slug',slug], ...(product.sourceProductId ? [['source',product.sourceProductId]] : [])]) {
         const known = aliases.find(item => item.alias_type === type && item.alias === alias);
         if (known && known.coffee_id !== coffeeId) throw new Error('Conflicting product alias');

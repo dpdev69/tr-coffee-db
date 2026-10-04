@@ -68,7 +68,7 @@ describe('public visibility query surfaces', () => {
     const bridge = readSource('src/lib/v2-legacy.ts');
     const migration = readSource('migrations/d1/0001_catalog.sql');
     assert.match(catalog, /FROM public_catalog_coffees c JOIN roasters/);
-    assert.match(catalog, /count\(DISTINCT c.id\) AS coffees[\s\S]*FROM public_catalog_coffees c JOIN offers o/);
+    assert.match(catalog, /count\(DISTINCT c.id\) AS coffees[\s\S]*FROM public_catalog_coffees c \$\{GROUP_OFFERS\}/);
     assert.match(catalog, /WHERE \$\{coffeeOnlySql\(\)\}/);
     assert.match(catalog, /WHERE c.visibility='public' AND/);
     assert.match(catalog, /JOIN public_catalog_coffees c ON c.roaster_id=r.id/);
