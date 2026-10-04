@@ -371,6 +371,9 @@ describe('normalize stated attributes', () => {
     assert.deepEqual(detectStatedAttributes(makeRawProduct({ description: 'İşlem: Doğal' })).processes.map((p) => p.process), ['natural']);
     assert.deepEqual(detectStatedAttributes(makeRawProduct({ rawData: { attributes: [{ name: 'İşleme', value: 'Doğal' }] } })).processes.map((p) => p.process), ['natural']);
     assert.deepEqual(detectStatedAttributes(washed).processes.map((p) => p.process), ['washed']);
+    // Roaster-declared fields: Parsa's islem_tr, and "Çeşit:" as a variety label.
+    assert.deepEqual(detectStatedAttributes(makeRawProduct({ name: 'Ethiopia Guji', rawData: { islem_tr: 'Natürel' } })).processes.map((p) => p.process), ['natural']);
+    assert.deepEqual(detectStatedAttributes(makeRawProduct({ description: 'Çeşit: Caturra, Bourbon Hasat: 2025' })).varieties, ['Bourbon', 'Caturra']);
   });
 
   it('emits every stated process (failure 4)', () => {

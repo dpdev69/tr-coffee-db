@@ -30,7 +30,8 @@ export function detectStatedAttributes(raw: RawProduct): {
   ].join(' | ');
   const countries = detectCountries(declaredOrigin);
 
-  const labelledProcess = collectLabeledTextCandidates(raw.rawData, new RegExp(`\\b(?:${PROCESS_LABEL})\\b`)).join(' | ');
+  // islem_tr is Parsa's own process field ("Natürel"), declared like koken_tr and cultivar.
+  const labelledProcess = [...collectLabeledTextCandidates(raw.rawData, new RegExp(`\\b(?:${PROCESS_LABEL})\\b`)), ...collectNamedRawDataText(raw.rawData, new Set(['islem_tr']))].join(' | ');
   const processes = processesStatedIn(name, labelledProcess, allText);
 
   const declaredVariety = [...labelContexts(allText, VARIETY_LABEL, 80), ...collectNamedRawDataText(raw.rawData, new Set(['cultivar']))].join(' | ');
@@ -202,7 +203,7 @@ function collectNamedRawDataText(
   return output;
 }
 
-const VARIETY_LABEL = 'varyete|varyetesi|varyeteler|varyeteleri|variety|varieties|cultivar|cultivars|tur|turu';
+const VARIETY_LABEL = 'varyete|varyetesi|varyeteler|varyeteleri|variety|varieties|cultivar|cultivars|tur|turu|cesit|cesidi|cesitler|cesitleri';
 
 function collectLabeledTextCandidates(
   value: unknown,
