@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { SITE_NAME } from '@/lib/site';
 import { CONTACT_EMAIL, LEGAL_PENDING, LEGAL_UPDATED } from '@/lib/legal';
 
+// Static copy: cacheable at the edge, re-rendered at most hourly (so a deploy shows within the hour).
+export const revalidate = 3600;
+
 export const metadata: Metadata = pageMetadata('Kullanım Şartları', `${SITE_NAME} kahve rehberinin kapsamını, fiyat uygunluğu uyarılarını ve dış bağlantı sorumluluklarını açıklar.`, '/terms');
 
 export default function TermsPage() {

@@ -7,7 +7,8 @@ import { DiscoveryEmpty } from '@/components/v2/discovery-card';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
 import { listRoasters } from '../../../shared/v2/catalog';
 
-export const dynamic = 'force-dynamic';
+// Matches the 5-minute D1 read cache: the edge may serve a page this stale, never older.
+export const revalidate = 300;
 export const metadata: Metadata = pageMetadata("Kavurucular", "Türkiye’nin bağımsız kahve kavurucularını ve satıştaki çekirdeklerini keşfet.", "/kavurucular");
 export default async function RoastersPage() {
   let roasters: Awaited<ReturnType<typeof listRoasters>>;

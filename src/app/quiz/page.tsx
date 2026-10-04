@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { QuizContainer } from '@/components/quiz/quiz-container';
 import { SITE_NAME } from '@/lib/site';
 
+// Static copy: cacheable at the edge, re-rendered at most hourly (so a deploy shows within the hour).
+export const revalidate = 3600;
+
 const description =
   '4 kısa soruyu yanıtla; damak tadınıza, demleme yönteminize ve kavrum tercihinize uygun nitelikli kahveleri filtreleyelim.';
 

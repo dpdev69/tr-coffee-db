@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import { brand } from "@/lib/brand";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
-import { cookies } from "next/headers";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_URL } from "@/lib/site";
 import { CompareDock } from "@/components/coffee/compare-controls";
 import { WebAnalytics } from "@/components/v2/web-analytics";
 import { ConsentControls } from "@/components/v2/consent-controls";
-import { consentChoice } from "../../shared/v2/consent";
+import { CONSENT_COOKIE } from "../../shared/v2/consent";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -66,24 +65,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+// Runs before the body paints: a stored choice hides the consent banner until React hydrates.
+const consentScript = `if(/(?:^|; )${CONSENT_COOKIE}=(?:essential|analytics)(?:;|$)/.test(document.cookie))document.documentElement.dataset.consent="1"`;
+
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const initialChoice = consentChoice((await cookies()).toString());
   return (
     <html
       lang="tr"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-paper font-sans text-ink">
+        <script dangerouslySetInnerHTML={{ __html: consentScript }} />
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-surface focus:p-4">İçeriğe geç</a>
         <Header />
         <main id="main-content" className="flex-1">{children}</main>
         <CompareDock />
         <Footer />
-        <ConsentControls initialChoice={initialChoice} />
+        <ConsentControls />
         <WebAnalytics />
       </body>
     </html>

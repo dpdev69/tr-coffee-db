@@ -3,6 +3,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BrewCalculator } from '@/components/guide/brew-calculator';
 
+// Static copy: cacheable at the edge, re-rendered at most hourly (so a deploy shows within the hour).
+export const revalidate = 3600;
+
 export const metadata: Metadata = pageMetadata("Kahve Rehberi ve Demleme Hesaplayıcı", "Kahve seçimi, tadım notları ve işleme yöntemleri için kısa bir rehber. Filtre, espresso, French press ve AeroPress için demleme oranını hesapla.", "/guide");
 export default function GuidePage() {
   return (

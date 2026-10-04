@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { SITE_NAME } from '@/lib/site';
 import { CONTACT_EMAIL, DATA_CONTROLLER, LEGAL_PENDING, LEGAL_UPDATED } from '@/lib/legal';
 
+// Static copy: cacheable at the edge, re-rendered at most hourly (so a deploy shows within the hour).
+export const revalidate = 3600;
+
 export const metadata: Metadata = pageMetadata('Gizlilik', `${SITE_NAME} hangi verileri neden kullandığını ve dış bağlantıların nasıl çalıştığını açıklar.`, '/privacy');
 
 export default function PrivacyPage() {

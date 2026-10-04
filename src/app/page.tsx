@@ -6,11 +6,14 @@ import { CoffeeScene } from '@/components/v2/coffee-scene';
 import { DiscoveryEmpty, DiscoveryGrid } from '@/components/v2/discovery-card';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { brand } from '@/lib/brand';
+import { JsonLd } from '@/components/layout/json-ld';
+import { absoluteUrl } from '@/lib/site';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
 import { RoasterInitial } from '@/components/v2/discovery-detail';
 import { getCatalogCounts, listCatalog, listRoasters, type CatalogCoffee, type CatalogRoaster } from '../../shared/v2/catalog';
 
-export const dynamic = 'force-dynamic';
+// Matches the 5-minute D1 read cache: the edge may serve a page this stale, never older.
+export const revalidate = 300;
 export const metadata: Metadata = { title: { absolute: brand.title }, description: brand.description, alternates: { canonical: '/' } };
 
 const HOW_IT_WORKS = [
@@ -40,6 +43,7 @@ export default async function HomePage() {
     data = { counts, catalog: catalog.coffees, drops: drops.coffees, restocked: restocked.coffees, roasters };
   } catch (error) { unstable_rethrow(error); }
   return <div className="page-shell studio-home">
+    <JsonLd data={{ '@type': 'Organization', name: brand.name, url: absoluteUrl('/'), logo: absoluteUrl(brand.logoPath), description: brand.description }} />
     <section className="studio-hero">
       <CoffeeScene className="studio-background" />
       <div className="studio-hero-copy">
