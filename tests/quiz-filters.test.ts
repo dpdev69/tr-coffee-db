@@ -18,7 +18,7 @@ describe('buildQuizFilterResult', () => {
       '/kahveler?brewMethod=filter&taste=Fruity&taste=Floral&process=washed&roast=light'
     );
     assert.deepEqual(result.explanations, [
-      'Demleme uyumu: Filter / Pour Over.',
+      'Demleme uyumu: Filtre / Pour Over.',
       'Tat kategorisi: Meyvemsi, Çiçeksi.',
       'İşleme: Yıkanmış.',
       'Kavurma seviyesi: Açık.',

@@ -26,10 +26,9 @@ const COUNTRY_MAP: [RegExp, string][] = [
   [/\b(dominik|dominican)\b/i, 'Dominican Republic'],
   [/\b(kuba|cuba)\b/i, 'Cuba'],
   [/\b(papua|png)\b/i, 'Papua New Guinea'],
-  [/\b(cin|china|yunnan)\b/i, 'China'],
+  [/\b(cin|china(?!\s+alta\b)|yunnan)\b/i, 'China'], // "China Alta" is a Colombian lot
   [/\b(myanmar|burma)\b/i, 'Myanmar'],
   [/\b(vietnam)\b/i, 'Vietnam'],
-  [/\b(geisha|gesha)\b/i, 'Panama'], // Gesha often = Panama
 ];
 
 // Known regions per country
@@ -63,6 +62,25 @@ const REGION_PATTERNS: [RegExp, string][] = [
   [/\b(atitlan)\b/i, 'Atitlan'],
 ];
 
+/** Every country named in `text`, in order of mention. A second country counts only after a separator ("Brazil / Colombia"), so "Colombia China Alta" is one. */
+export function detectCountries(text: string): string[] {
+  const searchText = normalizeForMetadataSearch(text);
+  const hits = COUNTRY_MAP.flatMap(([regex, country]) => {
+    const match = regex.exec(searchText);
+    return match ? [{ country, start: match.index, end: match.index + match[0].length }] : [];
+  }).sort((a, b) => a.start - b.start);
+
+  const countries: string[] = [];
+  let previousEnd = 0;
+  for (const hit of hits) {
+    if (countries.includes(hit.country)) continue;
+    if (countries.length > 0 && !/[/,&+–—-]|\b(?:ve|and|ile|x)\b/.test(searchText.slice(previousEnd, hit.start))) continue;
+    countries.push(hit.country);
+    previousEnd = hit.end;
+  }
+  return countries;
+}
+
 export function detectOrigin(text: string): {
   country: string | null;
   region: string | null;
@@ -70,16 +88,7 @@ export function detectOrigin(text: string): {
   farm: string | null;
 } {
   const searchText = normalizeForMetadataSearch(text);
-  let countryMatch: { country: string; index: number } | null = null;
   let region: string | null = null;
-
-  for (const [regex, name] of COUNTRY_MAP) {
-    const match = regex.exec(searchText);
-    if (!match) continue;
-    if (countryMatch === null || match.index < countryMatch.index) {
-      countryMatch = { country: name, index: match.index };
-    }
-  }
 
   for (const [regex, name] of REGION_PATTERNS) {
     if (regex.test(searchText)) {
@@ -96,7 +105,7 @@ export function detectOrigin(text: string): {
   const farmMatch = text.match(/(?:finca|farm|çiftlik|estate|station)\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]+?)(?:\s*[-,.|]|\s*$)/i);
   const farm = farmMatch ? farmMatch[1].trim() : null;
 
-  return { country: countryMatch?.country ?? null, region, altitude, farm };
+  return { country: detectCountries(text)[0] ?? null, region, altitude, farm };
 }
 
 function normalizeForMetadataSearch(text: string): string {
