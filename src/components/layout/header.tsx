@@ -11,6 +11,7 @@ const links = [
   { href: '/yeni', label: 'Yeni keşifler' },
   { href: '/firsatlar', label: 'Fırsatlar' },
   { href: '/kavurucular', label: 'Kavurucular' },
+  { href: '/bulten', label: 'Bülten' },
 ];
 const searchFallback = <div className="h-11 rounded-full bg-tint" />;
 const iconButton = 'grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line bg-surface text-ink';

@@ -1,0 +1,77 @@
+name: Monthly Issue Draft
+
+# Merging content/bulten/YYYY-MM.md with `published: true` into main is the owner's approval of the issue.
+# This creates a Kit DRAFT for it; the owner chooses recipients, reviews and presses send in Kit. Nothing is ever sent from here.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'content/bulten/**'
+  workflow_dispatch:
+    inputs:
+      month:
+        description: 'Issue month, YYYY-MM (for example 2026-11)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monthly-issue-draft
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_ACCOUNT_ID: '4c1a4493b8584296f35c3eddc8279112'
+      CLOUDFLARE_D1_DATABASE_ID: '5090f52d-546e-4ba6-bdcd-b4ee531a29a3'
+      CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The push range is needed to see which issue files changed.
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build the issue email and create Kit drafts
+        env:
+          KIT_API_KEY: ${{ secrets.KIT_API_KEY }}
+          SITE_URL: ${{ vars.SITE_URL }}
+          NEXT_PUBLIC_SPONSORSHIPS_ENABLED: ${{ vars.NEXT_PUBLIC_SPONSORSHIPS_ENABLED }}
+          MONTH: ${{ inputs.month }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            echo "$MONTH" | grep -Eqx '[0-9]{4}-(0[1-9]|1[0-2])' || { echo "::error::Month must be YYYY-MM, got '$MONTH'."; exit 1; }
+            months="$MONTH"
+          else
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = 0000000000000000000000000000000000000000 ]; then BEFORE="$GITHUB_SHA^"; fi
+            months=$(git diff --name-only --diff-filter=AM "$BEFORE" "$GITHUB_SHA" -- content/bulten | sed -nE 's#^content/bulten/([0-9]{4}-(0[1-9]|1[0-2]))\.md$#\1#p')
+          fi
+          [ -n "$months" ] || { echo "No issue file changed; nothing to draft." >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          for month in $months; do
+            # A merged draft (published: false) is skipped quietly on push; the script itself refuses it in every case.
+            if [ "$GITHUB_EVENT_NAME" = push ] && ! grep -Eq '^published:[[:space:]]*true[[:space:]]*$' "content/bulten/$month.md"; then
+              echo "$month: not \`published: true\`, so no draft was created." >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+            npx tsx scripts/v2-digest.mts --issue "$month" --create-draft
+          done
+      - name: Keep the email previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue-preview-${{ github.run_id }}
+          path: .local/v2/issue-*-preview.html
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: ignore

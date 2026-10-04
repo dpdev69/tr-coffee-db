@@ -34,6 +34,19 @@ describe('GitHub Actions workflows', () => {
     assert.match(digest, /KIT_API_KEY: \$\{\{ secrets\.KIT_API_KEY \}\}/);
   });
 
+  it('drafts the monthly issue on a merge to main or by hand, never on a schedule', () => {
+    const issue = readSource('.github/workflows/monthly-issue.yml');
+    assert.match(issue, /paths:\n\s+- 'content\/bulten\/\*\*'/);
+    assert.match(issue, /branches:\n\s+- main/);
+    assert.match(issue, /workflow_dispatch:\n\s+inputs:\n\s+month:/);
+    assert.doesNotMatch(issue, /schedule:|cron:/);
+    assert.match(issue, /contents: read/);
+    assert.match(issue, /v2-digest\.mts --issue "\$month" --create-draft/);
+    // User input reaches the shell only through env, never interpolated into the script.
+    assert.doesNotMatch(issue.split('run: |')[1].split('- name:')[0], /\$\{\{/);
+    assert.match(readSource('.github/workflows/digest.yml'), /cron: '0 3 \* \* 1'/);
+  });
+
   it('exports a weekly read-only D1 backup kept as a private 30-day artifact', () => {
     const backup = readSource('.github/workflows/d1-backup.yml');
     assert.match(backup, /contents: read/);

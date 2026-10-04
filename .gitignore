@@ -63,3 +63,6 @@ output/
 .knowledge/
 .specify/
 skills-lock.json
+
+# Monthly issues bundled at build time (scripts/bulten-bundle.mts)
+src/app/bulten/issues.generated.ts
