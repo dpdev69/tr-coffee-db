@@ -133,6 +133,8 @@ export const coffeeSapiens: RoasterConfig = {
   platform: 'shopify',
   city: 'Istanbul',
   priceFormat: 'tl',
+  // No product_type or tags; the full catalog also lists zero-price brew guides ("FRENCH PRESS") that would read as coffees.
+  collectionHandle: 'coffee-collection',
 };
 
 // ==========================================
@@ -235,6 +237,8 @@ export const lotCoffee: RoasterConfig = {
   priceFormat: 'kurus', // 92500 = 925 TL
   // Single origins are named by origin/farm only; the store files every coffee under the "Specialty" category.
   coffeeProductKeywords: ['specialty'],
+  // "Hola! Colombia" is a three-coffee sampler (100 g + 100 g + 50 g) filed under Specialty, not one 250 g coffee.
+  excludedProductSlugs: ['holacolombia'],
 };
 
 export const sezy: RoasterConfig = {
