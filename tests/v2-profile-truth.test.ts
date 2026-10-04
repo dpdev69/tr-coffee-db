@@ -135,3 +135,8 @@ test('honeydew, cherry blossom and white tea are not Honey, Cherry or Black Tea,
   assert.deepEqual(derive('Indonesia Frinsa Edun #2','<h3>Tadım Notları</h3><p>Karpuz, Dağ Çileği, Kiraz Çiçeği, Kan Portakal</p>').flavor_notes_normalized,['Orange']);
   assert.deepEqual(derive('Rwanda','<h3>Tadım Notları</h3><p>Vişne, Erik, Kuru Üzüm ve Siyah Çay, bal</p>').flavor_notes_normalized,['Cherry','Plum','Grape','Honey','Black Tea']);
 });
+test('a tropical climate is not a Tropical Fruit note; tropical fruits in prose still are',()=>{
+  // Lot Coffee, Etiyopya Boledu (2026-10-05): the page's notes are Böğürtlen / Siyah Çay / Bal.
+  assert.deepEqual(derive('Etiyopya Boledu','Bölge, sıcak tropikal iklimi, verimli toprakları ve 2000 metrenin üzerindeki yüksek rakımları sayesinde ünlüdür. / Böğürtlen / Siyah Çay').flavor_notes_normalized,['Blackberry','Black Tea']);
+  assert.deepEqual(derive('Kolombiya El Indio','Tadım profili olarak tropikal meyveler ve turunçgil tatlarıyla başlayan deneyim').flavor_notes_normalized,['Citrus','Tropical Fruit']);
+});

@@ -101,8 +101,9 @@ const FLAVOR_MAPPINGS: FlavorMapping[] = [
 // process, "tatlı" is praise, "date" is "Roast Date" and "parlak" is "bright" for anything.
 const PROSE_AMBIGUOUS = new Set(['bal', 'tatlı', 'date', 'parlak']);
 
-// Phrases whose words are not flavors: cultivars named by a colour ("Orange Bourbon") and a fermentation yeast ("Wine Yeast").
-const NOT_FLAVOR = /(?:^|[^a-z0-9])(?:(?:pink|red|yellow|orange|striped)\s*(?:bourbon|burbon|catuai|caturra)|wine\s*yeast)(?=$|[^a-z0-9])/g;
+// Phrases whose words are not flavors: cultivars named by a colour ("Orange Bourbon"), a fermentation yeast ("Wine Yeast")
+// and a climate ("tropikal iklimi").
+const NOT_FLAVOR = /(?:^|[^a-z0-9])(?:(?:pink|red|yellow|orange|striped)\s*(?:bourbon|burbon|catuai|caturra)|wine\s*yeast|tropi[ck]al\s*(?:iklim[a-z]*|climate))(?=$|[^a-z0-9])/g;
 
 // Notes whose words name a different flavor the map does not hold: honeydew melon and pumpkin are not Honey, cherry
 // blossom is not Cherry, white tea is not Black Tea. Unknown beats wrong, so they are read as nothing.
