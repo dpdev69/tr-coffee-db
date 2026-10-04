@@ -54,9 +54,9 @@ describe('V2 pure adapter contracts', () => {
     assert.notEqual(canonicalUrl('/a/b', config), canonicalUrl('/a-b', config));
     assert.throws(() => canonicalUrl('https://evil.test/p', config), /allowlist/);
   });
-  it('rejects malformed price, zero, negative, infinite and unsafe identifiers', async () => {
-    for (const value of [-1, 0, Infinity, NaN, '500abc', '1,000']) assert.throws(() => money(value));
-    assert.equal(money(null), null);
+  it('rejects malformed price, negative, infinite and unsafe identifiers', async () => {
+    for (const value of [-1, Infinity, NaN, '500abc', '1,000']) assert.throws(() => money(value));
+    assert.equal(money(null), null); assert.equal(money('0.00'), 0);
     const data = await json('shopify.json'); data.products[0].id = 9007199254740992;
     assert.throws(() => parseShopifyPage(data, config), /identifier/);
   });
@@ -139,11 +139,11 @@ describe('V2 read-only legacy comparison', () => {
 });
 
 describe('Live-source regression cases (2026-09-14)', () => {
-  it('accepts Petra zero compare-at sentinel without a zero current price', async () => {
+  it('treats Petra zero compare-at and current prices as unknown instead of failing the roaster', async () => {
     const data = await json('shopify.json'); data.products[0].variants[0].compare_at_price = '0.00';
     assert.equal(parseShopifyPage(data, config)[0].offers[0].compareAtPrice, null);
     data.products[0].variants[0].price = '0.00';
-    assert.throws(() => parseShopifyPage(data, config), /positive/);
+    assert.equal(parseShopifyPage(data, config)[0].offers[0].price, null);
   });
   it('sums Parsa zero base-price component with positive per-package surcharge', async () => {
     const data = await json('parsa.json');
@@ -153,7 +153,7 @@ describe('Live-source regression cases (2026-09-14)', () => {
     assert.equal(product.offers[0].sourceVariantId, '127');
     assert.equal(product.offers[0].price, 950);
     data.varyasyonlar[0].ek_fiyat_tl = '0.00';
-    assert.throws(() => parseParsaProduct(data, config), /positive/);
+    assert.equal(parseParsaProduct(data, config).offers[0].price, null);
   });
 });
 

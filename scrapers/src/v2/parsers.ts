@@ -20,7 +20,8 @@ function coffee(config: RoasterConfig, raw: Record<string, unknown>, url: string
   return {
     sourceProductId: sourceId(id), canonicalUrl: canonicalUrl(url, config), name,
     rawMetadata: truthfulMetadata({ ...(scaScore === null ? {} : { scaScore }), description: descriptionText, imageUrl: normalizeRoasterImageUrl(text(image), config), sourceData: json(raw) },name),
-    offers, visibility: eligibility.is_public ? 'public' : 'hidden',
+    // A zero price is a storefront placeholder, not a free coffee: unknown beats wrong.
+    offers: offers.map(offer => ({ ...offer, price: offer.price || null, compareAtPrice: offer.compareAtPrice || null })), visibility: eligibility.is_public ? 'public' : 'hidden',
     features: [{ feature: 'catalog_eligibility', value: json(eligibility), sourceType: 'RULE_INFERRED', confidence: null, version: 'legacy-specialty-v1-coffee-only-v3', sourceReference: url }, ...deriveProfileFeatures(profileInput(raw, name, url, sourceId(id), descriptionText))],
   };
 }

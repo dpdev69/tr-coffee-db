@@ -192,12 +192,8 @@ function appendDistinct(target: SourceCoffee[], incoming: SourceCoffee[]) {
   for (const product of incoming) {
     const key = product.sourceProductId ?? product.canonicalUrl;
     if (target.some(existing => (existing.sourceProductId ?? existing.canonicalUrl) === key)) throw new Error('Duplicate source product across catalog pages.');
-    const offers = new Set<string>();
-    for (const offer of product.offers) {
-      const identity = offer.sourceVariantId ?? offer.identityKey;
-      if (!identity || offers.has(identity)) throw new Error('Missing or duplicate source offer identity.');
-      offers.add(identity);
-    }
+    // Duplicate offer identities are skipped per offer during ingestion; they do not fail the roaster.
+    if (product.offers.some(offer => !(offer.sourceVariantId ?? offer.identityKey))) throw new Error('Missing source offer identity.');
     target.push(product);
   }
 }
