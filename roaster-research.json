@@ -57,9 +57,9 @@
       "api_endpoint": "/products.json",
       "api_works": true,
       "product_type_field": "",
-      "status": "active",
+      "status": "configured",
       "city": "Istanbul",
-      "notes": "Mixes equipment (Aeropress) with coffee. Need to filter product_type or tags."
+      "notes": "CONFIGURED 2026-10-05, awaiting qualification. Shopify, TRY. 36 products of which about 10 are coffees; the rest are grinders, brewers, sets, a capsule product. No product_type or tags to filter on; equipment is excluded by name downstream. robots.txt standard Shopify, /products.json allowed."
     },
     {
       "name": "CoffeeNutz",
@@ -168,23 +168,23 @@
       "name": "Ordinarius Coffee Roastery",
       "slug": "ordinarius",
       "url": "https://ordinariuscoffee.com",
-      "platform": "woocommerce",
-      "api_endpoint": "/wp-json/wc/store/v1/products",
-      "api_works": true,
+      "platform": "ideasoft",
+      "api_endpoint": null,
+      "api_works": false,
       "status": "active",
       "city": "Eskisehir",
-      "notes": "WooCommerce Store API open. Elementor-based frontend. Price in kuruş."
+      "notes": "Now IdeaSoft (rewritten adapter, parseIdeaProduct); the WooCommerce Store API listed in May no longer applies. Configured as platform custom."
     },
     {
       "name": "Parsa Coffee Roasters",
       "slug": "parsa",
       "url": "https://parsacoffeeroasters.com",
-      "platform": "woocommerce",
-      "api_endpoint": "/wp-json/wc/store/v1/products",
+      "platform": "custom",
+      "api_endpoint": "/api/katalog/kahveler",
       "api_works": true,
       "status": "active",
       "city": "Istanbul",
-      "notes": "WooCommerce Store API open. Near Galata Tower. Price in kuruş (80000 = 800 TL)."
+      "notes": "Configured as custom (own catalog API, parsa-catalog parser), no longer read through the WooCommerce Store API. Near Galata Tower."
     },
     {
       "name": "Poka Coffee Roasters",
@@ -294,7 +294,7 @@
       "api_works": false,
       "status": "catalog_unavailable",
       "city": "Izmit",
-      "notes": "Official custom domain currently presents a *.myikas.com certificate and fails normal HTTPS validation. The Ikas backing storefront at ultracoffee.myikas.com is live, but its sitemap exposes only pages, embedded product-list data contains no product records, and Storefront GraphQL searchProducts/getProductFilterData returned zero usable products as of 2026-05-21."
+      "notes": "IKAS. 2026-10-05: robots.txt allows crawling, but the ultracoffee.myikas.com home page has an empty title and no product links; no catalog page found, so not configured. Earlier note: custom domain presented a myikas certificate."
     },
     {
       "name": "Spada Coffee",
@@ -312,11 +312,11 @@
       "slug": "caffe-di-toee",
       "url": "https://caffeditoee.com",
       "platform": "ikas",
-      "api_endpoint": null,
-      "api_works": false,
-      "status": "catalog_unavailable",
+      "api_endpoint": "IKAS storefront GraphQL (api.myikas.com)",
+      "api_works": true,
+      "status": "configured",
       "city": "Ankara",
-      "notes": "Current live site redirects www to caffeditoee.com and is an Ikas storefront under construction. The previously indexed /cekirdek-kahveler catalog now returns HTTP 404; Ikas searchProducts GraphQL returns INTERNAL_SERVER_ERROR, so no live first-party scrapeable catalog is available as of 2026-05-21."
+      "notes": "CONFIGURED 2026-10-05, awaiting qualification. Storefront is live again (May note said under construction); 12 products, shop page /kahveler. City from the address on the site (Çankaya/Ankara)."
     },
     {
       "name": "Kronotrop",
@@ -347,9 +347,9 @@
       "platform": "custom",
       "api_endpoint": null,
       "api_works": false,
-      "status": "active",
+      "status": "unreachable",
       "city": "Istanbul",
-      "notes": "Custom platform. Micro roaster in Balat. Small catalog (~4 coffees)."
+      "notes": "Custom platform. Micro roaster in Balat. Small catalog (~4 coffees). 2026-10-05: the host does not resolve in DNS from this machine; nothing probed."
     },
     {
       "name": "Kava Coffee Roasting",
@@ -360,7 +360,7 @@
       "api_works": false,
       "status": "active",
       "city": "Istanbul",
-      "notes": "Custom platform (timed out on first load). Karaköy-based, est. 2015."
+      "notes": "Custom PHP storefront (/sepet, /uye-girisi), robots.txt returns 404 (no rules). About 8-10 generic blends and Colombia/decaf lines on the home page; small catalog. An adapter would need a selector-based HTML parser over /espresso, /filtre-kahve, /turk-kahvesi."
     },
     {
       "name": "La Lune Roastery",
@@ -369,9 +369,9 @@
       "platform": "custom",
       "api_endpoint": null,
       "api_works": false,
-      "status": "active",
+      "status": "unreachable",
       "city": "Izmir",
-      "notes": "Custom platform. Small catalog. Joined More Roastery in 2022."
+      "notes": "Custom platform. Small catalog. Joined More Roastery in 2022. 2026-10-05: the host does not resolve in DNS from this machine; nothing probed."
     },
     {
       "name": "Milestones Coffee",
@@ -382,7 +382,7 @@
       "api_works": false,
       "status": "active",
       "city": "Turgutlu",
-      "notes": "Custom platform. Needs custom scraper."
+      "notes": "Custom platform. Configured as Manisa (Turgutlu is a district of Manisa)."
     },
     {
       "name": "Octagon Roastery",
@@ -393,7 +393,7 @@
       "api_works": false,
       "status": "active",
       "city": "Istanbul",
-      "notes": "Custom platform. Zekeriyaköy location."
+      "notes": "Custom SPA; robots.txt allows all and points to b2b.liontechnology.com.tr/sitemap.xml. The home page has no readable product markup, so no catalog was found. An adapter would need the SPA's data endpoint identified first."
     },
     {
       "name": "ROR Cafe & Roastery",
@@ -404,7 +404,7 @@
       "api_works": false,
       "status": "active",
       "city": "Ankara",
-      "notes": "Custom platform. Rate Of Rise methodology. Needs custom scraper."
+      "notes": "Custom Angular SPA; robots.txt allows all except account/checkout pages. Coffee beans are under /urunler/cekirdek-cesitleri. An adapter would need the SPA's data endpoint identified first. Catalog size not measured."
     },
     {
       "name": "Schiller Turkiye",
@@ -413,9 +413,9 @@
       "platform": "custom",
       "api_endpoint": null,
       "api_works": false,
-      "status": "active",
+      "status": "skipped_not_specialty",
       "city": "Istanbul",
-      "notes": "Custom platform. German origin, 27 years roasting. Exports to 56 countries."
+      "notes": "Importer/wholesaler of Schiller Kaffeerösterei; capsule machines and teas; shop is schiller.store plus marketplaces. Not a specialty roaster. Skip."
     },
     {
       "name": "Grizzly Coffee Roasters",
@@ -426,7 +426,7 @@
       "api_works": false,
       "status": "marketplace_only",
       "city": "Istanbul",
-      "notes": "First-party domain grizzlycoffeeroasters.com did not resolve during live checks. Search results show Turkish products on third-party marketplaces Hipicon and Trendyol; a MerchantGenius Shopify result for grizzlycoffeeroasters.com lists USD products and appears unrelated to the Istanbul roaster. Do not implement marketplace scraping without a product decision."
+      "notes": "First-party domain grizzlycoffeeroasters.com did not resolve during live checks. Search results show Turkish products on third-party marketplaces Hipicon and Trendyol; a MerchantGenius Shopify result for grizzlycoffeeroasters.com lists USD products and appears unrelated to the Istanbul roaster. Do not implement marketplace scraping without a product decision. 2026-10-05: still does not resolve in DNS."
     },
     {
       "name": "3 Cores Coffee",
@@ -437,7 +437,7 @@
       "api_works": false,
       "status": "active",
       "city": "Ankara",
-      "notes": "Wix platform. Needs custom scraping approach. Direct trade model."
+      "notes": "Wix platform. Needs custom scraping approach. Direct trade model. 2026-10-05: Wix confirmed (page markup and robots.txt). No public JSON catalog; an adapter would need to read Wix Stores page data. robots.txt allows /. About 8 product links on the home page (lower bound)."
     },
     {
       "name": "Eleonora Coffee",
@@ -448,7 +448,7 @@
       "api_works": false,
       "status": "active",
       "city": "Istanbul",
-      "notes": "Wix platform. Needs custom scraping approach."
+      "notes": "Wix platform. Needs custom scraping approach. 2026-10-05: Wix confirmed (page markup and robots.txt). No public JSON catalog; an adapter would need to read Wix Stores page data. robots.txt allows /."
     },
     {
       "name": "Gordion Coffee Roastery",
@@ -459,7 +459,7 @@
       "api_works": false,
       "status": "active",
       "city": "Eskisehir",
-      "notes": "Wix platform. Est. 2020."
+      "notes": "Wix platform. Est. 2020. 2026-10-05: Wix confirmed (page markup and robots.txt). No public JSON catalog; an adapter would need to read Wix Stores page data. robots.txt allows /. About 6 product links on the home page (lower bound)."
     },
     {
       "name": "Old School Roastery",
@@ -470,18 +470,18 @@
       "api_works": false,
       "status": "active",
       "city": "Ankara",
-      "notes": "Wix platform. Micro roastery since 2016."
+      "notes": "Wix platform. Micro roastery since 2016. 2026-10-05: Wix confirmed (page markup and robots.txt). No public JSON catalog; an adapter would need to read Wix Stores page data. robots.txt allows /."
     },
     {
       "name": "Kimma Coffee Roasters",
       "slug": "kimma",
       "url": "https://kimmacoffee.com",
-      "platform": "squarespace",
-      "api_endpoint": null,
-      "api_works": false,
+      "platform": "shopify",
+      "api_endpoint": "/products.json",
+      "api_works": true,
       "status": "active",
       "city": "Istanbul",
-      "notes": "Squarespace. Women-founded (2016). Needs HTML scraping."
+      "notes": "Configured as Shopify on shop.kimmacoffee.com (marketing site kimmacoffee.com is separate). Women-founded (2016). Previously listed as Squarespace."
     },
     {
       "name": "Coffee Manifesto",
@@ -492,7 +492,7 @@
       "api_works": false,
       "status": "active",
       "city": "Istanbul",
-      "notes": "Square Online. Yeldeğirmeni, Istanbul."
+      "notes": "Square Online. Yeldeğirmeni, Istanbul. robots.txt asks Crawl-delay: 5. No public JSON catalog; an adapter would need to read rendered pages or Square Online storefront data. Catalog size not measured."
     },
     {
       "name": "Trophy Coffee",
@@ -501,23 +501,23 @@
       "platform": "square_online",
       "api_endpoint": null,
       "api_works": false,
-      "status": "active_needs_verification",
-      "city": "Unknown",
-      "notes": "Square Online. Search results showed a Santa Clarita CA location — may not be Turkish. Needs verification."
+      "status": "not_turkish",
+      "city": null,
+      "notes": "2026-10-05: home page title says Santa Clarita, CA. Square Online. Not a Turkish roaster. Skip."
     },
     {
       "name": "Incommon Coffee",
       "slug": "incommon",
       "url": "https://www.incommon.coffee",
-      "platform": "custom",
+      "platform": "shopify",
       "api_endpoint": null,
       "api_works": false,
-      "status": "active",
+      "status": "merged_duplicate",
       "city": "Antalya",
-      "notes": "Custom platform (timed out). Merged with Homestead Coffee. May share inventory."
+      "notes": "2026-10-05: incommon.coffee redirects to homestead.coffee, which is already configured as homestead. Nothing to add."
     },
     {
-      "name": "Null Coffee",
+      "name": "Null Coffee (nullcoffee.com, expired domain)",
       "slug": "null",
       "url": "https://nullcoffee.com",
       "platform": "squarespace",
@@ -525,7 +525,7 @@
       "api_works": false,
       "status": "dead",
       "city": "Unknown",
-      "notes": "Website expired (Squarespace). REMOVE from scraping targets."
+      "notes": "Expired Squarespace site. Not the same roaster entry as null-coffee (null.coffee, Shopify, configured). REMOVE from scraping targets."
     },
     {
       "name": "Maple Coffee Shop",
@@ -559,31 +559,371 @@
       "status": "not_turkish",
       "city": "Sidoarjo",
       "notes": "Located in Indonesia, not Turkey. REMOVE from list."
+    },
+    {
+      "name": "Null Coffee Roasters",
+      "slug": "null-coffee",
+      "url": "https://null.coffee",
+      "platform": "shopify",
+      "api_endpoint": "/products.json",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "active",
+      "city": "Istanbul",
+      "notes": "null.coffee. Shopify, a different site from the expired nullcoffee.com entry \"null\". Added to the file 2026-10-05 from configs.ts; not re-probed."
+    },
+    {
+      "name": "Cup of Joy",
+      "slug": "cup-of-joy",
+      "url": "https://cupofjoy.com.tr",
+      "platform": "shopify",
+      "api_endpoint": "/products.json",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "active",
+      "city": "Istanbul",
+      "notes": "Shopify. Added to the file 2026-10-05 from configs.ts; not re-probed."
+    },
+    {
+      "name": "Orkun Üstel",
+      "slug": "orkun-ustel",
+      "url": "https://orkunustel.com",
+      "platform": "ikas",
+      "api_endpoint": "IKAS storefront GraphQL (api.myikas.com)",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "active",
+      "city": "Istanbul",
+      "notes": "IKAS. Added to the file 2026-10-05 from configs.ts; not re-probed."
+    },
+    {
+      "name": "Calibre Coffee",
+      "slug": "calibre",
+      "url": "https://coffeecalibre.com",
+      "platform": "ikas",
+      "api_endpoint": "IKAS storefront GraphQL (api.myikas.com)",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "active",
+      "city": "Istanbul",
+      "notes": "IKAS (coffeecalibre.com). Added to the file 2026-10-05 from configs.ts; not re-probed."
+    },
+    {
+      "name": "A4 Kahve",
+      "slug": "a4-kahve",
+      "url": "https://a4kahve.com",
+      "platform": "ikas",
+      "api_endpoint": "IKAS storefront GraphQL (api.myikas.com)",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "active",
+      "city": null,
+      "notes": "IKAS. No city stated in configs. Added to the file 2026-10-05 from configs.ts; not re-probed."
+    },
+    {
+      "name": "Tetra N Roastery",
+      "slug": "tetra-n",
+      "url": "https://tetranroastery.com",
+      "platform": "ikas",
+      "api_endpoint": "IKAS storefront GraphQL (api.myikas.com)",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "active",
+      "city": "Ankara",
+      "notes": "IKAS (tetranroastery.com). Added to the file 2026-10-05 from configs.ts; not re-probed."
+    },
+    {
+      "name": "KafeinKültür",
+      "slug": "kafeinkultur",
+      "url": "https://www.kafeinkultur.com",
+      "platform": "custom",
+      "api_endpoint": "api.kafeinkultur.com getProductDetail",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "active",
+      "city": "Istanbul",
+      "notes": "Custom storefront with its own product API. Added to the file 2026-10-05 from configs.ts; not re-probed."
+    },
+    {
+      "name": "Coffee Department",
+      "slug": "coffee-department",
+      "url": "https://coffeedepartment.co",
+      "platform": "ticimax",
+      "api_endpoint": "HTML selectors plus Ticimax native variants",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "active",
+      "city": "Istanbul",
+      "notes": "Ticimax per docs/free-catalog-refresh.md; configured as platform custom. Added to the file 2026-10-05 from configs.ts; not re-probed."
+    },
+    {
+      "name": "Coffeerem Roastery",
+      "slug": "coffeerem",
+      "url": "https://coffeerem.com",
+      "platform": "woocommerce",
+      "api_endpoint": null,
+      "api_works": null,
+      "product_type_field": null,
+      "status": "blocked_from_github",
+      "city": "Izmir",
+      "notes": "Configured as woocommerce with HTML selectors. Nightly job gets HTTP 403 from GitHub runners. From this machine on 2026-10-05 a single request returned 200 and robots.txt allows all crawlers. Added to the file 2026-10-05 from configs.ts; not re-probed."
+    },
+    {
+      "name": "Cho Coffee Roastery",
+      "slug": "cho-coffee",
+      "url": "https://chocoffeeroastery.com",
+      "platform": "custom",
+      "api_endpoint": null,
+      "api_works": false,
+      "product_type_field": null,
+      "status": "inactive",
+      "city": "Istanbul",
+      "notes": "Set inactive in configs.ts: HTTP 403 for the identified crawler everywhere. 2026-10-05: IIS 403.0 on both /robots.txt and /tr/kahve from this machine. Added to the file 2026-10-05 from configs.ts; not re-probed."
+    },
+    {
+      "name": "Lot Coffee Roastery",
+      "slug": "lot-coffee",
+      "url": "https://lotcoffeeroastery.com",
+      "platform": "woocommerce",
+      "api_endpoint": "/wp-json/wc/store/v1/products",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "configured",
+      "city": null,
+      "notes": "CONFIGURED 2026-10-05, awaiting qualification. WooCommerce Store API, minor unit 2 (92500 = 925 TL). 19 products, 12 coffees. Single origins are named by farm only and filed under the category \"Specialty\", so the config sets coffeeProductKeywords. Karşıyaka/Bostanlı appear on the site but no city is stated, so city is null."
+    },
+    {
+      "name": "Mayard Coffee",
+      "slug": "mayard",
+      "url": "https://mayardcoffee.com",
+      "platform": "ikas",
+      "api_endpoint": "IKAS storefront GraphQL (api.myikas.com)",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "configured",
+      "city": null,
+      "notes": "CONFIGURED 2026-10-05, awaiting qualification. IKAS, shop page /cekirdek, 16 coffees. No city stated on the site."
+    },
+    {
+      "name": "Vitus Coffee & Roastery",
+      "slug": "vitus",
+      "url": "https://vituscoffee.com",
+      "platform": "ikas",
+      "api_endpoint": "IKAS storefront GraphQL (api.myikas.com)",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "configured",
+      "city": null,
+      "notes": "CONFIGURED 2026-10-05, awaiting qualification. IKAS, shop page /niteliklikahveler, 24 coffees. On 2026-10-05 every coffee had zero stock at its only warehouse (the page also shows Tükendi labels), so almost nothing is available now. Other categories (/kahveler, /premiumkahveler, /blendkahveler, /turkkahveleri) were not crawled. No city stated."
+    },
+    {
+      "name": "Black and White Coffee Roasters",
+      "slug": "black-white",
+      "url": "https://www.blackwhiteroasters.com",
+      "platform": "shopify",
+      "api_endpoint": "/products.json",
+      "api_works": true,
+      "product_type_field": null,
+      "status": "not_turkish",
+      "city": null,
+      "notes": "2026-10-05: prices in USD, sizes in oz/lb; a US roaster. Skip."
+    },
+    {
+      "name": "Fabriek Roasting Co.",
+      "slug": "fabriek",
+      "url": null,
+      "platform": "unknown",
+      "api_endpoint": null,
+      "api_works": false,
+      "product_type_field": null,
+      "status": "unverified_domain",
+      "city": null,
+      "notes": "Found by web search 2026-10-05. Bursa; press describes a home-user bean business roasting 4-5 t/month. No website found by search. No domain was verified, so nothing was probed."
+    },
+    {
+      "name": "Deal Coffee Roasters",
+      "slug": "deal-coffee",
+      "url": null,
+      "platform": "unknown",
+      "api_endpoint": null,
+      "api_works": false,
+      "product_type_field": null,
+      "status": "unverified_domain",
+      "city": null,
+      "notes": "Found by web search 2026-10-05. Beşiktaş cafe-roastery. No online shop found by search. No domain was verified, so nothing was probed."
+    },
+    {
+      "name": "Roast and Found",
+      "slug": "roast-and-found",
+      "url": null,
+      "platform": "unknown",
+      "api_endpoint": null,
+      "api_works": false,
+      "product_type_field": null,
+      "status": "unverified_domain",
+      "city": null,
+      "notes": "Found by web search 2026-10-05. Karşıyaka, Izmir micro-roastery. No website found by search. No domain was verified, so nothing was probed."
+    },
+    {
+      "name": "Overdose",
+      "slug": "overdose",
+      "url": null,
+      "platform": "unknown",
+      "api_endpoint": null,
+      "api_works": false,
+      "product_type_field": null,
+      "status": "unverified_domain",
+      "city": null,
+      "notes": "Found by web search 2026-10-05. Izmir roast-to-order business. No website found by search. No domain was verified, so nothing was probed."
+    },
+    {
+      "name": "Kahveni Yarat",
+      "slug": "kahveni-yarat",
+      "url": null,
+      "platform": "unknown",
+      "api_endpoint": null,
+      "api_works": false,
+      "product_type_field": null,
+      "status": "unverified_domain",
+      "city": null,
+      "notes": "Found by web search 2026-10-05. Custom-blend bean seller; not obviously specialty. No domain verified. No domain was verified, so nothing was probed."
+    },
+    {
+      "name": "Rawsters Coffee & Supply Co.",
+      "slug": "rawsters",
+      "url": null,
+      "platform": "unknown",
+      "api_endpoint": null,
+      "api_works": false,
+      "product_type_field": null,
+      "status": "unverified_domain",
+      "city": null,
+      "notes": "Found by web search 2026-10-05. Istanbul; roasts in-house. No domain verified. No domain was verified, so nothing was probed."
     }
   ],
   "summary": {
-    "total_in_list": 49,
-    "active_with_api": 20,
-    "shopify": 9,
-    "shopify_names": ["Petra", "Montag", "A Roasting Lab", "Coach Coffee", "Coffee Sapiens", "CoffeeNutz", "Homestead", "Nok Coffee", "Boxx"],
+    "total_in_list": 70,
+    "configured_in_code": 44,
+    "active_with_api": 33,
+    "shopify": 14,
+    "shopify_names": [
+      "Petra Coffee",
+      "Montag Coffee Roasters",
+      "A Roasting Lab",
+      "Coach Coffee Company",
+      "Coffee Sapiens",
+      "CoffeeNutz",
+      "Homestead Coffee",
+      "Nok Coffee",
+      "Boxx Coffee Roasters",
+      "Kimma Coffee Roasters",
+      "Incommon Coffee",
+      "Null Coffee Roasters",
+      "Cup of Joy",
+      "Black and White Coffee Roasters"
+    ],
     "woocommerce": 11,
-    "woocommerce_names": ["Baristocrat", "Coffee Friendzone", "Coffeemamma", "Daphne Coffee", "Old Java", "Ordinarius", "Parsa", "Poka", "Sezy", "Molecule", "Williams"],
-    "ikas": 7,
-    "ikas_names": ["Gourme", "Hound", "Kernel", "Paper Coffee", "Story", "Ultra", "Spada"],
+    "woocommerce_names": [
+      "Baristocrat",
+      "Coffee Friendzone",
+      "Coffeemamma",
+      "Daphne Coffee Co.",
+      "Old Java Coffee Roasters",
+      "Poka Coffee Roasters",
+      "Sezy Coffee",
+      "Molecule Coffee",
+      "Williams Roastery",
+      "Coffeerem Roastery",
+      "Lot Coffee Roastery"
+    ],
+    "ikas": 14,
+    "ikas_names": [
+      "Gourme Coffee",
+      "Hound Coffee",
+      "Kernel Coffee",
+      "Paper Coffee & Chocolate",
+      "Story Coffee Roasters",
+      "Ultra Coffee Roastery",
+      "Spada Coffee",
+      "Caffe Di Toee",
+      "Orkun Üstel",
+      "Calibre Coffee",
+      "A4 Kahve",
+      "Tetra N Roastery",
+      "Mayard Coffee",
+      "Vitus Coffee & Roastery"
+    ],
     "ticimax": 1,
-    "ticimax_names": ["Caffe Di Toee"],
+    "ticimax_names": [
+      "Coffee Department"
+    ],
+    "ideasoft": 1,
+    "ideasoft_names": [
+      "Ordinarius Coffee Roastery"
+    ],
     "wix": 4,
-    "wix_names": ["3 Cores", "Eleonora", "Gordion", "Old School"],
+    "wix_names": [
+      "3 Cores Coffee",
+      "Eleonora Coffee",
+      "Gordion Coffee Roastery",
+      "Old School Roastery"
+    ],
     "squarespace": 1,
-    "squarespace_names": ["Kimma"],
+    "squarespace_names": [
+      "Null Coffee (nullcoffee.com, expired domain)"
+    ],
     "square_online": 2,
-    "square_online_names": ["Coffee Manifesto", "Trophy"],
-    "custom": 9,
-    "custom_names": ["Kronotrop", "Probador", "Coffee.dat", "Kava", "La Lune", "Milestones", "Octagon", "ROR", "Schiller", "Grizzly", "Incommon"],
-    "dead_or_removed": 3,
-    "dead_names": ["Null Coffee (expired)", "Clean Cup (not Turkish)", "Strong Coffee Beans (not found)"],
-    "no_website": 1,
-    "no_website_names": ["Maple Coffee"]
+    "square_online_names": [
+      "Coffee Manifesto",
+      "Trophy Coffee"
+    ],
+    "custom": 13,
+    "custom_names": [
+      "Parsa Coffee Roasters",
+      "Kronotrop",
+      "Probador Colectiva",
+      "Coffee.dat Roastery",
+      "Kava Coffee Roasting",
+      "La Lune Roastery",
+      "Milestones Coffee",
+      "Octagon Roastery",
+      "ROR Cafe & Roastery",
+      "Schiller Turkiye",
+      "Grizzly Coffee Roasters",
+      "KafeinKültür",
+      "Cho Coffee Roastery"
+    ],
+    "unknown": 9,
+    "unknown_names": [
+      "Maple Coffee Shop",
+      "Strong Coffee Beans",
+      "Clean Cup",
+      "Fabriek Roasting Co.",
+      "Deal Coffee Roasters",
+      "Roast and Found",
+      "Overdose",
+      "Kahveni Yarat",
+      "Rawsters Coffee & Supply Co."
+    ],
+    "not_usable": 16,
+    "not_usable_names": [
+      "Coffee.dat Roastery",
+      "La Lune Roastery",
+      "Schiller Turkiye",
+      "Trophy Coffee",
+      "Incommon Coffee",
+      "Null Coffee (nullcoffee.com, expired domain)",
+      "Maple Coffee Shop",
+      "Strong Coffee Beans",
+      "Clean Cup",
+      "Black and White Coffee Roasters",
+      "Fabriek Roasting Co.",
+      "Deal Coffee Roasters",
+      "Roast and Found",
+      "Overdose",
+      "Kahveni Yarat",
+      "Rawsters Coffee & Supply Co."
+    ]
   },
   "scraping_strategy": {
     "phase1_easy": {
@@ -602,5 +942,7 @@
       "approach": "Custom cheerio scrapers per site. Wix sites may need puppeteer. Consider deprioritizing these for MVP.",
       "count": 16
     }
-  }
+  },
+  "refreshed_at": "2026-10-05",
+  "refresh_note": "Brought in line with scrapers/src/roasters/configs.ts. Entries probed on 2026-10-05 say so in notes; others are unchanged May findings. A plain backlog: nothing in the code reads this file."
 }
