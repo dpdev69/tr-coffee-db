@@ -92,8 +92,8 @@ test('crawler DLQ variable names the configured dead-letter queue',()=>{
 });
 
 test('qualification is explicit and rejects configured-but-unreviewed sources before any queue I/O',async()=>{
-  assert.equal(QUALIFIED_SOURCE_SLUGS.length,39);
-  assert.equal(new Set(QUALIFIED_SOURCE_SLUGS).size,39);
+  assert.equal(QUALIFIED_SOURCE_SLUGS.length,42);
+  assert.equal(new Set(QUALIFIED_SOURCE_SLUGS).size,42);
   assert.ok(QUALIFIED_SOURCE_SLUGS.every(slug=>ALL_ROASTER_CONFIGS.some(config=>config.slug===slug)));
   assert.equal(isQualifiedSource('cho-coffee'),false);assert.equal(isQualifiedSource('friendzone'),false);assert.equal(isQualifiedSource('unknown'),false);
   const worker=createCrawlerWorker({fetch:async()=>{throw new Error('Rejected job fetched source');}});

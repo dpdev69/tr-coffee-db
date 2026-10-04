@@ -136,7 +136,7 @@ export function parseWooProduct(payload: unknown, variations: unknown[], config:
 
 export const IKAS_CATALOG_QUERY = `query searchProducts($input: SearchInput!) { searchProducts(input:$input) {
   count page limit results { id name description shortDescription deleted type metaData { slug }
-    categories { name } tags { name }
+    categories { name } tags { name } attributes { value productAttribute { name } productAttributeOption { name } }
     productVariantTypes { variantType { id name values { id name } } }
     variants { id deleted isActive sellIfOutOfStock variantValues { variantTypeId variantValueId }
       prices { priceListId currencyCode sellPrice discountPrice } stocks { stockLocationId stockCount }
@@ -201,7 +201,14 @@ export function parseIkasProducts(candidates: Record<string, unknown>[], config:
     const images = list(raw.variants).map(record).flatMap(v => optionalList(v.images).map(record)).filter(image => image.isVideo !== true);
     const image = images.find(image => image.isMain === true) ?? images[0];
     const imageUrl = context && image ? `${context.cdnUrl}/images/${context.merchantId}/${requiredText(image.id ?? image.imageId)}/image_1080.webp` : raw.imageUrl;
-    const product = coffee(config, raw, url, name, id, offers, raw.description ?? raw.shortDescription, imageUrl);
+    // The shop's own fact fields, tasting notes ("Tadım Notları") and the coffee's details ("Kahvenin Künyesi"), as plain
+    // {name, value} like WooCommerce attributes. Narrative fields (farm story, recipe) are prose about more than this lot.
+    // Optional data: an odd entry is skipped, never a reason to fail the crawl.
+    const object = (value: unknown) => (value && typeof value === 'object' ? value : {}) as Record<string, unknown>;
+    const attributes = (Array.isArray(raw.attributes) ? raw.attributes : []).map(object).map(attribute => ({ name: text(object(attribute.productAttribute).name),
+      value: plainHtml(attribute.value) || text(object(attribute.productAttributeOption).name) }))
+      .filter(attribute => attribute.value && /tad[ıi]m not|tasting note|k[üu]nye/i.test(attribute.name));
+    const product = coffee(config, raw.attributes === undefined ? raw : { ...raw, attributes }, url, name, id, offers, raw.description ?? raw.shortDescription, imageUrl);
     const existing = products.get(key);
     if (existing && JSON.stringify(existing) !== JSON.stringify(product)) throw new Error('Conflicting repeated IKAS product.');
     products.set(key, product);

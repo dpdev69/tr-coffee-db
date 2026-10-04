@@ -174,6 +174,7 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
         statements.push(insert(db, 'coffee_aliases', { roaster_id: input.roasterId, alias_type: type, alias, coffee_id: coffeeId, created_at: completedAt }, 'ON CONFLICT(roaster_id,alias_type,alias) DO NOTHING'));
       }
       const events: CoffeeEvent[] = existing || excluded ? [] : await deriveNewEvent(coffeeId,input.id,startedAt,mode);
+      // Only validated offers are written. A skipped offer keeps its old last_seen_at, which ages it out of current_offers (0007).
       for (const { offer, purchaseUrl, key, priceMinor, compareAtMinor, weightG, currency } of valid) {
         const existingOffer = offerRows.find(row => row.coffee_id === coffeeId && row.identity_key === key);
         const offerId = existingOffer?.id ?? await stableId('offer',coffeeId,key);

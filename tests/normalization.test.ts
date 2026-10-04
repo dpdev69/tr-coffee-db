@@ -203,44 +203,26 @@ describe('normalize coffee metadata', () => {
     assert.deepEqual(espressoCoffee.brew_methods, ['espresso']);
   });
 
-  it('detects explicit filter and espresso roast profile labels', () => {
-    const filterRoast = normalize(
-      makeRawProduct({
-        description: 'Roast Profile: Filter.',
-      })
-    );
-    const espressoRoast = normalize(
-      makeRawProduct({
-        description: 'Kavrum: Espresso.',
-      })
-    );
-
-    assert.equal(filterRoast.roast_level, 'medium_light');
-    assert.equal(espressoRoast.roast_level, 'medium_dark');
+  it('never reads a brew style beside a roast label or in a roast phrase as a roast level', () => {
+    for (const product of [
+      makeRawProduct({ description: 'Roast Profile: Filter.' }),
+      makeRawProduct({ description: 'Kavrum: Espresso.' }),
+      // Lot Coffee, Honduras Tutule (2026-10-05): the roast suits both brews; the page states no level.
+      makeRawProduct({ name: 'Honduras Tutule', description: 'Kavurma Profili Espresso/Filtre' }),
+      makeRawProduct({ description: 'Kavurma Profili: Filtre kahve için ideal, dengeli ve tatlı' }),
+      makeRawProduct({ name: 'PERFECT BALANCE BLEND/ESPRESSO ROAST' }),
+      makeRawProduct({ rawData: { attributes: [{ name: 'Profil', value: 'Filtre' }] } }),
+      makeRawProduct({ rawData: { attributes: [{ name: 'Profile', value: 'Espresso' }] } }),
+    ]) {
+      assert.equal(normalize(product).roast_level, 'unknown', product.description || product.name);
+    }
+    assert.equal(normalize(makeRawProduct({ description: 'Kavurma Profili: Orta-Koyu' })).roast_level, 'medium_dark');
   });
 
-  it('reads standalone profile metadata when the field label is explicit', () => {
-    const filterProfile = normalize(
-      makeRawProduct({
-        rawData: {
-          attributes: [
-            { name: 'Profil', value: 'Filtre' },
-          ],
-        },
-      })
-    );
-    const espressoProfile = normalize(
-      makeRawProduct({
-        rawData: {
-          attributes: [
-            { name: 'Profile', value: 'Espresso' },
-          ],
-        },
-      })
-    );
-
-    assert.equal(filterProfile.roast_level, 'medium_light');
-    assert.equal(espressoProfile.roast_level, 'medium_dark');
+  it('reads a moka pot, not a supplier or variety named Moka, as a brew method', () => {
+    // Lot Coffee, Kolombiya Santa Helena (2026-10-05): the importer, not a brew method.
+    assert.deepEqual(normalize(makeRawProduct({ description: 'Gövde Orta-Yoğun • Tedarik Rehm&Co (Moka Trade)' })).brew_methods, []);
+    assert.deepEqual(normalize(makeRawProduct({ description: 'Moka pot ve espresso için uygundur.' })).brew_methods, ['espresso', 'moka_pot']);
   });
 
   it('never guesses a roast from brew words in names, tags or categories', () => {

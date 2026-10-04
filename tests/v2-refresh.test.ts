@@ -125,7 +125,7 @@ test('the relay refuses callers without the token, other hosts and non-GET reque
 
 test('a source awaiting qualification never succeeds by design, so it does not turn the nightly run red',async()=>{
   const db=new TestCatalogDatabase();
-  for(const config of ALL_ROASTER_CONFIGS.filter(config=>['petra','mayard'].includes(config.slug)))await registerRoaster(db,{id:config.slug,slug:config.slug,name:config.name,websiteUrl:config.websiteUrl,adapter:config.platform});
+  for(const config of ALL_ROASTER_CONFIGS.filter(config=>['petra','vitus'].includes(config.slug)))await registerRoaster(db,{id:config.slug,slug:config.slug,name:config.name,websiteUrl:config.websiteUrl,adapter:config.platform});
   db.sqlite.exec(`UPDATE roasters SET last_success_at='2026-01-05T00:00:00.000Z' WHERE slug='petra'`);
   assert.deepEqual(await attentionNeeded(db,[{status:'success'},{status:'partial'}].concat(Array(8).fill({status:'success'})),'2026-01-06T00:00:00.000Z'),[]);
   db.sqlite.close();

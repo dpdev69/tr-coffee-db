@@ -104,6 +104,8 @@ test('a bad offer or product is skipped with a diagnostic and cannot retire its 
   assert.equal((await ingestCrawl(db,next)).status,'success');
   assert.equal(count(db,'price_observations'),3);
   assert.equal(db.sqlite.prepare('SELECT count(*) n FROM offers WHERE retired_at IS NOT NULL').get()?.n,0,'the skipped SKU is not retired');
+  assert.deepEqual(db.sqlite.prepare("SELECT source_variant_id v,last_seen_at s,current_price_minor p FROM offers WHERE coffee_id=(SELECT id FROM coffees WHERE source_product_id='123') ORDER BY v").all().map(row => ({...row})),
+    [{v:'456',s:baseline.startedAt,p:10000},{v:'789',s:next.startedAt,p:10000}],'only a validated observation counts as a sighting (offer freshness, migration 0007)');
   assert.equal(count(db,'coffees'),1,'a product without a single valid offer is skipped');
   assert.deepEqual(db.sqlite.prepare('SELECT code FROM crawl_errors ORDER BY id').all().map(row => row.code).sort(),['offer_skipped','offer_skipped','offer_skipped','product_skipped']);
   assert.match(String(db.sqlite.prepare("SELECT diagnostics_json FROM crawl_runs WHERE id='r2'").get()?.diagnostics_json),/Invalid currency/);

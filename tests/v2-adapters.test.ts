@@ -264,7 +264,7 @@ describe('Current source profiles survive a successful crawl without claiming in
     assert.ok(features.get('normalized_variety'));
     for (const feature of parsed.features!.filter(f => f.feature !== 'catalog_eligibility')) {
       assert.equal(feature.sourceType, 'RULE_INFERRED'); assert.equal(feature.confidence, null);
-      assert.equal(feature.version, 'v2-profile-3'); assert.equal(feature.sourceReference, parsed.canonicalUrl);
+      assert.equal(feature.version, 'v2-profile-4'); assert.equal(feature.sourceReference, parsed.canonicalUrl);
     }
     assert.equal(parsed.rawMetadata.country, undefined); assert.equal(parsed.rawMetadata.process, undefined);
     assert.deepEqual(parsed.rawMetadata.tastingNotes,['jasmine','peach','chocolate'],'source-labeled tasting notes are declared; following brew prose is excluded');
