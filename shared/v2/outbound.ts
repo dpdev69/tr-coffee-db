@@ -40,10 +40,10 @@ export async function handleOutbound(request: Request, offerId: string, db: Cata
   let destination: Destination | null;
   try {
     // Deliberately do not use the stock-filtered catalog view. A current out-of-stock offer
-    // on a durable visible coffee page remains a useful source link.
+    // on a durable visible coffee page remains a useful source link. A retired or stale offer does not (current_offers, 0007).
     destination = await db.prepare(`SELECT o.id AS offer_id,c.id AS coffee_id,c.roaster_id,o.purchase_url,r.trusted_hosts_json
-      FROM offers o JOIN coffees c ON c.id=o.coffee_id JOIN roasters r ON r.id=c.roaster_id
-      WHERE o.id=? AND o.retired_at IS NULL AND c.visibility='public' AND r.active=1 AND ${coffeeOnlySql()}`).bind(offerId).first<Destination>();
+      FROM current_offers o JOIN coffees c ON c.id=o.coffee_id JOIN roasters r ON r.id=c.roaster_id
+      WHERE o.id=? AND c.visibility='public' AND r.active=1 AND ${coffeeOnlySql()}`).bind(offerId).first<Destination>();
   } catch { return empty(503); }
   if (!destination) return empty(404);
   const query = new URL(request.url).searchParams;
