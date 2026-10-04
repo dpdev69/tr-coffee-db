@@ -257,14 +257,14 @@ describe('Current source profiles survive a successful crawl without claiming in
     data.products[0].tags = []; data.products[0].handle = 'example';
     const parsed = parseShopifyPage(data, config)[0];
     const features = new Map(parsed.features?.map(f => [f.feature, f]));
-    assert.equal(features.get('normalized_origin')?.value, 'Guatemala');
-    assert.equal(features.get('process_family')?.value, 'washed');
+    assert.deepEqual(features.get('normalized_origin')?.value, ['Guatemala']);
+    assert.deepEqual(features.get('process_family')?.value, ['washed']);
     assert.ok((features.get('flavor_families')?.value as string[]).includes('Floral'));
     assert.ok((features.get('brew_compatibility')?.value as string[]).includes('filter'));
     assert.ok(features.get('normalized_variety'));
     for (const feature of parsed.features!.filter(f => f.feature !== 'catalog_eligibility')) {
       assert.equal(feature.sourceType, 'RULE_INFERRED'); assert.equal(feature.confidence, null);
-      assert.equal(feature.version, 'v2-profile-2'); assert.equal(feature.sourceReference, parsed.canonicalUrl);
+      assert.equal(feature.version, 'v2-profile-3'); assert.equal(feature.sourceReference, parsed.canonicalUrl);
     }
     assert.equal(parsed.rawMetadata.country, undefined); assert.equal(parsed.rawMetadata.process, undefined);
     assert.deepEqual(parsed.rawMetadata.tastingNotes,['jasmine','peach','chocolate'],'source-labeled tasting notes are declared; following brew prose is excluded');
@@ -279,9 +279,9 @@ describe('Current source profiles survive a successful crawl without claiming in
       assert.equal(parsed.features?.find(f => f.feature === 'flavor_families'), undefined, title);
     }
     data.products[0].title = 'Gesha from Guatemala';
-    assert.equal(parseShopifyPage(data, config)[0].features?.find(f => f.feature === 'normalized_origin')?.value, 'Guatemala');
+    assert.deepEqual(parseShopifyPage(data, config)[0].features?.find(f => f.feature === 'normalized_origin')?.value, ['Guatemala']);
     data.products[0].title = 'Panama Gesha';
-    assert.equal(parseShopifyPage(data, config)[0].features?.find(f => f.feature === 'normalized_origin')?.value, 'Panama');
+    assert.deepEqual(parseShopifyPage(data, config)[0].features?.find(f => f.feature === 'normalized_origin')?.value, ['Panama']);
   });
 });
 
