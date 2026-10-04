@@ -3,7 +3,8 @@ import { pageMetadata } from '@/lib/page-metadata';
 import { SavedListView } from '@/components/coffee/saved-list';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
 
-// The list itself lives on the visitor's device; this shell is the same for everyone.
+// The list itself lives on the visitor's device; this shell is the same for everyone and caches like other static copy.
+export const revalidate = 3600;
 export const metadata: Metadata = { ...pageMetadata('Listem', 'Kaydettiğin kahveler ve kaydettiğinden beri fiyatları.', '/listem'), robots: { index: false, follow: true } };
 
 export default function SavedPage() {
