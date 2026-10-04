@@ -1,0 +1,375 @@
+{
+ "recorded": "2026-10-05 https://mayardcoffee.com/cekirdek page and POST https://api.myikas.com/api/sf/graphql?op=searchProducts (count 17); trimmed to 3 products. Storefront API key replaced.",
+ "context": {
+  "apiUrl": "https://api.myikas.com/api/sf/graphql",
+  "apiKey": "redacted-test-fixture",
+  "storefrontId": "fixture",
+  "storefrontRoutingId": "route",
+  "routings": [
+   {
+    "id": "route",
+    "currencyCode": "TRY",
+    "locale": "tr",
+    "priceListId": null
+   }
+  ],
+  "salesChannelId": "fixture",
+  "stockLocationIds": [
+   "a4e35988-7795-47be-905a-52f515db0dd7"
+  ],
+  "cdnUrl": "https://cdn.myikas.com/",
+  "merchantSettings": {
+   "merchantId": "fixture"
+  }
+ },
+ "searchProducts": {
+  "count": 3,
+  "page": 1,
+  "limit": 50,
+  "results": [
+   {
+    "id": "98320ae3-64c4-4c5a-83db-02d9d56c8d04",
+    "name": "Colombia Villa Clabelina (Washed)",
+    "description": "",
+    "shortDescription": null,
+    "deleted": false,
+    "type": "PHYSICAL",
+    "metaData": {
+     "slug": "colombia-villa-clabelina-washed"
+    },
+    "categories": [
+     {
+      "name": "Filtre Kahve"
+     }
+    ],
+    "tags": [],
+    "productVariantTypes": [
+     {
+      "variantType": {
+       "id": "d10474d5-3703-4f20-b484-d046aece331f",
+       "name": "Gramaj",
+       "values": [
+        {
+         "id": "a606d34a-835b-487c-8706-939945e5bbd2",
+         "name": "250 gr"
+        },
+        {
+         "id": "c2afb637-e6ae-4035-81fb-322ccc85c244",
+         "name": "1000 gr"
+        }
+       ]
+      }
+     },
+     {
+      "variantType": {
+       "id": "d61eb335-388a-4d4a-b5bb-21779cffb076",
+       "name": "Öğütme",
+       "values": [
+        {
+         "id": "82b962bf-c161-48f3-9a8c-c09c3a411ca9",
+         "name": "Çekirdek (Öğütülmemiş)"
+        },
+        {
+         "id": "f949531e-38bb-4ed3-8781-1b7e258a7656",
+         "name": "Kağıt Filtre"
+        },
+        {
+         "id": "76246167-c933-4f97-be17-a0e2ca006ff8",
+         "name": "Metal Filtre"
+        },
+        {
+         "id": "13bf65a9-bb5a-415e-9b3a-f430289c35b2",
+         "name": "Cold Brew"
+        },
+        {
+         "id": "9ef27a08-742e-4a2b-ae3f-042844e35621",
+         "name": "Diğer (Sipariş notunuza ekleyiniz)"
+        }
+       ]
+      }
+     }
+    ],
+    "variants": [
+     {
+      "id": "0f64c93c-a5a6-4bc0-86ac-69deb41fa976",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": false,
+      "variantValues": [
+       {
+        "variantTypeId": "d10474d5-3703-4f20-b484-d046aece331f",
+        "variantValueId": "a606d34a-835b-487c-8706-939945e5bbd2"
+       },
+       {
+        "variantTypeId": "d61eb335-388a-4d4a-b5bb-21779cffb076",
+        "variantValueId": "82b962bf-c161-48f3-9a8c-c09c3a411ca9"
+       }
+      ],
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 610,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "a4e35988-7795-47be-905a-52f515db0dd7",
+        "stockCount": 9
+       }
+      ],
+      "images": [
+       {
+        "id": "313919b0-e1c8-4abb-a3f9-6c002c24639a",
+        "isMain": true,
+        "isVideo": false,
+        "order": 0
+       },
+       {
+        "id": "1758558729007-0",
+        "isMain": false,
+        "isVideo": false,
+        "order": 1
+       }
+      ]
+     },
+     {
+      "id": "48031dc7-b6c6-4cdd-ae9c-79c943278337",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": false,
+      "variantValues": [
+       {
+        "variantTypeId": "d10474d5-3703-4f20-b484-d046aece331f",
+        "variantValueId": "c2afb637-e6ae-4035-81fb-322ccc85c244"
+       },
+       {
+        "variantTypeId": "d61eb335-388a-4d4a-b5bb-21779cffb076",
+        "variantValueId": "82b962bf-c161-48f3-9a8c-c09c3a411ca9"
+       }
+      ],
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 2080,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "a4e35988-7795-47be-905a-52f515db0dd7",
+        "stockCount": 10
+       }
+      ],
+      "images": [
+       {
+        "id": "00ee7a87-a98d-4c4b-9b7a-35031b2c48b6",
+        "isMain": true,
+        "isVideo": false,
+        "order": 0
+       },
+       {
+        "id": "1758558729007-0",
+        "isMain": false,
+        "isVideo": false,
+        "order": 1
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "024e9fbc-cea2-4e97-a026-48fae1793da9",
+    "name": "Turkish Coffee \"Geleneksel Türk Kahvesi\" - Öğütülmüş",
+    "description": "<p data-start=\"59\" data-end=\"259\"></p><article class=\"text-token-text-primary w-full focus:outline-none scroll-mt-[calc(var(--header-height)+min(200px,max(70px,20svh)))]\" tabindex=\"-1\" dir=\"auto\" data-turn-id=\"request-WEB:74b75156-0674-4b78-976f-cc78f243e385-15\" data-testid=\"conversation-turn-6\" dat",
+    "shortDescription": null,
+    "deleted": false,
+    "type": "PHYSICAL",
+    "metaData": {
+     "slug": "turkish-coffee-geleneksel-turk-kahvesi"
+    },
+    "categories": [
+     {
+      "name": "Türk Kahvesi"
+     }
+    ],
+    "tags": [
+     {
+      "name": "Turkish Coffee \"Geleneksel Türk Kahvesi1"
+     }
+    ],
+    "productVariantTypes": [
+     {
+      "variantType": {
+       "id": "d10474d5-3703-4f20-b484-d046aece331f",
+       "name": "Gramaj",
+       "values": [
+        {
+         "id": "a606d34a-835b-487c-8706-939945e5bbd2",
+         "name": "250 gr"
+        }
+       ]
+      }
+     }
+    ],
+    "variants": [
+     {
+      "id": "5fd9a1d6-bd23-48ed-b227-98a55e654054",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": false,
+      "variantValues": [
+       {
+        "variantTypeId": "d10474d5-3703-4f20-b484-d046aece331f",
+        "variantValueId": "a606d34a-835b-487c-8706-939945e5bbd2"
+       }
+      ],
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 200,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "a4e35988-7795-47be-905a-52f515db0dd7",
+        "stockCount": 10
+       }
+      ],
+      "images": [
+       {
+        "id": "6ba341fa-a257-46cb-bc52-28382f70bc74",
+        "isMain": true,
+        "isVideo": false,
+        "order": 0
+       },
+       {
+        "id": "99fbc0a1-cb82-4cf0-a15f-a997dda83bcd",
+        "isMain": false,
+        "isVideo": false,
+        "order": 1
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "3c7294b6-5d53-4f36-87c4-ef30fb41fcfa",
+    "name": "Uganda Musana #2 Bulambuli (NATURAL)",
+    "description": "",
+    "shortDescription": null,
+    "deleted": false,
+    "type": "PHYSICAL",
+    "metaData": {
+     "slug": "uganda-musana-2-bulambuli-natural"
+    },
+    "categories": [
+     {
+      "name": "Filtre Kahve"
+     }
+    ],
+    "tags": [
+     {
+      "name": "Uganda Musana #2 Bulambuli (NATURAL)"
+     }
+    ],
+    "productVariantTypes": [
+     {
+      "variantType": {
+       "id": "d10474d5-3703-4f20-b484-d046aece331f",
+       "name": "Gramaj",
+       "values": [
+        {
+         "id": "a606d34a-835b-487c-8706-939945e5bbd2",
+         "name": "250 gr"
+        },
+        {
+         "id": "c2afb637-e6ae-4035-81fb-322ccc85c244",
+         "name": "1000 gr"
+        }
+       ]
+      }
+     },
+     {
+      "variantType": {
+       "id": "d61eb335-388a-4d4a-b5bb-21779cffb076",
+       "name": "Öğütme",
+       "values": [
+        {
+         "id": "82b962bf-c161-48f3-9a8c-c09c3a411ca9",
+         "name": "Çekirdek (Öğütülmemiş)"
+        },
+        {
+         "id": "f949531e-38bb-4ed3-8781-1b7e258a7656",
+         "name": "Kağıt Filtre"
+        },
+        {
+         "id": "76246167-c933-4f97-be17-a0e2ca006ff8",
+         "name": "Metal Filtre"
+        },
+        {
+         "id": "13bf65a9-bb5a-415e-9b3a-f430289c35b2",
+         "name": "Cold Brew"
+        },
+        {
+         "id": "9ef27a08-742e-4a2b-ae3f-042844e35621",
+         "name": "Diğer (Sipariş notunuza ekleyiniz)"
+        }
+       ]
+      }
+     }
+    ],
+    "variants": [
+     {
+      "id": "67dd3d53-af1b-443d-89b3-39e06a0ef609",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": false,
+      "variantValues": [
+       {
+        "variantTypeId": "d10474d5-3703-4f20-b484-d046aece331f",
+        "variantValueId": "a606d34a-835b-487c-8706-939945e5bbd2"
+       },
+       {
+        "variantTypeId": "d61eb335-388a-4d4a-b5bb-21779cffb076",
+        "variantValueId": "82b962bf-c161-48f3-9a8c-c09c3a411ca9"
+       }
+      ],
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 575,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "a4e35988-7795-47be-905a-52f515db0dd7",
+        "stockCount": 0
+       }
+      ],
+      "images": [
+       {
+        "id": "c4c026bf-300d-45c3-9289-afa25b5876a4",
+        "isMain": true,
+        "isVideo": false,
+        "order": 0
+       },
+       {
+        "id": "7337f440-e133-41b7-8885-73472ec304ad",
+        "isMain": true,
+        "isVideo": false,
+        "order": 1
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

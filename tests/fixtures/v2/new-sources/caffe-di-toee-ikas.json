@@ -1,0 +1,267 @@
+{
+ "recorded": "2026-10-05 https://caffeditoee.com/kahveler page and POST https://api.myikas.com/api/sf/graphql?op=searchProducts (count 12); trimmed to 3 products. Storefront API key replaced.",
+ "context": {
+  "apiUrl": "https://api.myikas.com/api/sf/graphql",
+  "apiKey": "redacted-test-fixture",
+  "storefrontId": "fixture",
+  "storefrontRoutingId": "route",
+  "routings": [
+   {
+    "id": "route",
+    "currencyCode": "TRY",
+    "locale": "tr",
+    "priceListId": null
+   }
+  ],
+  "salesChannelId": "fixture",
+  "stockLocationIds": [
+   "b164d2d1-cccf-4b62-8fc8-83470845d57f"
+  ],
+  "cdnUrl": "https://cdn.myikas.com/",
+  "merchantSettings": {
+   "merchantId": "fixture"
+  }
+ },
+ "searchProducts": {
+  "count": 3,
+  "page": 1,
+  "limit": 50,
+  "results": [
+   {
+    "id": "3f33cd81-383b-4843-b325-45b0999bc135",
+    "name": "Indonesia Frinsa Collective Sarapan 250 g",
+    "description": "<p>Indonesia Frinsa Collective Sarapan, Endonezya’nın zengin kahve yetiştirme kültürünü yansıtan nitelikli ve tek kökenli bir kahvedir. Özenle seçilen çekirdekler, Caffé Di Toeé’nin kendine özgü kavurma profiliyle taze kavrularak yoğun ve karakteristik bir fincan deneyimine dönüştürülür.</p><p>Farkl",
+    "shortDescription": null,
+    "deleted": false,
+    "type": "PHYSICAL",
+    "metaData": {
+     "slug": "indonesia-frinsa-collective-sarapan-250-g"
+    },
+    "categories": null,
+    "tags": [
+     {
+      "name": "250 g"
+     },
+     {
+      "name": "Taze Kavrulmuş"
+     },
+     {
+      "name": "single origin"
+     }
+    ],
+    "productVariantTypes": [],
+    "variants": [
+     {
+      "id": "b6c5c66d-5305-4e29-b3d5-f3becde4a431",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": null,
+      "variantValues": [],
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 750,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "b164d2d1-cccf-4b62-8fc8-83470845d57f",
+        "stockCount": 10
+       }
+      ],
+      "images": [
+       {
+        "id": "78b5743d-cc5d-45ff-a06d-2a7716421519",
+        "isMain": true,
+        "isVideo": false,
+        "order": 1
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "8b6a5656-4c09-4183-ac12-25ec396d1f02",
+    "name": "Ethiopia Guji G2 250 g",
+    "description": "<p>Ethiopia Guji G2, Etiyopya’nın öne çıkan kahve yetiştirme bölgelerinden Guji’de yetiştirilen nitelikli ve tek kökenli bir kahvedir. Özenle seçilen çekirdekler, Caffé Di Toeé’nin kendine özgü kavurma profiliyle taze kavrularak canlı ve karakteristik bir fincan deneyimine dönüştürülür.</p><p>Farklı",
+    "shortDescription": null,
+    "deleted": false,
+    "type": "PHYSICAL",
+    "metaData": {
+     "slug": "ethiopia-guji-g2-250-g"
+    },
+    "categories": [
+     {
+      "name": "Single Origin Kahveler"
+     }
+    ],
+    "tags": [
+     {
+      "name": "250 g"
+     },
+     {
+      "name": "Taze Kavrulmuş"
+     },
+     {
+      "name": "single origin"
+     }
+    ],
+    "productVariantTypes": [],
+    "variants": [
+     {
+      "id": "46550665-9055-4e05-ae87-7ccd52eef512",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": null,
+      "variantValues": null,
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 650,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "b164d2d1-cccf-4b62-8fc8-83470845d57f",
+        "stockCount": 10
+       }
+      ],
+      "images": [
+       {
+        "id": "73ef24b4-d187-457f-9f98-5c85ce210037",
+        "isMain": true,
+        "isVideo": false,
+        "order": 1
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "fb1baf83-5f8c-491e-b196-a8bd1fb514f4",
+    "name": "Morbido Blend",
+    "description": "<p>Morbido Blend, yumuşak içimi ve dengeli yapısıyla günün farklı saatlerinde keyifle tüketilebilen özel bir kahve harmanıdır. Özenle seçilen nitelikli kahve çekirdekleri, Caffé Di Toeé’nin kendine özgü kavurma profiliyle taze kavrulur.</p><p>Espresso bazlı içeceklerde ve farklı demleme yöntemlerind",
+    "shortDescription": null,
+    "deleted": false,
+    "type": "PHYSICAL",
+    "metaData": {
+     "slug": "morbido-blend"
+    },
+    "categories": [
+     {
+      "name": "Blend Kahveler"
+     }
+    ],
+    "tags": [
+     {
+      "name": "Blend Kahve"
+     },
+     {
+      "name": "250 g"
+     },
+     {
+      "name": "Taze Kavrulmuş"
+     },
+     {
+      "name": "1000 g"
+     },
+     {
+      "name": "1 kg"
+     }
+    ],
+    "productVariantTypes": [
+     {
+      "variantType": {
+       "id": "8ae5975f-23b9-4883-bc35-5536cc2893df",
+       "name": "Gramaj",
+       "values": [
+        {
+         "id": "1202ed9c-f691-4c90-ba63-f8d33878824d",
+         "name": "250 gram"
+        },
+        {
+         "id": "b6d9fb70-a47e-43a0-bf99-1b3cec7350c6",
+         "name": "1000 gram"
+        }
+       ]
+      }
+     }
+    ],
+    "variants": [
+     {
+      "id": "b9616692-2d96-4a06-a5b1-ae5ea9de3ecc",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": false,
+      "variantValues": [
+       {
+        "variantTypeId": "8ae5975f-23b9-4883-bc35-5536cc2893df",
+        "variantValueId": "1202ed9c-f691-4c90-ba63-f8d33878824d"
+       }
+      ],
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 550,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "b164d2d1-cccf-4b62-8fc8-83470845d57f",
+        "stockCount": 10
+       }
+      ],
+      "images": [
+       {
+        "id": "5f9d4e22-f820-4e5a-a2c6-0a770390370f",
+        "isMain": true,
+        "isVideo": false,
+        "order": 1
+       }
+      ]
+     },
+     {
+      "id": "23c8865f-4f87-42ce-880b-5fd8fc03a405",
+      "deleted": false,
+      "isActive": true,
+      "sellIfOutOfStock": false,
+      "variantValues": [
+       {
+        "variantTypeId": "8ae5975f-23b9-4883-bc35-5536cc2893df",
+        "variantValueId": "b6d9fb70-a47e-43a0-bf99-1b3cec7350c6"
+       }
+      ],
+      "prices": [
+       {
+        "priceListId": null,
+        "currencyCode": "TRY",
+        "sellPrice": 1900,
+        "discountPrice": null
+       }
+      ],
+      "stocks": [
+       {
+        "stockLocationId": "b164d2d1-cccf-4b62-8fc8-83470845d57f",
+        "stockCount": 10
+       }
+      ],
+      "images": [
+       {
+        "id": "5f9d4e22-f820-4e5a-a2c6-0a770390370f",
+        "isMain": true,
+        "isVideo": false,
+        "order": 1
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}
