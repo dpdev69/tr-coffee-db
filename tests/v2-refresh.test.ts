@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {TestCatalogDatabase} from './helpers/v2-sqlite';
 import {registerRoaster} from '../shared/v2/ingestion';
-import {refreshCatalog} from '../scripts/v2-refresh.mts';
+import {attentionNeeded,refreshCatalog,syncRoasters} from '../scripts/v2-refresh.mts';
+import {crawlRoaster} from '../scrapers/src/v2/crawl';
 import {D1RestDatabase} from '../scripts/v2-d1-rest';
 import {ALL_ROASTER_CONFIGS} from '../scrapers/src/roasters/configs';
 
@@ -44,6 +45,29 @@ test('free runner attempts every active source, preserves failed data, and dedup
   const results=await refreshCatalog(db,options);assert.equal(results.length,2);assert.equal(results.find(r=>r.slug==='petra')?.status,'success');assert.equal(results.find(r=>r.slug==='paper')?.status,'failed');
   const count=db.sqlite.prepare('SELECT count(*) n FROM price_observations').get()?.n;await refreshCatalog(db,options);
   assert.equal(db.sqlite.prepare('SELECT count(*) n FROM price_observations').get()?.n,count);assert.equal(db.sqlite.prepare("SELECT count(*) n FROM crawl_runs WHERE status='running'").get()?.n,0);assert.equal(calls,3);db.sqlite.close();
+});
+
+test('configs own roasters by slug, revision moves only on change, and red means a source is days stale',async()=>{
+  const db=new TestCatalogDatabase();
+  db.sqlite.prepare("INSERT INTO roasters(id,slug,name,website_url,adapter,trusted_hosts_json,last_success_at,created_at,updated_at) VALUES('legacy-uuid','petra','Old','https://petracoffee.com/','shopify','[]','2026-01-04T00:00:00.000Z','x','x'),('gone','gone','Gone','https://gone.test/','shopify','[]',NULL,'x','x')").run();
+  const configs=ALL_ROASTER_CONFIGS.filter(config=>['petra','cho-coffee'].includes(config.slug));
+  await syncRoasters(db,configs,'2026-01-05T00:00:00.000Z');
+  const rows=()=>db.sqlite.prepare('SELECT id,slug,name,active,revision FROM roasters ORDER BY slug').all().map(row=>({...row}));
+  assert.deepEqual(rows(),[{id:'cho-coffee',slug:'cho-coffee',name:'Cho Coffee Roastery',active:0,revision:0},{id:'gone',slug:'gone',name:'Gone',active:0,revision:1},{id:'legacy-uuid',slug:'petra',name:'Petra Coffee',active:1,revision:1}]);
+  await syncRoasters(db,configs,'2026-01-06T00:00:00.000Z');
+  assert.deepEqual(rows().map(row=>row.revision),[0,1,1],'an unchanged config writes nothing');
+  assert.deepEqual(await attentionNeeded(db,[{status:'failed'},...Array(9).fill({status:'success'})],'2026-01-06T00:00:00.000Z'),[]);
+  assert.deepEqual(await attentionNeeded(db,[{status:'failed'},{status:'success'}],'2026-01-08T00:00:00.000Z'),['No successful crawl for 3 days: petra','Only 1/2 sources succeeded in this run']);
+  db.sqlite.close();
+});
+
+test('a transport failure is retried once; an HTTP refusal is not',async()=>{
+  const payload=JSON.parse(readFileSync(new URL('./fixtures/v2/shopify.json',import.meta.url),'utf8'));
+  const config=ALL_ROASTER_CONFIGS.find(config=>config.slug==='petra')!;
+  let calls=0;const flaky=await crawlRoaster(config,{requestDelayMs:0,sleep:async()=>{},fetch:async()=>{if(++calls===1)throw new TypeError('fetch failed');return Response.json(payload);}});
+  assert.equal(flaky.complete,true);assert.equal(calls,2);
+  calls=0;const blocked=await crawlRoaster(config,{requestDelayMs:0,sleep:async()=>{},fetch:async()=>{calls++;return new Response('no',{status:403});}});
+  assert.equal(blocked.complete,false);assert.equal(calls,1);
 });
 
 test('D1 REST sends parameters and an entire transaction together, validates errors, and accounts for quota',async()=>{

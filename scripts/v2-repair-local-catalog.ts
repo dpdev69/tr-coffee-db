@@ -48,14 +48,14 @@ export async function repairLocalCatalog(path:string,apply=false,root=process.cw
     }
     let profilesRefreshed=0;
     if(apply){
-      const profiles=sqlite.prepare('SELECT id,name,canonical_url,source_product_id,raw_metadata_json FROM coffees').all();
+      const profiles=sqlite.prepare('SELECT c.id,c.name,c.canonical_url,c.source_product_id,c.raw_metadata_json,r.name AS roaster_name FROM coffees c JOIN roasters r ON r.id=c.roaster_id').all();
       const keys=['normalized_origin','process_family','roast_classification','flavor_notes_normalized','flavor_families','normalized_variety','brew_compatibility','is_decaf'];
       sqlite.exec('BEGIN');
       try{for(const row of profiles){
         const raw=JSON.parse(String(row.raw_metadata_json)) as RawMetadata;
         const source=raw.sourceData&&typeof raw.sourceData==='object'&&!Array.isArray(raw.sourceData)?raw.sourceData:null;
         if(!source||source.legacySource)continue;
-        const features=deriveProfileFeatures(profileInput(source,String(row.name),String(row.canonical_url),row.source_product_id==null?null:String(row.source_product_id),raw.description??''));
+        const features=deriveProfileFeatures(profileInput(source,String(row.name),String(row.canonical_url),row.source_product_id==null?null:String(row.source_product_id),raw.description??'',String(row.roaster_name)));
         sqlite.prepare(`DELETE FROM coffee_feature_values WHERE coffee_id=? AND source_type='RULE_INFERRED' AND feature IN (${keys.map(()=>'?').join(',')})`).run(row.id,...keys);
         for(const feature of features)sqlite.prepare('INSERT INTO coffee_feature_values(coffee_id,feature,value_json,source_type,confidence,version,source_reference,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)').run(row.id,feature.feature,JSON.stringify(feature.value),feature.sourceType,feature.confidence,feature.version,feature.sourceReference??null,new Date().toISOString(),new Date().toISOString());
         profilesRefreshed++;

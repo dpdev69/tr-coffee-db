@@ -47,9 +47,11 @@ export async function registerRoaster(db: CatalogDatabase, roaster: RoasterInput
   const website = canonicalizeUrl(roaster.websiteUrl);
   const host = new URL(website).hostname;
   const hosts = [...new Set([host, host.startsWith('www.') ? host.slice(4) : `www.${host}`, ...(roaster.trustedHosts ?? [])])];
+  // Keyed by slug: imported roasters keep their legacy IDs. Revision (the ingestion snapshot guard) moves only on a real change.
+  const columns = ['name','website_url','city','adapter','trusted_hosts_json','active'];
   await db.batch([insert(db, 'roasters', { id: roaster.id, slug: roaster.slug, name: roaster.name, website_url: website,
     city: roaster.city ?? null, adapter: roaster.adapter, trusted_hosts_json: JSON.stringify(hosts), active: Number(roaster.active !== false), created_at: now, updated_at: now },
-  `ON CONFLICT(id) ${upsertColumns(['slug','name','website_url','city','adapter','trusted_hosts_json','active','updated_at'])},revision=roasters.revision+1`)]);
+  `ON CONFLICT(slug) ${upsertColumns([...columns,'updated_at'])},revision=roasters.revision+1 WHERE ${columns.map(column => `roasters.${column} IS NOT excluded.${column}`).join(' OR ')}`)]);
 }
 
 export type CrawlStart = Pick<CrawlInput,'id'|'jobKey'|'roasterId'|'startedAt'|'parserVersion'|'mode'>;
@@ -95,16 +97,12 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
   const offersSeen = input.products.reduce((sum, coffee) => sum + coffee.offers.length, 0);
   // Context is deliberately excluded: parser errors can otherwise embed response bodies, emails and keys.
   const diagnostics = input.diagnostics.map(item => ({ stage: safeDiagnostic(item.stage), code: safeDiagnostic(item.code), message: safeDiagnostic(item.message) }));
+  // One bad row skips its offer (or product) with a diagnostic; it never fails the roaster. Identity conflicts still throw.
+  const skip = (code: string, product: SourceCoffee, error: unknown) => diagnostics.push({ stage: 'validate', code,
+    message: safeDiagnostic(`${String(product.name).slice(0, 100)}: ${error instanceof Error ? error.message : 'invalid source row'}`) });
   const statements: Statement[] = [
     db.prepare('INSERT INTO ingestion_guards(run_id,valid) VALUES(?,COALESCE((SELECT revision=? FROM roasters WHERE id=?),0))').bind(input.id,roaster.revision,input.roasterId),
-    insert(db, 'crawl_runs', { id: input.id, job_key: input.jobKey??null, roaster_id: input.roasterId, started_at: startedAt, completed_at: completedAt, status: input.status,
-      mode, parser_version: input.parserVersion, products_seen: input.products.length, offers_seen: offersSeen, diagnostics_json: JSON.stringify(diagnostics), input_hash: inputHash, created_at: completedAt },
-    `ON CONFLICT(id) ${upsertColumns(['completed_at','status','products_seen','offers_seen','diagnostics_json','input_hash'])}`),
   ];
-  for (const [index, error] of diagnostics.entries()) {
-    statements.push(insert(db, 'crawl_errors', { id: await stableId('error',input.id,String(index)), crawl_run_id: input.id, roaster_id: input.roasterId,
-      stage: error.stage, code: error.code, message: error.message, context_json: null, created_at: completedAt }));
-  }
   let eventCount = 0;
   if (input.status === 'success') {
     const hosts = JSON.parse(roaster.trusted_hosts_json) as string[];
@@ -119,9 +117,31 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
     const seenCoffees = new Set<string>();
     const seenOffers = new Set<string>();
     for (const product of input.products) {
-      validateProduct(product);
+      for (const feature of product.features ?? []) {
+        if (feature.sourceType !== 'ROASTER_DECLARED' && feature.sourceType !== 'RULE_INFERRED') throw new Error('Crawl features may only use ROASTER_DECLARED or RULE_INFERRED provenance');
+      }
+      let url: string;
+      try { validateProduct(product); url = canonicalizeUrl(product.canonicalUrl, hosts); }
+      catch (error) { skip('product_skipped', product, error); continue; }
+      const prepared = product.offers.flatMap(offer => {
+        try {
+          const purchaseUrl = canonicalizeUrl(offer.purchaseUrl, hosts);
+          const key = offerIdentity({ ...offer, purchaseUrl });
+          if (product.offers.length > 1 && key.startsWith('single:')) throw new Error('Multiple offers need stable SKU IDs or source option identities');
+          if (offer.inStock !== null && typeof offer.inStock !== 'boolean') throw new Error('Invalid stock');
+          return [{ offer, purchaseUrl, key, priceMinor: toMinorUnits(offer.price), compareAtMinor: toMinorUnits(offer.compareAtPrice), weightG: validWeight(offer.weightG), currency: validCurrency(offer.currency) }];
+        } catch (error) { skip('offer_skipped', product, error); return []; }
+      });
+      // Duplicate identities are ambiguous: neither copy is trusted.
+      const valid = prepared.filter(item => {
+        if (prepared.filter(other => other.key === item.key).length === 1) return true;
+        skip('offer_skipped', product, new Error('Duplicate offer identity in crawl'));
+        return false;
+      });
+      if (product.offers.length && !valid.length) { skip('product_skipped', product, new Error('No valid offers')); continue; }
+      // A skipped offer may be the very SKU that looks withdrawn; retire nothing for this coffee in this run.
+      const complete = valid.length === product.offers.length;
       const excluded = coffeeExclusionReason(product);
-      const url = canonicalizeUrl(product.canonicalUrl, hosts);
       const identity = productIdentity({ ...product, canonicalUrl: url });
       const bySource = coffeeRows.find(row => row.identity_key === identity || (product.sourceProductId !== null && row.source_product_id === product.sourceProductId));
       const byAlias = aliases.find(alias => alias.alias_type === 'url' && alias.alias === url);
@@ -132,7 +152,8 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
         const importedPath = new URL(url).pathname.replace(/^\/+|\/+$/g, '').replace(/\//g, '-');
         // Legacy HTML adapters used URL paths as IDs. A first exact-URL baseline may
         // replace that placeholder with the native ID, retaining both source aliases.
-        const importedIdentity = mode === 'baseline' && byAlias?.coffee_id === existing.id && existing.source_product_id === importedPath &&
+        // Any non-import run qualifies: a legacy product absent from the roaster's first baseline may return later.
+        const importedIdentity = mode !== 'import' && byAlias?.coffee_id === existing.id && existing.source_product_id === importedPath &&
           previousOffers.length > 0 && previousOffers.every(row => row.identity_key.startsWith('options:legacy:')) &&
           observationRows.filter(row => previousOffers.some(offer => offer.id === row.offer_id)).every(row => row.source === 'import');
         if (!importedIdentity) throw new Error('Suspicious source identity change requires reconciliation');
@@ -144,7 +165,8 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
       statements.push(insert(db, 'coffees', { id: coffeeId, roaster_id: input.roasterId, source_product_id: product.sourceProductId ?? existing?.source_product_id ?? null,
         identity_key: existing?.identity_key ?? identity, canonical_url: url, name: product.name.trim(), slug, raw_metadata_json: JSON.stringify(product.rawMetadata),
         visibility: excluded ? 'hidden' : product.visibility ?? 'unclassified', first_seen_at: startedAt, last_seen_at: startedAt, created_at: completedAt, updated_at: completedAt },
-      `ON CONFLICT(id) ${upsertColumns(['source_product_id','canonical_url','name','raw_metadata_json','visibility','last_seen_at','updated_at'])}`));
+      // A reviewed override (data/corrections.json) outlives every crawl.
+      `ON CONFLICT(id) ${upsertColumns(['source_product_id','canonical_url','name','raw_metadata_json','last_seen_at','updated_at'])},visibility=coalesce(coffees.visibility_override,excluded.visibility)`));
       for (const [type, alias] of [['url',url],['slug',slug], ...(product.sourceProductId ? [['source',product.sourceProductId]] : [])]) {
         const known = aliases.find(item => item.alias_type === type && item.alias === alias);
         if (known && known.coffee_id !== coffeeId) throw new Error('Conflicting product alias');
@@ -152,19 +174,10 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
         statements.push(insert(db, 'coffee_aliases', { roaster_id: input.roasterId, alias_type: type, alias, coffee_id: coffeeId, created_at: completedAt }, 'ON CONFLICT(roaster_id,alias_type,alias) DO NOTHING'));
       }
       const events: CoffeeEvent[] = existing || excluded ? [] : await deriveNewEvent(coffeeId,input.id,startedAt,mode);
-      for (const offer of product.offers) {
-        const purchaseUrl = canonicalizeUrl(offer.purchaseUrl, hosts);
-        const key = offerIdentity({ ...offer, purchaseUrl });
-        if (product.offers.length > 1 && key.startsWith('single:')) throw new Error('Multiple offers need stable SKU IDs or source option identities');
+      for (const { offer, purchaseUrl, key, priceMinor, compareAtMinor, weightG, currency } of valid) {
         const existingOffer = offerRows.find(row => row.coffee_id === coffeeId && row.identity_key === key);
         const offerId = existingOffer?.id ?? await stableId('offer',coffeeId,key);
-        if (seenOffers.has(offerId)) throw new Error('Duplicate offer identity in crawl');
         seenOffers.add(offerId);
-        const priceMinor = toMinorUnits(offer.price);
-        const compareAtMinor = toMinorUnits(offer.compareAtPrice);
-        const weightG = validWeight(offer.weightG);
-        const currency = validCurrency(offer.currency);
-        if (offer.inStock !== null && typeof offer.inStock !== 'boolean') throw new Error('Invalid stock');
         const observation: PriceObservation = { id: await stableId('observation',input.id,offerId), offerId,crawlRunId: input.id,observedAt: startedAt,
           priceMinor,compareAtMinor,weightG,currency,inStock: offer.inStock,source: mode === 'import' ? 'import' : 'crawl' };
         const history: PriceObservation[] = observationRows.filter(row => row.offer_id === offerId).map(row => ({ id: row.id,offerId: row.offer_id,crawlRunId: row.crawl_run_id,observedAt: row.observed_at,
@@ -180,7 +193,7 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
       }
       // Complete variant discovery also withdraws old SKUs no longer offered for this
       // observed product. Retirement preserves history and emits no stock assertion.
-      if(mode!=='import') for(const previous of offerRows.filter(row=>row.coffee_id===coffeeId && !seenOffers.has(row.id))) statements.push(db.prepare('UPDATE offers SET retired_at=?,updated_at=? WHERE id=? AND retired_at IS NULL').bind(startedAt,completedAt,previous.id));
+      if(mode!=='import' && complete) for(const previous of offerRows.filter(row=>row.coffee_id===coffeeId && !seenOffers.has(row.id))) statements.push(db.prepare('UPDATE offers SET retired_at=?,updated_at=? WHERE id=? AND retired_at IS NULL').bind(startedAt,completedAt,previous.id));
       // An explicitly unavailable parent has no purchasable SKUs. Retain history;
       // do not synthesize variant prices or stock observations from a parent record.
       if(product.unavailable === true) statements.push(db.prepare('UPDATE offers SET retired_at=?,updated_at=? WHERE coffee_id=? AND retired_at IS NULL').bind(startedAt,completedAt,coffeeId));
@@ -188,7 +201,6 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
       // records belong to a separate write path and must never be deleted by a crawl.
       // Only provenance types present in this result are refreshed; a rule update leaves declarations intact.
       const features: FeatureRow[] = (product.features ?? []).map(feature => {
-        if (feature.confidence !== null && (!Number.isFinite(feature.confidence) || feature.confidence < 0 || feature.confidence > 1)) throw new Error('Invalid feature confidence');
         return { coffee_id: coffeeId,feature: feature.feature,value_json: JSON.stringify(feature.value),source_type: feature.sourceType,confidence: feature.confidence,version: feature.version,source_reference: feature.sourceReference ?? null };
       });
       const featureSources = new Set(features.map(feature => feature.source_type));
@@ -211,6 +223,12 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
   statements.push(db.prepare(`UPDATE roasters SET revision=revision+1,last_attempt_at=CASE WHEN last_attempt_at IS NULL OR last_attempt_at<? THEN ? ELSE last_attempt_at END,
     last_success_at=CASE WHEN ?='success' THEN ? ELSE last_success_at END,crawl_health=CASE WHEN last_attempt_at IS NULL OR last_attempt_at<=? THEN ? ELSE crawl_health END,updated_at=? WHERE id=?`).bind(startedAt,startedAt,input.status,startedAt,startedAt,input.status,completedAt,input.roasterId));
   statements.push(db.prepare('DELETE FROM ingestion_guards WHERE run_id=?').bind(input.id));
+  // The run row precedes its observations and errors; written last so it includes skipped-row diagnostics.
+  statements.splice(1, 0, insert(db, 'crawl_runs', { id: input.id, job_key: input.jobKey??null, roaster_id: input.roasterId, started_at: startedAt, completed_at: completedAt, status: input.status,
+    mode, parser_version: input.parserVersion, products_seen: input.products.length, offers_seen: offersSeen, diagnostics_json: JSON.stringify(diagnostics), input_hash: inputHash, created_at: completedAt },
+  `ON CONFLICT(id) ${upsertColumns(['completed_at','status','products_seen','offers_seen','diagnostics_json','input_hash'])}`),
+  ...await Promise.all(diagnostics.map(async (error, index) => insert(db, 'crawl_errors', { id: await stableId('error',input.id,String(index)), crawl_run_id: input.id, roaster_id: input.roasterId,
+    stage: error.stage, code: error.code, message: error.message, context_json: null, created_at: completedAt }))));
   await db.batch(statements);
   return { replayed: false,coffees: input.status === 'success' ? input.products.length : 0,offers: input.status === 'success' ? offersSeen : 0,events: eventCount,status: input.status };
 }
@@ -221,8 +239,6 @@ function validateProduct(product: SourceCoffee): void {
   if (product.unavailable === true && product.offers.length) throw new Error('Unavailable parent cannot contain offers');
   if (JSON.stringify(product.rawMetadata).length > 100_000) throw new Error('Product metadata too large');
   for (const feature of product.features ?? []) {
-    if (feature.sourceType !== 'ROASTER_DECLARED' && feature.sourceType !== 'RULE_INFERRED') {
-      throw new Error('Crawl features may only use ROASTER_DECLARED or RULE_INFERRED provenance');
-    }
+    if (feature.confidence !== null && (!Number.isFinite(feature.confidence) || feature.confidence < 0 || feature.confidence > 1)) throw new Error('Invalid feature confidence');
   }
 }

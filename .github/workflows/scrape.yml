@@ -52,3 +52,7 @@ jobs:
           include-hidden-files: true
           retention-days: 7
           if-no-files-found: warn
+      # Reviewed corrections and size-twin links; runs even when a source needs attention.
+      - name: Apply manual corrections
+        if: ${{ !cancelled() }}
+        run: scrapers/node_modules/.bin/tsx scripts/v2-apply-corrections.mts

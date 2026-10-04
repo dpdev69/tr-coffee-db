@@ -82,9 +82,6 @@ test('failed, partial and missing products never mass-unavailable; health and sa
 test('duplicates, stale crawls, ambiguous identities and concurrent plans fail without partial writes', async () => {
   const db = await setup();
   await ingestCrawl(db,crawl(1));
-  const duplicate=crawl(2);duplicate.products[0].offers.push({...duplicate.products[0].offers[0]});
-  await assert.rejects(ingestCrawl(db,duplicate),/Duplicate offer/);
-  assert.equal(count(db,'crawl_runs'),1);
   const ambiguous=crawl(2);ambiguous.products[0].sourceProductId='unexpected';
   await assert.rejects(ingestCrawl(db,ambiguous),/identity change/);
   db.beforeBatch=() => db.sqlite.exec('UPDATE roasters SET revision=revision+1');
@@ -94,6 +91,22 @@ test('duplicates, stale crawls, ambiguous identities and concurrent plans fail w
   await ingestCrawl(db,crawl(3));
   await assert.rejects(ingestCrawl(db,crawl(2)),/Stale/);
   assert.equal(count(db,'crawl_runs'),2);
+  db.sqlite.close();
+});
+test('a bad offer or product is skipped with a diagnostic and cannot retire its valid siblings', async () => {
+  const db = await setup();
+  const baseline = crawl(1); const [offer] = baseline.products[0].offers;
+  baseline.products[0].offers.push({ ...offer, sourceVariantId: '789', purchaseUrl: 'https://shop.test/p?variant=789' });
+  await ingestCrawl(db,{...baseline,mode:'baseline'});
+  const next = crawl(2);
+  next.products[0].offers = [{ ...offer, currency: 'TL' }, baseline.products[0].offers[1]];
+  next.products.push({ ...next.products[0], sourceProductId: '2', canonicalUrl: 'https://shop.test/q', offers: [{ ...offer, purchaseUrl: 'https://shop.test/q?variant=1', sourceVariantId: '1' }, { ...offer, purchaseUrl: 'https://shop.test/q?variant=1', sourceVariantId: '1' }] });
+  assert.equal((await ingestCrawl(db,next)).status,'success');
+  assert.equal(count(db,'price_observations'),3);
+  assert.equal(db.sqlite.prepare('SELECT count(*) n FROM offers WHERE retired_at IS NOT NULL').get()?.n,0,'the skipped SKU is not retired');
+  assert.equal(count(db,'coffees'),1,'a product without a single valid offer is skipped');
+  assert.deepEqual(db.sqlite.prepare('SELECT code FROM crawl_errors ORDER BY id').all().map(row => row.code).sort(),['offer_skipped','offer_skipped','offer_skipped','product_skipped']);
+  assert.match(String(db.sqlite.prepare("SELECT diagnostics_json FROM crawl_runs WHERE id='r2'").get()?.diagnostics_json),/Invalid currency/);
   db.sqlite.close();
 });
 test('unchanged features are not rewritten; any change replaces that provenance; observations still repeat', async () => {
@@ -235,6 +248,16 @@ test('first native baseline upgrades only an imported URL-path identity and pres
   await assert.rejects(ingestCrawl(db,changed),/identity change/);db.sqlite.close();
 });
 
+test('a legacy placeholder missing from the first baseline upgrades when it returns in a live run',async()=>{
+  const db=await setup();const imported=crawl(1);imported.mode='import';imported.products[0].sourceProductId='p';
+  imported.products[0].offers[0]={...imported.products[0].offers[0],sourceVariantId:null,identityKey:'legacy:old-row'};
+  await ingestCrawl(db,imported);const identity=db.sqlite.prepare("SELECT id,slug FROM coffees WHERE source_product_id='p'").get();
+  const other=crawl(2);other.mode='baseline';other.products[0]={...other.products[0],sourceProductId:'x',canonicalUrl:'https://shop.test/x',offers:[{...other.products[0].offers[0],sourceVariantId:'9',purchaseUrl:'https://shop.test/x?variant=9'}]};
+  await ingestCrawl(db,other);
+  assert.equal((await ingestCrawl(db,crawl(3))).status,'success');
+  assert.deepEqual(db.sqlite.prepare("SELECT id,slug FROM coffees WHERE source_product_id='123'").get(),identity);
+  assert.equal(count(db,'coffee_events'),0);db.sqlite.close();
+});
 test('explicitly unavailable parents retire offers without fabricated SKU observations and recover on return', async()=>{
   const db=await setup();await ingestCrawl(db,{...crawl(1),mode:'baseline'});
   const unavailable=crawl(2);unavailable.products[0]={...unavailable.products[0],offers:[],unavailable:true};

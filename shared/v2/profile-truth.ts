@@ -67,10 +67,18 @@ function cleanProfile<T extends RawMetadata>(metadata:T):T {
   }
   return result;
 }
+/** Raw field and the feature names that state the same fact. A reviewed MANUAL row for any of them
+ * (data/corrections.json) overrides the raw value and every non-manual row of the group. */
+export const FACT_FEATURES:Record<string,readonly string[]>={
+  country:['normalized_origin','origin_country'],process:['process_family','process'],roast:['roast_classification','roast_level'],
+  tastingNotes:['flavor_families','flavor_categories','flavor_notes_normalized'],brewMethods:['brew_compatibility','brew_methods'],
+  farm:['origin_farm'],producer:['origin_producer'],varieties:['variety','normalized_variety'],
+};
+const related=(feature:string)=>Object.values(FACT_FEATURES).find(names=>names.includes(feature))??[feature];
 /** Read repair for legacy category-as-flavor extraction, glued source labels and disproven decaf claims.
  * Source archives stay intact. These corrections also cover old staging rows before recrawl.
  */
-export function truthfulMetadata(input:RawMetadata,name:string):RawMetadata {
+export function truthfulMetadata(input:RawMetadata,name:string,features:FeatureValue[]=[]):RawMetadata {
   const raw=cleanProfile(input);
   const source=cleanProfile(declaredProfile(raw.description??''));
   const missing=Object.fromEntries(Object.entries(source).filter(([key])=>key==='tastingNotes'||raw[key as keyof RawMetadata]==null||raw[key as keyof RawMetadata]===''||raw[key as keyof RawMetadata]==='unknown'||Array.isArray(raw[key as keyof RawMetadata])&&!(raw[key as keyof RawMetadata] as unknown[]).length));
@@ -78,12 +86,16 @@ export function truthfulMetadata(input:RawMetadata,name:string):RawMetadata {
   const decaf=declaredDecaf(name,metadata.description??'');
   const tastingNotes=metadata.tastingNotes?.filter(note=>!CATEGORY_NOTES.has(note.trim().toLocaleLowerCase('tr')));
   const description=metadata.description?.replace(PROFILE_LABEL_PATTERN,match=>`\n${match}`).replace(/\n+/g,'\n').replace(/([,;])\s*(?=\p{L})/gu,'$1 ').trim();
-  return {...metadata,...(description?{description}:{}),...(typeof metadata.decaf==='boolean'?{}:decaf===null?{}:{decaf}),...(tastingNotes?{tastingNotes}:{})};
+  const manual=features.filter(feature=>feature.sourceType==='MANUAL').map(feature=>feature.feature);
+  const overridden=Object.keys(FACT_FEATURES).filter(key=>FACT_FEATURES[key].some(feature=>manual.includes(feature)));
+  const result:RawMetadata={...metadata,...(description?{description}:{}),...(typeof metadata.decaf==='boolean'?{}:decaf===null?{}:{decaf}),...(tastingNotes?{tastingNotes}:{})};
+  return Object.fromEntries(Object.entries(result).filter(([key])=>!overridden.includes(key)));
 }
 export function truthfulFeatures(features:FeatureValue[],raw:RawMetadata):FeatureValue[]{
   const evidence=`${raw.description??''} ${(raw.tastingNotes??[]).join(' ')}`;
   const source=raw.sourceData&&typeof raw.sourceData==='object'&&!Array.isArray(raw.sourceData)?raw.sourceData:{};
-  return features.flatMap(feature=>{
+  const manual=new Set(features.filter(feature=>feature.sourceType==='MANUAL').flatMap(feature=>related(feature.feature)));
+  return features.filter(feature=>feature.sourceType==='MANUAL'||!manual.has(feature.feature)).flatMap(feature=>{
     // Grinding options establish what a shop can grind, not brew recommendations for this coffee.
     if(feature.feature==='brew_compatibility'&&feature.version==='v2-profile-1'&&/öğütme|ogutme|grind/i.test(JSON.stringify(source.attributes??[])))return [];
     if(feature.feature==='flavor_notes_normalized'&&Array.isArray(feature.value))return [{...feature,value:feature.value.filter(note=>note!=='Rum'||/(?:^|[^\p{L}])(?:rum|rom)(?=$|[^\p{L}])/iu.test(evidence)).filter(note=>note!=='Leather'||/(?:^|[^\p{L}])(?:deri|leather)(?=$|[^\p{L}])/iu.test(evidence))}];

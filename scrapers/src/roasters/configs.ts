@@ -386,7 +386,7 @@ export const a4Kahve: RoasterConfig = {
   websiteUrl: 'https://a4kahve.com',
   shopUrl: 'https://a4kahve.com',
   platform: 'ikas',
-  city: 'Unknown',
+  city: null,
   priceFormat: 'tl',
   structuredDataParser: 'next-data-products',
   coffeeProductKeywords: [
@@ -531,6 +531,8 @@ export const milestones: RoasterConfig = {
 export const choCoffee: RoasterConfig = {
   slug: 'cho-coffee',
   name: 'Cho Coffee Roastery',
+  // Storefront answers this crawler with HTTP 403 (also from a home connection, 2026-09-26); never qualified.
+  active: false,
   websiteUrl: 'https://chocoffeeroastery.com',
   shopUrl: 'https://chocoffeeroastery.com/tr/kahve',
   platform: 'custom',

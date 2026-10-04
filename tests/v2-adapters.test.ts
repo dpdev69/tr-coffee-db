@@ -54,9 +54,9 @@ describe('V2 pure adapter contracts', () => {
     assert.notEqual(canonicalUrl('/a/b', config), canonicalUrl('/a-b', config));
     assert.throws(() => canonicalUrl('https://evil.test/p', config), /allowlist/);
   });
-  it('rejects malformed price, zero, negative, infinite and unsafe identifiers', async () => {
-    for (const value of [-1, 0, Infinity, NaN, '500abc', '1,000']) assert.throws(() => money(value));
-    assert.equal(money(null), null);
+  it('rejects malformed price, negative, infinite and unsafe identifiers', async () => {
+    for (const value of [-1, Infinity, NaN, '500abc', '1,000']) assert.throws(() => money(value));
+    assert.equal(money(null), null); assert.equal(money('0.00'), 0);
     const data = await json('shopify.json'); data.products[0].id = 9007199254740992;
     assert.throws(() => parseShopifyPage(data, config), /identifier/);
   });
@@ -139,11 +139,11 @@ describe('V2 read-only legacy comparison', () => {
 });
 
 describe('Live-source regression cases (2026-09-14)', () => {
-  it('accepts Petra zero compare-at sentinel without a zero current price', async () => {
+  it('treats Petra zero compare-at and current prices as unknown instead of failing the roaster', async () => {
     const data = await json('shopify.json'); data.products[0].variants[0].compare_at_price = '0.00';
     assert.equal(parseShopifyPage(data, config)[0].offers[0].compareAtPrice, null);
     data.products[0].variants[0].price = '0.00';
-    assert.throws(() => parseShopifyPage(data, config), /positive/);
+    assert.equal(parseShopifyPage(data, config)[0].offers[0].price, null);
   });
   it('sums Parsa zero base-price component with positive per-package surcharge', async () => {
     const data = await json('parsa.json');
@@ -153,7 +153,7 @@ describe('Live-source regression cases (2026-09-14)', () => {
     assert.equal(product.offers[0].sourceVariantId, '127');
     assert.equal(product.offers[0].price, 950);
     data.varyasyonlar[0].ek_fiyat_tl = '0.00';
-    assert.throws(() => parseParsaProduct(data, config), /positive/);
+    assert.equal(parseParsaProduct(data, config).offers[0].price, null);
   });
 });
 
@@ -257,14 +257,14 @@ describe('Current source profiles survive a successful crawl without claiming in
     data.products[0].tags = []; data.products[0].handle = 'example';
     const parsed = parseShopifyPage(data, config)[0];
     const features = new Map(parsed.features?.map(f => [f.feature, f]));
-    assert.equal(features.get('normalized_origin')?.value, 'Guatemala');
-    assert.equal(features.get('process_family')?.value, 'washed');
+    assert.deepEqual(features.get('normalized_origin')?.value, ['Guatemala']);
+    assert.deepEqual(features.get('process_family')?.value, ['washed']);
     assert.ok((features.get('flavor_families')?.value as string[]).includes('Floral'));
     assert.ok((features.get('brew_compatibility')?.value as string[]).includes('filter'));
     assert.ok(features.get('normalized_variety'));
     for (const feature of parsed.features!.filter(f => f.feature !== 'catalog_eligibility')) {
       assert.equal(feature.sourceType, 'RULE_INFERRED'); assert.equal(feature.confidence, null);
-      assert.equal(feature.version, 'v2-profile-2'); assert.equal(feature.sourceReference, parsed.canonicalUrl);
+      assert.equal(feature.version, 'v2-profile-3'); assert.equal(feature.sourceReference, parsed.canonicalUrl);
     }
     assert.equal(parsed.rawMetadata.country, undefined); assert.equal(parsed.rawMetadata.process, undefined);
     assert.deepEqual(parsed.rawMetadata.tastingNotes,['jasmine','peach','chocolate'],'source-labeled tasting notes are declared; following brew prose is excluded');
@@ -279,9 +279,9 @@ describe('Current source profiles survive a successful crawl without claiming in
       assert.equal(parsed.features?.find(f => f.feature === 'flavor_families'), undefined, title);
     }
     data.products[0].title = 'Gesha from Guatemala';
-    assert.equal(parseShopifyPage(data, config)[0].features?.find(f => f.feature === 'normalized_origin')?.value, 'Guatemala');
+    assert.deepEqual(parseShopifyPage(data, config)[0].features?.find(f => f.feature === 'normalized_origin')?.value, ['Guatemala']);
     data.products[0].title = 'Panama Gesha';
-    assert.equal(parseShopifyPage(data, config)[0].features?.find(f => f.feature === 'normalized_origin')?.value, 'Panama');
+    assert.deepEqual(parseShopifyPage(data, config)[0].features?.find(f => f.feature === 'normalized_origin')?.value, ['Panama']);
   });
 });
 

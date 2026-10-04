@@ -32,14 +32,15 @@ export function weight(label: string): number | null {
   const value = parsePackageWeight(label);
   return value != null && Number.isSafeInteger(value) && value > 0 ? value : null;
 }
-/** Intake uses lira; round through integer kuruş. Missing stays unknown; malformed is a run error. */
+/** Intake uses lira; round through integer kuruş. Missing stays unknown; malformed is a run error.
+ * Zero is returned as 0 so arithmetic on surcharges still works; coffee() turns a zero price into unknown. */
 export function money(value: unknown, inputMinorUnit = 0): number | null {
   if (value == null || value === '') return null;
   if (!Number.isInteger(inputMinorUnit) || inputMinorUnit < 0 || inputMinorUnit > 6) throw new Error('Invalid currency minor unit.');
   if (typeof value !== 'number' && (typeof value !== 'string' || !/^\d+(?:\.\d+)?$/.test(value.trim()))) throw new Error('Malformed price.');
   const amount = Number(value);
   const minor = Math.round(amount * 100 / 10 ** inputMinorUnit);
-  if (!Number.isFinite(amount) || amount <= 0 || !Number.isSafeInteger(minor) || minor <= 0) throw new Error('Price must be finite and positive.');
+  if (!Number.isFinite(amount) || amount < 0 || !Number.isSafeInteger(minor) || minor < 0) throw new Error('Price must be finite and non-negative.');
   return minor / 100;
 }
 export function canonicalUrl(value: unknown, config: RoasterConfig, base = config.shopUrl): string {

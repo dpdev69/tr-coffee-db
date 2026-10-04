@@ -192,12 +192,8 @@ function appendDistinct(target: SourceCoffee[], incoming: SourceCoffee[]) {
   for (const product of incoming) {
     const key = product.sourceProductId ?? product.canonicalUrl;
     if (target.some(existing => (existing.sourceProductId ?? existing.canonicalUrl) === key)) throw new Error('Duplicate source product across catalog pages.');
-    const offers = new Set<string>();
-    for (const offer of product.offers) {
-      const identity = offer.sourceVariantId ?? offer.identityKey;
-      if (!identity || offers.has(identity)) throw new Error('Missing or duplicate source offer identity.');
-      offers.add(identity);
-    }
+    // Duplicate offer identities are skipped per offer during ingestion; they do not fail the roaster.
+    if (product.offers.some(offer => !(offer.sourceVariantId ?? offer.identityKey))) throw new Error('Missing source offer identity.');
     target.push(product);
   }
 }
@@ -217,13 +213,21 @@ function createFetcher(config: RoasterConfig, options: CrawlOptions, retryAfter:
     const ikasApi = config.structuredDataParser === 'next-data-products' && input === 'https://api.myikas.com/api/sf/graphql?op=searchProducts' && init?.method === 'POST';
     const kafeinApi = config.slug === 'kafeinkultur' && new URL(input).origin === 'https://api.kafeinkultur.com' && new URL(input).pathname === '/site/v2/getProductDetail';
     let url = ikasApi || kafeinApi ? input : canonicalUrl(input, config);
+    let retried = false;
     for (let redirect = 0; redirect <= 3; redirect++) {
       if (++requests > maxRequests) throw new Error('Source request budget exhausted.');
       if (requests > 1) await sleep(delay);
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const response = await fetcher(url, { ...init, redirect: 'manual', signal: controller.signal, headers: { ...(config.slug==='cho-coffee'?{Cookie:[...(cookies.get(new URL(url).hostname)?.values()??[])].join('; ')}:{}), 'User-Agent': 'CoffeeDiscovery/2.0 (public coffee catalog; no challenge bypass)', Accept: 'application/json,text/html', ...init?.headers } });
+        let response: Response;
+        try {
+          response = await fetcher(url, { ...init, redirect: 'manual', signal: controller.signal, headers: { ...(config.slug==='cho-coffee'?{Cookie:[...(cookies.get(new URL(url).hostname)?.values()??[])].join('; ')}:{}), 'User-Agent': 'CoffeeDiscovery/2.0 (public coffee catalog; no challenge bypass)', Accept: 'application/json,text/html', ...init?.headers } });
+        } catch (error) {
+          // A transport failure ("fetch failed", timeout) gets one paced retry. HTTP statuses never retry here.
+          if (retried) throw error;
+          retried = true; redirect--; await sleep(2_000); continue;
+        }
         if(config.slug==='cho-coffee'){const host=new URL(url).hostname,jar=cookies.get(host)??new Map<string,string>();for(const value of response.headers.getSetCookie()){const pair=value.split(';')[0];jar.set(pair.split('=')[0],pair);}cookies.set(host,jar);}
         if (response.status >= 300 && response.status < 400) {
           await response.body?.cancel();
