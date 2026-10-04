@@ -122,3 +122,11 @@ test('the relay refuses callers without the token, other hosts and non-GET reque
   const seen:string[]=[];const viaRelay=relayFetch('https://relay.test/relay','secret',async(input,init)=>{seen.push(String(input),new Headers(init?.headers).get('authorization')??'');return new Response('ok');});
   await viaRelay('https://sezycoffee.com/a?b=1');assert.deepEqual(seen,['https://relay.test/relay?url=https%3A%2F%2Fsezycoffee.com%2Fa%3Fb%3D1','Bearer secret']);
 });
+
+test('a source awaiting qualification never succeeds by design, so it does not turn the nightly run red',async()=>{
+  const db=new TestCatalogDatabase();
+  for(const config of ALL_ROASTER_CONFIGS.filter(config=>['petra','mayard'].includes(config.slug)))await registerRoaster(db,{id:config.slug,slug:config.slug,name:config.name,websiteUrl:config.websiteUrl,adapter:config.platform});
+  db.sqlite.exec(`UPDATE roasters SET last_success_at='2026-01-05T00:00:00.000Z' WHERE slug='petra'`);
+  assert.deepEqual(await attentionNeeded(db,[{status:'success'},{status:'partial'}].concat(Array(8).fill({status:'success'})),'2026-01-06T00:00:00.000Z'),[]);
+  db.sqlite.close();
+});

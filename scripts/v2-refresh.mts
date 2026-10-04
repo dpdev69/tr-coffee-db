@@ -17,10 +17,10 @@ export async function syncRoasters(db: CatalogDatabase, configs = ALL_ROASTER_CO
     adapter: config.platform, active: config.active !== false, trustedHosts: collectRoasterProductHosts(config) }, now);
   await db.batch([db.prepare('UPDATE roasters SET active=0,revision=revision+1,updated_at=? WHERE active=1 AND slug NOT IN (SELECT value FROM json_each(?))').bind(now, JSON.stringify(configs.map(config => config.slug)))]);
 }
-/** Red means attention: an active source without a successful crawl for 3 days, or under 80% of this run succeeding. One-night blips stay green. */
+/** Red means attention: an active qualified source without a successful crawl for 3 days, or under 80% of this run succeeding. One-night blips stay green. */
 export async function attentionNeeded(db: CatalogDatabase, results: Record<string, unknown>[], now: string): Promise<string[]> {
   const cutoff = new Date(Date.parse(now) - 3 * 86_400_000).toISOString();
-  const stale = (await db.prepare('SELECT slug FROM roasters WHERE active=1 AND (last_success_at IS NULL OR last_success_at<?) ORDER BY slug').bind(cutoff).all<{ slug: string }>()).results.map(row => row.slug);
+  const stale = (await db.prepare('SELECT slug FROM roasters WHERE active=1 AND (last_success_at IS NULL OR last_success_at<?) ORDER BY slug').bind(cutoff).all<{ slug: string }>()).results.map(row => row.slug).filter(isQualifiedSource); // An unqualified source is never 'success' by design.
   const succeeded = results.filter(result => result.status === 'success' || result.status === 'already_completed').length;
   return [...(stale.length ? [`No successful crawl for 3 days: ${stale.join(', ')}`] : []), ...(succeeded < results.length * 0.8 ? [`Only ${succeeded}/${results.length} sources succeeded in this run`] : [])];
 }
