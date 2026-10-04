@@ -1,22 +1,9 @@
+import { pageMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/site';
 
-export const metadata: Metadata = {
-  title: 'Gizlilik',
-  description:
-    'TR CoffeeDB hangi verileri neden kullandığını ve dış bağlantıların nasıl çalıştığını açıklar.',
-  alternates: {
-    canonical: '/privacy',
-  },
-  openGraph: {
-    title: `Gizlilik | ${SITE_NAME}`,
-    description:
-      'TR CoffeeDB hangi verileri neden kullandığını ve dış bağlantıların nasıl çalıştığını açıklar.',
-    url: '/privacy',
-    type: 'website',
-  },
-};
+export const metadata: Metadata = pageMetadata('Gizlilik', `${SITE_NAME} hangi verileri neden kullandığını ve dış bağlantıların nasıl çalıştığını açıklar.`, '/privacy');
 
 export default function PrivacyPage() {
   return (
@@ -26,37 +13,46 @@ export default function PrivacyPage() {
       </p>
       <h1 className="mt-3 font-display text-5xl leading-none text-[#1f1d1b]">Gizlilik</h1>
       <p className="mt-4 text-sm leading-6 text-[#5d5853]">
-        TR CoffeeDB hesap, ödeme ya da teslimat bilgisi toplamaz. Satın alma işlemleri
+        {SITE_NAME} hesap, ödeme ya da teslimat bilgisi toplamaz. Satın alma işlemleri
         kavurucuların kendi sitelerinde tamamlanır.
       </p>
 
       <div className="mt-8 space-y-8">
-        <PolicySection title="Kullandığımız veriler">
+        <PolicySection title="Haftalık Drop aboneliği">
           <p>
-            Katalogda arama yaptığınızda filtre ve arama parametreleri sayfa adresinde
-            tutulur. Bir kavurucu sitesine geçiş yaptığınızda, bağlantı kalitesini ve
-            katalog kullanımını anlamak için kahve kimliği, sayfa yolu ve varsa aktif
-            filtre bağlamı redirect_events tablosunda kaydedilebilir. Bu tıklama
-            kaydı sipariş, ödeme veya profil verisi içermez.
+            Bülten için yalnızca e-posta adresini isteriz. Adresin sunucumuz üzerinden
+            Kit’e iletilir; katalog veritabanımıza, uygulama günlüklerine veya ürün
+            analitiğine kaydedilmez. Kit, aboneliğini ve gönderimleri yönetir.
+            Aboneliğin onay e-postasındaki bağlantıyla etkinleşir. Her bültenin
+            abonelikten ayrılma bağlantısını kullanabilirsin.
           </p>
           <p>
-            Site performansını ve genel kullanımını izlemek için Vercel Analytics
-            kullanılır. Bu analitik veriler ürünü iyileştirmek, bozuk sayfaları
-            bulmak ve katalog kapsamını değerlendirmek içindir.
+            Aboneliğin geldiği sayfanın yolu ve sınırlı kampanya bilgileri Kit’e
+            iletilebilir; arama metinleri ve katalog filtrelerinin değerleri bu
+            bilgilere eklenmez. Kit’in abone verilerini işleme koşulları için{' '}
+            <a href="https://kit.com/dpa" className="underline underline-offset-4">veri işleme ekini</a>{' '}
+            inceleyebilirsin.
           </p>
         </PolicySection>
 
-        <PolicySection title="Saklama ve düzeltme">
+        <PolicySection title="Site kullanımı ve ölçüm">
           <p>
-            Tıklama ve düzeltme raporları yalnızca katalog kalitesini izlemek için
-            tutulur; operasyonel inceleme tamamlandığında gereksiz kayıtları
-            silmeyi hedefleriz. Bu çalışma için varsayılan saklama hedefi 90 gündür.
+            İsteğe bağlı ölçüme izin verdiğinde genel ziyaret ve performans ölçümü için Cloudflare Web Analytics,
+            kahve görüntüleme, filtre kullanımı, bülten başvurusu, kısa test ve
+            kavurucuya geçiş sayıları için Cloudflare Workers Analytics Engine
+            kullanılır. Ürün olaylarına e-posta, IP adresi, kullanıcı kimliği,
+            arama metni veya tam sayfa adresi eklemeyiz. Bir kavurucuya geçişte
+            yalnızca katalogdaki kahve, kavurucu ve paket kimlikleriyle sayfa türü
+            gibi sınırlı bağlamı sayarız. Bu sayımlar bir satın alma kanıtı değildir.
           </p>
           <p>
-            Kahve detay sayfalarındaki rapor formuyla hatalı fiyat, kırık bağlantı
-            veya yanlış metadata bildirebilirsiniz. Verileriniz için erişim,
-            düzeltme ya da silme talebiniz varsa GitHub Issues üzerinden iletişim
-            kurabilirsiniz.
+            Katalog filtreleri paylaşılabilir sayfa adresinde tutulur. Kötüye
+            kullanımı sınırlandırmak için IP adresi istek sırasında geçici olarak
+            kullanılabilir; uygulama tarafından ürün analitiğinde saklanmaz.
+            Ürün olayları Cloudflare Analytics Engine’in üç aylık saklama
+            süresine tabidir. Cloudflare’ın altyapı verilerini nasıl işlediğini{' '}
+            <a href="https://www.cloudflare.com/privacypolicy/" className="underline underline-offset-4">gizlilik politikasında</a>{' '}
+            bulabilirsin.
           </p>
         </PolicySection>
 
@@ -70,7 +66,7 @@ export default function PrivacyPage() {
 
         <PolicySection title="Kontrol sizde">
           <p>
-            Karşılaştırma listeniz, bu tarayıcının yerel depolamasında en fazla üç kahvenin
+            Çerez tercihin bir yıl boyunca kahvedrop_consent çerezinde tutulur. Sayfanın altındaki Çerez tercihleri düğmesiyle değiştirebilirsin. Ölçümü reddedersen kullanım olayları gönderilmez; bültene kaydolmaya ve kavurucuya gitmeye devam edebilirsin. Karşılaştırma listeniz, bu tarayıcının yerel depolamasında en fazla üç kahvenin
             kimliği olarak saklanır. Bir hesapla eşleştirilmez. Karşılaştırma çubuğundaki
             temizleme düğmesiyle veya tarayıcınızın site verilerini silerek kaldırabilirsiniz.
             Paylaştığınız karşılaştırma adresi, seçilen kahveleri adresin içinde taşır.

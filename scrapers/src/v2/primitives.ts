@@ -53,7 +53,13 @@ export function canonicalUrl(value: unknown, config: RoasterConfig, base = confi
   url.searchParams.sort();
   return url.toString();
 }
-export function plainHtml(value: unknown) { return load(text(value)).text().replace(/\s+/g, ' ').trim(); }
+export function plainHtml(value: unknown) {
+  const $=load(text(value));
+  $('script,style').remove();
+  $('br').replaceWith('\n');
+  $('p,div,li,h1,h2,h3,h4,h5,h6,tr').append('\n');
+  return $.text().replace(/[^\S\n]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+}
 export function names(value: unknown): string[] {
   return optionalList(value).map(item => typeof item === 'string' ? item : text(record(item).name)).filter(Boolean);
 }

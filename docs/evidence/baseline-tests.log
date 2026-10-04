@@ -1,0 +1,276 @@
+
+> tr-coffee-db@0.1.0 test
+> tsx --test tests/*.test.ts
+
+▶ brew calculator
+  ✔ scales the cited starter recipes and keeps espresso as beverage yield (0.333125ms)
+  ✔ rejects missing, nonfinite and out-of-range doses (0.076917ms)
+✔ brew calculator (0.999125ms)
+▶ coffee display helpers
+  ✔ formats source check dates against the Turkish day boundary (0.762958ms)
+  ✔ falls back for missing or invalid verification timestamps (0.137959ms)
+  ✔ extracts source hosts and formats package weights (0.229ms)
+  ✔ compares differently sized TRY packages by their computed 100 g price (0.157875ms)
+  ✔ does not invent comparable prices for foreign currencies or invalid amounts (0.213ms)
+  ✔ formats money with Turkish separators and the actual currency (3.4715ms)
+✔ coffee display helpers (6.055709ms)
+▶ parseCoffeeFilters
+  ✔ deduplicates valid repeated values, normalizes text, and ignores invalid enums (0.87825ms)
+  ✔ ignores deprecated public price range params (0.073291ms)
+  ✔ drops missing-metadata sentinels from public filters (0.053708ms)
+✔ parseCoffeeFilters (1.427459ms)
+▶ active coffee filter chips
+  ✔ keeps legacy labels while generating per-chip removal URLs (0.293209ms)
+  ✔ does not expose deprecated price bounds as active chips (0.060541ms)
+  ✔ does not expose missing-metadata sentinels as active chips (0.052542ms)
+✔ active coffee filter chips (0.483708ms)
+▶ coffee journey data contract
+  ✔ scores traceability from disclosed metadata without treating it as verification (1.757584ms)
+  ✔ creates lot, evidence, assessment, certification, and trace-event tables (0.23025ms)
+  ✔ backfills scraped facts as observed and keeps future ingestion synchronized (3.396667ms)
+  ✔ keeps public journey tables read-only (0.256667ms)
+  ✔ indexes every source and organization foreign key used by the journey graph (0.729ms)
+✔ coffee journey data contract (8.408375ms)
+▶ journey experience surfaces
+  ✔ renders the journey, evidence ledger, and independent ranking categories (4.403125ms)
+  ✔ keeps traceability, quality, price, and interest as independent rankings (1.94925ms)
+  ✔ does not turn missing or zero clicks into a popularity ranking (6.378209ms)
+✔ journey experience surfaces (15.25625ms)
+▶ catalog queries
+  ✔ preserves package price sorting and serializes distinct unit-price sorts (19.626334ms)
+  ✔ propagates featured and similar-coffee query failures instead of returning empty lists (1.928541ms)
+  ✔ propagates any failed statistics query rather than displaying partial counts (5.650167ms)
+  ✔ retains real empty results and distinct counts when queries succeed (2.669917ms)
+  ✔ selects varied roasters from a bounded, deterministic current candidate query (1.468417ms)
+  ✔ does not query for a zero or invalid feature limit (0.503ms)
+✔ catalog queries (37.947625ms)
+▶ featured coffee selection
+  ✔ prioritizes the newest coffee from each roaster before repeat roasters (0.250042ms)
+  ✔ fills remaining slots in recency order when distinct roasters are insufficient (0.223375ms)
+  ✔ keeps unique products, respects result limits, and leaves input unchanged (0.166041ms)
+✔ featured coffee selection (16.559541ms)
+▶ coffeeMatchesSearch
+  ✔ matches roaster, tasting note, process, and brew method aliases (1.628ms)
+✔ coffeeMatchesSearch (2.6085ms)
+▶ data-source failure surfaces
+  ✔ keeps catalog outages separate from zero-result states (0.702333ms)
+  ✔ does not advertise fallback homepage counts when live stats fail (0.3955ms)
+  ✔ keeps detail query failures from becoming fake 404s (0.240458ms)
+  ✔ keeps roaster outages separate from empty roaster states (0.148292ms)
+  ✔ records deferred CEO-review work in the TODO ledger (0.107167ms)
+✔ data-source failure surfaces (2.659666ms)
+▶ GitHub Actions workflows
+  ✔ keeps scheduled scrape runs resilient to known external roaster outages (0.81125ms)
+  ✔ keeps CI and scraper workflows aligned to the checked-in Node version (0.673916ms)
+  ✔ persists the Next.js build cache between CI runs (0.444291ms)
+✔ GitHub Actions workflows (2.943333ms)
+[test-html] Fetching page 1: https://example.test/shop
+▶ parseProbadorProducts
+  ✔ keeps roasted coffee cards and excludes equipment and sample sets (425.837208ms)
+  ✔ drops unsafe product and image URLs from Probador-style HTML (0.901916ms)
+✔ parseProbadorProducts (427.701875ms)
+▶ HtmlAdapter URL policy
+  ✔ ignores malicious base tags, unsafe schemes, and off-roaster product links (2005.342916ms)
+✔ HtmlAdapter URL policy (2005.912458ms)
+▶ HtmlAdapter next-data structured images
+  ✔ does not let coffee keyword hints override non-coffee product exclusions (6.561542ms)
+  ✔ keeps coffees with brewing advice and embedded styles while excluding accessories (1.454291ms)
+  ✔ excludes Paper chocolate and a coffee sampler placed in the Kahve category (0.892875ms)
+  ✔ builds IKAS CDN images from __NEXT_DATA__ variant image IDs (0.675167ms)
+  ✔ uses a trusted IKAS CDN image from JSON-LD ItemList products (0.955875ms)
+  ✔ ignores untrusted JSON-LD image hosts (0.620667ms)
+  ✔ uses trusted IKAS product-card images from rendered srcsets (2.568958ms)
+✔ HtmlAdapter next-data structured images (14.170625ms)
+▶ structured retail offers
+  ✔ takes the TRY price and single package weight from the same product offer (1.62425ms)
+✔ structured retail offers (1.71875ms)
+▶ parseCatalogPriceText
+  ✔ uses the first visible catalog price from Turkish ranges and sale strings (0.153083ms)
+✔ parseCatalogPriceText (0.196ms)
+▶ parsePackageWeight
+  ✔ reads unit-weight-first cartons without losing the pack count (0.296583ms)
+  ✔ treats Turkish thousands separators in gram values as thousands (0.103958ms)
+  ✔ does not read Turkish words that start with g as gram units (0.322625ms)
+✔ parsePackageWeight (0.794958ms)
+▶ parseProductPagePackageSelection
+  ✔ uses absolute product-page package prices when no base package option exists (1.077541ms)
+  ✔ adds product-page package deltas when a base package option is present (0.909583ms)
+✔ parseProductPagePackageSelection (2.041916ms)
+▶ parseProductPageMetadata
+  ✔ extracts structured product detail rows for normalization (1.363333ms)
+  ✔ extracts colon-delimited product details from list-based pages (1.006042ms)
+✔ parseProductPageMetadata (2.45175ms)
+▶ image audit catalog coverage
+  ✔ fails an empty current catalog even when there are no missing images (1.283792ms)
+  ✔ continues image checks when current coffees are present (0.151333ms)
+✔ image audit catalog coverage (2.187792ms)
+▶ validateJsonRequest
+  ✔ accepts same-origin JSON requests within the size limit (36.679625ms)
+  ✔ rejects cross-origin, non-json, and oversized requests (0.764083ms)
+✔ validateJsonRequest (38.372ms)
+▶ parseLimitedJsonBody
+  ✔ rejects oversized bodies even when content-length is absent (1.958209ms)
+  ✔ parses valid JSON bodies inside the byte limit (0.375542ms)
+✔ parseLimitedJsonBody (2.514875ms)
+▶ validateClickPayload
+  ✔ accepts and normalizes a valid click payload (0.827458ms)
+  ✔ rejects invalid source, path, and context boundaries (0.299334ms)
+✔ validateClickPayload (1.28975ms)
+▶ normalize price per 100g
+  ✔ leaves price_per_100g null when package weight is missing (24.744ms)
+  ✔ calculates price_per_100g from a 250g package (3.894167ms)
+  ✔ calculates price_per_100g from a 1kg package (0.259417ms)
+  ✔ ignores non-positive and non-finite package weights (0.343375ms)
+✔ normalize price per 100g (30.71225ms)
+▶ normalize coffee metadata
+  ✔ detects Turkish process words with dotted characters (43.961459ms)
+  ✔ detects uppercase Turkish origin names with dotted characters (3.750375ms)
+  ✔ uses the earliest country mention so title origin beats later descriptive comparisons (1.032916ms)
+  ✔ prefers specific fermentation process over generic natural or washed words (0.249833ms)
+  ✔ uses platform metadata such as categories and attributes for classification (0.52825ms)
+  ✔ prefers structured process attributes over lower-confidence catalog text (0.210041ms)
+  ✔ reads alternate Turkish process labels from structured metadata (0.124291ms)
+  ✔ detects Turkish roast levels with dotted characters (0.084125ms)
+  ✔ detects açık-orta roast phrasing as medium-light (0.089ms)
+  ✔ prefers explicit roast labels over filter brew-method wording (0.389584ms)
+  ✔ keeps filter and espresso profile wording out of roast inference (1.690416ms)
+  ✔ detects explicit filter and espresso roast profile labels (0.496ms)
+  ✔ reads standalone profile metadata when the field label is explicit (1.126375ms)
+  ✔ derives roast profile from product taxonomy when roasters publish it there (0.607084ms)
+  ✔ maps Agtron roast readings to catalog roast levels (0.242792ms)
+  ✔ does not treat grinder guidance as a medium roast signal (2.196958ms)
+  ✔ extracts only high-confidence product-page brew recipes (0.734875ms)
+  ✔ does not turn generic brew method mentions into recipes (0.16575ms)
+  ✔ extracts crop year and roast date when product text exposes them (0.348416ms)
+✔ normalize coffee metadata (58.867292ms)
+▶ Parsa storefront API
+  ✔ uses the available package price and weight together and preserves disclosed metadata (299.723458ms)
+  ✔ fails incomplete package discovery so a partial run cannot mark other coffees unavailable (0.882834ms)
+✔ Parsa storefront API (301.387333ms)
+▶ isLikelyCatalogCoffeeProduct
+  ✔ rejects matcha and tea sets without rejecting tea tasting notes on coffee (5.556166ms)
+  ✔ excludes Turkish filter-paper product titles with dotted Turkish characters (0.247875ms)
+  ✔ excludes education, equipment, and campaign products before price normalization (3.135667ms)
+  ✔ keeps cacao and chocolate tasting notes from excluding coffee cards (1.721542ms)
+  ✔ excludes coffee samplers and Paper chocolate bars despite the coffee category (0.213167ms)
+✔ isLikelyCatalogCoffeeProduct (12.201417ms)
+▶ classifySpecialtyProduct
+  ✔ qualifies traceable lots with origin, process, flavor, and producer evidence (1.487583ms)
+  ✔ rejects accessories and sample sets before scoring (0.226875ms)
+  ✔ rejects stale accessories, non-coffee products, and bundles before scoring (0.680666ms)
+  ✔ rejects generic blends without strong traceability (0.844458ms)
+  ✔ publishes country-only coffee instead of treating sparse metadata as a failure (1.723208ms)
+  ✔ publishes likely coffee even when specialty evidence is sparse (0.136041ms)
+  ✔ rejects broad non-origin catalog entries but keeps origin espresso variants public (1.177333ms)
+  ✔ qualifies structured country, lot, and process titles with sparse cards (2.052ms)
+  ✔ recognizes compact Turkish Costa Rica spelling for origin parsing (23.104916ms)
+  ✔ applies force-include overrides deterministically (0.370833ms)
+  ✔ applies force-exclude overrides deterministically (0.055833ms)
+✔ classifySpecialtyProduct (32.517917ms)
+▶ public coffee visibility rule
+  ✔ applies the shared fail-closed public query gate (11.96675ms)
+  ✔ classifies public rows from is_public plus specialty status only (0.513583ms)
+  ✔ migration defaults keep unclassified and not-specialty rows non-public until explicitly classified (0.2805ms)
+  ✔ migration stores manual overrides by roaster and external product id (0.311334ms)
+✔ public coffee visibility rule (13.895416ms)
+▶ public visibility query surfaces
+  ✔ gates catalog, detail, similar, featured, search, stats, and roaster counts with the same public coffee rule (0.7535ms)
+  ✔ applies the catalog product exclusion rules to every public coffee surface (0.178541ms)
+  ✔ routes catalog search through the indexed database search contract with a fallback (0.192334ms)
+  ✔ gates sitemap coffee routes, roaster routes, and click tracking before exposing public records (0.1385ms)
+  ✔ keeps latest database function definitions aligned with public visibility when migration 015 defines them (0.243667ms)
+✔ public visibility query surfaces (2.009583ms)
+▶ buildQuizFilterResult
+  ✔ maps all quiz answers to catalog filters and explanations without price buckets (1.542541ms)
+  ✔ keeps optional preferences from adding fake filters (0.128125ms)
+  ✔ keeps roast answers aligned to exact catalog roast_level values (0.078833ms)
+  ✔ dedupes selections and ignores unsupported catalog values (0.076791ms)
+✔ buildQuizFilterResult (2.658917ms)
+▶ scheduled scrape run policy
+  ✔ keeps a broad refresh green when at least 90% of attempted roasters succeed (1.497584ms)
+  ✔ fails a broad refresh when catalog-wide success drops below 90% (0.279708ms)
+  ✔ keeps targeted manual probes strict even when a rate is configured (0.143875ms)
+  ✔ preserves allowlist behavior when no broad-run rate is configured (0.1455ms)
+  ✔ retries a failed roaster and returns the successful retry (1.003542ms)
+  ✔ returns immediately after a successful first attempt (0.217916ms)
+  ✔ returns the terminal failed result after exhausting attempts (0.178542ms)
+  ✔ retries thrown transient errors and rethrows the terminal error (0.298541ms)
+  ✔ fails empty runs and handles exact success-rate boundaries (0.086208ms)
+  ✔ reports every unknown targeted slug once (0.26975ms)
+  ✔ validates policy environment values and renders a readable Actions summary (0.614083ms)
+✔ scheduled scrape run policy (6.66175ms)
+[test-roaster] Fetching products...
+[test-roaster] Error: network timeout
+[test-roaster] Done in 1ms (failed)
+[test-roaster] Fetching products...
+[test-roaster] Found 0 raw products
+[test-roaster] Done in 0ms (failed)
+[test-roaster] Error: Scrape returned zero products; preserving existing availability until the adapter is verified.
+[test-roaster] Fetching products...
+[test-roaster] Found 1 raw products
+[test-roaster] Normalized 1 products
+[test-roaster] Specialty classification: 1 qualified, 0 rejected, 0 unclassified
+[test-roaster] Upserted 1 products
+[test-roaster] Done in 12ms (success)
+▶ BaseScraper failure semantics
+  ✔ returns failed result and writes failed scrape log when product fetch throws (72.260833ms)
+  ✔ does not mark existing products stale when a scrape returns zero products (0.663459ms)
+  ✔ preserves known process and roast metadata when a sparse scrape cannot redetect it (12.197833ms)
+✔ BaseScraper failure semantics (85.8475ms)
+▶ buildGlobalSearchUrl
+  ✔ navigates to coffees with a normalized query from any route (0.837041ms)
+  ✔ preserves existing coffee filters and clears pagination on catalog searches (0.119458ms)
+  ✔ drops deprecated public price range params when preserving catalog filters (0.059ms)
+  ✔ clears search when the submitted query is empty (0.044959ms)
+✔ buildGlobalSearchUrl (1.92775ms)
+▶ trusted URL policy
+  ✔ allows only http(s) URLs on trusted hosts without embedded credentials (0.417834ms)
+✔ trusted URL policy (0.813083ms)
+▶ security hardening guardrails
+  ✔ keeps public URL database constraints in the latest migration (0.159458ms)
+  ✔ keeps migration TLS verification enabled (0.126166ms)
+  ✔ keeps the browser sink guarded by the trusted URL policy (0.097708ms)
+  ✔ adds local secret-scanning and ownership policy files (0.294083ms)
+✔ security hardening guardrails (0.80275ms)
+▶ ShopifyAdapter catalog formats
+  ✔ prices a 1 kg × 10 carton against its full 10 kg package weight (2140.277417ms)
+  ✔ excludes bottled drinks and gift samplers while retaining cold-brew coffee beans (2003.508916ms)
+✔ ShopifyAdapter catalog formats (4144.529084ms)
+▶ UX and compliance surfaces
+  ✔ announces mobile menu state to assistive technology (0.478541ms)
+  ✔ keeps mobile filter dialog focus inside the modal (0.102292ms)
+  ✔ makes the roaster filter searchable without introducing nested scroll traps (0.126042ms)
+  ✔ uses user-facing filter result copy (0.075583ms)
+  ✔ uses natural Turkish discovery copy with clear unit-price comparison (0.261667ms)
+  ✔ keeps database filter metadata explicit without exposing 100 g price ranges (0.205ms)
+  ✔ does not expose missing metadata as a public filter option (0.150375ms)
+  ✔ does not introduce cart, checkout, or in-app payment affordances (0.125292ms)
+  ✔ keeps filter groups from creating nested scroll traps (0.070916ms)
+  ✔ keeps quiz step changes oriented at the current question (0.092375ms)
+  ✔ exposes privacy and terms routes in navigation and sitemap (0.076709ms)
+  ✔ guards roaster external links with the shared trusted URL policy (1.048458ms)
+  ✔ uses non-blocking real links for outbound coffee clicks (0.467208ms)
+  ✔ places the coffee detail buy action before the long detail table and exposes report flow (0.345083ms)
+  ✔ discloses analytics, click tracking, retention, contact, and request paths (0.426042ms)
+  ✔ adds a data correction intake endpoint and coffee detail UI (0.434042ms)
+✔ UX and compliance surfaces (5.343292ms)
+[test-woo] Failed to fetch variation 2501; trying next package: variation unavailable
+[test-woo] Failed to fetch variation 1001; trying next package: variation unavailable
+▶ WooCommerceAdapter
+  ✔ excludes a configured wholesale source product even when its coffee category is missing (99.961291ms)
+  ✔ preserves the upstream error instead of reporting an empty catalog (0.324209ms)
+  ✔ keeps WooCommerce short descriptions so roast profile metadata reaches normalization (14.970792ms)
+  ✔ retries Store API product discovery with an Imunify challenge cookie (1.305708ms)
+  ✔ excludes WooCommerce accessory categories and non-catalog entries that contain coffee words (0.330709ms)
+  ✔ uses the retail comparison variation instead of the first weight term for price per 100g (0.421208ms)
+  ✔ falls through to the next preferred variation instead of mixing parent price with selected weight (0.499708ms)
+  ✔ tolerates WooCommerce variation attributes with null values (0.325666ms)
+✔ WooCommerceAdapter (118.6965ms)
+ℹ tests 170
+ℹ suites 39
+ℹ pass 170
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4809.997792

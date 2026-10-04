@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server';
+import { legacyCatalogDatabase, legacyCoffees, legacyCoffeeDetail, legacyCatalogRows } from '@/lib/v2-legacy';
+import type { createClient } from '@/lib/supabase/server';
 import {
   CATALOG_NAME_EXCLUSION_PATTERNS,
   getCurrentCatalogCutoffIso,
@@ -46,7 +47,9 @@ export async function getCoffees(
   filters: CoffeeFilters = {},
   client?: Awaited<ReturnType<typeof createClient>>
 ) {
-  const supabase = client ?? await createClient();
+  const db = client ? null : await legacyCatalogDatabase();
+  if (db) return legacyCoffees(db, filters);
+  const supabase = client ?? await (await import('@/lib/supabase/server')).createClient();
   const page = filters.page ?? 1;
   const perPage = filters.perPage ?? 24;
   const from = (page - 1) * perPage;
@@ -214,7 +217,9 @@ async function getCoffeeIdsForSearch(
 }
 
 export async function getCoffeeBySlug(slug: string) {
-  const supabase = await createClient();
+  const db = await legacyCatalogDatabase();
+  if (db) return legacyCoffeeDetail(db, slug);
+  const supabase = await (await import('@/lib/supabase/server')).createClient();
 
   let query = supabase
     .from('coffees')
@@ -265,7 +270,9 @@ export async function getSimilarCoffees(
   limit = 4,
   client?: Awaited<ReturnType<typeof createClient>>
 ) {
-  const supabase = client ?? await createClient();
+  const db = client ? null : await legacyCatalogDatabase();
+  if (db) return (await legacyCatalogRows(db)).filter(c => c.id !== coffee.id && ((coffee.origin_country && c.origin_country === coffee.origin_country) || (coffee.process !== 'unknown' && c.process === coffee.process))).slice(0, limit);
+  const supabase = client ?? await (await import('@/lib/supabase/server')).createClient();
   const candidates = await Promise.all([
     coffee.origin_country
       ? getSimilarCoffeesByField(supabase, coffee.id, 'origin_country', coffee.origin_country, limit)
@@ -317,7 +324,9 @@ export async function getFeaturedCoffees(
   const resultLimit = normalizeFeaturedLimit(limit);
   if (resultLimit === 0) return [];
 
-  const supabase = client ?? await createClient();
+  const db = client ? null : await legacyCatalogDatabase();
+  if (db) return selectDiverseFeaturedCoffees((await legacyCatalogRows(db)).filter(c => c.image_url), resultLimit);
+  const supabase = client ?? await (await import('@/lib/supabase/server')).createClient();
 
   let query = supabase
     .from('coffees')
@@ -369,7 +378,9 @@ function normalizeFeaturedLimit(limit: number) {
 }
 
 export async function getStats(client?: Awaited<ReturnType<typeof createClient>>) {
-  const supabase = client ?? await createClient();
+  const db = client ? null : await legacyCatalogDatabase();
+  if (db) { const rows = await legacyCatalogRows(db); return { totalCoffees: rows.length, totalRoasters: new Set(rows.map(c => c.roaster_id)).size, totalOrigins: new Set(rows.map(c => c.origin_country).filter(Boolean)).size }; }
+  const supabase = client ?? await (await import('@/lib/supabase/server')).createClient();
 
   const [coffeeResult, roasterResult, originResult] = await Promise.all([
     applyPublicCatalogCoffeeVisibility(

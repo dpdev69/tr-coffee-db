@@ -1,0 +1,38 @@
+{
+  "result": {
+    "success": true,
+    "type": "import",
+    "at_bookmark": "00000004-00000000-000050e6-d71002b9ebe01e349477f0be8bb035b4",
+    "status": "complete",
+    "result": {
+      "final_bookmark": "00000004-000001c6-000050e6-2df94a97d287ff0346fac725527f979d",
+      "num_queries": 1032,
+      "meta": {
+        "served_by": "v3-prod",
+        "served_by_region": "EEUR",
+        "served_by_colo": "FRA",
+        "served_by_primary": true,
+        "timings": {
+          "sql_duration_ms": 186.0725
+        },
+        "duration": 186.0725,
+        "changes": 1033,
+        "last_row_id": 13452,
+        "changed_db": true,
+        "size_after": 22802432,
+        "rows_read": 2,
+        "rows_written": 2063,
+        "num_tables": 13,
+        "total_attempts": 1
+      }
+    },
+    "messages": [
+      "Starting import...",
+      "Processed 1032 queries."
+    ]
+  },
+  "success": true,
+  "messages": [],
+  "errors": [],
+  "status": 200
+}

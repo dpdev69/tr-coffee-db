@@ -1,10 +1,12 @@
-import { createClient } from '@/lib/supabase/server';
+import { legacyCatalogDatabase, legacyRoasters, legacyRoasterDetail } from '@/lib/v2-legacy';
 import { getCurrentCatalogCutoffIso } from '@/lib/catalog-rules';
 import { applyPublicCoffeeVisibility } from '@/lib/public-coffee-visibility';
 import type { Roaster } from '@/lib/types/database';
 
 export async function getRoasters() {
-  const supabase = await createClient();
+  const db = await legacyCatalogDatabase();
+  if (db) return legacyRoasters(db);
+  const supabase = await (await import('@/lib/supabase/server')).createClient();
   const currentCutoff = getCurrentCatalogCutoffIso();
 
   const [
@@ -35,7 +37,9 @@ export async function getRoasters() {
 }
 
 export async function getRoasterBySlug(slug: string) {
-  const supabase = await createClient();
+  const db = await legacyCatalogDatabase();
+  if (db) return legacyRoasterDetail(db, slug);
+  const supabase = await (await import('@/lib/supabase/server')).createClient();
 
   const { data, error } = await supabase
     .from('roasters')

@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
+import { brand } from "@/lib/brand";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_URL } from "@/lib/site";
 import { CompareDock } from "@/components/coffee/compare-controls";
+import { WebAnalytics } from "@/components/v2/web-analytics";
+import { ConsentControls } from "@/components/v2/consent-controls";
+import { consentChoice } from "../../shared/v2/consent";
 import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
 });
 
 const geistMono = Geist_Mono({
@@ -21,8 +25,8 @@ export const metadata: Metadata = {
   metadataBase: SITE_URL,
   applicationName: SITE_NAME,
   title: {
-    default: "TR CoffeeDB - Nitelikli Kahve Rehberi",
-    template: "%s | TR CoffeeDB",
+    default: brand.title,
+    template: `%s | ${brand.name}`,
   },
   description: SITE_DESCRIPTION,
   keywords: SITE_KEYWORDS,
@@ -30,7 +34,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: "TR CoffeeDB - Nitelikli Kahve Rehberi",
+    title: brand.title,
     description: SITE_DESCRIPTION,
     url: '/',
     siteName: SITE_NAME,
@@ -39,15 +43,15 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "TR CoffeeDB - Nitelikli Kahve Rehberi",
+    title: brand.title,
     description: SITE_DESCRIPTION,
   },
   robots: {
-    index: true,
-    follow: true,
+    index: brand.production,
+    follow: brand.production,
     googleBot: {
-      index: true,
-      follow: true,
+      index: brand.production,
+      follow: brand.production,
       'max-image-preview': 'large',
       'max-snippet': -1,
       'max-video-preview': -1,
@@ -55,23 +59,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialChoice = consentChoice((await cookies()).toString());
   return (
     <html
       lang="tr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-[#faf9f6] font-sans text-[#1f1d1b]">
+      <body className="flex min-h-full flex-col bg-[#faf7f0] font-sans text-[#1f1d1b]">
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:p-4">İçeriğe geç</a>
         <Header />
         <main id="main-content" className="flex-1">{children}</main>
         <CompareDock />
         <Footer />
-        <Analytics />
+        <ConsentControls initialChoice={initialChoice} />
+        <WebAnalytics />
       </body>
     </html>
   );

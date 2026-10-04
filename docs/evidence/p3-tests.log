@@ -1,0 +1,1590 @@
+
+> tr-coffee-db@0.1.0 test
+> tsx --test tests/*.test.ts
+
+TAP version 13
+# Subtest: brew calculator
+    # Subtest: scales the cited starter recipes and keeps espresso as beverage yield
+    ok 1 - scales the cited starter recipes and keeps espresso as beverage yield
+      ---
+      duration_ms: 0.603292
+      type: 'test'
+      ...
+    # Subtest: rejects missing, nonfinite and out-of-range doses
+    ok 2 - rejects missing, nonfinite and out-of-range doses
+      ---
+      duration_ms: 0.070709
+      type: 'test'
+      ...
+    1..2
+ok 1 - brew calculator
+  ---
+  duration_ms: 1.438834
+  type: 'suite'
+  ...
+# Subtest: coffee display helpers
+    # Subtest: formats source check dates against the Turkish day boundary
+    ok 1 - formats source check dates against the Turkish day boundary
+      ---
+      duration_ms: 0.649791
+      type: 'test'
+      ...
+    # Subtest: falls back for missing or invalid verification timestamps
+    ok 2 - falls back for missing or invalid verification timestamps
+      ---
+      duration_ms: 0.044
+      type: 'test'
+      ...
+    # Subtest: extracts source hosts and formats package weights
+    ok 3 - extracts source hosts and formats package weights
+      ---
+      duration_ms: 0.089542
+      type: 'test'
+      ...
+    # Subtest: compares differently sized TRY packages by their computed 100 g price
+    ok 4 - compares differently sized TRY packages by their computed 100 g price
+      ---
+      duration_ms: 0.054375
+      type: 'test'
+      ...
+    # Subtest: does not invent comparable prices for foreign currencies or invalid amounts
+    ok 5 - does not invent comparable prices for foreign currencies or invalid amounts
+      ---
+      duration_ms: 0.051209
+      type: 'test'
+      ...
+    # Subtest: formats money with Turkish separators and the actual currency
+    ok 6 - formats money with Turkish separators and the actual currency
+      ---
+      duration_ms: 2.3425
+      type: 'test'
+      ...
+    1..6
+ok 2 - coffee display helpers
+  ---
+  duration_ms: 3.748
+  type: 'suite'
+  ...
+# Subtest: parseCoffeeFilters
+    # Subtest: deduplicates valid repeated values, normalizes text, and ignores invalid enums
+    ok 1 - deduplicates valid repeated values, normalizes text, and ignores invalid enums
+      ---
+      duration_ms: 0.980625
+      type: 'test'
+      ...
+    # Subtest: ignores deprecated public price range params
+    ok 2 - ignores deprecated public price range params
+      ---
+      duration_ms: 0.102709
+      type: 'test'
+      ...
+    # Subtest: drops missing-metadata sentinels from public filters
+    ok 3 - drops missing-metadata sentinels from public filters
+      ---
+      duration_ms: 0.091083
+      type: 'test'
+      ...
+    1..3
+ok 3 - parseCoffeeFilters
+  ---
+  duration_ms: 1.545709
+  type: 'suite'
+  ...
+# Subtest: active coffee filter chips
+    # Subtest: keeps legacy labels while generating per-chip removal URLs
+    ok 1 - keeps legacy labels while generating per-chip removal URLs
+      ---
+      duration_ms: 0.327958
+      type: 'test'
+      ...
+    # Subtest: does not expose deprecated price bounds as active chips
+    ok 2 - does not expose deprecated price bounds as active chips
+      ---
+      duration_ms: 0.049459
+      type: 'test'
+      ...
+    # Subtest: does not expose missing-metadata sentinels as active chips
+    ok 3 - does not expose missing-metadata sentinels as active chips
+      ---
+      duration_ms: 0.045791
+      type: 'test'
+      ...
+    1..3
+ok 4 - active coffee filter chips
+  ---
+  duration_ms: 0.542167
+  type: 'suite'
+  ...
+# Subtest: coffee journey data contract
+    # Subtest: scores traceability from disclosed metadata without treating it as verification
+    ok 1 - scores traceability from disclosed metadata without treating it as verification
+      ---
+      duration_ms: 0.464542
+      type: 'test'
+      ...
+    # Subtest: creates lot, evidence, assessment, certification, and trace-event tables
+    ok 2 - creates lot, evidence, assessment, certification, and trace-event tables
+      ---
+      duration_ms: 0.670375
+      type: 'test'
+      ...
+    # Subtest: backfills scraped facts as observed and keeps future ingestion synchronized
+    ok 3 - backfills scraped facts as observed and keeps future ingestion synchronized
+      ---
+      duration_ms: 0.463625
+      type: 'test'
+      ...
+    # Subtest: keeps public journey tables read-only
+    ok 4 - keeps public journey tables read-only
+      ---
+      duration_ms: 0.24925
+      type: 'test'
+      ...
+    # Subtest: indexes every source and organization foreign key used by the journey graph
+    ok 5 - indexes every source and organization foreign key used by the journey graph
+      ---
+      duration_ms: 0.196792
+      type: 'test'
+      ...
+    1..5
+ok 5 - coffee journey data contract
+  ---
+  duration_ms: 3.039583
+  type: 'suite'
+  ...
+# Subtest: journey experience surfaces
+    # Subtest: renders the journey, evidence ledger, and independent ranking categories
+    ok 1 - renders the journey, evidence ledger, and independent ranking categories
+      ---
+      duration_ms: 0.383042
+      type: 'test'
+      ...
+    # Subtest: keeps traceability, quality, price, and interest as independent rankings
+    ok 2 - keeps traceability, quality, price, and interest as independent rankings
+      ---
+      duration_ms: 0.366833
+      type: 'test'
+      ...
+    # Subtest: does not turn missing or zero clicks into a popularity ranking
+    ok 3 - does not turn missing or zero clicks into a popularity ranking
+      ---
+      duration_ms: 0.534916
+      type: 'test'
+      ...
+    1..3
+ok 6 - journey experience surfaces
+  ---
+  duration_ms: 1.575458
+  type: 'suite'
+  ...
+# Subtest: catalog queries
+    # Subtest: preserves package price sorting and serializes distinct unit-price sorts
+    ok 1 - preserves package price sorting and serializes distinct unit-price sorts
+      ---
+      duration_ms: 18.622084
+      type: 'test'
+      ...
+    # Subtest: propagates featured and similar-coffee query failures instead of returning empty lists
+    ok 2 - propagates featured and similar-coffee query failures instead of returning empty lists
+      ---
+      duration_ms: 9.629125
+      type: 'test'
+      ...
+    # Subtest: propagates any failed statistics query rather than displaying partial counts
+    ok 3 - propagates any failed statistics query rather than displaying partial counts
+      ---
+      duration_ms: 12.840083
+      type: 'test'
+      ...
+    # Subtest: retains real empty results and distinct counts when queries succeed
+    ok 4 - retains real empty results and distinct counts when queries succeed
+      ---
+      duration_ms: 8.077292
+      type: 'test'
+      ...
+    # Subtest: selects varied roasters from a bounded, deterministic current candidate query
+    ok 5 - selects varied roasters from a bounded, deterministic current candidate query
+      ---
+      duration_ms: 10.994375
+      type: 'test'
+      ...
+    # Subtest: does not query for a zero or invalid feature limit
+    ok 6 - does not query for a zero or invalid feature limit
+      ---
+      duration_ms: 0.269625
+      type: 'test'
+      ...
+    1..6
+ok 7 - catalog queries
+  ---
+  duration_ms: 62.11625
+  type: 'suite'
+  ...
+# Subtest: featured coffee selection
+    # Subtest: prioritizes the newest coffee from each roaster before repeat roasters
+    ok 1 - prioritizes the newest coffee from each roaster before repeat roasters
+      ---
+      duration_ms: 0.174708
+      type: 'test'
+      ...
+    # Subtest: fills remaining slots in recency order when distinct roasters are insufficient
+    ok 2 - fills remaining slots in recency order when distinct roasters are insufficient
+      ---
+      duration_ms: 0.209291
+      type: 'test'
+      ...
+    # Subtest: keeps unique products, respects result limits, and leaves input unchanged
+    ok 3 - keeps unique products, respects result limits, and leaves input unchanged
+      ---
+      duration_ms: 0.157125
+      type: 'test'
+      ...
+    1..3
+ok 8 - featured coffee selection
+  ---
+  duration_ms: 0.800167
+  type: 'suite'
+  ...
+# Subtest: coffeeMatchesSearch
+    # Subtest: matches roaster, tasting note, process, and brew method aliases
+    ok 1 - matches roaster, tasting note, process, and brew method aliases
+      ---
+      duration_ms: 1.805208
+      type: 'test'
+      ...
+    1..1
+ok 9 - coffeeMatchesSearch
+  ---
+  duration_ms: 2.605042
+  type: 'suite'
+  ...
+# Subtest: data-source failure surfaces
+    # Subtest: keeps catalog outages separate from zero-result states
+    ok 1 - keeps catalog outages separate from zero-result states
+      ---
+      duration_ms: 1.224833
+      type: 'test'
+      ...
+    # Subtest: does not advertise fallback homepage counts when live stats fail
+    ok 2 - does not advertise fallback homepage counts when live stats fail
+      ---
+      duration_ms: 0.365458
+      type: 'test'
+      ...
+    # Subtest: keeps detail query failures from becoming fake 404s
+    ok 3 - keeps detail query failures from becoming fake 404s
+      ---
+      duration_ms: 0.269083
+      type: 'test'
+      ...
+    # Subtest: keeps roaster outages separate from empty roaster states
+    ok 4 - keeps roaster outages separate from empty roaster states
+      ---
+      duration_ms: 0.15975
+      type: 'test'
+      ...
+    # Subtest: records deferred CEO-review work in the TODO ledger
+    ok 5 - records deferred CEO-review work in the TODO ledger
+      ---
+      duration_ms: 0.144667
+      type: 'test'
+      ...
+    1..5
+ok 10 - data-source failure surfaces
+  ---
+  duration_ms: 3.5465
+  type: 'suite'
+  ...
+# Subtest: GitHub Actions workflows
+    # Subtest: keeps scheduled scrape runs resilient to known external roaster outages
+    ok 1 - keeps scheduled scrape runs resilient to known external roaster outages
+      ---
+      duration_ms: 0.793667
+      type: 'test'
+      ...
+    # Subtest: keeps CI and scraper workflows aligned to the checked-in Node version
+    ok 2 - keeps CI and scraper workflows aligned to the checked-in Node version
+      ---
+      duration_ms: 0.181333
+      type: 'test'
+      ...
+    # Subtest: persists the Next.js build cache between CI runs
+    ok 3 - persists the Next.js build cache between CI runs
+      ---
+      duration_ms: 0.154542
+      type: 'test'
+      ...
+    1..3
+ok 11 - GitHub Actions workflows
+  ---
+  duration_ms: 1.696792
+  type: 'suite'
+  ...
+# Subtest: parseProbadorProducts
+    # Subtest: keeps roasted coffee cards and excludes equipment and sample sets
+    ok 1 - keeps roasted coffee cards and excludes equipment and sample sets
+      ---
+      duration_ms: 799.212541
+      type: 'test'
+      ...
+    # Subtest: drops unsafe product and image URLs from Probador-style HTML
+    ok 2 - drops unsafe product and image URLs from Probador-style HTML
+      ---
+      duration_ms: 5.939209
+      type: 'test'
+      ...
+    1..2
+ok 12 - parseProbadorProducts
+  ---
+  duration_ms: 805.861334
+  type: 'suite'
+  ...
+# [test-html] Fetching page 1: https://example.test/shop
+# Subtest: HtmlAdapter URL policy
+    # Subtest: ignores malicious base tags, unsafe schemes, and off-roaster product links
+    ok 1 - ignores malicious base tags, unsafe schemes, and off-roaster product links
+      ---
+      duration_ms: 2007.570375
+      type: 'test'
+      ...
+    1..1
+ok 13 - HtmlAdapter URL policy
+  ---
+  duration_ms: 2007.726792
+  type: 'suite'
+  ...
+# Subtest: HtmlAdapter next-data structured images
+    # Subtest: does not let coffee keyword hints override non-coffee product exclusions
+    ok 1 - does not let coffee keyword hints override non-coffee product exclusions
+      ---
+      duration_ms: 6.669958
+      type: 'test'
+      ...
+    # Subtest: keeps coffees with brewing advice and embedded styles while excluding accessories
+    ok 2 - keeps coffees with brewing advice and embedded styles while excluding accessories
+      ---
+      duration_ms: 2.930375
+      type: 'test'
+      ...
+    # Subtest: excludes Paper chocolate and a coffee sampler placed in the Kahve category
+    ok 3 - excludes Paper chocolate and a coffee sampler placed in the Kahve category
+      ---
+      duration_ms: 2.383791
+      type: 'test'
+      ...
+    # Subtest: builds IKAS CDN images from __NEXT_DATA__ variant image IDs
+    ok 4 - builds IKAS CDN images from __NEXT_DATA__ variant image IDs
+      ---
+      duration_ms: 2.156833
+      type: 'test'
+      ...
+    # Subtest: uses a trusted IKAS CDN image from JSON-LD ItemList products
+    ok 5 - uses a trusted IKAS CDN image from JSON-LD ItemList products
+      ---
+      duration_ms: 2.196
+      type: 'test'
+      ...
+    # Subtest: ignores untrusted JSON-LD image hosts
+    ok 6 - ignores untrusted JSON-LD image hosts
+      ---
+      duration_ms: 1.131375
+      type: 'test'
+      ...
+    # Subtest: uses trusted IKAS product-card images from rendered srcsets
+    ok 7 - uses trusted IKAS product-card images from rendered srcsets
+      ---
+      duration_ms: 2.588208
+      type: 'test'
+      ...
+    1..7
+ok 14 - HtmlAdapter next-data structured images
+  ---
+  duration_ms: 20.851542
+  type: 'suite'
+  ...
+# Subtest: structured retail offers
+    # Subtest: takes the TRY price and single package weight from the same product offer
+    ok 1 - takes the TRY price and single package weight from the same product offer
+      ---
+      duration_ms: 1.521291
+      type: 'test'
+      ...
+    1..1
+ok 15 - structured retail offers
+  ---
+  duration_ms: 1.595416
+  type: 'suite'
+  ...
+# Subtest: parseCatalogPriceText
+    # Subtest: uses the first visible catalog price from Turkish ranges and sale strings
+    ok 1 - uses the first visible catalog price from Turkish ranges and sale strings
+      ---
+      duration_ms: 0.977
+      type: 'test'
+      ...
+    1..1
+ok 16 - parseCatalogPriceText
+  ---
+  duration_ms: 1.045375
+  type: 'suite'
+  ...
+# Subtest: parsePackageWeight
+    # Subtest: reads unit-weight-first cartons without losing the pack count
+    ok 1 - reads unit-weight-first cartons without losing the pack count
+      ---
+      duration_ms: 0.826458
+      type: 'test'
+      ...
+    # Subtest: treats Turkish thousands separators in gram values as thousands
+    ok 2 - treats Turkish thousands separators in gram values as thousands
+      ---
+      duration_ms: 0.280708
+      type: 'test'
+      ...
+    # Subtest: does not read Turkish words that start with g as gram units
+    ok 3 - does not read Turkish words that start with g as gram units
+      ---
+      duration_ms: 0.391625
+      type: 'test'
+      ...
+    1..3
+ok 17 - parsePackageWeight
+  ---
+  duration_ms: 1.574959
+  type: 'suite'
+  ...
+# Subtest: parseProductPagePackageSelection
+    # Subtest: uses absolute product-page package prices when no base package option exists
+    ok 1 - uses absolute product-page package prices when no base package option exists
+      ---
+      duration_ms: 1.405542
+      type: 'test'
+      ...
+    # Subtest: adds product-page package deltas when a base package option is present
+    ok 2 - adds product-page package deltas when a base package option is present
+      ---
+      duration_ms: 0.944875
+      type: 'test'
+      ...
+    1..2
+ok 18 - parseProductPagePackageSelection
+  ---
+  duration_ms: 2.413166
+  type: 'suite'
+  ...
+# Subtest: parseProductPageMetadata
+    # Subtest: extracts structured product detail rows for normalization
+    ok 1 - extracts structured product detail rows for normalization
+      ---
+      duration_ms: 1.177791
+      type: 'test'
+      ...
+    # Subtest: extracts colon-delimited product details from list-based pages
+    ok 2 - extracts colon-delimited product details from list-based pages
+      ---
+      duration_ms: 0.79225
+      type: 'test'
+      ...
+    1..2
+ok 19 - parseProductPageMetadata
+  ---
+  duration_ms: 2.028875
+  type: 'suite'
+  ...
+# Subtest: image audit catalog coverage
+    # Subtest: fails an empty current catalog even when there are no missing images
+    ok 1 - fails an empty current catalog even when there are no missing images
+      ---
+      duration_ms: 0.471709
+      type: 'test'
+      ...
+    # Subtest: continues image checks when current coffees are present
+    ok 2 - continues image checks when current coffees are present
+      ---
+      duration_ms: 0.051875
+      type: 'test'
+      ...
+    1..2
+ok 20 - image audit catalog coverage
+  ---
+  duration_ms: 0.922042
+  type: 'suite'
+  ...
+# Subtest: validateJsonRequest
+    # Subtest: accepts same-origin JSON requests within the size limit
+    ok 1 - accepts same-origin JSON requests within the size limit
+      ---
+      duration_ms: 15.838667
+      type: 'test'
+      ...
+    # Subtest: rejects cross-origin, non-json, and oversized requests
+    ok 2 - rejects cross-origin, non-json, and oversized requests
+      ---
+      duration_ms: 0.491541
+      type: 'test'
+      ...
+    1..2
+ok 21 - validateJsonRequest
+  ---
+  duration_ms: 16.726333
+  type: 'suite'
+  ...
+# Subtest: parseLimitedJsonBody
+    # Subtest: rejects oversized bodies even when content-length is absent
+    ok 1 - rejects oversized bodies even when content-length is absent
+      ---
+      duration_ms: 1.01775
+      type: 'test'
+      ...
+    # Subtest: parses valid JSON bodies inside the byte limit
+    ok 2 - parses valid JSON bodies inside the byte limit
+      ---
+      duration_ms: 0.226791
+      type: 'test'
+      ...
+    1..2
+ok 22 - parseLimitedJsonBody
+  ---
+  duration_ms: 1.3095
+  type: 'suite'
+  ...
+# Subtest: validateClickPayload
+    # Subtest: accepts and normalizes a valid click payload
+    ok 1 - accepts and normalizes a valid click payload
+      ---
+      duration_ms: 0.476125
+      type: 'test'
+      ...
+    # Subtest: rejects invalid source, path, and context boundaries
+    ok 2 - rejects invalid source, path, and context boundaries
+      ---
+      duration_ms: 0.189833
+      type: 'test'
+      ...
+    1..2
+ok 23 - validateClickPayload
+  ---
+  duration_ms: 0.905417
+  type: 'suite'
+  ...
+# Subtest: normalize price per 100g
+    # Subtest: leaves price_per_100g null when package weight is missing
+    ok 1 - leaves price_per_100g null when package weight is missing
+      ---
+      duration_ms: 14.14975
+      type: 'test'
+      ...
+    # Subtest: calculates price_per_100g from a 250g package
+    ok 2 - calculates price_per_100g from a 250g package
+      ---
+      duration_ms: 23.8965
+      type: 'test'
+      ...
+    # Subtest: calculates price_per_100g from a 1kg package
+    ok 3 - calculates price_per_100g from a 1kg package
+      ---
+      duration_ms: 0.230333
+      type: 'test'
+      ...
+    # Subtest: ignores non-positive and non-finite package weights
+    ok 4 - ignores non-positive and non-finite package weights
+      ---
+      duration_ms: 2.909459
+      type: 'test'
+      ...
+    1..4
+ok 24 - normalize price per 100g
+  ---
+  duration_ms: 42.256625
+  type: 'suite'
+  ...
+# Subtest: normalize coffee metadata
+    # Subtest: detects Turkish process words with dotted characters
+    ok 1 - detects Turkish process words with dotted characters
+      ---
+      duration_ms: 20.229959
+      type: 'test'
+      ...
+    # Subtest: detects uppercase Turkish origin names with dotted characters
+    ok 2 - detects uppercase Turkish origin names with dotted characters
+      ---
+      duration_ms: 2.112459
+      type: 'test'
+      ...
+    # Subtest: uses the earliest country mention so title origin beats later descriptive comparisons
+    ok 3 - uses the earliest country mention so title origin beats later descriptive comparisons
+      ---
+      duration_ms: 0.316208
+      type: 'test'
+      ...
+    # Subtest: prefers specific fermentation process over generic natural or washed words
+    ok 4 - prefers specific fermentation process over generic natural or washed words
+      ---
+      duration_ms: 0.350542
+      type: 'test'
+      ...
+    # Subtest: uses platform metadata such as categories and attributes for classification
+    ok 5 - uses platform metadata such as categories and attributes for classification
+      ---
+      duration_ms: 1.093667
+      type: 'test'
+      ...
+    # Subtest: prefers structured process attributes over lower-confidence catalog text
+    ok 6 - prefers structured process attributes over lower-confidence catalog text
+      ---
+      duration_ms: 0.808209
+      type: 'test'
+      ...
+    # Subtest: reads alternate Turkish process labels from structured metadata
+    ok 7 - reads alternate Turkish process labels from structured metadata
+      ---
+      duration_ms: 0.531583
+      type: 'test'
+      ...
+    # Subtest: detects Turkish roast levels with dotted characters
+    ok 8 - detects Turkish roast levels with dotted characters
+      ---
+      duration_ms: 0.263625
+      type: 'test'
+      ...
+    # Subtest: detects açık-orta roast phrasing as medium-light
+    ok 9 - detects açık-orta roast phrasing as medium-light
+      ---
+      duration_ms: 0.220583
+      type: 'test'
+      ...
+    # Subtest: prefers explicit roast labels over filter brew-method wording
+    ok 10 - prefers explicit roast labels over filter brew-method wording
+      ---
+      duration_ms: 1.328167
+      type: 'test'
+      ...
+    # Subtest: keeps filter and espresso profile wording out of roast inference
+    ok 11 - keeps filter and espresso profile wording out of roast inference
+      ---
+      duration_ms: 0.723417
+      type: 'test'
+      ...
+    # Subtest: detects explicit filter and espresso roast profile labels
+    ok 12 - detects explicit filter and espresso roast profile labels
+      ---
+      duration_ms: 0.356542
+      type: 'test'
+      ...
+    # Subtest: reads standalone profile metadata when the field label is explicit
+    ok 13 - reads standalone profile metadata when the field label is explicit
+      ---
+      duration_ms: 0.20525
+      type: 'test'
+      ...
+    # Subtest: derives roast profile from product taxonomy when roasters publish it there
+    ok 14 - derives roast profile from product taxonomy when roasters publish it there
+      ---
+      duration_ms: 0.932375
+      type: 'test'
+      ...
+    # Subtest: maps Agtron roast readings to catalog roast levels
+    ok 15 - maps Agtron roast readings to catalog roast levels
+      ---
+      duration_ms: 0.248625
+      type: 'test'
+      ...
+    # Subtest: does not treat grinder guidance as a medium roast signal
+    ok 16 - does not treat grinder guidance as a medium roast signal
+      ---
+      duration_ms: 1.748
+      type: 'test'
+      ...
+    # Subtest: extracts only high-confidence product-page brew recipes
+    ok 17 - extracts only high-confidence product-page brew recipes
+      ---
+      duration_ms: 1.74275
+      type: 'test'
+      ...
+    # Subtest: does not turn generic brew method mentions into recipes
+    ok 18 - does not turn generic brew method mentions into recipes
+      ---
+      duration_ms: 0.408458
+      type: 'test'
+      ...
+    # Subtest: extracts crop year and roast date when product text exposes them
+    ok 19 - extracts crop year and roast date when product text exposes them
+      ---
+      duration_ms: 0.254542
+      type: 'test'
+      ...
+    1..19
+ok 25 - normalize coffee metadata
+  ---
+  duration_ms: 34.591292
+  type: 'suite'
+  ...
+# Subtest: Parsa storefront API
+    # Subtest: uses the available package price and weight together and preserves disclosed metadata
+    ok 1 - uses the available package price and weight together and preserves disclosed metadata
+      ---
+      duration_ms: 589.970417
+      type: 'test'
+      ...
+    # Subtest: fails incomplete package discovery so a partial run cannot mark other coffees unavailable
+    ok 2 - fails incomplete package discovery so a partial run cannot mark other coffees unavailable
+      ---
+      duration_ms: 3.694417
+      type: 'test'
+      ...
+    1..2
+ok 26 - Parsa storefront API
+  ---
+  duration_ms: 594.721708
+  type: 'suite'
+  ...
+# Subtest: isLikelyCatalogCoffeeProduct
+    # Subtest: rejects matcha and tea sets without rejecting tea tasting notes on coffee
+    ok 1 - rejects matcha and tea sets without rejecting tea tasting notes on coffee
+      ---
+      duration_ms: 5.02825
+      type: 'test'
+      ...
+    # Subtest: excludes Turkish filter-paper product titles with dotted Turkish characters
+    ok 2 - excludes Turkish filter-paper product titles with dotted Turkish characters
+      ---
+      duration_ms: 0.163375
+      type: 'test'
+      ...
+    # Subtest: excludes education, equipment, and campaign products before price normalization
+    ok 3 - excludes education, equipment, and campaign products before price normalization
+      ---
+      duration_ms: 1.871125
+      type: 'test'
+      ...
+    # Subtest: keeps cacao and chocolate tasting notes from excluding coffee cards
+    ok 4 - keeps cacao and chocolate tasting notes from excluding coffee cards
+      ---
+      duration_ms: 0.599875
+      type: 'test'
+      ...
+    # Subtest: excludes coffee samplers and Paper chocolate bars despite the coffee category
+    ok 5 - excludes coffee samplers and Paper chocolate bars despite the coffee category
+      ---
+      duration_ms: 0.096958
+      type: 'test'
+      ...
+    1..5
+ok 27 - isLikelyCatalogCoffeeProduct
+  ---
+  duration_ms: 9.271833
+  type: 'suite'
+  ...
+# Subtest: classifySpecialtyProduct
+    # Subtest: qualifies traceable lots with origin, process, flavor, and producer evidence
+    ok 1 - qualifies traceable lots with origin, process, flavor, and producer evidence
+      ---
+      duration_ms: 0.656833
+      type: 'test'
+      ...
+    # Subtest: rejects accessories and sample sets before scoring
+    ok 2 - rejects accessories and sample sets before scoring
+      ---
+      duration_ms: 0.126292
+      type: 'test'
+      ...
+    # Subtest: rejects stale accessories, non-coffee products, and bundles before scoring
+    ok 3 - rejects stale accessories, non-coffee products, and bundles before scoring
+      ---
+      duration_ms: 1.477209
+      type: 'test'
+      ...
+    # Subtest: rejects generic blends without strong traceability
+    ok 4 - rejects generic blends without strong traceability
+      ---
+      duration_ms: 1.908625
+      type: 'test'
+      ...
+    # Subtest: publishes country-only coffee instead of treating sparse metadata as a failure
+    ok 5 - publishes country-only coffee instead of treating sparse metadata as a failure
+      ---
+      duration_ms: 0.35975
+      type: 'test'
+      ...
+    # Subtest: publishes likely coffee even when specialty evidence is sparse
+    ok 6 - publishes likely coffee even when specialty evidence is sparse
+      ---
+      duration_ms: 0.0645
+      type: 'test'
+      ...
+    # Subtest: rejects broad non-origin catalog entries but keeps origin espresso variants public
+    ok 7 - rejects broad non-origin catalog entries but keeps origin espresso variants public
+      ---
+      duration_ms: 0.287042
+      type: 'test'
+      ...
+    # Subtest: qualifies structured country, lot, and process titles with sparse cards
+    ok 8 - qualifies structured country, lot, and process titles with sparse cards
+      ---
+      duration_ms: 1.059875
+      type: 'test'
+      ...
+    # Subtest: recognizes compact Turkish Costa Rica spelling for origin parsing
+    ok 9 - recognizes compact Turkish Costa Rica spelling for origin parsing
+      ---
+      duration_ms: 13.785583
+      type: 'test'
+      ...
+    # Subtest: applies force-include overrides deterministically
+    ok 10 - applies force-include overrides deterministically
+      ---
+      duration_ms: 0.718417
+      type: 'test'
+      ...
+    # Subtest: applies force-exclude overrides deterministically
+    ok 11 - applies force-exclude overrides deterministically
+      ---
+      duration_ms: 0.132333
+      type: 'test'
+      ...
+    1..11
+ok 28 - classifySpecialtyProduct
+  ---
+  duration_ms: 20.938834
+  type: 'suite'
+  ...
+# Subtest: public coffee visibility rule
+    # Subtest: applies the shared fail-closed public query gate
+    ok 1 - applies the shared fail-closed public query gate
+      ---
+      duration_ms: 11.136042
+      type: 'test'
+      ...
+    # Subtest: classifies public rows from is_public plus specialty status only
+    ok 2 - classifies public rows from is_public plus specialty status only
+      ---
+      duration_ms: 1.373084
+      type: 'test'
+      ...
+    # Subtest: migration defaults keep unclassified and not-specialty rows non-public until explicitly classified
+    ok 3 - migration defaults keep unclassified and not-specialty rows non-public until explicitly classified
+      ---
+      duration_ms: 0.965583
+      type: 'test'
+      ...
+    # Subtest: migration stores manual overrides by roaster and external product id
+    ok 4 - migration stores manual overrides by roaster and external product id
+      ---
+      duration_ms: 0.221417
+      type: 'test'
+      ...
+    1..4
+ok 29 - public coffee visibility rule
+  ---
+  duration_ms: 14.136375
+  type: 'suite'
+  ...
+# Subtest: public visibility query surfaces
+    # Subtest: gates catalog, detail, similar, featured, search, stats, and roaster counts with the same public coffee rule
+    ok 1 - gates catalog, detail, similar, featured, search, stats, and roaster counts with the same public coffee rule
+      ---
+      duration_ms: 0.670375
+      type: 'test'
+      ...
+    # Subtest: applies the catalog product exclusion rules to every public coffee surface
+    ok 2 - applies the catalog product exclusion rules to every public coffee surface
+      ---
+      duration_ms: 0.162166
+      type: 'test'
+      ...
+    # Subtest: routes catalog search through the indexed database search contract with a fallback
+    ok 3 - routes catalog search through the indexed database search contract with a fallback
+      ---
+      duration_ms: 0.208083
+      type: 'test'
+      ...
+    # Subtest: gates sitemap coffee routes, roaster routes, and click tracking before exposing public records
+    ok 4 - gates sitemap coffee routes, roaster routes, and click tracking before exposing public records
+      ---
+      duration_ms: 0.124083
+      type: 'test'
+      ...
+    # Subtest: keeps latest database function definitions aligned with public visibility when migration 015 defines them
+    ok 5 - keeps latest database function definitions aligned with public visibility when migration 015 defines them
+      ---
+      duration_ms: 0.447583
+      type: 'test'
+      ...
+    1..5
+ok 30 - public visibility query surfaces
+  ---
+  duration_ms: 2.309542
+  type: 'suite'
+  ...
+# Subtest: buildQuizFilterResult
+    # Subtest: maps all quiz answers to catalog filters and explanations without price buckets
+    ok 1 - maps all quiz answers to catalog filters and explanations without price buckets
+      ---
+      duration_ms: 1.177375
+      type: 'test'
+      ...
+    # Subtest: keeps optional preferences from adding fake filters
+    ok 2 - keeps optional preferences from adding fake filters
+      ---
+      duration_ms: 0.353042
+      type: 'test'
+      ...
+    # Subtest: keeps roast answers aligned to exact catalog roast_level values
+    ok 3 - keeps roast answers aligned to exact catalog roast_level values
+      ---
+      duration_ms: 0.454791
+      type: 'test'
+      ...
+    # Subtest: dedupes selections and ignores unsupported catalog values
+    ok 4 - dedupes selections and ignores unsupported catalog values
+      ---
+      duration_ms: 0.408084
+      type: 'test'
+      ...
+    1..4
+ok 31 - buildQuizFilterResult
+  ---
+  duration_ms: 3.404625
+  type: 'suite'
+  ...
+# Subtest: scheduled scrape run policy
+    # Subtest: keeps a broad refresh green when at least 90% of attempted roasters succeed
+    ok 1 - keeps a broad refresh green when at least 90% of attempted roasters succeed
+      ---
+      duration_ms: 0.663625
+      type: 'test'
+      ...
+    # Subtest: fails a broad refresh when catalog-wide success drops below 90%
+    ok 2 - fails a broad refresh when catalog-wide success drops below 90%
+      ---
+      duration_ms: 0.074292
+      type: 'test'
+      ...
+    # Subtest: keeps targeted manual probes strict even when a rate is configured
+    ok 3 - keeps targeted manual probes strict even when a rate is configured
+      ---
+      duration_ms: 0.045709
+      type: 'test'
+      ...
+    # Subtest: preserves allowlist behavior when no broad-run rate is configured
+    ok 4 - preserves allowlist behavior when no broad-run rate is configured
+      ---
+      duration_ms: 0.05025
+      type: 'test'
+      ...
+    # Subtest: retries a failed roaster and returns the successful retry
+    ok 5 - retries a failed roaster and returns the successful retry
+      ---
+      duration_ms: 0.355292
+      type: 'test'
+      ...
+    # Subtest: returns immediately after a successful first attempt
+    ok 6 - returns immediately after a successful first attempt
+      ---
+      duration_ms: 0.055125
+      type: 'test'
+      ...
+    # Subtest: returns the terminal failed result after exhausting attempts
+    ok 7 - returns the terminal failed result after exhausting attempts
+      ---
+      duration_ms: 0.057667
+      type: 'test'
+      ...
+    # Subtest: retries thrown transient errors and rethrows the terminal error
+    ok 8 - retries thrown transient errors and rethrows the terminal error
+      ---
+      duration_ms: 0.326792
+      type: 'test'
+      ...
+    # Subtest: fails empty runs and handles exact success-rate boundaries
+    ok 9 - fails empty runs and handles exact success-rate boundaries
+      ---
+      duration_ms: 0.116167
+      type: 'test'
+      ...
+    # Subtest: reports every unknown targeted slug once
+    ok 10 - reports every unknown targeted slug once
+      ---
+      duration_ms: 0.256417
+      type: 'test'
+      ...
+    # Subtest: validates policy environment values and renders a readable Actions summary
+    ok 11 - validates policy environment values and renders a readable Actions summary
+      ---
+      duration_ms: 0.31825
+      type: 'test'
+      ...
+    1..11
+ok 32 - scheduled scrape run policy
+  ---
+  duration_ms: 3.1035
+  type: 'suite'
+  ...
+# [test-roaster] Fetching products...
+# [test-roaster] Done in 0ms (failed)
+# [test-roaster] Error: network timeout
+# Subtest: BaseScraper failure semantics
+    # Subtest: returns failed result and writes failed scrape log when product fetch throws
+    ok 1 - returns failed result and writes failed scrape log when product fetch throws
+      ---
+      duration_ms: 241.931666
+      type: 'test'
+      ...
+# [test-roaster] Fetching products...
+# [test-roaster] Found 0 raw products
+# [test-roaster] Done in 0ms (failed)
+# [test-roaster] Error: Scrape returned zero products; preserving existing availability until the adapter is verified.
+    # Subtest: does not mark existing products stale when a scrape returns zero products
+    ok 2 - does not mark existing products stale when a scrape returns zero products
+      ---
+      duration_ms: 10.444125
+      type: 'test'
+      ...
+# [test-roaster] Fetching products...
+# [test-roaster] Found 1 raw products
+# [test-roaster] Normalized 1 products
+# [test-roaster] Specialty classification: 1 qualified, 0 rejected, 0 unclassified
+# [test-roaster] Upserted 1 products
+# [test-roaster] Done in 25ms (success)
+    # Subtest: preserves known process and roast metadata when a sparse scrape cannot redetect it
+    ok 3 - preserves known process and roast metadata when a sparse scrape cannot redetect it
+      ---
+      duration_ms: 29.9705
+      type: 'test'
+      ...
+    1..3
+ok 33 - BaseScraper failure semantics
+  ---
+  duration_ms: 282.945417
+  type: 'suite'
+  ...
+# Subtest: buildGlobalSearchUrl
+    # Subtest: navigates to coffees with a normalized query from any route
+    ok 1 - navigates to coffees with a normalized query from any route
+      ---
+      duration_ms: 0.370167
+      type: 'test'
+      ...
+    # Subtest: preserves existing coffee filters and clears pagination on catalog searches
+    ok 2 - preserves existing coffee filters and clears pagination on catalog searches
+      ---
+      duration_ms: 0.133792
+      type: 'test'
+      ...
+    # Subtest: drops deprecated public price range params when preserving catalog filters
+    ok 3 - drops deprecated public price range params when preserving catalog filters
+      ---
+      duration_ms: 0.047917
+      type: 'test'
+      ...
+    # Subtest: clears search when the submitted query is empty
+    ok 4 - clears search when the submitted query is empty
+      ---
+      duration_ms: 0.102042
+      type: 'test'
+      ...
+    1..4
+ok 34 - buildGlobalSearchUrl
+  ---
+  duration_ms: 1.044625
+  type: 'suite'
+  ...
+# Subtest: trusted URL policy
+    # Subtest: allows only http(s) URLs on trusted hosts without embedded credentials
+    ok 1 - allows only http(s) URLs on trusted hosts without embedded credentials
+      ---
+      duration_ms: 0.386416
+      type: 'test'
+      ...
+    1..1
+ok 35 - trusted URL policy
+  ---
+  duration_ms: 0.938708
+  type: 'suite'
+  ...
+# Subtest: security hardening guardrails
+    # Subtest: keeps public URL database constraints in the latest migration
+    ok 1 - keeps public URL database constraints in the latest migration
+      ---
+      duration_ms: 0.270792
+      type: 'test'
+      ...
+    # Subtest: keeps migration TLS verification enabled
+    ok 2 - keeps migration TLS verification enabled
+      ---
+      duration_ms: 0.132625
+      type: 'test'
+      ...
+    # Subtest: keeps the browser sink guarded by the trusted URL policy
+    ok 3 - keeps the browser sink guarded by the trusted URL policy
+      ---
+      duration_ms: 0.189542
+      type: 'test'
+      ...
+    # Subtest: adds local secret-scanning and ownership policy files
+    ok 4 - adds local secret-scanning and ownership policy files
+      ---
+      duration_ms: 0.076792
+      type: 'test'
+      ...
+    1..4
+ok 36 - security hardening guardrails
+  ---
+  duration_ms: 0.80075
+  type: 'suite'
+  ...
+# Subtest: ShopifyAdapter catalog formats
+    # Subtest: prices a 1 kg × 10 carton against its full 10 kg package weight
+    ok 1 - prices a 1 kg × 10 carton against its full 10 kg package weight
+      ---
+      duration_ms: 2326.588167
+      type: 'test'
+      ...
+    # Subtest: excludes bottled drinks and gift samplers while retaining cold-brew coffee beans
+    ok 2 - excludes bottled drinks and gift samplers while retaining cold-brew coffee beans
+      ---
+      duration_ms: 2005.773375
+      type: 'test'
+      ...
+    1..2
+ok 37 - ShopifyAdapter catalog formats
+  ---
+  duration_ms: 4332.951042
+  type: 'suite'
+  ...
+# Subtest: UX and compliance surfaces
+    # Subtest: announces mobile menu state to assistive technology
+    ok 1 - announces mobile menu state to assistive technology
+      ---
+      duration_ms: 1.30525
+      type: 'test'
+      ...
+    # Subtest: keeps mobile filter dialog focus inside the modal
+    ok 2 - keeps mobile filter dialog focus inside the modal
+      ---
+      duration_ms: 0.13775
+      type: 'test'
+      ...
+    # Subtest: makes the roaster filter searchable without introducing nested scroll traps
+    ok 3 - makes the roaster filter searchable without introducing nested scroll traps
+      ---
+      duration_ms: 0.12275
+      type: 'test'
+      ...
+    # Subtest: uses user-facing filter result copy
+    ok 4 - uses user-facing filter result copy
+      ---
+      duration_ms: 0.128708
+      type: 'test'
+      ...
+    # Subtest: uses natural Turkish discovery copy with clear unit-price comparison
+    ok 5 - uses natural Turkish discovery copy with clear unit-price comparison
+      ---
+      duration_ms: 0.327
+      type: 'test'
+      ...
+    # Subtest: keeps database filter metadata explicit without exposing 100 g price ranges
+    ok 6 - keeps database filter metadata explicit without exposing 100 g price ranges
+      ---
+      duration_ms: 0.161667
+      type: 'test'
+      ...
+    # Subtest: does not expose missing metadata as a public filter option
+    ok 7 - does not expose missing metadata as a public filter option
+      ---
+      duration_ms: 0.204125
+      type: 'test'
+      ...
+    # Subtest: does not introduce cart, checkout, or in-app payment affordances
+    ok 8 - does not introduce cart, checkout, or in-app payment affordances
+      ---
+      duration_ms: 0.183042
+      type: 'test'
+      ...
+    # Subtest: keeps filter groups from creating nested scroll traps
+    ok 9 - keeps filter groups from creating nested scroll traps
+      ---
+      duration_ms: 0.136417
+      type: 'test'
+      ...
+    # Subtest: keeps quiz step changes oriented at the current question
+    ok 10 - keeps quiz step changes oriented at the current question
+      ---
+      duration_ms: 0.280375
+      type: 'test'
+      ...
+    # Subtest: exposes privacy and terms routes in navigation and sitemap
+    ok 11 - exposes privacy and terms routes in navigation and sitemap
+      ---
+      duration_ms: 0.076708
+      type: 'test'
+      ...
+    # Subtest: guards roaster external links with the shared trusted URL policy
+    ok 12 - guards roaster external links with the shared trusted URL policy
+      ---
+      duration_ms: 0.056666
+      type: 'test'
+      ...
+    # Subtest: uses non-blocking real links for outbound coffee clicks
+    ok 13 - uses non-blocking real links for outbound coffee clicks
+      ---
+      duration_ms: 0.059541
+      type: 'test'
+      ...
+    # Subtest: places the coffee detail buy action before the long detail table and exposes report flow
+    ok 14 - places the coffee detail buy action before the long detail table and exposes report flow
+      ---
+      duration_ms: 0.092459
+      type: 'test'
+      ...
+    # Subtest: discloses analytics, click tracking, retention, contact, and request paths
+    ok 15 - discloses analytics, click tracking, retention, contact, and request paths
+      ---
+      duration_ms: 0.122667
+      type: 'test'
+      ...
+    # Subtest: adds a data correction intake endpoint and coffee detail UI
+    ok 16 - adds a data correction intake endpoint and coffee detail UI
+      ---
+      duration_ms: 0.075125
+      type: 'test'
+      ...
+    1..16
+ok 38 - UX and compliance surfaces
+  ---
+  duration_ms: 4.879417
+  type: 'suite'
+  ...
+# Subtest: V2 pure adapter contracts
+    # Subtest: preserves all Shopify IDs, offer-coupled prices, raw source and unknowns
+    ok 1 - preserves all Shopify IDs, offer-coupled prices, raw source and unknowns
+      ---
+      duration_ms: 11.749125
+      type: 'test'
+      ...
+    # Subtest: uses Woo minor-unit zero without config fallback and keeps variation identity
+    ok 2 - uses Woo minor-unit zero without config fallback and keeps variation identity
+      ---
+      duration_ms: 5.181334
+      type: 'test'
+      ...
+    # Subtest: keeps IKAS variant IDs and unknown stock; missing IDs fail closed
+    ok 3 - keeps IKAS variant IDs and unknown stock; missing IDs fail closed
+      ---
+      duration_ms: 2.528166
+      type: 'test'
+      ...
+    # Subtest: keeps Parsa raw origin/producer and every package with stable source option keys
+    ok 4 - keeps Parsa raw origin/producer and every package with stable source option keys
+      ---
+      duration_ms: 0.903083
+      type: 'test'
+      ...
+    # Subtest: uses same-offer JSON-LD stock/price/weight and rejects aggregate ranges
+    ok 5 - uses same-offer JSON-LD stock/price/weight and rejects aggregate ranges
+      ---
+      duration_ms: 2.587292
+      type: 'test'
+      ...
+    # Subtest: strips tracking while preserving variant parameters and path identity
+    ok 6 - strips tracking while preserving variant parameters and path identity
+      ---
+      duration_ms: 0.216209
+      type: 'test'
+      ...
+    # Subtest: rejects malformed price, zero, negative, infinite and unsafe identifiers
+    ok 7 - rejects malformed price, zero, negative, infinite and unsafe identifiers
+      ---
+      duration_ms: 1.280125
+      type: 'test'
+      ...
+    1..7
+ok 39 - V2 pure adapter contracts
+  ---
+  duration_ms: 25.215125
+  type: 'suite'
+  ...
+# Subtest: V2 complete-discovery and request safety
+    # Subtest: returns complete Shopify source snapshot without touching legacy persistence
+    ok 1 - returns complete Shopify source snapshot without touching legacy persistence
+      ---
+      duration_ms: 4.047
+      type: 'test'
+      ...
+    # Subtest: returns incomplete on second-page error and duplicate catalog records
+    ok 2 - returns incomplete on second-page error and duplicate catalog records
+      ---
+      duration_ms: 30.153
+      type: 'test'
+      ...
+    # Subtest: refuses pagination limit as a successful snapshot
+    ok 3 - refuses pagination limit as a successful snapshot
+      ---
+      duration_ms: 18.396333
+      type: 'test'
+      ...
+    # Subtest: fetches every Woo variation and marks any missing variation incomplete
+    ok 4 - fetches every Woo variation and marks any missing variation incomplete
+      ---
+      duration_ms: 2.366375
+      type: 'test'
+      ...
+    # Subtest: Parsa catalog and detail identity must agree
+    ok 5 - Parsa catalog and detail identity must agree
+      ---
+      duration_ms: 1.802208
+      type: 'test'
+      ...
+    # Subtest: IKAS never claims initial embedded data establishes catalog completeness
+    ok 6 - IKAS never claims initial embedded data establishes catalog completeness
+      ---
+      duration_ms: 1.041291
+      type: 'test'
+      ...
+    # Subtest: parses generic HTML discovery but does not claim offer completeness
+    ok 7 - parses generic HTML discovery but does not claim offer completeness
+      ---
+      duration_ms: 1.582
+      type: 'test'
+      ...
+    # Subtest: parses Probador discovery but does not claim offer completeness
+    ok 8 - parses Probador discovery but does not claim offer completeness
+      ---
+      duration_ms: 1.850875
+      type: 'test'
+      ...
+    # Subtest: refuses challenges without executing script or fetching cookies
+    ok 9 - refuses challenges without executing script or fetching cookies
+      ---
+      duration_ms: 0.147375
+      type: 'test'
+      ...
+    # Subtest: does not follow off-roaster redirects
+    ok 10 - does not follow off-roaster redirects
+      ---
+      duration_ms: 0.115375
+      type: 'test'
+      ...
+    # Subtest: empty catalog and exhausted request budget remain incomplete
+    ok 11 - empty catalog and exhausted request budget remain incomplete
+      ---
+      duration_ms: 0.220584
+      type: 'test'
+      ...
+    1..11
+ok 40 - V2 complete-discovery and request safety
+  ---
+  duration_ms: 62.170959
+  type: 'suite'
+  ...
+# Subtest: V2 read-only legacy comparison
+    # Subtest: reports source ID changes and avoids pretending legacy prices prove a same-SKU difference
+    ok 1 - reports source ID changes and avoids pretending legacy prices prove a same-SKU difference
+      ---
+      duration_ms: 3.195125
+      type: 'test'
+      ...
+    1..1
+ok 41 - V2 read-only legacy comparison
+  ---
+  duration_ms: 3.266041
+  type: 'suite'
+  ...
+# Subtest: Live-source regression cases (2026-09-14)
+    # Subtest: accepts Petra zero compare-at sentinel without a zero current price
+    ok 1 - accepts Petra zero compare-at sentinel without a zero current price
+      ---
+      duration_ms: 0.936792
+      type: 'test'
+      ...
+    # Subtest: sums Parsa zero base-price component with positive per-package surcharge
+    ok 2 - sums Parsa zero base-price component with positive per-package surcharge
+      ---
+      duration_ms: 0.590833
+      type: 'test'
+      ...
+    1..2
+ok 42 - Live-source regression cases (2026-09-14)
+  ---
+  duration_ms: 1.606292
+  type: 'suite'
+  ...
+# Subtest: NEW is deterministic and suppressed on imports and baseline
+ok 43 - NEW is deterministic and suppressed on imports and baseline
+  ---
+  duration_ms: 2.22275
+  type: 'test'
+  ...
+# Subtest: PRICE_DROP is exact SKU, known weight/currency, historical current price; DEAL requires two baselines and 10%
+ok 44 - PRICE_DROP is exact SKU, known weight/currency, historical current price; DEAL requires two baselines and 10%
+  ---
+  duration_ms: 9.863167
+  type: 'test'
+  ...
+# Subtest: confirmed stock transitions only; unknown never generates restock or out-of-stock
+ok 45 - confirmed stock transitions only; unknown never generates restock or out-of-stock
+  ---
+  duration_ms: 1.570666
+  type: 'test'
+  ...
+# (node:79085) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: atomic crawl ingestion preserves same offer history, stable URLs, idempotency and verified deal evidence
+ok 46 - atomic crawl ingestion preserves same offer history, stable URLs, idempotency and verified deal evidence
+  ---
+  duration_ms: 21.401875
+  type: 'test'
+  ...
+# Subtest: failed, partial and missing products never mass-unavailable; health and safe diagnostics persist
+ok 47 - failed, partial and missing products never mass-unavailable; health and safe diagnostics persist
+  ---
+  duration_ms: 8.846083
+  type: 'test'
+  ...
+# Subtest: duplicates, stale crawls, ambiguous identities and concurrent plans fail without partial writes
+ok 48 - duplicates, stale crawls, ambiguous identities and concurrent plans fail without partial writes
+  ---
+  duration_ms: 7.246875
+  type: 'test'
+  ...
+# Subtest: rollback includes the entire batch when a late feature constraint fails
+ok 49 - rollback includes the entire batch when a late feature constraint fails
+  ---
+  duration_ms: 3.7775
+  type: 'test'
+  ...
+# Subtest: running attempts persist before fetch and finish idempotently
+ok 50 - running attempts persist before fetch and finish idempotently
+  ---
+  duration_ms: 4.485833
+  type: 'test'
+  ...
+# Subtest: baseline retires synthetic legacy offers without inventing SKU history or duplicate active counts
+ok 51 - baseline retires synthetic legacy offers without inventing SKU history or duplicate active counts
+  ---
+  duration_ms: 5.736292
+  type: 'test'
+  ...
+# Subtest: conflicting URLs inside one new crawl are rejected and older failed attempts cannot override newer health
+ok 52 - conflicting URLs inside one new crawl are rejected and older failed attempts cannot override newer health
+  ---
+  duration_ms: 4.565583
+  type: 'test'
+  ...
+# (node:79088) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: canonical identity preserves SKU parameters and removes only tracking
+ok 53 - canonical identity preserves SKU parameters and removes only tracking
+  ---
+  duration_ms: 4.750541
+  type: 'test'
+  ...
+# Subtest: unit prices require trustworthy weight, price and TRY currency
+ok 54 - unit prices require trustworthy weight, price and TRY currency
+  ---
+  duration_ms: 0.333042
+  type: 'test'
+  ...
+# Subtest: SQLite schema enforces identities and immutable historical observations
+ok 55 - SQLite schema enforces identities and immutable historical observations
+  ---
+  duration_ms: 3.624333
+  type: 'test'
+  ...
+# Subtest: legacy source export safety and quality
+    # Subtest: removes email/credentials from nested catalog and diagnostic values while preserving catalog facts
+    ok 1 - removes email/credentials from nested catalog and diagnostic values while preserving catalog facts
+      ---
+      duration_ms: 0.778709
+      type: 'test'
+      ...
+    # Subtest: rejects altered counts, hashes, unexpected tables and incomplete snapshot schemas
+    ok 2 - rejects altered counts, hashes, unexpected tables and incomplete snapshot schemas
+      ---
+      duration_ms: 1.933875
+      type: 'test'
+      ...
+    # Subtest: separates stale/hidden source rows from current catalog, missing weight, and invalid normalized prices
+    ok 3 - separates stale/hidden source rows from current catalog, missing weight, and invalid normalized prices
+      ---
+      duration_ms: 1.911125
+      type: 'test'
+      ...
+    # Subtest: does not report zero observed runs as successful crawler coverage
+    ok 4 - does not report zero observed runs as successful crawler coverage
+      ---
+      duration_ms: 0.206291
+      type: 'test'
+      ...
+    1..4
+ok 56 - legacy source export safety and quality
+  ---
+  duration_ms: 5.437167
+  type: 'suite'
+  ...
+# Subtest: WooCommerceAdapter
+    # Subtest: excludes a configured wholesale source product even when its coffee category is missing
+    ok 1 - excludes a configured wholesale source product even when its coffee category is missing
+      ---
+      duration_ms: 100.632334
+      type: 'test'
+      ...
+    # Subtest: preserves the upstream error instead of reporting an empty catalog
+    ok 2 - preserves the upstream error instead of reporting an empty catalog
+      ---
+      duration_ms: 0.885666
+      type: 'test'
+      ...
+    # Subtest: keeps WooCommerce short descriptions so roast profile metadata reaches normalization
+    ok 3 - keeps WooCommerce short descriptions so roast profile metadata reaches normalization
+      ---
+      duration_ms: 12.625958
+      type: 'test'
+      ...
+    # Subtest: retries Store API product discovery with an Imunify challenge cookie
+    ok 4 - retries Store API product discovery with an Imunify challenge cookie
+      ---
+      duration_ms: 2.293959
+      type: 'test'
+      ...
+    # Subtest: excludes WooCommerce accessory categories and non-catalog entries that contain coffee words
+    ok 5 - excludes WooCommerce accessory categories and non-catalog entries that contain coffee words
+      ---
+      duration_ms: 0.675458
+      type: 'test'
+      ...
+    # Subtest: uses the retail comparison variation instead of the first weight term for price per 100g
+    ok 6 - uses the retail comparison variation instead of the first weight term for price per 100g
+      ---
+      duration_ms: 0.682041
+      type: 'test'
+      ...
+# [test-woo] Failed to fetch variation 2501; trying next package: variation unavailable
+# [test-woo] Failed to fetch variation 1001; trying next package: variation unavailable
+    # Subtest: falls through to the next preferred variation instead of mixing parent price with selected weight
+    ok 7 - falls through to the next preferred variation instead of mixing parent price with selected weight
+      ---
+      duration_ms: 0.665
+      type: 'test'
+      ...
+    # Subtest: tolerates WooCommerce variation attributes with null values
+    ok 8 - tolerates WooCommerce variation attributes with null values
+      ---
+      duration_ms: 0.759375
+      type: 'test'
+      ...
+    1..8
+ok 57 - WooCommerceAdapter
+  ---
+  duration_ms: 119.826625
+  type: 'suite'
+  ...
+1..57
+# tests 208
+# suites 44
+# pass 208
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5181.397083

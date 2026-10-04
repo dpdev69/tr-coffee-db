@@ -1,0 +1,532 @@
+{
+  "scheduledAt": "2026-09-14T21:50:48.330Z",
+  "scope": "11 remaining qualified baseline jobs; no repeated jobs, LIVE expansion, scheduler or concurrency changes",
+  "before": {
+    "catalog": {
+      "coffees": 480,
+      "roasters": 38,
+      "offers": 682
+    },
+    "observations": 1735,
+    "events": 0,
+    "errors": 0
+  },
+  "after": {
+    "catalog": {
+      "coffees": 481,
+      "roasters": 38,
+      "offers": 1170
+    },
+    "observations": 2786,
+    "events": 0,
+    "errors": 0
+  },
+  "runs": [
+    {
+      "slug": "aroasting-lab",
+      "status": "success",
+      "mode": "baseline",
+      "started_at": "2026-09-14T21:50:49.789Z",
+      "completed_at": "2026-09-14T21:50:51.399Z",
+      "products_seen": 63,
+      "offers_seen": 63,
+      "parser_version": "v2-source-3-profile"
+    },
+    {
+      "slug": "baristocrat",
+      "status": "success",
+      "mode": "baseline",
+      "started_at": "2026-09-14T21:50:55.066Z",
+      "completed_at": "2026-09-14T21:51:03.161Z",
+      "products_seen": 6,
+      "offers_seen": 7,
+      "parser_version": "v2-source-3-profile"
+    },
+    {
+      "slug": "boxx",
+      "status": "success",
+      "mode": "baseline",
+      "started_at": "2026-09-14T21:51:05.881Z",
+      "completed_at": "2026-09-14T21:51:07.155Z",
+      "products_seen": 5,
+      "offers_seen": 57,
+      "parser_version": "v2-source-3-profile"
+    },
+    {
+      "slug": "coach-coffee",
+      "status": "success",
+      "mode": "baseline",
+      "started_at": "2026-09-14T21:51:09.708Z",
+      "completed_at": "2026-09-14T21:51:11.495Z",
+      "products_seen": 12,
+      "offers_seen": 216,
+      "parser_version": "v2-source-3-profile"
+    },
+    {
+      "slug": "coffeenutz",
+      "status": "success",
+      "mode": "baseline",
+      "started_at": "2026-09-14T21:51:09.915Z",
+      "completed_at": "2026-09-14T21:51:11.856Z",
+      "products_seen": 80,
+      "offers_seen": 183,
+      "parser_version": "v2-source-3-profile"
+    },
+    {
+      "slug": "cup-of-joy",
+      "status": "success",
+      "mode": "baseline",
+      "started_at": "2026-09-14T21:51:14.472Z",
+      "completed_at": "2026-09-14T21:51:15.605Z",
+      "products_seen": 9,
+      "offers_seen": 72,
+      "parser_version": "v2-source-3-profile"
+    },
+    {
+      "slug": "kimma",
+      "status": "success",
+      "mode": "baseline",
+      "started_at": "2026-09-14T21:51:15.046Z",
+      "completed_at": "2026-09-14T21:51:16.248Z",
+      "products_seen": 13,
+      "offers_seen": 132,
+      "parser_version": "v2-source-3-profile"
+    },
+    {
+      "slug": "molecule",
+      "status": "success",
+      "mode": "baseline",
+      "started_at": "2026-09-14T21:51:17.874Z",
+      "completed_at": "2026-09-14T21:51:56.661Z",
+      "products_seen": 19,
+      "offers_seen": 27,
+      "parser_version": "v2-source-3-profile"
+    },
+    {
+      "slug": "montag",
+      "status": "success",
+      "mode": "baseline",
+      "started_at": "2026-09-14T21:51:18.184Z",
+      "completed_at": "2026-09-14T21:51:19.802Z",
+      "products_seen": 17,
+      "offers_seen": 244,
+      "parser_version": "v2-source-3-profile"
+    },
+    {
+      "slug": "nok-coffee",
+      "status": "success",
+      "mode": "baseline",
+      "started_at": "2026-09-14T21:51:22.631Z",
+      "completed_at": "2026-09-14T21:51:24.444Z",
+      "products_seen": 16,
+      "offers_seen": 18,
+      "parser_version": "v2-source-3-profile"
+    },
+    {
+      "slug": "poka",
+      "status": "success",
+      "mode": "baseline",
+      "started_at": "2026-09-14T21:51:26.565Z",
+      "completed_at": "2026-09-14T21:51:44.300Z",
+      "products_seen": 14,
+      "offers_seen": 32,
+      "parser_version": "v2-source-3-profile"
+    }
+  ],
+  "sources": [
+    {
+      "slug": "aroasting-lab",
+      "products": 63,
+      "offers": 63,
+      "productSignature": "bc2925c6a8296b1d",
+      "offerSignature": "96e9c0851866374b",
+      "featureSignature": "1cde5b1d88549107",
+      "features": 423,
+      "availableOffers": 61,
+      "publicAvailableOffers": 41,
+      "knownPrice": 63,
+      "knownWeight": 61,
+      "unknownStock": 0,
+      "publicAvailableUnknownWeight": 0,
+      "publicAvailableUnknownPrice": 0
+    },
+    {
+      "slug": "baristocrat",
+      "products": 6,
+      "offers": 7,
+      "productSignature": "eb5390ab9b0f355e",
+      "offerSignature": "6bf0b6212c93eb4c",
+      "featureSignature": "9c3d200ebe58afc2",
+      "features": 35,
+      "availableOffers": 7,
+      "publicAvailableOffers": 4,
+      "knownPrice": 7,
+      "knownWeight": 7,
+      "unknownStock": 0,
+      "publicAvailableUnknownWeight": 0,
+      "publicAvailableUnknownPrice": 0
+    },
+    {
+      "slug": "boxx",
+      "products": 5,
+      "offers": 57,
+      "productSignature": "52d98fc8713c0b83",
+      "offerSignature": "47edf900cc58124d",
+      "featureSignature": "894cc6694e93baab",
+      "features": 40,
+      "availableOffers": 57,
+      "publicAvailableOffers": 57,
+      "knownPrice": 57,
+      "knownWeight": 57,
+      "unknownStock": 0,
+      "publicAvailableUnknownWeight": 0,
+      "publicAvailableUnknownPrice": 0
+    },
+    {
+      "slug": "coach-coffee",
+      "products": 12,
+      "offers": 216,
+      "productSignature": "a85bfcb48bdf7e91",
+      "offerSignature": "1207c0e365130676",
+      "featureSignature": "6039b58e28693b2c",
+      "features": 70,
+      "availableOffers": 180,
+      "publicAvailableOffers": 54,
+      "knownPrice": 216,
+      "knownWeight": 207,
+      "unknownStock": 0,
+      "publicAvailableUnknownWeight": 0,
+      "publicAvailableUnknownPrice": 0
+    },
+    {
+      "slug": "coffeenutz",
+      "products": 80,
+      "offers": 183,
+      "productSignature": "19db49227328288c",
+      "offerSignature": "6aa0bd6fe6b2580b",
+      "featureSignature": "64b2fdf4ad698e9a",
+      "features": 399,
+      "availableOffers": 19,
+      "publicAvailableOffers": 10,
+      "knownPrice": 183,
+      "knownWeight": 180,
+      "unknownStock": 0,
+      "publicAvailableUnknownWeight": 0,
+      "publicAvailableUnknownPrice": 0
+    },
+    {
+      "slug": "cup-of-joy",
+      "products": 9,
+      "offers": 72,
+      "productSignature": "f0facdc1a4c2f5ef",
+      "offerSignature": "e070c30c77ff465d",
+      "featureSignature": "cc3c89649481e823",
+      "features": 53,
+      "availableOffers": 72,
+      "publicAvailableOffers": 54,
+      "knownPrice": 72,
+      "knownWeight": 54,
+      "unknownStock": 0,
+      "publicAvailableUnknownWeight": 9,
+      "publicAvailableUnknownPrice": 0
+    },
+    {
+      "slug": "kimma",
+      "products": 13,
+      "offers": 132,
+      "productSignature": "5ae6981c5432d876",
+      "offerSignature": "e8525ff18b3e89c3",
+      "featureSignature": "49355669544ab797",
+      "features": 93,
+      "availableOffers": 132,
+      "publicAvailableOffers": 114,
+      "knownPrice": 132,
+      "knownWeight": 125,
+      "unknownStock": 0,
+      "publicAvailableUnknownWeight": 7,
+      "publicAvailableUnknownPrice": 0
+    },
+    {
+      "slug": "molecule",
+      "products": 19,
+      "offers": 27,
+      "productSignature": "e2814f519813afb0",
+      "offerSignature": "24729f807be3c215",
+      "featureSignature": "64ccf6854daf468e",
+      "features": 105,
+      "availableOffers": 27,
+      "publicAvailableOffers": 27,
+      "knownPrice": 27,
+      "knownWeight": 17,
+      "unknownStock": 0,
+      "publicAvailableUnknownWeight": 10,
+      "publicAvailableUnknownPrice": 0
+    },
+    {
+      "slug": "montag",
+      "products": 17,
+      "offers": 244,
+      "productSignature": "71ffed20d4de9a15",
+      "offerSignature": "e796dcbda9d25088",
+      "featureSignature": "c941feb23c4216f5",
+      "features": 135,
+      "availableOffers": 220,
+      "publicAvailableOffers": 220,
+      "knownPrice": 244,
+      "knownWeight": 244,
+      "unknownStock": 0,
+      "publicAvailableUnknownWeight": 0,
+      "publicAvailableUnknownPrice": 0
+    },
+    {
+      "slug": "nok-coffee",
+      "products": 16,
+      "offers": 18,
+      "productSignature": "3fc04e2a72fe33b9",
+      "offerSignature": "dc96cd27d2d30a40",
+      "featureSignature": "61d2e9314be5cebc",
+      "features": 84,
+      "availableOffers": 17,
+      "publicAvailableOffers": 11,
+      "knownPrice": 18,
+      "knownWeight": 18,
+      "unknownStock": 0,
+      "publicAvailableUnknownWeight": 0,
+      "publicAvailableUnknownPrice": 0
+    },
+    {
+      "slug": "poka",
+      "products": 14,
+      "offers": 32,
+      "productSignature": "6e4c5111b9c2cdac",
+      "offerSignature": "78a69c6465d38b1",
+      "featureSignature": "acacbacb13ce1667",
+      "features": 97,
+      "availableOffers": 32,
+      "publicAvailableOffers": 30,
+      "knownPrice": 32,
+      "knownWeight": 32,
+      "unknownStock": 0,
+      "publicAvailableUnknownWeight": 0,
+      "publicAvailableUnknownPrice": 0
+    }
+  ],
+  "offlineComparison": [
+    {
+      "slug": "montag",
+      "productsMatch": true,
+      "offersMatch": true,
+      "featuresMatch": true,
+      "offlineFeatures": 135,
+      "remoteFeatures": 135
+    },
+    {
+      "slug": "aroasting-lab",
+      "productsMatch": true,
+      "offersMatch": true,
+      "featuresMatch": true,
+      "offlineFeatures": 423,
+      "remoteFeatures": 423
+    },
+    {
+      "slug": "coach-coffee",
+      "productsMatch": true,
+      "offersMatch": true,
+      "featuresMatch": true,
+      "offlineFeatures": 70,
+      "remoteFeatures": 70
+    },
+    {
+      "slug": "coffeenutz",
+      "productsMatch": true,
+      "offersMatch": true,
+      "featuresMatch": true,
+      "offlineFeatures": 399,
+      "remoteFeatures": 399
+    },
+    {
+      "slug": "nok-coffee",
+      "productsMatch": true,
+      "offersMatch": true,
+      "featuresMatch": true,
+      "offlineFeatures": 84,
+      "remoteFeatures": 84
+    },
+    {
+      "slug": "boxx",
+      "productsMatch": true,
+      "offersMatch": true,
+      "featuresMatch": true,
+      "offlineFeatures": 40,
+      "remoteFeatures": 40
+    },
+    {
+      "slug": "kimma",
+      "productsMatch": true,
+      "offersMatch": true,
+      "featuresMatch": true,
+      "offlineFeatures": 93,
+      "remoteFeatures": 93
+    },
+    {
+      "slug": "cup-of-joy",
+      "productsMatch": true,
+      "offersMatch": true,
+      "featuresMatch": true,
+      "offlineFeatures": 53,
+      "remoteFeatures": 53
+    },
+    {
+      "slug": "baristocrat",
+      "productsMatch": true,
+      "offersMatch": true,
+      "featuresMatch": true,
+      "offlineFeatures": 35,
+      "remoteFeatures": 35
+    },
+    {
+      "slug": "poka",
+      "productsMatch": true,
+      "offersMatch": true,
+      "featuresMatch": true,
+      "offlineFeatures": 97,
+      "remoteFeatures": 97
+    },
+    {
+      "slug": "molecule",
+      "productsMatch": true,
+      "offersMatch": true,
+      "featuresMatch": true,
+      "offlineFeatures": 105,
+      "remoteFeatures": 105
+    }
+  ],
+  "coffeeStateChanges": [
+    {
+      "id": "coffee_935ac83db94c017d67f700ff1b9c40bead644d70eba938623de646b56165c56e",
+      "slug": "coffeenutz",
+      "source_product_id": "9937425891632",
+      "visibility": "public",
+      "available": 1,
+      "beforeVisibility": "public",
+      "beforeAvailable": 0
+    }
+  ],
+  "finalChecks": [
+    [
+      {
+        "slug": "aroasting-lab",
+        "available_weights_g": "50,250,1000"
+      },
+      {
+        "slug": "baristocrat",
+        "available_weights_g": "250"
+      },
+      {
+        "slug": "boxx",
+        "available_weights_g": "250,1000"
+      },
+      {
+        "slug": "coach-coffee",
+        "available_weights_g": "250,1000"
+      },
+      {
+        "slug": "coffeenutz",
+        "available_weights_g": "250"
+      },
+      {
+        "slug": "cup-of-joy",
+        "available_weights_g": "250"
+      },
+      {
+        "slug": "kimma",
+        "available_weights_g": "250,1000,100"
+      },
+      {
+        "slug": "molecule",
+        "available_weights_g": "200,1000"
+      },
+      {
+        "slug": "montag",
+        "available_weights_g": "150,300,250,1000"
+      },
+      {
+        "slug": "nok-coffee",
+        "available_weights_g": "1000,10000"
+      },
+      {
+        "slug": "poka",
+        "available_weights_g": "1000,250,500"
+      }
+    ],
+    [
+      {
+        "offers": 1170,
+        "known_price": 1166,
+        "known_weight": 1042,
+        "try_currency": 1170
+      }
+    ],
+    [
+      {
+        "duplicate_observations": 0
+      }
+    ],
+    [
+      {
+        "archive_rows": 13452
+      }
+    ],
+    [
+      {
+        "source_variant_id": null,
+        "in_stock": 0,
+        "current_price_minor": 98000,
+        "weight_g": 250,
+        "retired_at": "2026-09-14T21:51:09.915Z"
+      },
+      {
+        "source_variant_id": "50077231776048",
+        "in_stock": 0,
+        "current_price_minor": 98000,
+        "weight_g": 250,
+        "retired_at": null
+      },
+      {
+        "source_variant_id": "67409137041712",
+        "in_stock": 1,
+        "current_price_minor": 98000,
+        "weight_g": 250,
+        "retired_at": null
+      }
+    ]
+  ],
+  "settings": [
+    {
+      "name": "CRAWL_MODE",
+      "text": "baseline",
+      "type": "plain_text"
+    },
+    {
+      "name": "CRAWLS_ENABLED",
+      "text": "false",
+      "type": "plain_text"
+    }
+  ],
+  "queues": [
+    {
+      "id": "316b43586442488797caa8deb98bd41b",
+      "backlog_count": 0,
+      "backlog_bytes": 0,
+      "oldest_message_timestamp_ms": 0
+    },
+    {
+      "id": "603d655c1e294393869c5c9b8872a28b",
+      "backlog_count": 0,
+      "backlog_bytes": 0,
+      "oldest_message_timestamp_ms": 0
+    }
+  ],
+  "checkedAt": "2026-09-14T21:52:49.942Z",
+  "comparisonMethod": "Count-checked sorted normalized tuple FNV-1a64 signatures, productID/visibility; source offer identity/price minor/compareAt minor/currency/weight/stock; complete feature value/provenance/version/confidence/source reference. Trailing source-reference slash normalized."
+}

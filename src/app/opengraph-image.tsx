@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og';
+import { brand } from '@/lib/brand';
 
-export const alt = 'TR CoffeeDB - Nitelikli Kahve Rehberi';
+export const alt = brand.title;
 
 export const size = {
   width: 1200,
@@ -15,8 +16,8 @@ export default function Image() {
       <div
         style={{
           alignItems: 'center',
-          background: '#fffdf8',
-          color: '#1f1d1b',
+          background: '#faf4e9',
+          color: '#30251f',
           display: 'flex',
           height: '100%',
           justifyContent: 'center',
@@ -40,7 +41,7 @@ export default function Image() {
               letterSpacing: 0,
             }}
           >
-            TR CoffeeDB
+            {brand.name}
           </div>
           <div
             style={{
@@ -53,8 +54,8 @@ export default function Image() {
               lineHeight: 0.96,
             }}
           >
-            <span>Yeni kahveni</span>
-            <span>kolayca bul.</span>
+            <span>Bir sonraki</span>
+            <span>kahveni keşfet.</span>
           </div>
           <div
             style={{
@@ -65,22 +66,22 @@ export default function Image() {
               maxWidth: 820,
             }}
           >
-            Türkiye&apos;deki nitelikli kahveleri güncel veri ve tarafsız filtrelerle keşfet.
+            Bağımsız kavurucular. Yeni tatlar. Sana uygun bir fincan.
           </div>
           <div
             style={{
               alignSelf: 'flex-start',
-              background: '#ecff64',
-              border: '2px solid #1f1d1b',
+              background: '#dec4a5',
+              border: '2px solid #a6774c',
               borderRadius: 18,
-              color: '#1f1d1b',
+              color: '#30251f',
               display: 'flex',
               fontSize: 28,
               fontWeight: 800,
               padding: '18px 24px',
             }}
           >
-            Kavurucunun fiyatıyla bak
+            Kahveni kavurucusundan keşfet
           </div>
         </div>
       </div>

@@ -1,0 +1,86 @@
+TAP version 13
+# Subtest: NEW is deterministic and suppressed on imports and baseline
+ok 1 - NEW is deterministic and suppressed on imports and baseline
+  ---
+  duration_ms: 3.222875
+  type: 'test'
+  ...
+# Subtest: PRICE_DROP is exact SKU, known weight/currency, historical current price; DEAL requires two baselines and 10%
+ok 2 - PRICE_DROP is exact SKU, known weight/currency, historical current price; DEAL requires two baselines and 10%
+  ---
+  duration_ms: 11.445375
+  type: 'test'
+  ...
+# Subtest: confirmed stock transitions only; unknown never generates restock or out-of-stock
+ok 3 - confirmed stock transitions only; unknown never generates restock or out-of-stock
+  ---
+  duration_ms: 0.455625
+  type: 'test'
+  ...
+# (node:78060) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: atomic crawl ingestion preserves same offer history, stable URLs, idempotency and verified deal evidence
+ok 4 - atomic crawl ingestion preserves same offer history, stable URLs, idempotency and verified deal evidence
+  ---
+  duration_ms: 16.215166
+  type: 'test'
+  ...
+# Subtest: failed, partial and missing products never mass-unavailable; health and safe diagnostics persist
+ok 5 - failed, partial and missing products never mass-unavailable; health and safe diagnostics persist
+  ---
+  duration_ms: 3.863791
+  type: 'test'
+  ...
+# Subtest: duplicates, stale crawls, ambiguous identities and concurrent plans fail without partial writes
+ok 6 - duplicates, stale crawls, ambiguous identities and concurrent plans fail without partial writes
+  ---
+  duration_ms: 2.771417
+  type: 'test'
+  ...
+# Subtest: rollback includes the entire batch when a late feature constraint fails
+ok 7 - rollback includes the entire batch when a late feature constraint fails
+  ---
+  duration_ms: 1.382
+  type: 'test'
+  ...
+# Subtest: running attempts persist before fetch and finish idempotently
+ok 8 - running attempts persist before fetch and finish idempotently
+  ---
+  duration_ms: 2.118333
+  type: 'test'
+  ...
+# Subtest: baseline retires synthetic legacy offers without inventing SKU history or duplicate active counts
+ok 9 - baseline retires synthetic legacy offers without inventing SKU history or duplicate active counts
+  ---
+  duration_ms: 2.214958
+  type: 'test'
+  ...
+# (node:78061) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: canonical identity preserves SKU parameters and removes only tracking
+ok 10 - canonical identity preserves SKU parameters and removes only tracking
+  ---
+  duration_ms: 2.710625
+  type: 'test'
+  ...
+# Subtest: unit prices require trustworthy weight, price and TRY currency
+ok 11 - unit prices require trustworthy weight, price and TRY currency
+  ---
+  duration_ms: 0.113083
+  type: 'test'
+  ...
+# Subtest: SQLite schema enforces identities and immutable historical observations
+ok 12 - SQLite schema enforces identities and immutable historical observations
+  ---
+  duration_ms: 5.819208
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 216.101291

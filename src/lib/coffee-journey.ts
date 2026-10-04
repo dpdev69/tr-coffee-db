@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { legacyCatalogDatabase, legacyCoffeeDetail, archivedJourney, toLegacyCoffee } from '@/lib/v2-legacy';
 import type {
   Coffee,
   CoffeeAssessment,
@@ -44,9 +44,16 @@ export const VALIDATION_STRENGTH: Record<ValidationStatus, number> = {
 };
 
 export async function getCoffeeJourney(coffee: CoffeeWithRoaster): Promise<CoffeeJourney> {
+  const db = await legacyCatalogDatabase();
+  if (db) {
+    const current = await legacyCoffeeDetail(db, coffee.id);
+    if (!current) throw new Error('Public coffee unavailable');
+    const archived = current.green_lot_id ? await archivedJourney(db, current.green_lot_id) : null;
+    return archived ?? buildFallbackJourney(toLegacyCoffee(current.v2_source, current.legacy_archive, true));
+  }
   if (!coffee.green_lot_id) return buildFallbackJourney(coffee);
 
-  const supabase = await createClient();
+  const supabase = await (await import('@/lib/supabase/server')).createClient();
   const lotId = coffee.green_lot_id;
   const [lotResult, eventsResult, sourcesResult, claimsResult, assessmentsResult, certificationsResult] =
     await Promise.all([

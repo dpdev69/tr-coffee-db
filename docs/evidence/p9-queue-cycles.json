@@ -1,0 +1,462 @@
+{
+  "checkedAt": {
+    "current_time": "2026-09-14 21:45:53 UTC"
+  },
+  "environment": "coffeedb-v2-staging",
+  "crawlerVersionBeforeModeChanges": "92c0f8c0-18eb-44c4-b47a-98184f7bc553",
+  "initial": {
+    "runs": [
+      {
+        "slug": "petra",
+        "id": "job_38c8e88402fc4ba419eeebd082a8f04889b8305bc8fd81785403b1cbc0637048:1",
+        "mode": "baseline",
+        "status": "success",
+        "started_at": "2026-09-14T21:15:52.679Z",
+        "completed_at": "2026-09-14T21:15:54.976Z",
+        "parser_version": "v2-source-2-eligibility",
+        "job_key": "job_38c8e88402fc4ba419eeebd082a8f04889b8305bc8fd81785403b1cbc0637048",
+        "products_seen": 8,
+        "offers_seen": 198
+      },
+      {
+        "slug": "daphne",
+        "id": "job_ea2d3a601ffc90a47cef6804d1e22455dae50f94114b79dc1c6d2972683f0608:1",
+        "mode": "baseline",
+        "status": "success",
+        "started_at": "2026-09-14T21:15:58.116Z",
+        "completed_at": "2026-09-14T21:16:08.793Z",
+        "parser_version": "v2-source-2-eligibility",
+        "job_key": "job_ea2d3a601ffc90a47cef6804d1e22455dae50f94114b79dc1c6d2972683f0608",
+        "products_seen": 7,
+        "offers_seen": 15
+      },
+      {
+        "slug": "parsa",
+        "id": "job_5b6ae4bbf8b67a3f67bf6b05aed9a5ed82eeace2a1c219e7c3d89f6338c2fd8e:1",
+        "mode": "baseline",
+        "status": "success",
+        "started_at": "2026-09-14T21:16:11.030Z",
+        "completed_at": "2026-09-14T21:16:19.044Z",
+        "parser_version": "v2-source-2-eligibility",
+        "job_key": "job_5b6ae4bbf8b67a3f67bf6b05aed9a5ed82eeace2a1c219e7c3d89f6338c2fd8e",
+        "products_seen": 12,
+        "offers_seen": 22
+      }
+    ],
+    "observations": 1265,
+    "events": 0,
+    "errors": 0,
+    "catalog": {
+      "coffees": 480,
+      "roasters": 38,
+      "offers": 682
+    }
+  },
+  "cycle2": {
+    "enqueue": {
+      "scheduledAt": "2026-09-14T21:41:29.391Z",
+      "jobs": [
+        {
+          "roasterId": "0d93dc9e-d66f-43e8-87f6-2dd355b74215",
+          "slug": "petra",
+          "scheduledAt": "2026-09-14T21:41:29.391Z"
+        },
+        {
+          "roasterId": "524dbe83-b3e0-41df-9b1a-21b74b730016",
+          "slug": "daphne",
+          "scheduledAt": "2026-09-14T21:41:29.391Z"
+        },
+        {
+          "roasterId": "001fc897-23e8-4fc9-a94c-744aed176264",
+          "slug": "parsa",
+          "scheduledAt": "2026-09-14T21:41:29.391Z"
+        },
+        {
+          "roasterId": "0d93dc9e-d66f-43e8-87f6-2dd355b74215",
+          "slug": "petra",
+          "scheduledAt": "2026-09-14T21:41:29.391Z"
+        }
+      ],
+      "response": {
+        "success": true,
+        "errors": [],
+        "messages": [],
+        "result": {
+          "metadata": {
+            "metrics": {
+              "backlog_count": 4,
+              "backlog_bytes": 433,
+              "oldest_message_timestamp_ms": 0
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    "queries": [
+      [
+        {
+          "slug": "petra",
+          "id": "job_38c8e88402fc4ba419eeebd082a8f04889b8305bc8fd81785403b1cbc0637048:1",
+          "mode": "baseline",
+          "status": "success",
+          "started_at": "2026-09-14T21:15:52.679Z",
+          "completed_at": "2026-09-14T21:15:54.976Z",
+          "parser_version": "v2-source-2-eligibility",
+          "job_key": "job_38c8e88402fc4ba419eeebd082a8f04889b8305bc8fd81785403b1cbc0637048",
+          "products_seen": 8,
+          "offers_seen": 198
+        },
+        {
+          "slug": "daphne",
+          "id": "job_ea2d3a601ffc90a47cef6804d1e22455dae50f94114b79dc1c6d2972683f0608:1",
+          "mode": "baseline",
+          "status": "success",
+          "started_at": "2026-09-14T21:15:58.116Z",
+          "completed_at": "2026-09-14T21:16:08.793Z",
+          "parser_version": "v2-source-2-eligibility",
+          "job_key": "job_ea2d3a601ffc90a47cef6804d1e22455dae50f94114b79dc1c6d2972683f0608",
+          "products_seen": 7,
+          "offers_seen": 15
+        },
+        {
+          "slug": "parsa",
+          "id": "job_5b6ae4bbf8b67a3f67bf6b05aed9a5ed82eeace2a1c219e7c3d89f6338c2fd8e:1",
+          "mode": "baseline",
+          "status": "success",
+          "started_at": "2026-09-14T21:16:11.030Z",
+          "completed_at": "2026-09-14T21:16:19.044Z",
+          "parser_version": "v2-source-2-eligibility",
+          "job_key": "job_5b6ae4bbf8b67a3f67bf6b05aed9a5ed82eeace2a1c219e7c3d89f6338c2fd8e",
+          "products_seen": 12,
+          "offers_seen": 22
+        },
+        {
+          "slug": "petra",
+          "id": "job_75937c010ad5751d258f4a76a451438d9836428e1efda25e9cfbb649b4234dca:1",
+          "mode": "baseline",
+          "status": "success",
+          "started_at": "2026-09-14T21:41:31.439Z",
+          "completed_at": "2026-09-14T21:41:33.142Z",
+          "parser_version": "v2-source-3-profile",
+          "job_key": "job_75937c010ad5751d258f4a76a451438d9836428e1efda25e9cfbb649b4234dca",
+          "products_seen": 8,
+          "offers_seen": 198
+        },
+        {
+          "slug": "daphne",
+          "id": "job_e3119235a2ea4d75b7e165bc5e04be3f63910c84a858c9d236b412478936c05f:1",
+          "mode": "baseline",
+          "status": "success",
+          "started_at": "2026-09-14T21:41:36.319Z",
+          "completed_at": "2026-09-14T21:41:46.496Z",
+          "parser_version": "v2-source-3-profile",
+          "job_key": "job_e3119235a2ea4d75b7e165bc5e04be3f63910c84a858c9d236b412478936c05f",
+          "products_seen": 7,
+          "offers_seen": 15
+        },
+        {
+          "slug": "parsa",
+          "id": "job_59f0396febade9f1626e610ac73f40267dd746f4a25f0dfe918b56b8ff9ec9ee:1",
+          "mode": "baseline",
+          "status": "success",
+          "started_at": "2026-09-14T21:41:46.270Z",
+          "completed_at": "2026-09-14T21:41:54.804Z",
+          "parser_version": "v2-source-3-profile",
+          "job_key": "job_59f0396febade9f1626e610ac73f40267dd746f4a25f0dfe918b56b8ff9ec9ee",
+          "products_seen": 12,
+          "offers_seen": 22
+        }
+      ],
+      [
+        {
+          "observations": 1500
+        }
+      ],
+      [
+        {
+          "events": 0
+        }
+      ],
+      [
+        {
+          "errors": 0
+        }
+      ],
+      [
+        {
+          "slug": "daphne",
+          "products": 7,
+          "with_profile": 7,
+          "rule_features": 21
+        },
+        {
+          "slug": "parsa",
+          "products": 12,
+          "with_profile": 12,
+          "rule_features": 68
+        },
+        {
+          "slug": "petra",
+          "products": 8,
+          "with_profile": 8,
+          "rule_features": 36
+        }
+      ],
+      [
+        {
+          "coffees": 480,
+          "roasters": 38,
+          "offers": 682
+        }
+      ]
+    ]
+  },
+  "cycle3": {
+    "enqueue": {
+      "scheduledAt": "2026-09-14T21:42:54.729Z",
+      "jobs": [
+        {
+          "roasterId": "0d93dc9e-d66f-43e8-87f6-2dd355b74215",
+          "slug": "petra",
+          "scheduledAt": "2026-09-14T21:42:54.729Z"
+        },
+        {
+          "roasterId": "524dbe83-b3e0-41df-9b1a-21b74b730016",
+          "slug": "daphne",
+          "scheduledAt": "2026-09-14T21:42:54.729Z"
+        },
+        {
+          "roasterId": "001fc897-23e8-4fc9-a94c-744aed176264",
+          "slug": "parsa",
+          "scheduledAt": "2026-09-14T21:42:54.729Z"
+        }
+      ],
+      "response": {
+        "success": true,
+        "errors": [],
+        "messages": [],
+        "result": {
+          "metadata": {
+            "metrics": {
+              "backlog_count": 3,
+              "backlog_bytes": 325,
+              "oldest_message_timestamp_ms": 0
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    "queries": [
+      [
+        {
+          "slug": "petra",
+          "id": "job_75937c010ad5751d258f4a76a451438d9836428e1efda25e9cfbb649b4234dca:1",
+          "mode": "baseline",
+          "status": "success",
+          "started_at": "2026-09-14T21:41:31.439Z",
+          "completed_at": "2026-09-14T21:41:33.142Z",
+          "parser_version": "v2-source-3-profile",
+          "job_key": "job_75937c010ad5751d258f4a76a451438d9836428e1efda25e9cfbb649b4234dca",
+          "products_seen": 8,
+          "offers_seen": 198
+        },
+        {
+          "slug": "daphne",
+          "id": "job_e3119235a2ea4d75b7e165bc5e04be3f63910c84a858c9d236b412478936c05f:1",
+          "mode": "baseline",
+          "status": "success",
+          "started_at": "2026-09-14T21:41:36.319Z",
+          "completed_at": "2026-09-14T21:41:46.496Z",
+          "parser_version": "v2-source-3-profile",
+          "job_key": "job_e3119235a2ea4d75b7e165bc5e04be3f63910c84a858c9d236b412478936c05f",
+          "products_seen": 7,
+          "offers_seen": 15
+        },
+        {
+          "slug": "parsa",
+          "id": "job_59f0396febade9f1626e610ac73f40267dd746f4a25f0dfe918b56b8ff9ec9ee:1",
+          "mode": "baseline",
+          "status": "success",
+          "started_at": "2026-09-14T21:41:46.270Z",
+          "completed_at": "2026-09-14T21:41:54.804Z",
+          "parser_version": "v2-source-3-profile",
+          "job_key": "job_59f0396febade9f1626e610ac73f40267dd746f4a25f0dfe918b56b8ff9ec9ee",
+          "products_seen": 12,
+          "offers_seen": 22
+        },
+        {
+          "slug": "petra",
+          "id": "job_0b936506a31b364cdf8f1f6954387e6b19c699c2e8023ca14c98636f9f3d084d:1",
+          "mode": "live",
+          "status": "success",
+          "started_at": "2026-09-14T21:42:56.963Z",
+          "completed_at": "2026-09-14T21:42:58.073Z",
+          "parser_version": "v2-source-3-profile",
+          "job_key": "job_0b936506a31b364cdf8f1f6954387e6b19c699c2e8023ca14c98636f9f3d084d",
+          "products_seen": 8,
+          "offers_seen": 198
+        },
+        {
+          "slug": "daphne",
+          "id": "job_867501b273d0a614ce2a905cacef9ee8b2304898d3d08ae2572de45394ed3147:1",
+          "mode": "live",
+          "status": "success",
+          "started_at": "2026-09-14T21:43:01.818Z",
+          "completed_at": "2026-09-14T21:43:11.464Z",
+          "parser_version": "v2-source-3-profile",
+          "job_key": "job_867501b273d0a614ce2a905cacef9ee8b2304898d3d08ae2572de45394ed3147",
+          "products_seen": 7,
+          "offers_seen": 15
+        },
+        {
+          "slug": "parsa",
+          "id": "job_93c1d52cb35aef427dd745f7324e46c14f7c9d491e1df2029bbefc2ec896dc78:1",
+          "mode": "live",
+          "status": "success",
+          "started_at": "2026-09-14T21:43:11.880Z",
+          "completed_at": "2026-09-14T21:43:19.760Z",
+          "parser_version": "v2-source-3-profile",
+          "job_key": "job_93c1d52cb35aef427dd745f7324e46c14f7c9d491e1df2029bbefc2ec896dc78",
+          "products_seen": 12,
+          "offers_seen": 22
+        }
+      ],
+      [
+        {
+          "observations": 1735,
+          "imported": 1030
+        }
+      ],
+      [
+        {
+          "events": 0
+        }
+      ],
+      [
+        {
+          "errors": 0
+        }
+      ],
+      [
+        {
+          "coffees": 480,
+          "roasters": 38,
+          "offers": 682
+        }
+      ],
+      [
+        {
+          "archive_rows": 13452
+        }
+      ],
+      [
+        {
+          "slug": "daphne",
+          "matched_offers": 15,
+          "price_changes": 0,
+          "compare_at_changes": 0,
+          "weight_changes": 0,
+          "currency_changes": 0,
+          "stock_changes": 0
+        },
+        {
+          "slug": "parsa",
+          "matched_offers": 22,
+          "price_changes": 0,
+          "compare_at_changes": 0,
+          "weight_changes": 0,
+          "currency_changes": 0,
+          "stock_changes": 0
+        },
+        {
+          "slug": "petra",
+          "matched_offers": 198,
+          "price_changes": 0,
+          "compare_at_changes": 0,
+          "weight_changes": 0,
+          "currency_changes": 0,
+          "stock_changes": 0
+        }
+      ],
+      [
+        {
+          "duplicate_offer_observations": 0
+        }
+      ]
+    ]
+  },
+  "finalQueues": [
+    {
+      "id": "316b43586442488797caa8deb98bd41b",
+      "success": true,
+      "errors": [],
+      "messages": [],
+      "result": {
+        "backlog_count": 0,
+        "backlog_bytes": 0,
+        "oldest_message_timestamp_ms": 0
+      },
+      "status": 200
+    },
+    {
+      "id": "603d655c1e294393869c5c9b8872a28b",
+      "success": true,
+      "errors": [],
+      "messages": [],
+      "result": {
+        "backlog_count": 0,
+        "backlog_bytes": 0,
+        "oldest_message_timestamp_ms": 0
+      },
+      "status": 200
+    }
+  ],
+  "profileProvenance": [
+    [
+      {
+        "slug": "daphne",
+        "wrong_version": 0,
+        "unexpected_confidence": 0,
+        "missing_reference": 0,
+        "different_source_url": 0,
+        "trailing_slash_only": 14
+      },
+      {
+        "slug": "parsa",
+        "wrong_version": 0,
+        "unexpected_confidence": 0,
+        "missing_reference": 0,
+        "different_source_url": 0,
+        "trailing_slash_only": 0
+      },
+      {
+        "slug": "petra",
+        "wrong_version": 0,
+        "unexpected_confidence": 0,
+        "missing_reference": 0,
+        "different_source_url": 0,
+        "trailing_slash_only": 0
+      }
+    ]
+  ],
+  "restoredSettings": {
+    "success": true,
+    "status": 200,
+    "errors": [],
+    "verified": true,
+    "bindings": [
+      {
+        "name": "CRAWL_MODE",
+        "text": "baseline",
+        "type": "plain_text"
+      },
+      {
+        "name": "CRAWLS_ENABLED",
+        "text": "false",
+        "type": "plain_text"
+      }
+    ]
+  }
+}

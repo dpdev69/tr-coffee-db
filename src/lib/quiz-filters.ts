@@ -48,6 +48,7 @@ export type QuizStep =
 interface ArrayFilterSpec {
   key: QuizArrayAnswerKey;
   explanationLabel: string;
+  queryParam: string;
   labels: Record<string, string>;
   allowedValues: ReadonlySet<string>;
 }
@@ -110,7 +111,7 @@ export const QUIZ_STEPS: readonly QuizStep[] = [
     question: 'Fincanda hangi tat ailesini arıyorsun?',
     helper: 'Bir veya daha fazla tat ailesi seçebilirsin.',
     catalogField: 'coffees.flavor_categories',
-    queryParam: 'flavorCategory',
+    queryParam: 'taste',
     options: optionsFromLabels(
       FLAVOR_CATEGORIES,
       FLAVOR_CATEGORY_LABELS,
@@ -132,7 +133,7 @@ export const QUIZ_STEPS: readonly QuizStep[] = [
     question: 'Kavurma seviyesi nasıl olsun?',
     helper: 'Bir veya daha fazla kavrum aralığı seçebilirsin.',
     catalogField: 'coffees.roast_level',
-    queryParam: 'roastLevel',
+    queryParam: 'roast',
     options: optionsFromLabels(ROAST_FILTER_VALUES, ROAST_LABELS, ROAST_DESCRIPTIONS),
   },
 ] as const;
@@ -140,24 +141,28 @@ export const QUIZ_STEPS: readonly QuizStep[] = [
 const ARRAY_FILTER_SPECS: readonly ArrayFilterSpec[] = [
   {
     key: 'brewMethod',
+    queryParam: 'brewMethod',
     explanationLabel: 'Demleme uyumu',
     labels: BREW_METHOD_LABELS,
     allowedValues: new Set(BREW_METHOD_VALUES),
   },
   {
     key: 'flavorCategory',
+    queryParam: 'taste',
     explanationLabel: 'Tat kategorisi',
     labels: FLAVOR_CATEGORY_LABELS,
     allowedValues: new Set<string>(FLAVOR_CATEGORIES),
   },
   {
     key: 'process',
+    queryParam: 'process',
     explanationLabel: 'İşleme',
     labels: PROCESS_LABELS,
     allowedValues: new Set(PROCESS_FILTER_VALUES),
   },
   {
     key: 'roastLevel',
+    queryParam: 'roast',
     explanationLabel: 'Kavurma seviyesi',
     labels: ROAST_LABELS,
     allowedValues: new Set(ROAST_FILTER_VALUES),
@@ -183,7 +188,7 @@ export function buildQuizFilterResult(answers: QuizAnswers): QuizFilterResult {
     if (values.length === 0) continue;
 
     filters[spec.key] = values;
-    values.forEach((value) => params.append(spec.key, value));
+    values.forEach((value) => params.append(spec.queryParam, value));
     explanations.push(
       `${spec.explanationLabel}: ${values
         .map((value) => spec.labels[value] ?? value)
@@ -194,7 +199,7 @@ export function buildQuizFilterResult(answers: QuizAnswers): QuizFilterResult {
   const query = params.toString();
 
   return {
-    url: query ? `/coffees?${query}` : '/coffees',
+    url: query ? `/kahveler?${query}` : '/kahveler',
     explanations,
     filters,
   };

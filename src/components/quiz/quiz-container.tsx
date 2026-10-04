@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { trackProductEvent } from '@/lib/product-events';
 import {
   buildQuizFilterResult,
   createInitialQuizAnswers,
@@ -15,6 +16,8 @@ import {
 export function QuizContainer() {
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>(createInitialQuizAnswers);
+  const started = useRef(false);
+  const mounted = useRef(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const questionRef = useRef<HTMLHeadingElement>(null);
 
@@ -25,20 +28,26 @@ export function QuizContainer() {
   const hasAnySelections = hasQuizSelections(answers);
   const selectedValues = getSelectedValues(current, answers);
   const selectedCount = selectedValues.length;
-  const [validationMessage, setValidationMessage] = useState<string | null>(
-    null,
-  );
 
   useEffect(() => {
-    if (stepIndex === 0) return;
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
 
     cardRef.current?.scrollIntoView({ block: 'start' });
     questionRef.current?.focus({ preventScroll: true });
   }, [stepIndex]);
 
+  function trackStarted() {
+    if (started.current) return;
+    started.current = true;
+    trackProductEvent({ event: 'quiz_started', page: 'quiz', source: 'quiz' });
+  }
+
   function toggleOption(value: string) {
+    trackStarted();
     const key = current.id;
-    setValidationMessage(null);
 
     setAnswers((prev) => {
       const nextValues = prev[key].includes(value)
@@ -50,13 +59,9 @@ export function QuizContainer() {
   }
 
   function advanceStep() {
+    trackStarted();
     if (isLastStep) {
-      if (!hasAnySelections) {
-        setValidationMessage(
-          'Sonuçları daraltmak için en az bir tercih seçin ya da tüm kataloğu açın.',
-        );
-        return;
-      }
+      trackProductEvent({ event: 'quiz_completed', page: 'quiz', source: 'quiz' });
       setStepIndex(QUIZ_STEPS.length);
     } else {
       setStepIndex((index) => index + 1);
@@ -68,6 +73,7 @@ export function QuizContainer() {
   }
 
   function resetQuiz() {
+    started.current = false;
     setStepIndex(0);
     setAnswers(createInitialQuizAnswers());
   }
@@ -76,30 +82,30 @@ export function QuizContainer() {
     return (
       <div
         ref={cardRef}
-        className="scroll-mt-28 rounded-[24px] border border-[#1f1d1b]/10 bg-white p-5 text-center sm:p-8"
+        className="scroll-mt-28 rounded-[24px] border border-[#30251f]/10 bg-[#fffdf8] p-5 text-center sm:p-8"
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#e3ecbd] text-[#1f1d1b]">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#ead9c5] text-[#30251f]">
           <CheckIcon />
         </div>
         <h2
           ref={questionRef}
           tabIndex={-1}
-          className="mt-4 font-display text-3xl leading-none text-[#1f1d1b]"
+          className="mt-4 font-display text-3xl leading-none text-[#30251f]"
         >
-          Tercihlerine göre listeyi hazırladık.
+          {hasAnySelections ? 'Bir sonraki kahven bu seçimlerde.' : 'Keşfe açık bir fincan.'}
         </h2>
-        <p className="mt-2 text-[#5d5853]">
-          Seçimlerin doğrudan katalog filtrelerine çevrildi.
+        <p className="mt-2 text-[#716257]">
+          {hasAnySelections ? 'Aradığın tatlara ve demleme rutinine uyan kahveleri keşfet.' : 'Güncel kahveleri birlikte keşfedelim.'}
         </p>
         {result.explanations.length > 0 && (
-          <div className="mx-auto mt-5 max-w-xl rounded-2xl border border-[#1f1d1b]/10 bg-[#faf9f6] p-4 text-left">
-            <h3 className="text-sm font-semibold text-[#1f1d1b]">
-              Uygulanacak filtreler
+          <div className="mx-auto mt-5 max-w-xl rounded-2xl border border-[#30251f]/10 bg-[#fbf6ed] p-4 text-left">
+            <h3 className="text-sm font-semibold text-[#30251f]">
+              Senin kahve profilin
             </h3>
-            <ul className="mt-3 space-y-2 text-sm text-[#5d5853]">
+            <ul className="mt-3 space-y-2 text-sm text-[#716257]">
               {result.explanations.map((item) => (
                 <li key={item} className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#1f1d1b]" />
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#30251f]" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -107,22 +113,29 @@ export function QuizContainer() {
           </div>
         )}
         {result.explanations.length === 0 && (
-          <p className="mx-auto mt-5 max-w-xl rounded-2xl border border-[#1f1d1b]/10 bg-[#faf9f6] p-4 text-sm text-[#5d5853]">
-            Filtre seçmedin; katalogdaki tüm güncel kahveleri göstereceğiz.
+          <p className="mx-auto mt-5 max-w-xl rounded-2xl border border-[#30251f]/10 bg-[#fbf6ed] p-4 text-sm text-[#716257]">
+            Henüz bir tercihin yok. Katalogda tatları ve kavurucuları keşfederek başlayabilirsin.
           </p>
         )}
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             href={result.url}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1f1d1b] px-6 py-3 text-sm font-semibold text-white hover:bg-black"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#30251f] px-6 py-3 text-sm font-semibold text-white hover:bg-[#6d3d2a]"
           >
-            Kahveleri Göster
+            Kahvelerimi keşfet
             <ArrowRightIcon />
           </Link>
           <button
             type="button"
+            onClick={() => setStepIndex(QUIZ_STEPS.length - 1)}
+            className="button-light border border-[#d7c5b4]"
+          >
+            Seçimlerimi düzenle
+          </button>
+          <button
+            type="button"
             onClick={resetQuiz}
-            className="inline-flex items-center justify-center rounded-lg border border-[#1f1d1b] px-6 py-3 text-sm font-semibold text-[#1f1d1b] hover:bg-[#f6f1e8]"
+            className="inline-flex items-center justify-center rounded-lg border border-[#30251f] px-6 py-3 text-sm font-semibold text-[#30251f] hover:bg-[#f6f1e8]"
           >
             Tercihleri Yeniden Seç
           </button>
@@ -134,10 +147,10 @@ export function QuizContainer() {
   return (
     <div
       ref={cardRef}
-      className="scroll-mt-28 rounded-[24px] border border-[#1f1d1b]/10 bg-white p-5 sm:p-6"
+      className="scroll-mt-28 rounded-[24px] border border-[#30251f]/10 bg-[#fffdf8] p-5 sm:p-6"
     >
       <div className="mb-7">
-        <div className="flex items-center justify-between gap-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#1f1d1b]/45">
+        <div className="flex items-center justify-between gap-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#30251f]/45">
           <span>
             Soru {stepIndex + 1} / {QUIZ_STEPS.length}
           </span>
@@ -158,7 +171,7 @@ export function QuizContainer() {
             <div
               key={stepItem.id}
               className={`h-1.5 flex-1 rounded-full ${
-                index <= stepIndex ? 'bg-[#1f1d1b]' : 'bg-[#1f1d1b]/10'
+                index <= stepIndex ? 'bg-[#30251f]' : 'bg-[#30251f]/10'
               }`}
             />
           ))}
@@ -168,11 +181,11 @@ export function QuizContainer() {
       <h2
         ref={questionRef}
         tabIndex={-1}
-        className="rounded-md font-display text-3xl leading-none text-[#1f1d1b] focus:outline-none focus:ring-2 focus:ring-[#1f1d1b] focus:ring-offset-4"
+        className="rounded-md font-display text-3xl leading-none text-[#30251f] focus:outline-none focus:ring-2 focus:ring-[#30251f] focus:ring-offset-4"
       >
         {current.question}
       </h2>
-      <p className="mt-3 text-sm leading-6 text-[#5d5853]">{current.helper}</p>
+      <p className="mt-3 text-sm leading-6 text-[#716257]">{current.helper}</p>
 
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {current.options.map((opt) => {
@@ -186,15 +199,15 @@ export function QuizContainer() {
               aria-pressed={isSelected}
               className={`flex min-h-[96px] items-start gap-3 rounded-xl border px-4 py-4 text-left transition-colors ${
                 isSelected
-                  ? 'border-[#1f1d1b] bg-[#e3ecbd] text-[#1f1d1b]'
-                  : 'border-[#1f1d1b]/12 bg-white text-[#1f1d1b] hover:border-[#1f1d1b]/30 hover:bg-[#f6f1e8]'
+                  ? 'border-[#30251f] bg-[#ead9c5] text-[#30251f]'
+                  : 'border-[#30251f]/12 bg-[#fffdf8] text-[#30251f] hover:border-[#30251f]/30 hover:bg-[#f6f1e8]'
               }`}
             >
               <span
                 className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
                   isSelected
-                    ? 'border-[#1f1d1b] bg-[#1f1d1b] text-white'
-                    : 'border-[#1f1d1b]/25 bg-white text-transparent'
+                    ? 'border-[#30251f] bg-[#30251f] text-white'
+                    : 'border-[#30251f]/25 bg-[#fffdf8] text-transparent'
                 }`}
                 aria-hidden="true"
               >
@@ -205,7 +218,7 @@ export function QuizContainer() {
                   {opt.label}
                 </span>
                 {opt.description && (
-                  <span className="mt-1 block text-xs leading-5 text-[#5d5853]">
+                  <span className="mt-1 block text-xs leading-5 text-[#716257]">
                     {opt.description}
                   </span>
                 )}
@@ -217,22 +230,18 @@ export function QuizContainer() {
 
       <div className="mt-5 flex min-h-8 items-center justify-between gap-3 text-sm">
         <div>
-          <span className="text-[#5d5853]">
+          <span className="text-[#716257]">
             {selectedCount > 0
               ? `${selectedCount} seçim eklendi`
               : 'Bu adımı boş geçebilirsin'}
           </span>
-          {validationMessage && (
-            <p className="mt-2 max-w-md text-sm font-medium text-[#8b3f24]">
-              {validationMessage}
-            </p>
-          )}
+
         </div>
         {selectedCount > 0 && (
           <button
             type="button"
             onClick={resetCurrentStep}
-            className="font-semibold text-[#1f1d1b] underline-offset-4 hover:underline"
+            className="font-semibold text-[#30251f] underline-offset-4 hover:underline"
           >
             Bu adımı temizle
           </button>
@@ -244,7 +253,7 @@ export function QuizContainer() {
           type="button"
           onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
           disabled={stepIndex === 0}
-          className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-[#1f1d1b]/70 hover:bg-[#f6f1e8] disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-[#30251f]/70 hover:bg-[#f6f1e8] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <ArrowLeftIcon />
           Geri
@@ -252,8 +261,8 @@ export function QuizContainer() {
         <div className="flex flex-wrap justify-end gap-2">
           {isLastStep && !hasAnySelections && (
             <Link
-              href="/coffees"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#1f1d1b] px-4 py-2 text-sm font-semibold text-[#1f1d1b] hover:bg-[#f6f1e8]"
+              href="/kahveler"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#30251f] px-4 py-2 text-sm font-semibold text-[#30251f] hover:bg-[#f6f1e8]"
             >
               Tüm kataloğu aç
             </Link>
@@ -261,9 +270,9 @@ export function QuizContainer() {
           <button
             type="button"
             onClick={advanceStep}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#1f1d1b] px-6 py-2 text-sm font-semibold text-white hover:bg-black"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#30251f] px-6 py-2 text-sm font-semibold text-white hover:bg-[#6d3d2a]"
           >
-            {isLastStep ? 'Sonuçları Gör' : 'İleri'}
+            {isLastStep ? 'Sonuçları Gör' : selectedCount > 0 ? 'İleri' : 'Bu adımı geç'}
             <ArrowRightIcon />
           </button>
         </div>

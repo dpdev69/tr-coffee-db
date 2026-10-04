@@ -55,15 +55,17 @@ export async function listCatalog(db:CatalogDatabase,filters:CatalogFilters={},n
   const page=Number.isFinite(filters.page)?Math.max(1,Math.floor(filters.page!)):1;
   const perPage=Number.isFinite(filters.perPage)?Math.min(100,Math.max(1,Math.floor(filters.perPage!))):24;
   const from='FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id';
-  const total=await db.prepare(`SELECT count(*) AS count ${from} WHERE ${where}`).bind(...values).first<{count:number}>();
   const sorts:Record<string,string>={
     newest:'c.first_seen_at DESC,c.id',
     price_asc:'(SELECT min(o.current_price_minor) FROM offers o WHERE o.coffee_id=c.id AND o.in_stock=1 AND o.retired_at IS NULL AND o.currency=\'TRY\') ASC NULLS LAST,c.id',
     price_desc:'(SELECT min(o.current_price_minor) FROM offers o WHERE o.coffee_id=c.id AND o.in_stock=1 AND o.retired_at IS NULL AND o.currency=\'TRY\') DESC NULLS LAST,c.id',
     unit_price_asc:'(SELECT min(1.0*o.current_price_minor/o.weight_g) FROM offers o WHERE o.coffee_id=c.id AND o.in_stock=1 AND o.retired_at IS NULL AND o.currency=\'TRY\' AND o.weight_g>0) ASC NULLS LAST,c.id',
   };
-  const rows=await db.prepare(`SELECT ${COFFEE_COLUMNS} ${from} WHERE ${where} ORDER BY ${sorts[filters.sort??'newest']??sorts.newest} LIMIT ? OFFSET ?`).bind(...values,perPage,(page-1)*perPage).all<CoffeeRow>();
-  return {coffees:await hydrate(db,rows.results,now),total:total?.count??0,page,perPage,totalPages:Math.ceil((total?.count??0)/perPage)};
+  const [total,coffees]=await Promise.all([
+    db.prepare(`SELECT count(*) AS count ${from} WHERE ${where}`).bind(...values).first<{count:number}>(),
+    db.prepare(`SELECT ${COFFEE_COLUMNS} ${from} WHERE ${where} ORDER BY ${sorts[filters.sort??'newest']??sorts.newest} LIMIT ? OFFSET ?`).bind(...values,perPage,(page-1)*perPage).all<CoffeeRow>().then(rows=>hydrate(db,rows.results,now)),
+  ]);
+  return {coffees,total:total?.count??0,page,perPage,totalPages:Math.ceil((total?.count??0)/perPage)};
 }
 
 function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
@@ -190,24 +192,24 @@ export async function listEvents(db:CatalogDatabase,type?:CoffeeEvent['type'],li
 
 /** Explainable catalog similarity, never a personalized numerical match. */
 export async function getSimilarCoffees(db:CatalogDatabase,coffee:CatalogCoffee,limit=4):Promise<Array<CatalogCoffee&{similarityReasons:string[]}>> {
-  const candidates:CatalogCoffee[]=[];
-  // A catalog of low thousands is cheap to compare in bounded pages; no external model or embeddings.
-  for(let page=1;page<=50;page++){
-    const result=await listCatalog(db,{page,perPage:100});candidates.push(...result.coffees);
-    if(page>=result.totalPages)break;
-  }
+  // ponytail: cap at the same 5,000 newest candidates; move ranking into indexed SQL if the catalog outgrows it.
+  const candidates=await db.prepare(`SELECT ${COFFEE_COLUMNS},(SELECT json_group_array(json_object('feature',f.feature,'value',json(f.value_json))) FROM coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN ('normalized_origin','origin_country','process_family','process','flavor_families','flavor_categories')) AS similarity_features_json FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} ORDER BY c.first_seen_at DESC,c.id LIMIT 5000`).all<CoffeeRow&{similarity_features_json:string}>();
   const origin=featureStrings(coffee,'normalized_origin','origin_country').concat(coffee.rawMetadata.country??[]);
   const process=featureStrings(coffee,'process_family','process').concat(coffee.rawMetadata.process??[]);
   const flavor=featureStrings(coffee,'flavor_families','flavor_categories');
-  return candidates.filter(c=>c.id!==coffee.id&&c.canonicalUrl!==coffee.canonicalUrl&&!(c.roaster.id===coffee.roaster.id&&c.name.toLocaleLowerCase('tr-TR')===coffee.name.toLocaleLowerCase('tr-TR')))
-    .map(candidate=>{
+  const selected=candidates.results.filter(c=>c.id!==coffee.id&&c.canonical_url!==coffee.canonicalUrl&&!(c.roaster_id===coffee.roaster.id&&c.name.toLocaleLowerCase('tr-TR')===coffee.name.toLocaleLowerCase('tr-TR')))
+    .map(row=>{
+      const raw=parseJson<RawMetadata>(row.raw_metadata_json,{});
+      const candidate={features:parseJson<Array<Pick<FeatureValue,'feature'|'value'>>>(row.similarity_features_json,[])};
       const reasons:string[]=[];
-      if(overlaps(origin,featureStrings(candidate,'normalized_origin','origin_country').concat(candidate.rawMetadata.country??[])))reasons.push('Aynı kökenden');
-      if(overlaps(process,featureStrings(candidate,'process_family','process').concat(candidate.rawMetadata.process??[])))reasons.push('Benzer işleme yöntemi');
+      if(overlaps(origin,featureStrings(candidate,'normalized_origin','origin_country').concat(raw.country??[])))reasons.push('Aynı kökenden');
+      if(overlaps(process,featureStrings(candidate,'process_family','process').concat(raw.process??[])))reasons.push('Benzer işleme yöntemi');
       if(overlaps(flavor,featureStrings(candidate,'flavor_families','flavor_categories')))reasons.push('Benzer tat profili');
-      return {...candidate,similarityReasons:reasons};
-    }).filter(c=>c.similarityReasons.length>0).sort((a,b)=>b.similarityReasons.length-a.similarityReasons.length||b.firstSeenAt.localeCompare(a.firstSeenAt)||a.id.localeCompare(b.id))
+      return {row,similarityReasons:reasons};
+    }).filter(c=>c.similarityReasons.length>0).sort((a,b)=>b.similarityReasons.length-a.similarityReasons.length||b.row.first_seen_at.localeCompare(a.row.first_seen_at)||a.row.id.localeCompare(b.row.id))
     .slice(0,Math.min(12,Math.max(0,Number.isFinite(limit)?Math.floor(limit):4)));
+  const hydrated=await hydrate(db,selected.map(candidate=>candidate.row),Date.now());
+  return hydrated.map((candidate,index)=>({...candidate,similarityReasons:selected[index].similarityReasons}));
 }
-function featureStrings(coffee:CatalogCoffee,...names:string[]):string[]{return coffee.features.filter(f=>names.includes(f.feature)).flatMap(f=>typeof f.value==='string'?[f.value]:Array.isArray(f.value)?f.value.filter((v):v is string=>typeof v==='string'):[]);}
+function featureStrings(coffee:{features:Array<Pick<FeatureValue,'feature'|'value'>>},...names:string[]):string[]{return coffee.features.filter(f=>names.includes(f.feature)).flatMap(f=>typeof f.value==='string'?[f.value]:Array.isArray(f.value)?f.value.filter((v):v is string=>typeof v==='string'):[]);}
 function overlaps(left:string[],right:string[]):boolean{return left.some(a=>right.some(b=>a.toLocaleLowerCase('tr-TR')===b.toLocaleLowerCase('tr-TR')));}

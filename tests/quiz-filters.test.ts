@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { buildQuizFilterResult, hasQuizSelections } from '@/lib/quiz-filters';
+import { parseDiscoveryFilters } from '@/components/v2/discovery-catalog';
 
 describe('buildQuizFilterResult', () => {
   it('maps all quiz answers to catalog filters and explanations without price buckets', () => {
@@ -14,7 +15,7 @@ describe('buildQuizFilterResult', () => {
 
     assert.equal(
       result.url,
-      '/coffees?brewMethod=filter&flavorCategory=Fruity&flavorCategory=Floral&process=washed&roastLevel=light'
+      '/kahveler?brewMethod=filter&taste=Fruity&taste=Floral&process=washed&roast=light'
     );
     assert.deepEqual(result.explanations, [
       'Demleme uyumu: Filter / Pour Over.',
@@ -38,7 +39,7 @@ describe('buildQuizFilterResult', () => {
       roastLevel: [],
     });
 
-    assert.equal(result.url, '/coffees');
+    assert.equal(result.url, '/kahveler');
     assert.deepEqual(result.explanations, []);
     assert.deepEqual(result.filters, {});
     assert.equal(hasQuizSelections({
@@ -59,7 +60,7 @@ describe('buildQuizFilterResult', () => {
 
     assert.equal(
       result.url,
-      '/coffees?roastLevel=medium_light&roastLevel=medium&roastLevel=medium_dark'
+      '/kahveler?roast=medium_light&roast=medium&roast=medium_dark'
     );
     assert.deepEqual(result.explanations, [
       'Kavurma seviyesi: Orta-Açık, Orta, Orta-Koyu.',
@@ -76,7 +77,7 @@ describe('buildQuizFilterResult', () => {
 
     assert.equal(
       result.url,
-      '/coffees?brewMethod=filter&flavorCategory=Fruity&process=experimental&roastLevel=medium'
+      '/kahveler?brewMethod=filter&taste=Fruity&process=experimental&roast=medium'
     );
     assert.deepEqual(result.filters, {
       brewMethod: ['filter'],
@@ -86,4 +87,22 @@ describe('buildQuizFilterResult', () => {
     });
     assert.equal(hasQuizSelections(result.filters), true);
   });
+});
+
+
+it('hands all optional quiz selections to the live V2 catalog contract', () => {
+  const result = buildQuizFilterResult({
+    brewMethod: ['filter', 'espresso'],
+    flavorCategory: ['Fruity', 'Chocolate'],
+    process: ['washed'],
+    roastLevel: ['light', 'medium'],
+  });
+  const url = new URL(result.url, 'https://kahvedrop.test');
+  const params = Object.fromEntries([...new Set(url.searchParams.keys())].map(key => [key, url.searchParams.getAll(key)]));
+  const catalog = parseDiscoveryFilters(params);
+  assert.equal(url.pathname, '/kahveler');
+  assert.deepEqual(catalog.brewMethod, ['filter', 'espresso']);
+  assert.deepEqual(catalog.taste, ['Fruity', 'Chocolate']);
+  assert.deepEqual(catalog.process, ['washed']);
+  assert.deepEqual(catalog.roast, ['light', 'medium']);
 });

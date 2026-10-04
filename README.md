@@ -1,14 +1,14 @@
-# TR CoffeeDB
+# KahveDrop / TR CoffeeDB
 
-TR CoffeeDB is a Next.js and Supabase app for discovering specialty coffees from Turkish roasters. The product goal is simple: help buyers compare beans across roasters without opening a dozen separate storefronts.
+KahveDrop runs on Cloudflare Workers/D1 through vinext, with a Three.js coffee studio and a Turkish coffee discovery catalog. The original Next/Supabase paths remain for rollback. The product goal is simple: help buyers compare beans across roasters without opening a dozen separate storefronts.
 
 ## Choosing a coffee
 
 - Search by coffee, roaster, origin or tasting note; narrow the catalog by brewing method, flavor, process, roast and decaf preference.
-- Cards show the listed package price and exact weight, plus a calculated TRY price per 100 g. Sort by either package or unit price.
+- Cards show the roaster’s actual package price and weight. Sort by package price or newest.
 - Select up to three coffees to compare prices and published attributes side by side. The selection stays in this browser; comparison URLs can be shared and always load current public records.
 - The coffee guide explains label terminology and includes adjustable starting recipes for filter, espresso, French press and AeroPress, with original sources. Espresso quantities describe beverage yield, not brewing water.
-- “Kontrol edildi” records the last storefront observation, not independent validation or roast date. Data-source errors are shown separately from empty results.
+- Catalog checks and update timestamps are internal. Public views retain roaster-declared harvest, roast dates and SCA facts. Data-source errors are shown separately from empty results.
 
 ## What Is In This Repo
 
@@ -26,7 +26,22 @@ TR CoffeeDB is a Next.js and Supabase app for discovering specialty coffees from
 
 Use the checked-in [`.nvmrc`](.nvmrc) to align local and CI Node versions.
 
-## Local Setup
+## Current V2 local workflow
+
+```bash
+npm ci
+npm --prefix scrapers ci
+npm run db:migrate:local
+npm run dev
+```
+
+Open [http://localhost:3001](http://localhost:3001). `npm run dev` uses the Workers runtime so the D1 catalog binding is present. Schema migration alone does not import data; use the [migration runbook](docs/d1-migration-runbook.md). This workspace already has a repaired local catalog. `npm run dev:next` is retained for legacy compatibility and does not supply D1.
+
+Three.js loads only on the home page after hydration. It pauses when offscreen/hidden and supports reduced motion and WebGL fallback.
+
+Maintenance: `npx tsx scripts/v2-repair-local-catalog.ts --local-db <existing-project-.wrangler-database.sqlite>` (dry-run; add `--apply` after reviewing the report) checks saved qualified captures; internal repair reports live under `.local/v2`. Do not expose these reports in public routes.
+
+## Legacy local setup (rollback only)
 
 1. Install dependencies:
 
@@ -64,7 +79,7 @@ Use the checked-in [`.nvmrc`](.nvmrc) to align local and CI Node versions.
 5. Start the app:
 
    ```bash
-   npm run dev
+   npm run dev:next
    ```
 
 Open [http://localhost:3000](http://localhost:3000).

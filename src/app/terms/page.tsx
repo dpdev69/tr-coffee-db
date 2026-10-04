@@ -1,22 +1,9 @@
+import { pageMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/site';
 
-export const metadata: Metadata = {
-  title: 'Kullanım Şartları',
-  description:
-    'TR CoffeeDB kahve rehberinin kapsamını, fiyat uygunluğu uyarılarını ve dış bağlantı sorumluluklarını açıklar.',
-  alternates: {
-    canonical: '/terms',
-  },
-  openGraph: {
-    title: `Kullanım Şartları | ${SITE_NAME}`,
-    description:
-      'TR CoffeeDB kahve rehberinin kapsamını, fiyat uygunluğu uyarılarını ve dış bağlantı sorumluluklarını açıklar.',
-    url: '/terms',
-    type: 'website',
-  },
-};
+export const metadata: Metadata = pageMetadata('Kullanım Şartları', `${SITE_NAME} kahve rehberinin kapsamını, fiyat uygunluğu uyarılarını ve dış bağlantı sorumluluklarını açıklar.`, '/terms');
 
 export default function TermsPage() {
   return (
@@ -33,7 +20,7 @@ export default function TermsPage() {
       <div className="mt-8 space-y-8">
         <TermsSection title="Mağaza değiliz">
           <p>
-            TR CoffeeDB ürün satmaz, ödeme almaz, sipariş oluşturmaz ve teslimat
+            {SITE_NAME} ürün satmaz, ödeme almaz, sipariş oluşturmaz ve teslimat
             sürecine dahil olmaz. Satın alma kararınızdan önce nihai fiyatı, stok
             durumunu, kargo koşullarını ve iade şartlarını kavurucunun sitesinde
             kontrol etmelisiniz.

@@ -65,6 +65,54 @@ test('feed deals require matching present price; similarity is deterministic and
   db.db.close();
 });
 
+test('catalog rows and hydration do not wait for the independent total query',async()=>{
+  const db=await setup();await ingestCrawl(db,{...run(1,[product('a')]),mode:'baseline'});
+  let release!:()=>void;const pending=new Promise<void>(resolve=>{release=resolve;});
+  let hydrated=false;
+  const concurrent:CatalogDatabase={...db,batch:statements=>db.batch(statements),prepare(sql){
+    const statement=db.prepare(sql);
+    if(sql.startsWith('SELECT * FROM offers'))hydrated=true;
+    return {bind(...values){statement.bind(...values);return this;},first:async<T>()=>{if(sql.startsWith('SELECT count(*) AS count'))await pending;return statement.first<T>();},all:<T>()=>statement.all<T>()};
+  }};
+  const result=listCatalog(concurrent);
+  await new Promise<void>(resolve=>setImmediate(resolve));
+  try{assert.equal(hydrated,true,'selected coffees hydrate while the total is pending');}finally{release();}
+  assert.equal((await result).total,1);db.db.close();
+});
+
+test('similarity ranks declared/inferred values with Turkish duplicates excluded and hydrates only winners',async()=>{
+  const db=await setup();
+  await registerRoaster(db,{id:'r2',slug:'other',name:'Other',websiteUrl:'https://shop.test',adapter:'test'});
+  const facts={country:'Türkiye',process:'washed'};
+  const features=[{feature:'flavor_families',value:['fruity'],sourceType:'RULE_INFERRED' as const,confidence:null,version:'1'}];
+  const a=product('a',{name:'IŞIK',rawMetadata:facts,features});
+  const strongest=product('strongest',{rawMetadata:{country:'TÜRKİYE',process:'WASHED'},features});
+  const inferred=product('inferred',{rawMetadata:{},features:[
+    {feature:'normalized_origin',value:['Türkiye',12,null],sourceType:'RULE_INFERRED',confidence:null,version:'1'},
+    {feature:'process_family',value:'washed',sourceType:'RULE_INFERRED',confidence:null,version:'1'},
+    {feature:'flavor_categories',value:[true,'fruity'],sourceType:'RULE_INFERRED',confidence:null,version:'1'},
+    {feature:'origin_country',value:null,sourceType:'RULE_INFERRED',confidence:null,version:'1'},
+    {feature:'process',value:{unmatched:'washed'},sourceType:'RULE_INFERRED',confidence:null,version:'1'},
+  ]});
+  const hidden=product('hidden',{visibility:'hidden',rawMetadata:facts,features});
+  const unavailable=product('unavailable',{rawMetadata:facts,features});unavailable.offers[0].inStock=false;
+  await ingestCrawl(db,{...run(1,[a,strongest,inferred,hidden,unavailable,product('duplicate',{name:'ışık',rawMetadata:facts,features}),product('equipment',{name:'Kahve Fincanı',rawMetadata:facts,features}),product('origin-only',{rawMetadata:{country:'Türkiye'}})]),mode:'baseline'});
+  // Legacy incorrect visibility must still pass the shared coffee-only guard.
+  db.db.prepare("UPDATE coffees SET visibility='public' WHERE source_product_id='equipment'").run();
+  await ingestCrawl(db,{...run(2,[product('same-url',{canonicalUrl:a.canonicalUrl,rawMetadata:facts,features})]),roasterId:'r2',mode:'baseline'});
+  const all=(await listCatalog(db)).coffees;const current=all.find(c=>c.sourceProductId==='a')!;
+  let reads=0;let hydratedIds:SqlValue[]=[];
+  const counted:CatalogDatabase={batch:statements=>db.batch(statements),prepare(sql){reads++;const statement=db.prepare(sql);return {bind(...values){if(sql.startsWith('SELECT * FROM offers'))hydratedIds=values;statement.bind(...values);return this;},first:<T>()=>statement.first<T>(),all:<T>()=>statement.all<T>()};}};
+  const result=await getSimilarCoffees(counted,current,2);
+  const winners=all.filter(c=>['strongest','inferred'].includes(c.sourceProductId!)).sort((a,b)=>a.id.localeCompare(b.id));
+  assert.deepEqual(result,winners.map(c=>({...c,similarityReasons:['Aynı kökenden','Benzer işleme yöntemi','Benzer tat profili']})));
+  assert.equal(reads,4);assert.deepEqual(hydratedIds,winners.map(c=>c.id));
+  assert.equal((await getSimilarCoffees(db,current,0)).length,0);
+  assert.equal((await getSimilarCoffees(db,current,-1)).length,0);
+  assert.equal((await getSimilarCoffees(db,current,NaN)).length,3);
+  db.db.close();
+});
+
 test('restock feed follows the triggering SKU when another SKU remains available',async()=>{
   const db=await setup();const a=product('a');
   a.offers[0].inStock=false;

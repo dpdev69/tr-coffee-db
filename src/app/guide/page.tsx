@@ -1,13 +1,9 @@
+import { pageMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BrewCalculator } from '@/components/guide/brew-calculator';
 
-export const metadata: Metadata = {
-  title: 'Kahve Rehberi ve Demleme Hesaplayıcı',
-  description:
-    'Kahve seçerken paket fiyatını, tadım notlarını ve işleme yöntemlerini anlamak için kısa bir rehber. Filtre, espresso, French press ve AeroPress için demleme hesaplayıcı.',
-  alternates: { canonical: '/guide' },
-};
+export const metadata: Metadata = pageMetadata("Kahve Rehberi ve Demleme Hesaplayıcı", "Kahve seçimi, tadım notları ve işleme yöntemleri için kısa bir rehber. Filtre, espresso, French press ve AeroPress için demleme oranını hesapla.", "/guide");
 export default function GuidePage() {
   return (
     <div className="page-shell section-space">
@@ -26,7 +22,7 @@ export default function GuidePage() {
           <a href="#calculator" className="text-link">
             Demleme oranını hesapla ↓
           </a>
-          <Link href="/coffees" className="text-link">
+          <Link href="/kahveler" className="text-link">
             Kahveleri keşfet ↗
           </Link>
         </div>
@@ -49,8 +45,8 @@ export default function GuidePage() {
           <p>
             <strong className="text-[#1f1d1b]">Paket miktarı ve fiyat.</strong>{' '}
             200 g ile 1 kg paketi yalnızca etiket fiyatından kıyaslama.
-            Katalogdaki 100 g fiyatı miktar farkını ortadan kaldırır; kargo
-            ücretini ayrıca hesaba kat.
+            Kavurucunun sunduğu gramajı, paket fiyatını ve ne kadar kahve
+            tükettiğini birlikte değerlendir. Kargo ücretini ayrıca hesaba kat.
           </p>
           <h2>Kahve sözlüğü, kısa hali.</h2>
           <details open>
@@ -84,24 +80,6 @@ export default function GuidePage() {
               bir etiketi kalite puanı gibi okuma.
             </p>
           </details>
-          <details>
-            <summary>“Kontrol edildi” neyi doğruluyor?</summary>
-            <p>
-              Kavurucunun ürün sayfasını en son ne zaman gördüğümüzü belirtir.
-              Bugün kontrol edilmiş bir sayfa, kahvenin bugün kavrulduğunu veya
-              her bilginin bağımsız olarak doğrulandığını göstermez. Güncel
-              stok, kavrum tarihi ve teslimat için kavurucuya bak.
-            </p>
-          </details>
-          <details>
-            <summary>İzlenebilirlik puanı lezzet puanı mı?</summary>
-            <p>
-              Hayır. Kayıtta ne kadar köken ve yolculuk bilgisi bulunduğuna dair
-              bir göstergedir. Kahveyi tadıp verdiğimiz bir not veya bilgilerin
-              bağımsız doğrulaması değildir. Detay sayfasında kaynağı ve
-              doğrulama seviyesini ayrı ayrı incele.
-            </p>
-          </details>
           <h2>İlk deneme tam olmadıysa…</h2>
           <p>
             Bir sonraki demlemede yalnızca tek şeyi değiştir: öğütüm, oran veya
@@ -125,7 +103,7 @@ export default function GuidePage() {
         <BrewCalculator />
       </div>
       <div className="mt-12 border-t border-[#dedfd7] pt-6">
-        <Link href="/coffees" className="button-dark">
+        <Link href="/kahveler" className="button-dark">
           Şimdi çekirdekleri keşfet ↗
         </Link>
       </div>

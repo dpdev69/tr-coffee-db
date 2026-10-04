@@ -1,11 +1,10 @@
+import { pageMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { getCoffeeBySlug } from '@/lib/queries/coffees';
 import {
   formatPackageWeight,
-  formatVerifiedAt,
-  getUnitPrice,
 } from '@/lib/coffee-display';
 import {
   BREW_METHOD_LABELS,
@@ -18,11 +17,11 @@ import {
 } from '@/components/coffee/compare-controls';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import type { CoffeeWithRoaster } from '@/lib/types/database';
+import type { LegacyCatalogCoffee } from '@/lib/v2-legacy';
+type ComparisonCoffee = CoffeeWithRoaster & Partial<Pick<LegacyCatalogCoffee, 'stock_status' | 'decaf_status'>>;
 
 export const metadata: Metadata = {
-  title: 'Kahveleri Karşılaştır',
-  description:
-    'Kahvelerin paket fiyatını, 100 g fiyatını, kökenini ve tat notlarını yan yana karşılaştır.',
+  ...pageMetadata('Kahveleri Karşılaştır', 'Kahvelerin paket fiyatını, gramajını, kökenini ve tat notlarını yan yana karşılaştır.', '/compare'),
   robots: { index: false, follow: true },
 };
 export default async function ComparePage({
@@ -59,9 +58,8 @@ export default async function ComparePage({
       }
     }),
   );
-  const coffees = results.flatMap((result) =>
-    result.coffee ? [result.coffee] : [],
-  );
+  const coffees = [...new Map(results.flatMap(result => result.coffee ? [[result.coffee.id, result.coffee] as const] : [])).values()];
+  const withoutCoffee = (id: string) => slugs.filter((_, index) => results[index].coffee?.id !== id);
   const continuingSlugs = slugs.filter(
     (_, index) => results[index].failed || results[index].coffee,
   );
@@ -72,28 +70,19 @@ export default async function ComparePage({
   const missing = missingSlugs.length > 0;
   const rows: {
     label: string;
-    value: (coffee: CoffeeWithRoaster) => string;
+    value: (coffee: ComparisonCoffee) => string;
   }[] = [
     {
       label: 'Paket fiyatı',
       value: (c) =>
         c.price_amount
-          ? `${c.price_amount.toLocaleString('tr-TR')} ${c.price_currency === 'TRY' ? 'TL' : c.price_currency}`
+          ? `${c.price_amount.toLocaleString('tr-TR')} ${c.price_currency === 'TRY' ? 'TL' : c.price_currency || '(para birimi bilinmiyor)'}`
           : 'Belirtilmemiş',
     },
     {
       label: 'Paket miktarı',
       value: (c) =>
         c.weight_grams ? formatPackageWeight(c.weight_grams) : 'Belirtilmemiş',
-    },
-    {
-      label: '100 g fiyatı',
-      value: (c) => {
-        const price = getUnitPrice(c);
-        return price !== null
-          ? `${price.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} TL`
-          : 'Hesaplanamıyor';
-      },
     },
     {
       label: 'Köken',
@@ -117,7 +106,7 @@ export default async function ComparePage({
     },
     {
       label: 'Tadım notları',
-      value: (c) => c.flavor_notes_normalized.join(' · ') || 'Paylaşılmamış',
+      value: (c) => c.flavor_notes.join(' · ') || c.flavor_notes_normalized.join(' · ') || 'Paylaşılmamış',
     },
     {
       label: 'Önerilen demleme',
@@ -125,11 +114,8 @@ export default async function ComparePage({
         c.brew_methods.map((m) => BREW_METHOD_LABELS[m] ?? m).join(' · ') ||
         'Paylaşılmamış',
     },
-    { label: 'Kafeinsiz', value: (c) => (c.is_decaf ? 'Evet' : 'Hayır') },
-    {
-      label: 'Kaynak kontrolü',
-      value: (c) => formatVerifiedAt(c.last_seen_at),
-    },
+    { label: 'Kafeinsiz', value: (c) => ('decaf_status' in c && c.decaf_status == null ? 'Bilinmiyor' : c.is_decaf ? 'Evet' : 'Hayır') },
+    { label: 'Seçilen paketin stoku', value: (c) => ('stock_status' in c && c.stock_status == null ? 'Bilinmiyor' : c.is_available ? 'Stokta' : 'Stokta yok') },
   ];
   return (
     <div className="page-shell section-space">
@@ -145,9 +131,7 @@ export default async function ComparePage({
         </CompareCatalogLink>
       </div>
       <p className="mb-8 max-w-2xl text-base leading-7 text-[#625e57]">
-        Farklı paketleri 100 g fiyatıyla karşılaştır. Tat ve demleme bilgileri
-        kavurucuların paylaştığı bilgilerdir; eksik bilgi uyumsuzluk anlamına
-        gelmez.
+        Kavurucuların sunduğu paketleri, fiyatları ve tat profillerini yan yana incele. Fiyatı değerlendirirken paket gramajına da bak.
       </p>
       {failed && (
         <div className="mb-6">
@@ -163,7 +147,7 @@ export default async function ComparePage({
         <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6">
           <p role="status">
             Seçtiğin kahvelerden bazıları artık güncel katalogda bulunmuyor.
-            Stok veya son kontrol tarihi değişmiş olabilir. Listeden çıkarıp
+            Satış durumu değişmiş olabilir. Listeden çıkarıp
             yeni bir kahve ekleyebilirsin.
           </p>
           <div className="mt-3 space-y-3">
@@ -211,7 +195,7 @@ export default async function ComparePage({
                       </p>
                       <h2>
                         <Link
-                          href={`/coffees/${coffee.slug}`}
+                          href={`/kahve/${coffee.slug}`}
                           className="hover:underline"
                         >
                           {coffee.name_normalized ?? coffee.name}
@@ -220,11 +204,9 @@ export default async function ComparePage({
                       <CompareRemoveLink
                         name={coffee.name}
                         href={compareHref(
-                          slugs.filter((slug) => slug !== coffee.slug),
+                          withoutCoffee(coffee.id),
                         )}
-                        remainingSlugs={slugs.filter(
-                          (slug) => slug !== coffee.slug,
-                        )}
+                        remainingSlugs={withoutCoffee(coffee.id)}
                       />
                     </th>
                   ))}
@@ -244,7 +226,7 @@ export default async function ComparePage({
                   {coffees.map((coffee) => (
                     <td key={coffee.id}>
                       <Link
-                        href={`/coffees/${coffee.slug}`}
+                        href={`/kahve/${coffee.slug}`}
                         className="text-link"
                       >
                         Kahve detayları ↗
@@ -256,9 +238,8 @@ export default async function ComparePage({
             </table>
           </div>
           <p className="catalog-caption">
-            Fiyatlara kargo dahil değildir. Birim fiyat, listelenen paket fiyatı
-            ve gramajından hesaplanır. Son fiyat ve stok için kahve detayından
-            kavurucuya geç.
+            Fiyatlara kargo dahil değildir. Güncel fiyatı ve stoğu görmek için
+            kahve detayından kavurucuya geç.
           </p>
         </>
       ) : (
