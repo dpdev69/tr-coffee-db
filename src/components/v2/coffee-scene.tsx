@@ -12,9 +12,6 @@ export function CoffeeScene({ className = "" }: { className?: string }) {
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
-    // three.js (~544 KB) is for large screens with a mouse only; phones, tablets and data-saver keep the SVG.
-    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
-    if (saveData || !window.matchMedia("(min-width: 1024px) and (pointer: fine)").matches) return;
     let cancelled = false;
     let cleanup = () => {};
 
