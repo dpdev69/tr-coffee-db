@@ -60,16 +60,29 @@ describe('wave-2 sources are proven offline from recorded responses', () => {
     assert.deepEqual(result.products.find(p => /Clabelina/.test(p.name))!.offers.map(o => [o.weightG, o.price, o.inStock]), [[250, 610, true], [1000, 2080, true]]);
   });
 
+  it('Mayard (IKAS): the shop\'s own tasting-notes and details fields are read; farm story and recipe are not', async () => {
+    const result = await crawlIkas('mayard', 'mayard-ikas.json');
+    const villa = result.products.find(p => /Clabelina/.test(p.name))!;
+    const features = Object.fromEntries(villa.features.map(f => [f.feature, f.value]));
+    // Page "Tadım Notları": Beyaz Üzüm, Mandalina, Esmer Şeker ve Siyah Zeytin. "Kahvenin Künyesi": Varyete : Caturra.
+    assert.deepEqual(features.flavor_notes_normalized, ['Grape', 'Tangerine', 'Sweet', 'Brown Sugar']);
+    assert.deepEqual(features.normalized_variety, ['Caturra']);
+    assert.deepEqual(features.process_family, ['washed']);
+    const sourceData = villa.rawMetadata.sourceData as { attributes: { name: string; value: string }[] };
+    assert.deepEqual(sourceData.attributes.map(a => a.name), ['Tadım Notları', 'Kahvenin Künyesi']);
+    assert.equal(sourceData.attributes[0].value, 'Beyaz Üzüm, Mandalina, Esmer Şeker ve Siyah Zeytin');
+  });
+
   it('Vitus (IKAS): stock counts of zero at the storefront warehouse read as out of stock', async () => {
     const result = await crawlIkas('vitus', 'vitus-ikas.json');
     assert.equal(result.complete, true);
     assert.deepEqual(summary(result.products)[0], ['Italian Espresso Blend', [[250, 435, false], [1000, 1566, false]]]);
   });
 
-  it('are configured and unique; only Caffe Di Toee passed the 2026-10-05 storefront review', () => {
+  it('are configured and unique; all but Vitus (sold out) passed the 2026-10-05 review', () => {
     const added = ['coffee-sapiens', 'lot-coffee', 'caffe-di-toee', 'mayard', 'vitus'];
     assert.equal(new Set(ALL_ROASTER_CONFIGS.map(c => c.slug)).size, ALL_ROASTER_CONFIGS.length);
-    for (const slug of added) { assert.ok(config(slug), slug); assert.equal(isQualifiedSource(slug), slug === 'caffe-di-toee', slug); }
+    for (const slug of added) { assert.ok(config(slug), slug); assert.equal(isQualifiedSource(slug), slug !== 'vitus', slug); }
     assert.equal(config('caffe-di-toee').city, 'Ankara');
     assert.equal(config('lot-coffee').city, null);
   });

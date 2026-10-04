@@ -119,3 +119,24 @@ test('roast comes only from a roast label, never from brew words (failure 6)',()
   assert.equal(derive('Filtre Kahve / Kolombiya','Espresso ve filtre için uygundur.',undefined,{product_type:'Filtre Kahve'}).roast_classification,undefined);
   assert.equal(derive('Filtre Kahve / Kolombiya','Kavrum: Orta.').roast_classification,'medium');
 });
+test('a word of a process or variety phrase is not a tasting note; a tasting section keeps it',()=>{
+  // Mayard and Coffee Sapiens, 2026-10-05: honey is the process, Orange Bourbon the variety; the pages list other notes.
+  for(const name of ['Costa Rica El Mango "Full Honey Anaerobic"','Colombia LA Sirena "Honey Peach"','Indonesia Liberica "Honey Mosto"','Costa Rica Las Torres "Full Anaerobic Honey"'])
+    assert.ok(!(derive(name,'').flavor_notes_normalized as string[]|undefined)?.includes('Honey'),name);
+  const gigi=derive('INDONESIA MAS IYAN GIGI MANIS','Gunung Suket\'teki 1.700 metrelik bahçesinde Orange Bourbon kirazlarını 120 saatlik anaerobik fermantasyondan geçiriyor.\nLezzet Notları: Nar, kiraz, naşi armudu, tatlı şekerleme.');
+  assert.deepEqual(gigi.flavor_notes_normalized,['Cherry']);
+  assert.deepEqual(gigi.normalized_variety,['Bourbon']);
+  assert.equal(derive('Colombia – Santa Monica Honey + Wine Yeast / Lulo','').flavor_notes_normalized,undefined);
+  assert.deepEqual(derive('Kolombiya','<h3>Tadım Notları</h3><p>Honey, orange.</p>').flavor_notes_normalized,['Orange','Honey']);
+});
+test('honeydew, cherry blossom and white tea are not Honey, Cherry or Black Tea, even in a tasting section',()=>{
+  // Mayard's own "Tadım Notları", 2026-10-05: Liberica "Honey Mosto" and Frinsa Edun #2.
+  assert.deepEqual(derive('Indonesia Liberica','<h3>Tadım Notları</h3><p>Şeftali, Beyaz Çay, Nektar, Bal Kavunu</p>').flavor_notes_normalized,['Peach']);
+  assert.deepEqual(derive('Indonesia Frinsa Edun #2','<h3>Tadım Notları</h3><p>Karpuz, Dağ Çileği, Kiraz Çiçeği, Kan Portakal</p>').flavor_notes_normalized,['Orange']);
+  assert.deepEqual(derive('Rwanda','<h3>Tadım Notları</h3><p>Vişne, Erik, Kuru Üzüm ve Siyah Çay, bal</p>').flavor_notes_normalized,['Cherry','Plum','Grape','Honey','Black Tea']);
+});
+test('a tropical climate is not a Tropical Fruit note; tropical fruits in prose still are',()=>{
+  // Lot Coffee, Etiyopya Boledu (2026-10-05): the page's notes are Böğürtlen / Siyah Çay / Bal.
+  assert.deepEqual(derive('Etiyopya Boledu','Bölge, sıcak tropikal iklimi, verimli toprakları ve 2000 metrenin üzerindeki yüksek rakımları sayesinde ünlüdür. / Böğürtlen / Siyah Çay').flavor_notes_normalized,['Blackberry','Black Tea']);
+  assert.deepEqual(derive('Kolombiya El Indio','Tadım profili olarak tropikal meyveler ve turunçgil tatlarıyla başlayan deneyim').flavor_notes_normalized,['Citrus','Tropical Fruit']);
+});

@@ -6,15 +6,17 @@ import type { RawProduct } from '../types.js';
 import type { FeatureValue, Json } from '../../../shared/v2/types.js';
 import { names, text } from './primitives.js';
 
-export const PROFILE_VERSION = 'v2-profile-3';
+export const PROFILE_VERSION = 'v2-profile-4';
 /** Deliberately excludes handles, image URLs, IDs and unrelated nested navigation data. */
 export function profileInput(raw: Record<string, unknown>, name: string, url: string, id: string | null, description: string, roasterName = ''): RawProduct {
   const tags = typeof raw.tags === 'string' ? raw.tags.split(',') : names(raw.tags);
   const $=load(text(raw.description)||text(raw.body_html));
   const section=(pattern:RegExp)=>{const heading=$('h2,h3,h4').filter((_,el)=>pattern.test($(el).text())).first();return heading.length?heading.nextUntil('h2,h3,h4').text().trim():null;};
+  // A shop field named for tasting notes (IKAS "Tadım Notları") states them as plainly as a heading does.
+  const field=(pattern:RegExp)=>{const found=(Array.isArray(raw.attributes)?raw.attributes:[]).find((attribute):attribute is Record<string,unknown>=>Boolean(attribute)&&typeof attribute==='object'&&pattern.test(text(attribute.name)));const terms=Array.isArray(found?.terms)?found.terms.map(term=>typeof term==='string'?term:text(term?.name)).filter(Boolean):[];return found?text(found.value)||terms.join(', ')||null:null;};
   return { externalId: id ?? url, name, description, price: null, currency: '', weightGrams: null,
     imageUrl: null, productUrl: url, isAvailable: false, tags: [text(raw.product_type), ...tags, ...names(raw.categories)],
-    rawData: {v2RoasterName:roasterName,v2TasteText:section(/nasıl bir tada|tadım not|tasting notes/i),v2BrewText:section(/nasıl demlemeli|brewing|brew guide/i), ...Object.fromEntries(['attributes', 'origin', 'koken_tr', 'uretici', 'rakim', 'cultivar', 'islem_tr', 'tadim_notlari_tr'].filter(key => raw[key] != null).map(key => [key, raw[key]]))} };
+    rawData: {v2RoasterName:roasterName,v2TasteText:section(/nasıl bir tada|tadım not|tasting notes/i)??field(/tad[ıi]m not|tasting notes/i),v2BrewText:section(/nasıl demlemeli|brewing|brew guide/i), ...Object.fromEntries(['attributes', 'origin', 'koken_tr', 'uretici', 'rakim', 'cultivar', 'islem_tr', 'tadim_notlari_tr'].filter(key => raw[key] != null).map(key => [key, raw[key]]))} };
 }
 /** Source text supports rules, not verified facts. Never emit inferred values into rawMetadata. */
 export function deriveProfileFeatures(input: RawProduct): FeatureValue[] {
