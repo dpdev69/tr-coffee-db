@@ -91,3 +91,12 @@ test('the roaster site link exists only through the trusted-host check and carri
   assert.equal(await roasterSiteUrl(db,'../evil'),null);
   db.sqlite.close();
 });
+
+test('saved coffees of a deactivated roaster are not served at all',async()=>{
+  const db=await setup();
+  await ingestCrawl(db,{...run(1,[product('a',{},100,false)]),mode:'baseline'});
+  assert.equal((await getSavedCoffees(db,[slug(db,'a')])).length,1);
+  db.sqlite.exec(`UPDATE roasters SET active=0`);
+  assert.deepEqual(await getSavedCoffees(db,[slug(db,'a')]),[]);
+  db.sqlite.close();
+});

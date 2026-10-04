@@ -115,11 +115,11 @@ export async function getCoffeeOfTheDay(db:CatalogDatabase,now=Date.now()):Promi
 
 export const SAVED_SLUG=/^[a-z0-9_-]{1,240}$/i;
 export const SAVED_LIMIT=50;
-/** Current state of saved coffees, including sold-out ones. A twin's slug resolves to its group's parent. */
+/** Current state of saved coffees, including sold-out ones. A twin's slug resolves to its group's parent. A deactivated roaster's coffees are left out (they read as gone). */
 export async function getSavedCoffees(db:CatalogDatabase,slugs:string[],now=Date.now()):Promise<Array<{savedSlug:string;availability:'listed'|'sold_out'|'gone';coffee:CatalogCoffee}>> {
   const wanted=[...new Set(slugs.filter(slug=>SAVED_SLUG.test(slug)))].slice(0,SAVED_LIMIT);
   if(!wanted.length)return [];
-  const rows=await db.prepare(`SELECT ${COFFEE_COLUMNS},x.slug AS saved_slug,EXISTS(SELECT 1 FROM public_catalog_coffees p WHERE p.id=c.id) AS listed FROM coffees x JOIN coffees c ON c.id=coalesce(x.canonical_coffee_id,x.id) JOIN roasters r ON r.id=c.roaster_id WHERE x.slug IN (${placeholders(wanted.length)}) AND c.visibility='public' AND ${coffeeOnlySql()}`).bind(...wanted).all<CoffeeRow&{saved_slug:string;listed:number}>();
+  const rows=await db.prepare(`SELECT ${COFFEE_COLUMNS},x.slug AS saved_slug,EXISTS(SELECT 1 FROM public_catalog_coffees p WHERE p.id=c.id) AS listed FROM coffees x JOIN coffees c ON c.id=coalesce(x.canonical_coffee_id,x.id) JOIN roasters r ON r.id=c.roaster_id WHERE x.slug IN (${placeholders(wanted.length)}) AND r.active=1 AND c.visibility='public' AND ${coffeeOnlySql()}`).bind(...wanted).all<CoffeeRow&{saved_slug:string;listed:number}>();
   const coffees=await hydrate(db,rows.results,now);
   return coffees.map((coffee,index)=>({savedSlug:rows.results[index].saved_slug,coffee,
     availability:rows.results[index].listed?'listed':!coffee.discontinuedAt&&coffee.offers.some(offer=>offer.inStock===false)?'sold_out':'gone'}));
