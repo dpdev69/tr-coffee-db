@@ -56,16 +56,20 @@ test('advanced query contract preserves source altitude text and ignores retired
 });
 
 
-test('package prices render the source currency and package without normalized pricing', () => {
-  const html = renderToStaticMarkup(createElement(OfferPrice, { offer }));
+test('a unit price is shown only for a package with its own weight and is computed from that package alone', () => {
+  // The stored unitPriceTry is deliberately wrong: the card divides this package's own price by its own weight.
+  const html = renderToStaticMarkup(createElement(OfferPrice, { offer: { ...offer, unitPriceTry: 999 } }));
   assert.match(html, /900 TL/);
   assert.match(html, /250 g/);
-  assert.doesNotMatch(html, /100 g|360 TL|Birim fiyat/);
+  assert.match(html, /₺360 \/ 100 g/);
+  assert.doesNotMatch(html, /999|Birim fiyat/);
+  assert.match(renderToStaticMarkup(createElement(OfferPrice, { offer: { ...offer, weightG: 1000, priceMinor: 250000 } })), /₺250 \/ 100 g/);
   const foreign = renderToStaticMarkup(createElement(OfferPrice, { offer: { ...offer, currency: 'EUR', priceMinor: 2200, unitPriceTry: null } }));
   assert.match(foreign, /22 EUR/);
-  const unknownWeight = renderToStaticMarkup(createElement(OfferPrice, { offer: { ...offer, weightG: null, label: 'Kavurucu paketi' } }));
+  assert.doesNotMatch(foreign, /100 g/);
+  const unknownWeight = renderToStaticMarkup(createElement(OfferPrice, { offer: { ...offer, weightG: null, label: 'Kavurucu paketi', unitPriceTry: 360 } }));
   assert.match(unknownWeight, /Kavurucu paketi/);
-  assert.doesNotMatch(unknownWeight, /100 g|250 g/);
+  assert.doesNotMatch(unknownWeight, /100 g|250 g|₺/);
 });
 
 

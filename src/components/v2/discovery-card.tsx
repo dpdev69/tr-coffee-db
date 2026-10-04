@@ -2,10 +2,12 @@ import { CoffeeImage } from './coffee-image';
 import { countryLabel } from '../../../shared/v2/country-labels';
 import Link from 'next/link';
 import { CompareToggle } from '@/components/coffee/compare-controls';
+import { SaveToggle } from '@/components/coffee/saved-list';
 import { formatMoney, formatPackageWeight } from '@/lib/coffee-display';
 import { PROCESS_LABELS } from '@/lib/constants/filter-options';
 import type { CatalogCoffee, CatalogOffer } from '../../../shared/v2/catalog';
 import type { CoffeeEvent } from '../../../shared/v2/types';
+import { unitPriceTry } from '../../../shared/v2/identity';
 
 const TASTES:Record<string,string>={fruity:'Meyvemsi',floral:'Çiçeksi',chocolate:'Çikolatalı',chocolatey:'Çikolatalı',sweet:'Tatlı',nutty:'Kuruyemişli',spicy:'Baharatlı',herbal:'Bitkisel',roasted:'Kavrulmuş',funky:'Fermente',fermented:'Fermente',clean:'Temiz'};
 export const EVENT_LABELS:Record<CoffeeEvent['type'],string>={NEW:'Yeni',PRICE_DROP:'Fiyatı düştü',RESTOCKED:'Geri geldi',DEAL:'Doğrulanmış fırsat',OUT_OF_STOCK:'Tükendi'};
@@ -37,19 +39,27 @@ export function currentBadges(coffee:CatalogCoffee,now=Date.now()):CoffeeEvent[]
 export function publicOfferLabel(offer:CatalogOffer|undefined){
   return offer?.label&&!/^legacy package\b/i.test(offer.label)?offer.label:offer?.weightG?formatPackageWeight(offer.weightG):'Paket ağırlığı belirtilmemiş';
 }
+/** Price per 100 g of this package alone: its own price over its own weight. A package without a weight never gets one. */
+function UnitPrice({offer}:{offer:CatalogOffer}){
+  const unit=unitPriceTry(offer.priceMinor,offer.weightG,offer.currency);
+  return unit?<p className="mt-0.5 text-xs text-muted">₺{Math.round(unit).toLocaleString('tr-TR')} / 100 g</p>:null;
+}
 export function OfferPrice({offer}:{offer:CatalogOffer|undefined}){
   return <div className="tabular-nums"><p className="flex flex-wrap items-baseline gap-x-1.5"><strong className="text-[19px] font-semibold">{offer?.priceMinor!=null&&offer.priceMinor>0?formatMoney(offer.priceMinor/100,offer.currency??'(para birimi belirtilmemiş)'): 'Fiyat paylaşılmamış'}</strong>{offer?.weightG?<span className="text-[13px] text-muted">/ {formatPackageWeight(offer.weightG)}</span>:null}</p>
-    {offer?.weightG==null?<p className="mt-1 text-xs text-muted">{publicOfferLabel(offer)}</p>:null}</div>;
+    {offer?.weightG==null?<p className="mt-1 text-xs text-muted">{publicOfferLabel(offer)}</p>:<UnitPrice offer={offer}/>}</div>;
 }
+/** What the save button remembers: the package this card or page shows. */
+export function savedPackage(offer:CatalogOffer|undefined){return {priceMinor:offer?.priceMinor??null,weightG:offer?.weightG??null,currency:offer?.currency??null,inStock:offer?.inStock??null};}
 export function DiscoveryCard({coffee,source='catalog'}:{coffee:CatalogCoffee;source?:string}){
   const offer=preferredOffer(coffee),badges=currentBadges(coffee);
   const notes=coffee.rawMetadata.tastingNotes?.length?coffee.rawMetadata.tastingNotes.slice(0,3):tasteSummary(coffee);
   const image=coffee.rawMetadata.imageUrl;
-  return <article className="coffee-card">
+  return <article className="coffee-card relative">
     <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="coffee-card-image block" aria-label={`${coffee.name} detayları`}>
-      {image&&/^https?:\/\//.test(image)?<CoffeeImage source={image} alt={coffee.name} sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 28vw" className="absolute inset-0 h-full w-full object-contain p-5"/>:<div className="flex h-full items-center justify-center px-8 text-center font-display text-3xl text-accent">{coffee.roaster.name}</div>}
+      {image&&/^https?:\/\//.test(image)?<CoffeeImage roaster={coffee.roaster.name} source={image} alt={coffee.name} sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 28vw" className="absolute inset-0 h-full w-full object-contain p-5"/>:<div className="flex h-full items-center justify-center px-8 text-center font-display text-3xl text-accent">{coffee.roaster.name}</div>}
       {badges.length>0?<span className="absolute left-3 top-3 flex flex-wrap gap-1">{badges.map(event=><span key={event.id} className="coffee-card-badge">{EVENT_LABELS[event.type]}</span>)}</span>:null}
     </Link>
+    <SaveToggle slug={coffee.slug} name={coffee.name} offer={savedPackage(offer)} className="absolute right-2.5 top-2.5"/>
     <div className="coffee-card-body">
       <p className="text-[13px] text-muted"><Link href={`/kavurucu/${coffee.roaster.slug}`} className="py-1 hover:text-accent hover:underline">{coffee.roaster.name}</Link>{coffee.roaster.city?` · ${coffee.roaster.city}`:''}</p>
       <h3><Link href={`/kahve/${coffee.slug}`} prefetch={false} className="line-clamp-2 hover:underline">{coffee.name}</Link></h3>

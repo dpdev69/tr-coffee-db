@@ -4,7 +4,8 @@ import { CompareToggle } from '@/components/coffee/compare-controls';
 import { formatMoney } from '@/lib/coffee-display';
 import { ROAST_LABELS } from '@/lib/constants/filter-options';
 import type { CatalogCoffee, CatalogOffer } from '../../../shared/v2/catalog';
-import { coffeeOrigin, coffeeProcess, currentBadges, EVENT_LABELS, featureText, OfferPrice, publicOfferLabel, tasteSummary } from './discovery-card';
+import { coffeeOrigin, coffeeProcess, currentBadges, EVENT_LABELS, featureText, OfferPrice, preferredOffer, publicOfferLabel, savedPackage, tasteSummary } from './discovery-card';
+import { SaveToggle } from '@/components/coffee/saved-list';
 
 /** Round serif initial on tint; stands in for a roaster logo we do not have. */
 const INITIAL_SIZES={sm:'h-11 w-11 bg-ground text-[19px]',md:'h-14 w-14 bg-surface text-2xl',lg:'h-28 w-28 bg-tint text-5xl'};
@@ -28,7 +29,7 @@ export function DiscoveryDetail({coffee}:{coffee:CatalogCoffee}){
   return <>
     <nav aria-label="İçerik yolu" className="mb-4 flex flex-wrap items-center gap-2 text-sm"><Link href="/kahveler" className="inline-flex min-h-11 items-center text-accent hover:underline">Kahveler</Link><span className="text-muted" aria-hidden="true">/</span><Link href={`/kavurucu/${coffee.roaster.slug}`} className="inline-flex min-h-11 items-center text-accent hover:underline">{coffee.roaster.name}</Link><span className="text-muted" aria-hidden="true">/</span><span className="text-muted" aria-current="page">{coffee.name}</span></nav>
     <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
-      <div className="relative aspect-square max-w-[560px] overflow-hidden rounded-[18px] bg-tint lg:rounded-3xl">{raw.imageUrl&&/^https?:\/\//.test(raw.imageUrl)?<CoffeeImage source={raw.imageUrl} alt={coffee.name} sizes="(max-width: 1023px) 90vw, 45vw" loading="eager" className="absolute inset-0 h-full w-full object-contain p-8"/>:<div className="flex h-full items-center justify-center p-12 text-center font-display text-5xl text-accent">{coffee.roaster.name}</div>}</div>
+      <div className="relative aspect-square max-w-[560px] overflow-hidden rounded-[18px] bg-tint lg:rounded-3xl">{raw.imageUrl&&/^https?:\/\//.test(raw.imageUrl)?<CoffeeImage roaster={coffee.roaster.name} source={raw.imageUrl} alt={coffee.name} sizes="(max-width: 1023px) 90vw, 45vw" loading="eager" className="absolute inset-0 h-full w-full object-contain p-8"/>:<div className="flex h-full items-center justify-center p-12 text-center font-display text-5xl text-accent">{coffee.roaster.name}</div>}</div>
       <div className="flex flex-col gap-5">
         <div>
           <p className="mb-2.5 flex flex-wrap items-center gap-2 text-[15px]"><Link href={`/kavurucu/${coffee.roaster.slug}`} className="inline-flex min-h-11 items-center font-semibold text-accent hover:underline">{coffee.roaster.name}</Link>{coffee.roaster.city?<span className="text-muted">· {coffee.roaster.city}</span>:null}{currentBadges(coffee).map(event=><span key={event.id} className="coffee-card-badge">{EVENT_LABELS[event.type]}</span>)}</p>
@@ -40,7 +41,7 @@ export function DiscoveryDetail({coffee}:{coffee:CatalogCoffee}){
           <div className="space-y-2.5">{coffee.offers.length===0?<p className="rounded-xl bg-tint p-4 text-sm text-muted">Bu kahvenin satışta bir paketi şu an doğrulanmıyor. Bilgilerini burada koruyoruz.</p>:null}{coffee.offers.slice(0,6).map(renderOffer)}{coffee.offers.length>6?<details><summary className="inline-flex min-h-11 items-center text-sm font-semibold text-accent">Tüm {coffee.offers.length} paketi göster</summary><div className="mt-3 space-y-2.5">{coffee.offers.slice(6).map(renderOffer)}</div></details>:null}</div>
           <p className="mt-3 text-sm leading-6 text-muted">Güncel fiyatı ve stoğu kavurucuda gör. Satış ve teslimat kavurucu tarafından yapılır.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3"><CompareToggle slug={coffee.slug} name={coffee.name}/></div>
+        <div className="flex flex-wrap items-center gap-3"><SaveToggle slug={coffee.slug} name={coffee.name} offer={savedPackage(preferredOffer(coffee))} label/><CompareToggle slug={coffee.slug} name={coffee.name}/></div>
       </div>
     </div>
     <section className="mt-14">

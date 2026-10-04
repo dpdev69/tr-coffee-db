@@ -16,8 +16,11 @@ describe('public visibility query surfaces', () => {
     assertSurfaceUsesPublicGate(source, 'getStats coffee counts and origins', /export async function getStats[\s\S]*$/);
     assert.match(catalogPageSource, /listCatalog\(db,filters\)/);
     assert.match(catalogPageSource, /listRoasters\(db\)/);
-    assert.match(catalogPageSource, /FROM public_catalog_coffees c/);
-    assert.match(catalogPageSource, /JOIN public_catalog_coffees c ON c.id=f.coffee_id/);
+    // Origin options moved into the catalog module (listOrigins) and still read only the canonical view.
+    const originSource = readSource('shared/v2/catalog.ts');
+    assert.match(catalogPageSource, /listOrigins\(db\)/);
+    assert.match(originSource, /FROM public_catalog_coffees c WHERE NOT \$\{manual\}/);
+    assert.match(originSource, /JOIN public_catalog_coffees c ON c.id=f.coffee_id/);
     assert.doesNotMatch(catalogPageSource, /supabase/);
   });
 

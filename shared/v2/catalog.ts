@@ -79,6 +79,60 @@ export async function listCatalog(db:CatalogDatabase,filters:CatalogFilters={},n
   return {coffees,total:total?.count??0,page,perPage,totalPages:Math.ceil((total?.count??0)/perPage)};
 }
 
+export async function countCatalog(db:CatalogDatabase,filters:CatalogFilters):Promise<number> {
+  const {where,values}=buildFilters(filters);
+  return (await db.prepare(`SELECT count(*) AS count FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${where}`).bind(...values).first<{count:number}>())?.count??0;
+}
+
+export const CHANGE_EVENTS=['NEW','PRICE_DROP','RESTOCKED'] as const;
+/** Listed coffees with a NEW, PRICE_DROP or RESTOCKED event since a time no older than 30 days. Future or malformed times are refused. */
+export async function catalogChangesSince(db:CatalogDatabase,input:string|null,now=Date.now()):Promise<{since:string;counts:Record<typeof CHANGE_EVENTS[number],number>}|null> {
+  const time=input&&input.length<=30&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?Z$/.test(input)?Date.parse(input):NaN;
+  if(!Number.isFinite(time)||time>now+60000)return null;
+  const since=new Date(Math.max(time,now-30*86400000)).toISOString();
+  const counts=await Promise.all(CHANGE_EVENTS.map(event=>countCatalog(db,{event,since})));
+  return {since,counts:{NEW:counts[0],PRICE_DROP:counts[1],RESTOCKED:counts[2]}};
+}
+
+/** One listed coffee per Istanbul calendar day, the same for everyone, chosen among coffees with tasting notes and an image.
+ * Candidates are dealt round-robin by roaster, so consecutive days land on different roasters while the list is stable.
+ * ponytail: a catalog that changes size overnight can shift the slot and repeat a roaster; store yesterday's pick if that matters. */
+export async function getCoffeeOfTheDay(db:CatalogDatabase,now=Date.now()):Promise<CatalogCoffee|null> {
+  const candidates=await db.prepare(`SELECT c.id,c.roaster_id FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} AND json_array_length(c.raw_metadata_json,'$.tastingNotes')>0 AND json_extract(c.raw_metadata_json,'$.imageUrl') LIKE 'http%' ORDER BY c.roaster_id,c.id`).all<{id:string;roaster_id:string}>();
+  const byRoaster=new Map<string,string[]>();
+  for(const row of candidates.results)byRoaster.set(row.roaster_id,[...(byRoaster.get(row.roaster_id)??[]),row.id]);
+  const queues=[...byRoaster.values()];const order:string[]=[];
+  for(let round=0;order.length<candidates.results.length;round++)for(const queue of queues)if(queue[round])order.push(queue[round]);
+  const day=Math.floor((now+3*3600000)/86400000);
+  // Read repair can still empty a listing's notes; the next slot stands in.
+  for(let step=0;step<Math.min(order.length,5);step++){
+    const row=await db.prepare(`SELECT ${COFFEE_COLUMNS} FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE c.id=?`).bind(order[(day+step)%order.length]).first<CoffeeRow>();
+    const [coffee]=await hydrate(db,row?[row]:[],now);
+    if(coffee?.rawMetadata.tastingNotes?.length&&/^https?:\/\//.test(coffee.rawMetadata.imageUrl??''))return coffee;
+  }
+  return null;
+}
+
+export const SAVED_SLUG=/^[a-z0-9_-]{1,240}$/i;
+export const SAVED_LIMIT=50;
+/** Current state of saved coffees, including sold-out ones. A twin's slug resolves to its group's parent. */
+export async function getSavedCoffees(db:CatalogDatabase,slugs:string[],now=Date.now()):Promise<Array<{savedSlug:string;availability:'listed'|'sold_out'|'gone';coffee:CatalogCoffee}>> {
+  const wanted=[...new Set(slugs.filter(slug=>SAVED_SLUG.test(slug)))].slice(0,SAVED_LIMIT);
+  if(!wanted.length)return [];
+  const rows=await db.prepare(`SELECT ${COFFEE_COLUMNS},x.slug AS saved_slug,EXISTS(SELECT 1 FROM public_catalog_coffees p WHERE p.id=c.id) AS listed FROM coffees x JOIN coffees c ON c.id=coalesce(x.canonical_coffee_id,x.id) JOIN roasters r ON r.id=c.roaster_id WHERE x.slug IN (${placeholders(wanted.length)}) AND c.visibility='public' AND ${coffeeOnlySql()}`).bind(...wanted).all<CoffeeRow&{saved_slug:string;listed:number}>();
+  const coffees=await hydrate(db,rows.results,now);
+  return coffees.map((coffee,index)=>({savedSlug:rows.results[index].saved_slug,coffee,
+    availability:rows.results[index].listed?'listed':!coffee.discontinuedAt&&coffee.offers.some(offer=>offer.inStock===false)?'sold_out':'gone'}));
+}
+
+/** Origin filter options follow the filter rule: a MANUAL origin replaces raw and inferred origins for its coffee. */
+export async function listOrigins(db:CatalogDatabase):Promise<string[]> {
+  const features=FACT_FEATURES.country.map(feature=>`'${feature}'`).join(',');
+  const manual=`EXISTS(SELECT 1 FROM coffee_feature_values m WHERE m.coffee_id=c.id AND m.source_type='MANUAL' AND m.feature IN (${features}))`;
+  const rows=await db.prepare(`SELECT DISTINCT value FROM (SELECT json_extract(c.raw_metadata_json,'$.country') AS value FROM public_catalog_coffees c WHERE NOT ${manual} UNION ALL SELECT j.value FROM coffee_feature_values f JOIN public_catalog_coffees c ON c.id=f.coffee_id JOIN json_each(f.value_json) j WHERE f.feature IN (${features}) AND j.type='text' AND (f.source_type='MANUAL' OR NOT ${manual})) WHERE value IS NOT NULL AND value<>'unknown' ORDER BY value`).all<{value:string}>();
+  return rows.results.map(row=>row.value);
+}
+
 function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
   const conditions=[coffeeOnlySql()];const values:SqlValue[]=[];
   // Querying declared and inferred fields together is useful; their display/provenance remains separate.
@@ -169,8 +223,10 @@ export async function hydrate(db:CatalogDatabase,rows:CoffeeRow[],now:number):Pr
     db.prepare(`SELECT * FROM (SELECT e.*,g.group_id,row_number() OVER(PARTITION BY g.group_id,e.type ORDER BY e.created_at DESC,e.id DESC) AS position FROM coffee_group_members g JOIN coffee_events e ON e.coffee_id=g.coffee_id WHERE g.group_id IN (${list})) WHERE position=1 ORDER BY created_at DESC`).bind(...ids).all<EventRow&{group_id:string}>(),
   ]);
   return rows.map(row=>{
+    // A group shows its members' sizes, so a size left in the parent's name would describe only one of them.
+    const grouped=offers.results.some(o=>o.group_id===row.id&&o.coffee_id!==row.id);
     const own=features.results.filter(f=>f.coffee_id===row.id).map(f=>({feature:f.feature,value:parseJson<Json>(f.value_json,null),sourceType:f.source_type,confidence:f.confidence,version:f.version,sourceReference:f.source_reference}));
-    return {id:row.id,name:cleanCoffeeName(row.name),slug:row.slug,canonicalUrl:row.canonical_url,sourceUrl:trustedSourceUrl(row),sourceProductId:row.source_product_id,
+    return {id:row.id,name:grouped?withoutTrailingSize(cleanCoffeeName(row.name)):cleanCoffeeName(row.name),slug:row.slug,canonicalUrl:row.canonical_url,sourceUrl:trustedSourceUrl(row),sourceProductId:row.source_product_id,
     roaster:{id:row.roaster_id,slug:row.roaster_slug,name:row.roaster_name,websiteUrl:row.website_url,city:row.city},
     rawMetadata:truthfulMetadata(parseJson<RawMetadata>(row.raw_metadata_json,{}),row.name,own),
     features:truthfulFeatures(own,parseJson<RawMetadata>(row.raw_metadata_json,{})),
@@ -184,6 +240,9 @@ export async function hydrate(db:CatalogDatabase,rows:CoffeeRow[],now:number):Pr
     firstSeenAt:row.first_seen_at,lastSeenAt:row.last_seen_at,discontinuedAt:row.discontinued_at,stale:now-Date.parse(row.last_seen_at)>3*86400000,
   };});
 }
+
+/** "Koyu 2.5KG" → "Koyu"; a name that is only a size stays as it is. */
+export function withoutTrailingSize(name:string):string{return name.replace(/[\s,/|(–—-]*\d+(?:[.,]\d+)?\s*(?:kg|kilo|gr|gram|g)\b\.?\)?$/iu,'').trim()||name;}
 
 /** Rows arrive in display order (in stock, cheapest first); the first variant of each package keeps its purchase link. */
 function collapsePackages(offers:CatalogOffer[]):CatalogOffer[] {
@@ -220,21 +279,27 @@ export async function listEvents(db:CatalogDatabase,type?:CoffeeEvent['type'],li
   return rows.results.map(eventFromRow);
 }
 
+const SIMILARITY_FEATURES=[...FACT_FEATURES.country,...FACT_FEATURES.process,...FACT_FEATURES.tastingNotes].map(feature=>`'${feature}'`).join(',');
 /** Explainable catalog similarity, never a personalized numerical match. */
 export async function getSimilarCoffees(db:CatalogDatabase,coffee:CatalogCoffee,limit=4):Promise<Array<CatalogCoffee&{similarityReasons:string[]}>> {
   // ponytail: cap at the same 5,000 newest candidates; move ranking into indexed SQL if the catalog outgrows it.
-  const candidates=await db.prepare(`SELECT ${COFFEE_COLUMNS},(SELECT json_group_array(json_object('feature',f.feature,'value',json(f.value_json))) FROM coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN ('normalized_origin','origin_country','process_family','process','flavor_families','flavor_categories')) AS similarity_features_json FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} ORDER BY c.first_seen_at DESC,c.id LIMIT 5000`).all<CoffeeRow&{similarity_features_json:string}>();
+  const candidates=await db.prepare(`SELECT ${COFFEE_COLUMNS},(SELECT json_group_array(json_object('feature',f.feature,'value',json(f.value_json),'sourceType',f.source_type)) FROM coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN (${SIMILARITY_FEATURES})) AS similarity_features_json FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} ORDER BY c.first_seen_at DESC,c.id LIMIT 5000`).all<CoffeeRow&{similarity_features_json:string}>();
   const origin=featureStrings(coffee,'normalized_origin','origin_country').concat(coffee.rawMetadata.country??[]);
   const process=featureStrings(coffee,'process_family','process').concat(coffee.rawMetadata.process??[]);
   const flavor=featureStrings(coffee,'flavor_families','flavor_categories');
   const selected=candidates.results.filter(c=>c.id!==coffee.id&&c.canonical_url!==coffee.canonicalUrl&&!(c.roaster_id===coffee.roaster.id&&c.name.toLocaleLowerCase('tr-TR')===coffee.name.toLocaleLowerCase('tr-TR')))
     .map(row=>{
       const raw=parseJson<RawMetadata>(row.raw_metadata_json,{});
-      const candidate={features:parseJson<Array<Pick<FeatureValue,'feature'|'value'>>>(row.similarity_features_json,[])};
+      const all=parseJson<Array<Pick<FeatureValue,'feature'|'value'|'sourceType'>>>(row.similarity_features_json,[]);
+      // Same rule as the filters: a MANUAL fact replaces raw and inferred values of its kind.
+      const facts=(field:string,declared:string|null|undefined,...names:string[])=>{
+        const manual=all.filter(f=>f.sourceType==='MANUAL'&&FACT_FEATURES[field].includes(f.feature));
+        return manual.length?featureStrings({features:manual},...names):featureStrings({features:all},...names).concat(declared??[]);
+      };
       const reasons:string[]=[];
-      if(overlaps(origin,featureStrings(candidate,'normalized_origin','origin_country').concat(raw.country??[])))reasons.push('Aynı kökenden');
-      if(overlaps(process,featureStrings(candidate,'process_family','process').concat(raw.process??[])))reasons.push('Benzer işleme yöntemi');
-      if(overlaps(flavor,featureStrings(candidate,'flavor_families','flavor_categories')))reasons.push('Benzer tat profili');
+      if(overlaps(origin,facts('country',raw.country,'normalized_origin','origin_country')))reasons.push('Aynı kökenden');
+      if(overlaps(process,facts('process',raw.process,'process_family','process')))reasons.push('Benzer işleme yöntemi');
+      if(overlaps(flavor,facts('tastingNotes',null,'flavor_families','flavor_categories')))reasons.push('Benzer tat profili');
       return {row,similarityReasons:reasons};
     }).filter(c=>c.similarityReasons.length>0).sort((a,b)=>b.similarityReasons.length-a.similarityReasons.length||b.row.first_seen_at.localeCompare(a.row.first_seen_at)||a.row.id.localeCompare(b.row.id))
     .slice(0,Math.min(12,Math.max(0,Number.isFinite(limit)?Math.floor(limit):4)));
