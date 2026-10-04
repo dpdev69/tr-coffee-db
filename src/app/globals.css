@@ -732,6 +732,49 @@
   }
 }
 
+/* Return visits: save button, since-last-visit row, coffee of the day, Listem. Motion hooks:
+   .save-toggle[aria-pressed], .since-row, .since-count, .day-card, .saved-panel, .saved-row, .taste-line. */
+@layer components {
+  .save-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-accent);
+  }
+  .save-toggle:hover {
+    border-color: var(--color-accent);
+  }
+  .save-toggle[aria-pressed='true'] {
+    background: var(--color-chip);
+    color: var(--color-accent-deep);
+  }
+  .save-toggle-label {
+    width: auto;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  /* The home page reserves the Listem panel's cell before hydration when a list exists (set by an inline script). */
+  .home-daylist {
+    display: grid;
+    gap: 24px;
+  }
+  @media (min-width: 1024px) {
+    html[data-saved-list] .home-daylist {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  html[data-saved-list] .saved-panel-slot {
+    min-height: 260px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
