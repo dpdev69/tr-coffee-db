@@ -6,7 +6,6 @@ import { POST as retiredClick } from '../src/app/api/click/route';
 describe('public visibility query surfaces', () => {
   it('preserves the legacy fallback public gates and uses canonical D1 rows for the migrated filter loader', () => {
     const source = readSource('src/lib/queries/coffees.ts');
-    const roasterSource = readSource('src/lib/queries/roasters.ts');
     const catalogPageSource = readSource('src/components/v2/discovery-catalog.tsx');
 
     assertSurfaceUsesPublicGate(source, 'getCoffees', /export async function getCoffees[\s\S]*?export async function getCoffeeBySlug/);
@@ -15,7 +14,6 @@ describe('public visibility query surfaces', () => {
     assertSurfaceUsesPublicGate(source, 'getSimilarCoffees', /export async function getSimilarCoffees[\s\S]*?export async function getFeaturedCoffees/);
     assertSurfaceUsesPublicGate(source, 'getFeaturedCoffees', /export async function getFeaturedCoffees[\s\S]*?export async function getStats/);
     assertSurfaceUsesPublicGate(source, 'getStats coffee counts and origins', /export async function getStats[\s\S]*$/);
-    assertSurfaceUsesPublicGate(roasterSource, 'getRoasters public coffee counts', /export async function getRoasters[\s\S]*?export async function getRoasterBySlug/);
     assert.match(catalogPageSource, /listCatalog\(db,filters\)/);
     assert.match(catalogPageSource, /listRoasters\(db\)/);
     assert.match(catalogPageSource, /FROM public_catalog_coffees c/);

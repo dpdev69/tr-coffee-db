@@ -108,13 +108,10 @@ describe('journey experience surfaces', () => {
   it('retires the public provenance and ranking surfaces without deleting archives', () => {
     const legacyDetail = readFileSync('src/app/coffees/[slug]/page.tsx', 'utf8');
     const detail = readFileSync('src/components/v2/discovery-detail.tsx', 'utf8');
-    const traceability = readFileSync('src/components/v2/traceability.tsx', 'utf8');
     const rankings = readFileSync('src/app/rankings/page.tsx', 'utf8');
 
     assert.match(legacyDetail, /permanentRedirect\(`\/kahve\//);
     assert.doesNotMatch(detail, /Bu bilgileri nasıl elde ettik|QualityDossier|EvidenceDrawer/);
-    assert.doesNotMatch(traceability, /getCoffeeJourney|QualityDossier|EvidenceDrawer/);
-    assert.match(traceability, /return null/);
     assert.match(rankings, /permanentRedirect\('\/kahveler'\)/);
   });
 

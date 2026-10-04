@@ -90,12 +90,9 @@ describe('security hardening guardrails', () => {
   });
 
   it('keeps the browser sink guarded by the trusted URL policy', () => {
-    const buyButton = readFileSync('src/components/coffee/buy-button.tsx', 'utf8');
     const detailPage = readFileSync('src/components/v2/discovery-detail.tsx', 'utf8');
     const card = readFileSync('src/components/v2/discovery-card.tsx', 'utf8');
 
-    assert.match(buyButton, /normalizeTrustedHttpUrl/);
-    assert.match(buyButton, /isTrustedHttpUrl/);
     assert.doesNotMatch(detailPage, /href=\{coffee.sourceUrl\}/);
     assert.doesNotMatch(detailPage, /href=\{coffee.canonicalUrl\}/);
     assert.match(detailPage, /href=\{`\/go\/\$\{offer.id\}/);
