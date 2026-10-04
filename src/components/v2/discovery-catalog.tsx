@@ -1,11 +1,11 @@
 import { TrackedFilterForm } from './product-tracking';
-import { canonicalCountry, countryOptions } from '../../../shared/v2/country-labels';
+import { canonicalCountry, countryLabel, countryOptions } from '../../../shared/v2/country-labels';
 import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
 import { getFirstSearchParamValue, getPageParamValue, getStringArrayParamValue, normalizeSearchTerm, type SearchParamValue } from '@/lib/filter-contract';
-import { FLAVOR_CATEGORIES, FLAVOR_CATEGORY_LABELS, PROCESS_LABELS, ROAST_LABELS, BREW_METHOD_LABELS } from '@/lib/constants/filter-options';
+import { FLAVOR_CATEGORY_LABELS, PROCESS_LABELS, ROAST_LABELS, BREW_METHOD_LABELS } from '@/lib/constants/filter-options';
 import { listCatalog, listRoasters, type CatalogFilters } from '../../../shared/v2/catalog';
 import { DiscoveryEmpty, DiscoveryGrid } from './discovery-card';
 
@@ -19,8 +19,21 @@ export function parseDiscoveryFilters(params:DiscoverySearchParams):CatalogFilte
     altitude:normalizeSearchTerm(first(params.altitude))?.slice(0,100),
     sort:sort&&['newest','price_asc','price_desc'].includes(sort)?sort as CatalogFilters['sort']:'newest',page:getPageParamValue(params.page),perPage:24};
 }
-function Field({label,name,children,defaultValue}:{label:string;name:string;children?:React.ReactNode;defaultValue?:string|string[]}){
-  return <label className="flex min-w-0 flex-col gap-2 text-xs font-semibold text-[#244b3d]">{label}{children?<select name={name} multiple={Array.isArray(defaultValue)&&defaultValue.length>1} defaultValue={defaultValue??''} className="min-h-11 rounded-md border border-[#c8ccbf] bg-white px-3 text-sm font-normal text-[#1f1d1b]"><option value="">Tümü</option>{children}</select>:<input name={name} defaultValue={defaultValue} className="min-h-11 rounded-md border border-[#c8ccbf] bg-white px-3 text-sm font-normal text-[#1f1d1b]"/>}</label>;
+const inputClass='min-h-11 w-full min-w-0 rounded-[10px] border border-line bg-surface px-3 text-sm font-normal text-ink';
+function Field({label,name,children,defaultValue}:{label:string;name:string;children?:React.ReactNode;defaultValue?:string}){
+  return <label className="flex min-w-0 flex-col gap-2 text-[13px] font-medium text-muted">{label}{children?<select name={name} defaultValue={defaultValue??''} className={inputClass}><option value="">Tümü</option>{children}</select>:<input name={name} defaultValue={defaultValue} className={inputClass}/>}</label>;
+}
+/** Checkbox pills replace the native multi-select: several values (e.g. from the quiz) stay visible and tappable. */
+function Options({legend,name,labels,selected}:{legend:string;name:string;labels:Record<string,string>;selected?:string[]}){
+  return <fieldset className="min-w-0"><legend className="mb-2 text-[13px] font-medium text-muted">{legend}</legend><div className="flex flex-wrap gap-2">{Object.entries(labels).filter(([value])=>value!=='unknown').map(([value,label])=><label key={value} className="filter-option"><input type="checkbox" name={name} value={value} defaultChecked={selected?.includes(value)}/>{label}</label>)}</div></fieldset>;
+}
+const CHIP_LABELS:Record<string,string>={search:'Arama',origin:'Köken',process:'İşlem',taste:'Tat',roaster:'Kavurucu',priceMin:'En az',priceMax:'En çok',farm:'Çiftlik',producer:'Üretici',variety:'Varyete',altitude:'Rakım',roast:'Kavrum',brewMethod:'Demleme'};
+/** One removable chip per applied value. Each link drops that value (and the page) and keeps everything else, so it works without JavaScript. */
+export function filterChips(params:DiscoverySearchParams,path:string,valueLabel:(key:string,value:string)=>string){
+  const entries=Object.entries(params).flatMap(([key,value])=>(Array.isArray(value)?value:value?[value]:[]).map(item=>[key,item] as [string,string]));
+  const href=(keep:(key:string,index:number)=>boolean)=>{const query=new URLSearchParams(entries.filter(([key,value],index)=>key!=='page'&&value.trim()!==''&&keep(key,index)));return query.size?`${path}?${query}`:path;};
+  const chips=entries.flatMap(([key,value],index)=>key in CHIP_LABELS&&value.trim()?[{label:`${CHIP_LABELS[key]}: ${valueLabel(key,value.trim())}`,href:href((_,other)=>other!==index)}]:[]);
+  return {chips,clearHref:href(key=>!(key in CHIP_LABELS))};
 }
 export async function DiscoveryCatalog({params,path='/kahveler',event}:{params:DiscoverySearchParams;path?:string;event?:CatalogFilters['event']}){
   const filters=parseDiscoveryFilters(params);
@@ -37,22 +50,32 @@ export async function DiscoveryCatalog({params,path='/kahveler',event}:{params:D
     result=catalog.page>catalog.totalPages&&catalog.totalPages>0?await listCatalog(db,{...filters,page:catalog.totalPages}):catalog;roasters=roasterRows;origins=countryOptions(originRows.results.map(row=>row.value));
   }catch(error){unstable_rethrow(error);console.error('Catalog read failed', error instanceof Error ? error.message : 'Unknown database error');return <DataSourceNotice title="Katalog şu an yüklenemiyor." message="Güncel kahveleri doğrulayamıyoruz. Biraz sonra yeniden deneyebilir veya demleme rehberini kullanabilirsin." actionHref="/guide" actionLabel="Demleme rehberi"/>;}
   const linkToPage=(page:number)=>{const query=new URLSearchParams();for(const [key,value]of Object.entries(params))for(const item of Array.isArray(value)?value:value?[value]:[])if(key!=='page')query.append(key,item);query.set('page',String(page));return `${path}?${query}`;};
+  const roasterName=new Map(roasters.map(roaster=>[roaster.slug,roaster.name]));
+  const labels:Record<string,(value:string)=>string>={origin:value=>countryLabel(canonicalCountry(value)),process:value=>PROCESS_LABELS[value]??value,taste:value=>FLAVOR_CATEGORY_LABELS[value as keyof typeof FLAVOR_CATEGORY_LABELS]??value,roaster:value=>roasterName.get(value)??value,roast:value=>ROAST_LABELS[value]??value,brewMethod:value=>BREW_METHOD_LABELS[value]??value,priceMin:value=>`${value} TL`,priceMax:value=>`${value} TL`,search:value=>`“${value}”`};
+  const {chips,clearHref}=filterChips(params,path,(key,value)=>labels[key]?.(value)??value);
+  const advancedOpen=Boolean(filters.altitude||filters.farm||filters.producer||filters.variety||filters.process?.length||filters.roast?.length||filters.brewMethod?.length);
   return <>
-    <TrackedFilterForm key={JSON.stringify([path,params,event])} action={path} page={path==='/yeni'?'new':path==='/firsatlar'?'deals':'catalog'} className="discovery-filters mb-8 rounded-xl border border-[#dedfd7] bg-[#f0f1e9] p-4 sm:p-6">
+    <TrackedFilterForm key={JSON.stringify([path,params,event])} action={path} page={path==='/yeni'?'new':path==='/firsatlar'?'deals':'catalog'} className="discovery-filters mb-5 rounded-[14px] border border-line bg-surface p-4 sm:p-5">
       {event ? <input type="hidden" name="event" value={event} /> : null}
-      <label className="flex flex-col gap-2 text-xs font-semibold text-[#244b3d]">Kahve veya kavurucu ara<input type="search" name="search" defaultValue={first(params.search)} placeholder="Bir isimle başla…" className="min-h-12 rounded-md border border-[#c8ccbf] bg-white px-4 text-base font-normal text-[#1f1d1b]"/></label>
-      <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <Field label="Köken" name="origin" defaultValue={filters.origin&&filters.origin.length>1?filters.origin:filters.origin?.[0]}>{origins.map(({value,label})=><option key={value} value={value}>{label}</option>)}</Field>
-        <Field label="İşlem" name="process" defaultValue={filters.process&&filters.process.length>1?filters.process:filters.process?.[0]}>{Object.entries(PROCESS_LABELS).filter(([key])=>key!=='unknown').map(([value,label])=><option key={value} value={value}>{label}</option>)}</Field>
-        <Field label="Tat" name="taste" defaultValue={filters.taste&&filters.taste.length>1?filters.taste:filters.taste?.[0]}>{FLAVOR_CATEGORIES.map(value=><option key={value} value={value}>{FLAVOR_CATEGORY_LABELS[value]}</option>)}</Field>
-        <Field label="Kavurucu" name="roaster" defaultValue={filters.roaster&&filters.roaster.length>1?filters.roaster:filters.roaster?.[0]}>{roasters.map(roaster=><option key={roaster.id} value={roaster.slug}>{roaster.name}</option>)}</Field>
-        <fieldset className="col-span-2 flex min-w-0 flex-col lg:col-span-1 gap-2 text-xs font-semibold text-[#244b3d]"><legend className="mb-2">Paket fiyatı · TL</legend><div className="flex min-w-0 gap-2"><input type="number" min="0" name="priceMin" aria-label="En düşük paket fiyatı" placeholder="En az" defaultValue={filters.priceMin} className="min-h-11 w-full min-w-0 rounded-md border border-[#c8ccbf] bg-white px-2 text-sm font-normal"/><input type="number" min="0" name="priceMax" aria-label="En yüksek paket fiyatı" placeholder="En çok" defaultValue={filters.priceMax} className="min-h-11 w-full min-w-0 rounded-md border border-[#c8ccbf] bg-white px-2 text-sm font-normal"/></div></fieldset>
-      </div>
-      <details className="mt-4 text-sm text-[#625e57]" open={Boolean(filters.altitude||filters.farm||filters.producer||filters.variety||filters.roast?.length||filters.brewMethod?.length)}><summary className="inline-flex min-h-11 items-center underline underline-offset-4">Daha fazla filtre</summary><div className="mt-2 grid grid-cols-2 gap-3 lg:grid-cols-5"><Field label="Çiftlik" name="farm" defaultValue={filters.farm}/><Field label="Üretici" name="producer" defaultValue={filters.producer}/><Field label="Varyete" name="variety" defaultValue={filters.variety}/><Field label="Kaynaktaki rakım (örn. 1800)" name="altitude" defaultValue={filters.altitude}/><Field label="Kavrum" name="roast" defaultValue={filters.roast&&filters.roast.length>1?filters.roast:filters.roast?.[0]}>{Object.entries(ROAST_LABELS).filter(([key])=>key!=='unknown').map(([value,label])=><option key={value} value={value}>{label}</option>)}</Field><Field label="Demleme" name="brewMethod" defaultValue={filters.brewMethod&&filters.brewMethod.length>1?filters.brewMethod:filters.brewMethod?.[0]}>{Object.entries(BREW_METHOD_LABELS).map(([value,label])=><option key={value} value={value}>{label}</option>)}</Field></div><p className="mt-3 text-xs leading-6">Rakım filtresi kaynak metninde arar; sayısal aralık veya birim dönüşümü yapmaz.</p></details>
-      <div className="mt-3 flex flex-wrap items-center gap-3"><button type="submit" className="button-dark">Kahveleri göster →</button><Link href={path} className="inline-flex min-h-11 items-center px-2 text-sm underline underline-offset-4">Filtreleri temizle</Link><label className="ml-auto text-sm">Sırala <select name="sort" defaultValue={filters.sort} className="ml-2 min-h-11 rounded border border-[#c8ccbf] bg-white px-2"><option value="newest">En yeni</option><option value="price_asc">Paket fiyatı: artan</option><option value="price_desc">Paket fiyatı: azalan</option></select></label></div>
+      <label className="flex flex-col gap-2 text-[13px] font-medium text-muted">Kahve veya kavurucu ara<input type="search" name="search" defaultValue={first(params.search)} placeholder="Bir isimle başla…" className="min-h-12 rounded-[10px] border border-line bg-surface px-4 text-base font-normal text-ink"/></label>
+      {/* Phones fold the filters behind one summary (the chips below say what is applied); from lg up globals.css shows .filter-more inline. */}
+      <details className="filter-more mt-4">
+        <summary className="inline-flex min-h-11 items-center text-sm font-semibold text-accent">Tat, köken, kavurucu ve fiyat</summary>
+        <div className="mt-2 lg:mt-0"><Options legend="Tat" name="taste" labels={FLAVOR_CATEGORY_LABELS} selected={filters.taste}/></div>
+        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Field label="Köken" name="origin" defaultValue={filters.origin?.[0]}>{origins.map(({value,label})=><option key={value} value={value}>{label}</option>)}</Field>
+          <Field label="Kavurucu" name="roaster" defaultValue={filters.roaster?.[0]}>{roasters.map(roaster=><option key={roaster.id} value={roaster.slug}>{roaster.name}</option>)}</Field>
+          <fieldset className="col-span-2 flex min-w-0 flex-col gap-2 text-[13px] font-medium text-muted"><legend className="mb-2">Paket fiyatı · TL</legend><div className="flex min-w-0 gap-2"><input type="number" min="0" name="priceMin" aria-label="En düşük paket fiyatı" placeholder="En az" defaultValue={filters.priceMin} className={inputClass}/><input type="number" min="0" name="priceMax" aria-label="En yüksek paket fiyatı" placeholder="En çok" defaultValue={filters.priceMax} className={inputClass}/></div></fieldset>
+        </div>
+        <details className="mt-4 text-sm text-muted" open={advancedOpen}><summary className="inline-flex min-h-11 items-center font-semibold text-accent">Daha fazla filtre</summary>
+          <div className="mt-2 grid gap-4"><Options legend="İşlem" name="process" labels={PROCESS_LABELS} selected={filters.process}/><Options legend="Kavrum" name="roast" labels={ROAST_LABELS} selected={filters.roast}/><Options legend="Demleme" name="brewMethod" labels={BREW_METHOD_LABELS} selected={filters.brewMethod}/></div>
+          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4"><Field label="Çiftlik" name="farm" defaultValue={filters.farm}/><Field label="Üretici" name="producer" defaultValue={filters.producer}/><Field label="Varyete" name="variety" defaultValue={filters.variety}/><Field label="Kaynaktaki rakım (örn. 1800)" name="altitude" defaultValue={filters.altitude}/></div><p className="mt-3 text-xs leading-6">Rakım filtresi kaynak metninde arar; sayısal aralık veya birim dönüşümü yapmaz.</p></details>
+      </details>
+      <div className="mt-4 flex flex-wrap items-center gap-3"><button type="submit" className="button-dark">Kahveleri göster →</button><label className="ml-auto flex items-center text-sm">Sırala <select name="sort" defaultValue={filters.sort} className="ml-2 min-h-11 rounded-[10px] border border-line bg-surface px-3"><option value="newest">En yeni</option><option value="price_asc">Paket fiyatı: artan</option><option value="price_desc">Paket fiyatı: azalan</option></select></label></div>
     </TrackedFilterForm>
-    <p className="mb-5 text-sm text-[#625e57]"><strong className="text-[#244b3d]">{result.total.toLocaleString('tr-TR')}</strong> kahve{event?' · Son 7 gün':''} · Sipariş kavurucunun kendi sitesinde tamamlanır.</p>
+    <div className="mb-7"><ul aria-label="Sonuçlar ve uygulanan filtreler" className="flex flex-wrap items-center gap-2.5"><li className="mr-1.5 text-[15px] font-semibold"><span className="tabular-nums">{result.total.toLocaleString('tr-TR')}</span> kahve{event?' · Son 7 gün':''}</li>{chips.map(chip=><li key={chip.href}><Link href={chip.href} className="filter-chip" aria-label={`Filtreyi kaldır: ${chip.label}`}>{chip.label}<span aria-hidden="true">×</span></Link></li>)}{chips.length?<li><Link href={clearHref} className="ml-1.5 inline-flex min-h-11 items-center text-sm text-accent hover:underline">Filtreleri temizle</Link></li>:null}</ul>
+      <p className="mt-1 text-sm text-muted">Sipariş kavurucunun kendi sitesinde tamamlanır.</p></div>
     {result.coffees.length?<DiscoveryGrid coffees={result.coffees} source={event?'feed':'catalog'}/>:<DiscoveryEmpty title={event?'Henüz doğrulanmış bir değişiklik yok.':'Bu filtrelerle kahve bulamadık.'}>{event?'Doğrulanmış bir değişiklik olduğunda burada göreceksin. Kahveleri keşfete göz atabilirsin.':'Daha geniş bir fiyat aralığı deneyebilir veya filtreleri temizleyebilirsin.'}<Link href={event?'/yeni':path} className="text-link">{event?'Kahveleri keşfet →':'Tüm kahveleri göster →'}</Link></DiscoveryEmpty>}
-    {result.totalPages>1?<nav aria-label="Katalog sayfaları" className="mt-8 flex items-center justify-center gap-4">{result.page>1?<Link className="button-light" href={linkToPage(result.page-1)}>← Önceki</Link>:null}<span className="text-sm">{result.page} / {result.totalPages}</span>{result.page<result.totalPages?<Link className="button-dark" href={linkToPage(result.page+1)}>Sonraki →</Link>:null}</nav>:null}
+    {result.totalPages>1?<nav aria-label="Katalog sayfaları" className="mt-8 flex items-center justify-center gap-4">{result.page>1?<Link className="button-light" href={linkToPage(result.page-1)}>← Önceki</Link>:null}<span className="text-sm">{result.page} / {result.totalPages}</span>{result.page<result.totalPages?<Link className="button-light" href={linkToPage(result.page+1)}>Sonraki →</Link>:null}</nav>:null}
   </>;
 }
