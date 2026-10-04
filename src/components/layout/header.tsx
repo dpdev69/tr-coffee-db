@@ -27,7 +27,7 @@ export function Header() {
   const current = (href: string) => (pathname.startsWith(href) ? 'page' : undefined);
   const wordmark = <span className="font-display text-[22px] font-semibold text-accent lg:text-[26px]">{brand.name}</span>;
   return (
-    <header className="site-header sticky top-0 z-50 border-b border-line bg-paper/95 backdrop-blur-md">
+    <header className="site-header sticky top-0 z-50 border-b border-line bg-ground/95 backdrop-blur-md">
       <div className="page-shell flex h-16 items-center gap-7 lg:h-[72px]">
         <Link href="/" aria-label={`${brand.name} ana sayfa`} className="inline-flex min-h-11 shrink-0 items-center">
           {wordmark}

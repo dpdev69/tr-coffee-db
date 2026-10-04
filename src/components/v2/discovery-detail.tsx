@@ -7,10 +7,10 @@ import type { CatalogCoffee, CatalogOffer } from '../../../shared/v2/catalog';
 import { coffeeOrigin, coffeeProcess, currentBadges, EVENT_LABELS, featureText, OfferPrice, publicOfferLabel, tasteSummary } from './discovery-card';
 
 /** Round serif initial on tint; stands in for a roaster logo we do not have. */
-const INITIAL_SIZES={sm:'h-11 w-11 bg-paper text-[19px]',md:'h-14 w-14 bg-surface text-2xl',lg:'h-28 w-28 bg-tint text-5xl'};
-/** Round serif initial; clay stays on paper/surface at small sizes, where it passes AA (tint only at 48px). */
+const INITIAL_SIZES={sm:'h-11 w-11 bg-ground text-[19px]',md:'h-14 w-14 bg-surface text-2xl',lg:'h-28 w-28 bg-tint text-5xl'};
+/** Round display-face initial; warm stays on ground/surface at small sizes, where it passes AA (on tint only at 48px). */
 export function RoasterInitial({name,size='md'}:{name:string;size?:keyof typeof INITIAL_SIZES}){
-  return <span aria-hidden="true" className={`inline-flex flex-none items-center justify-center rounded-full font-display text-clay ${INITIAL_SIZES[size]}`}>{name.trim().charAt(0).toLocaleUpperCase('tr-TR')}</span>;
+  return <span aria-hidden="true" className={`inline-flex flex-none items-center justify-center rounded-full font-display text-warm ${INITIAL_SIZES[size]}`}>{name.trim().charAt(0).toLocaleUpperCase('tr-TR')}</span>;
 }
 
 type Fact=[label:string,value:string|null|undefined,source:string|null];
@@ -34,7 +34,7 @@ export function DiscoveryDetail({coffee}:{coffee:CatalogCoffee}){
           <p className="mb-2.5 flex flex-wrap items-center gap-2 text-[15px]"><Link href={`/kavurucu/${coffee.roaster.slug}`} className="inline-flex min-h-11 items-center font-semibold text-accent hover:underline">{coffee.roaster.name}</Link>{coffee.roaster.city?<span className="text-muted">· {coffee.roaster.city}</span>:null}{currentBadges(coffee).map(event=><span key={event.id} className="coffee-card-badge">{EVENT_LABELS[event.type]}</span>)}</p>
           <h1 className="mb-3.5 font-display text-[clamp(32px,4vw,50px)] leading-[1.06]">{coffee.name}</h1>
           <p className="mb-3.5 text-[17px]">{[coffeeOrigin(coffee),coffeeProcess(coffee),roast&&roast!=='unknown'?ROAST_LABELS[roast]:null].filter(Boolean).join(' · ')||<span className="italic text-muted">Köken ve işlem bilgisi bekleniyor</span>}</p>
-          {(notes.length?notes.slice(0,5):tastes).length?<ul aria-label="Tadım notları" className="flex flex-wrap gap-2">{(notes.length?notes.slice(0,5):tastes).map(note=><li key={note} className="rounded-full bg-lime px-3.5 py-1.5 text-[15px] text-accent-strong">{note}</li>)}</ul>:<p className="italic text-muted">Tat profili henüz belirtilmemiş</p>}
+          {(notes.length?notes.slice(0,5):tastes).length?<ul aria-label="Tadım notları" className="flex flex-wrap gap-2">{(notes.length?notes.slice(0,5):tastes).map(note=><li key={note} className="rounded-full bg-chip px-3.5 py-1.5 text-[15px] text-accent-deep">{note}</li>)}</ul>:<p className="italic text-muted">Tat profili henüz belirtilmemiş</p>}
         </div>
         <div><h2 className="mb-2.5 font-display text-[22px]">Paketini seç</h2>
           <div className="space-y-2.5">{coffee.offers.length===0?<p className="rounded-xl bg-tint p-4 text-sm text-muted">Bu kahvenin satışta bir paketi şu an doğrulanmıyor. Bilgilerini burada koruyoruz.</p>:null}{coffee.offers.slice(0,6).map(renderOffer)}{coffee.offers.length>6?<details><summary className="inline-flex min-h-11 items-center text-sm font-semibold text-accent">Tüm {coffee.offers.length} paketi göster</summary><div className="mt-3 space-y-2.5">{coffee.offers.slice(6).map(renderOffer)}</div></details>:null}</div>

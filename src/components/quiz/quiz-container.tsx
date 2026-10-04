@@ -199,7 +199,7 @@ export function QuizContainer() {
               aria-pressed={isSelected}
               className={`flex min-h-[60px] items-start gap-3 rounded-[14px] px-4 py-3 text-left transition-colors ${
                 isSelected
-                  ? 'border-2 border-accent bg-lime text-ink'
+                  ? 'border-2 border-accent bg-chip text-ink'
                   : 'border border-line bg-surface text-ink hover:border-accent'
               }`}
             >

@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
-import { CoffeeScene } from '@/components/v2/coffee-scene';
 import { DiscoveryEmpty, DiscoveryGrid } from '@/components/v2/discovery-card';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { brand } from '@/lib/brand';
@@ -45,7 +44,6 @@ export default async function HomePage() {
   return <div className="page-shell studio-home">
     <JsonLd data={{ '@type': 'Organization', name: brand.name, url: absoluteUrl('/'), logo: absoluteUrl(brand.logoPath), description: brand.description }} />
     <section className="studio-hero">
-      <CoffeeScene className="studio-background" />
       <div className="studio-hero-copy">
         <p className="eyebrow">Türkiye’nin bağımsız kahve rehberi</p>
         <h1>İyi bir kahve.<br /><em>Senin damak tadın.</em></h1>
@@ -53,7 +51,8 @@ export default async function HomePage() {
         <div className="studio-actions"><Link href="/quiz" className="button-dark button-lg">Kahvemi bul</Link><Link href="/kahveler" className="button-light button-lg">Kataloğu keşfet</Link></div>
         <p className="studio-small">4 kısa soru · Damak tadına göre keşif</p>
       </div>
-
+      {/* Mount point for the hero scene (three.js, owned by the animation pass). Intentionally empty. */}
+      <div className="hero-scene" data-scene-slot="home-hero" aria-hidden="true" />
     </section>
     <nav className="studio-paths" aria-label="Kahveni keşfet">
       <Link href="/quiz"><span className="studio-path-number">01</span><div><strong>Damak tadını keşfet</strong><p>Kısa bir testle başla.</p></div><span aria-hidden="true">↗</span></Link>
@@ -62,7 +61,7 @@ export default async function HomePage() {
     </nav>
     <section className="mt-10 rounded-[18px] border border-line bg-surface p-6 sm:p-10" aria-labelledby="how-it-works">
       <h2 id="how-it-works" className="mb-6 font-display text-[30px] sm:text-[34px]">Nasıl çalışır</h2>
-      <ol className="grid gap-8 md:grid-cols-3">{HOW_IT_WORKS.map(([title, body], index) => <li key={title} className="flex flex-col gap-2"><span className="font-display text-[40px] leading-none text-clay">{index + 1}</span><span className="font-display text-[23px]">{title}</span><span className="text-[15px] leading-relaxed text-muted">{body}</span></li>)}</ol>
+      <ol className="grid gap-8 md:grid-cols-3">{HOW_IT_WORKS.map(([title, body], index) => <li key={title} className="flex flex-col gap-2"><span className="font-display text-[40px] leading-none text-warm">{index + 1}</span><span className="font-display text-[23px]">{title}</span><span className="text-[15px] leading-relaxed text-muted">{body}</span></li>)}</ol>
     </section>
     {data ? <>
       <section className="section-space studio-latest">

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { brand } from "@/lib/brand";
-import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_URL } from "@/lib/site";
@@ -15,9 +15,9 @@ const geistSans = Geist({
   subsets: ["latin", "latin-ext"],
 });
 
-// Display serif (SIL OFL) with Turkish glyphs (ı İ ş ğ) in latin-ext: 500 for headings, 600 for the wordmark.
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+// Display face (SIL OFL) with Turkish glyphs (ı İ ş ğ) in latin-ext: 500 for headings, 600 for the wordmark.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin", "latin-ext"],
   weight: ["500", "600"],
 });
@@ -77,9 +77,9 @@ export default function RootLayout({
     <html
       lang="tr"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-paper font-sans text-ink">
+      <body className="flex min-h-full flex-col bg-ground font-sans text-ink">
         <script dangerouslySetInnerHTML={{ __html: consentScript }} />
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-surface focus:p-4">İçeriğe geç</a>
         <Header />

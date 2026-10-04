@@ -248,7 +248,7 @@ export function ValidationBadge({
     : strong
       ? dark
         ? 'border-[#e3ecbd]/30 bg-[#e3ecbd]/10 text-[#e3ecbd]'
-        : 'border-lime-300 bg-lime-50 text-lime-900'
+        : 'border-chip-300 bg-chip-50 text-chip-900'
       : dark
         ? 'border-white/15 bg-white/5 text-white/75'
         : 'border-[#1f1d1b]/10 bg-[#f6f1e8] text-[#5d5853]';

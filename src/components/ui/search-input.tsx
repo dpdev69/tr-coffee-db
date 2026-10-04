@@ -63,7 +63,7 @@ export function SearchInput({ onSearch }: { onSearch?: () => void }) {
       />
       <button
         type="submit"
-        className="absolute right-0 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-r-full text-muted transition-colors hover:bg-lime hover:text-ink"
+        className="absolute right-0 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-r-full text-muted transition-colors hover:bg-chip hover:text-ink"
         aria-label="Aramayı uygula"
       >
         <svg

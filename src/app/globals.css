@@ -2,22 +2,23 @@
 
 /* One palette. Utilities: bg-surface, text-ink, border-line, etc. Plain CSS: var(--color-*). */
 @theme static {
-  --color-paper: #faf7f0; /* page background */
+  /* Palette "İznik". Contrast checked: ink/muted/accent pass AA on ground, surface, tint and chip. */
+  --color-ground: #f7f8f6; /* page background */
   --color-surface: #ffffff; /* cards, inputs, panels */
-  --color-tint: #efe9dc; /* image wells, hover, quiet panels */
-  --color-ink: #30281f; /* text and headings */
-  --color-muted: #625e57; /* secondary text: AA on paper, surface, tint and lime */
-  --color-line: #ded7ca; /* borders and dividers */
-  --color-accent: #244b3d; /* brand green: buttons, links, focus */
-  --color-accent-strong: #163629; /* hover on accent; text on lime */
-  --color-lime: #e3ecbd; /* chips, badges, selected; text on accent */
+  --color-tint: #e9edf8; /* image placeholders, soft panels */
+  --color-ink: #171a2b; /* text and headings */
+  --color-muted: #555a6e; /* secondary text */
+  --color-line: #d6dae6; /* borders and dividers */
+  --color-accent: #2340c7; /* primary buttons, links, focus */
+  --color-accent-deep: #14237a; /* hover on accent; text on chip */
+  --color-chip: #ffd9cf; /* badges, selected states, soft highlights */
   --color-on-accent: #ffffff; /* text and icons on accent fills */
-  --color-clay: #936044; /* small eyebrows and numerals on paper/surface only (4.3:1 on tint) */
+  --color-warm: #c63d24; /* eyebrows, numerals, small details on ground/surface only (4.4:1 on tint) */
 }
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-fraunces), Georgia, 'Times New Roman', serif;
+  --font-display: var(--font-bricolage), system-ui, sans-serif;
 }
 
 @layer base {
@@ -25,7 +26,7 @@
     overflow: hidden;
   }
   body {
-    background: var(--color-paper);
+    background: var(--color-ground);
     color: var(--color-ink);
     font-family: var(--font-sans), system-ui, sans-serif;
   }
@@ -43,8 +44,8 @@
     outline-offset: 4px;
   }
   ::selection {
-    background: var(--color-lime);
-    color: var(--color-accent-strong);
+    background: var(--color-chip);
+    color: var(--color-accent-deep);
   }
   [id] {
     scroll-margin-top: 100px;
@@ -71,7 +72,7 @@
     font-weight: 650;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--color-clay);
+    color: var(--color-warm);
   }
 
   /* Buttons and links */
@@ -101,8 +102,8 @@
     color: var(--color-on-accent);
   }
   .button-dark:hover {
-    background: var(--color-accent-strong);
-    border-color: var(--color-accent-strong);
+    background: var(--color-accent-deep);
+    border-color: var(--color-accent-deep);
   }
   .button-light {
     background: transparent;
@@ -133,7 +134,7 @@
     max-height: none;
     padding: 0;
     border: 0;
-    background: var(--color-paper);
+    background: var(--color-ground);
     color: var(--color-ink);
   }
   .mobile-menu::backdrop {
@@ -189,25 +190,23 @@
   }
 
   /* Home */
+  /* Hero: copy left, .hero-scene right (an empty, sized mount point for the scene). */
   .studio-hero {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    min-height: 530px;
     display: flex;
-    align-items: flex-start;
-    padding-block: 42px 100px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 40px;
+    padding-block: 40px 48px;
   }
   .studio-hero-copy {
-    position: relative;
-    z-index: 1;
-    max-width: 100%;
+    flex: 1 1 440px;
+    min-width: 0;
   }
-  .studio-background {
-    position: absolute !important;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
+  .hero-scene {
+    position: relative;
+    flex: 1 1 380px;
+    aspect-ratio: 5 / 4;
+    min-width: 0;
   }
   .studio-hero h1 {
     margin-top: 24px;
@@ -276,7 +275,7 @@
   }
   .studio-path-number {
     align-self: flex-start;
-    color: var(--color-clay);
+    color: var(--color-warm);
     font-size: 13px;
     font-weight: 600;
   }
@@ -318,6 +317,7 @@
     line-height: 1.8;
     color: var(--color-muted);
   }
+  /* Applied by coffee-scene.tsx (animation pass) when it mounts into .hero-scene. */
   .coffee-scene-background {
     mask-image: linear-gradient(180deg, #00000018 0%, #00000018 72%, #00000099 100%);
   }
@@ -344,8 +344,8 @@
   .coffee-card-badge {
     padding: 5px 10px;
     border-radius: 999px;
-    background: var(--color-lime);
-    color: var(--color-accent-strong);
+    background: var(--color-chip);
+    color: var(--color-accent-deep);
     font-size: 12px;
     font-weight: 600;
   }
@@ -402,7 +402,7 @@
     background: var(--color-tint);
   }
   .compare-toggle[aria-pressed='true'] {
-    background: var(--color-lime);
+    background: var(--color-chip);
   }
   .compare-toggle:disabled {
     color: var(--color-muted);
@@ -430,12 +430,12 @@
   .compare-dock small {
     display: none;
     font-size: 12px;
-    color: var(--color-lime);
+    color: var(--color-chip);
   }
   .compare-dock a {
     margin-left: auto;
-    background: var(--color-lime);
-    color: var(--color-accent-strong);
+    background: var(--color-chip);
+    color: var(--color-accent-deep);
     border-radius: 6px;
     min-height: 44px;
     display: flex;
@@ -483,7 +483,7 @@
     line-height: 1.7;
   }
   .compare-table tbody tr:nth-child(2n) {
-    background: var(--color-paper);
+    background: var(--color-ground);
   }
   .compare-table h2 {
     font-family: var(--font-display);
@@ -520,8 +520,8 @@
   }
   .filter-option:has(input:checked) {
     border-color: var(--color-accent);
-    background: var(--color-lime);
-    color: var(--color-accent-strong);
+    background: var(--color-chip);
+    color: var(--color-accent-deep);
   }
   .filter-option:has(input:focus-visible) {
     outline: 3px solid var(--color-accent);
@@ -537,8 +537,8 @@
     min-height: 44px;
     padding: 0 14px;
     border-radius: 999px;
-    background: var(--color-lime);
-    color: var(--color-accent-strong);
+    background: var(--color-chip);
+    color: var(--color-accent-deep);
     font-size: 14px;
     font-weight: 500;
   }
@@ -584,7 +584,7 @@
     padding: 22px;
   }
   .calculator .eyebrow {
-    color: var(--color-accent); /* clay is under 4.5:1 on tint */
+    color: var(--color-accent); /* warm is under 4.5:1 on tint */
   }
   .calculator h2 {
     font-family: var(--font-display);
@@ -622,7 +622,7 @@
   }
   .calculator-result span {
     font-size: 14px;
-    color: var(--color-lime);
+    color: var(--color-chip);
   }
   .calculator p {
     font-size: 14px;
@@ -665,12 +665,7 @@
       font-size: 14px;
     }
     .studio-hero {
-      min-height: 560px;
-      align-items: center;
-      padding-block: 68px;
-    }
-    .studio-hero-copy {
-      max-width: 640px;
+      padding-block: 72px 56px;
     }
     .studio-hero h1 {
       font-size: clamp(44px, 5.2vw, 72px);
