@@ -208,6 +208,9 @@
     aspect-ratio: 5 / 4;
     min-width: 0;
   }
+  .hero-scene:empty {
+    display: none; /* no blank block until the scene mounts */
+  }
   .studio-hero h1 {
     margin-top: 24px;
     font-family: var(--font-display);
