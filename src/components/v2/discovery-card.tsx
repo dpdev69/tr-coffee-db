@@ -7,6 +7,7 @@ import { displayCoffeeName, displayNotes, displayPackageLabel, formatMoney, form
 import { PROCESS_LABELS } from '@/lib/constants/filter-options';
 import type { CatalogCoffee, CatalogOffer } from '../../../shared/v2/catalog';
 import type { CoffeeEvent } from '../../../shared/v2/types';
+import { ARRIVAL_DAYS } from '../../../shared/v2/events';
 
 const TASTES:Record<string,string>={fruity:'Meyvemsi',floral:'Çiçeksi',chocolate:'Çikolatalı',chocolatey:'Çikolatalı',sweet:'Tatlı',nutty:'Kuruyemişli',spicy:'Baharatlı',herbal:'Bitkisel',roasted:'Kavrulmuş',funky:'Fermente',fermented:'Fermente',clean:'Temiz'};
 export const EVENT_LABELS:Record<CoffeeEvent['type'],string>={NEW:'Yeni',PRICE_DROP:'Fiyatı düştü',RESTOCKED:'Geri geldi',DEAL:'Doğrulanmış fırsat',OUT_OF_STOCK:'Tükendi'};
@@ -22,11 +23,12 @@ export function preferredOffer(coffee:CatalogCoffee):CatalogOffer|undefined {
   return [...(available.length?available:coffee.offers)].sort((a,b)=>
     Number(a.weightG===null)-Number(b.weightG===null)||Math.abs((a.weightG??250)-250)-Math.abs((b.weightG??250)-250)||(a.priceMinor??Infinity)-(b.priceMinor??Infinity)||a.id.localeCompare(b.id))[0];
 }
-/** A historical event is not an active badge once its current state or seven-day discovery window has ended. */
+/** A historical event is not an active badge once its current state or window has ended: ARRIVAL_DAYS for a genuine
+ * arrival (hydrate keeps only those NEW events, so the badge agrees with /yeni), seven days for the rest. */
 export function currentBadges(coffee:CatalogCoffee,now=Date.now()):CoffeeEvent[]{
   return coffee.latestEvents.filter(event=>{
     const age=now-Date.parse(event.createdAt);
-    if(!Number.isFinite(age)||age<0||age>7*86400000)return false;
+    if(!Number.isFinite(age)||age<0||age>(event.type==='NEW'?ARRIVAL_DAYS:7)*86400000)return false;
     const offer=coffee.offers.find(value=>value.variantOfferIds.includes(event.offerId??''));
     if(event.type==='NEW')return true;
     if(event.type==='RESTOCKED')return offer?.inStock===true;
