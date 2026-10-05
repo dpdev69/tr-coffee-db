@@ -68,6 +68,7 @@ jobs:
       # Only after a step that wrote tonight's data: when the database refuses reads (daily allowance spent), both fail,
       # and purging then would replace every good edge copy with outage notices until the next day.
       - name: Purge the edge cache
+        id: purge
         if: ${{ !cancelled() && (steps.refresh.outcome == 'success' || steps.corrections.outcome == 'success') }}
         env:
           CACHE_PURGE_TOKEN: ${{ secrets.CACHE_PURGE_TOKEN }}
@@ -75,3 +76,15 @@ jobs:
         run: |
           if [ -z "$CACHE_PURGE_TOKEN" ] || [ -z "$SITE_URL" ]; then echo '::notice::Edge purge not configured; pages refresh within 6 hours.'; exit 0; fi
           curl -fsS --max-time 30 -X POST -H "Authorization: Bearer $CACHE_PURGE_TOKEN" "${SITE_URL%/}/api/cache"
+      # Right after the purge, one request at a time: the catalog-wide results (landing facts, sitemap, similarity and quiz
+      # candidates) are computed once here instead of by the first visitors together, and the commonest pages are stored at
+      # the edge. It also lists the stored results and their sizes, and flags one that was not stored (docs/read-budget.md).
+      - name: Warm the edge cache
+        if: ${{ !cancelled() && steps.purge.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          CACHE_PURGE_TOKEN: ${{ secrets.CACHE_PURGE_TOKEN }}
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          if [ -z "$CACHE_PURGE_TOKEN" ] || [ -z "$SITE_URL" ]; then echo '::notice::Edge purge not configured; nothing to warm.'; exit 0; fi
+          scrapers/node_modules/.bin/tsx scripts/warm-cache.mts
