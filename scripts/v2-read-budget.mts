@@ -67,8 +67,8 @@ const since = (days: number, now: number) => new Date(Math.floor(now / 300000) *
 async function discovery(db: CatalogDatabase, params: Record<string, string | string[]>, now: number, event?: CatalogFilters['event'], preset?: Record<string, string>) {
   const filters = parseDiscoveryFilters({ ...params, ...preset });
   if (event) { filters.event = event; filters.since = since(event === 'NEW' ? ARRIVAL_DAYS : 7, now); }
-  const [catalog] = await Promise.all([listCatalog(db, filters), listRoasters(db), listOrigins(db)]);
-  if (catalog.page > catalog.totalPages && catalog.totalPages > 0) await listCatalog(db, { ...filters, page: catalog.totalPages });
+  // A page past the last one now redirects to the last page (its own address) instead of reading it here.
+  await Promise.all([listCatalog(db, filters), listRoasters(db), listOrigins(db)]);
 }
 
 export function pageScenarios(sample: { coffee: string; roaster: string; offer: string; saved: string[] }) {

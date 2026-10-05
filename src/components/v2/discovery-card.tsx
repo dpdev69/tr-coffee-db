@@ -66,4 +66,4 @@ export function DiscoveryCard({coffee,source='catalog'}:{coffee:CatalogCoffee;so
   </article>;
 }
 export function DiscoveryGrid({coffees,source='catalog'}:{coffees:CatalogCoffee[];source?:string}){return <div className="card-grid">{coffees.map(coffee=><DiscoveryCard key={coffee.id} coffee={coffee} source={source}/>)}</div>;}
-export function DiscoveryEmpty({title='Burada henüz kahve yok.',children,action=['/kahveler','Tüm kahveleri keşfet ↗']}:{title?:string;children:React.ReactNode;action?:[href:string,label:string]}){return <div className="empty-catalog"><h3>{title}</h3><p>{children}</p><Link href={action[0]} className="text-link">{action[1]}</Link></div>;}
+export function DiscoveryEmpty({title='Burada henüz kahve yok.',children,action=['/kahveler','Tüm kahveleri keşfet ↗']}:{title?:string;children:React.ReactNode;action?:[href:string,label:string]}){return <div className="empty-catalog"><h3>{title}</h3><p>{children}</p><Link href={action[0]} prefetch={false} className="text-link">{action[1]}</Link></div>;}

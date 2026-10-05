@@ -47,7 +47,7 @@ export default async function RoasterPage({ params, searchParams }: { params: Pr
     <section className="mb-10 flex flex-wrap items-center gap-x-10 gap-y-6"><RoasterInitial name={roaster.name} size="lg"/><div className="min-w-0 flex-[1_1_360px]"><h1 className="mb-2 font-display text-title">{roaster.name}</h1><p className="text-[17px] text-muted">{roaster.city || 'Bağımsız kavurucu'} · Satışta {roaster.coffeeCount} kahve, {roaster.offerCount} paket. Sipariş kavurucunun sitesinde tamamlanır.</p></div>{hasSite ? <a href={`/go/kavurucu/${roaster.slug}`} rel="nofollow" className="button-light">Kavurucunun sitesi <span aria-hidden="true">↗</span></a> : null}</section>
     <h2 className="sr-only">{roaster.name} kahveleri</h2>
     {catalog.coffees.length ? <DiscoveryGrid coffees={catalog.coffees} /> : <DiscoveryEmpty title="Şu an satışta doğrulanmış bir kahve yok.">Kavurucunun sayfasını koruyoruz. Yeniden satışa çıkan kahveler burada yer alacak.</DiscoveryEmpty>}
-    {catalog.total > catalog.coffees.length ? <div className="mt-8 text-center"><Link className="button-dark" href={`/kahveler?roaster=${encodeURIComponent(roaster.slug)}`}>Tüm {catalog.total} kahveyi gör →</Link></div> : null}
+    {catalog.total > catalog.coffees.length ? <div className="mt-8 text-center"><Link className="button-dark" prefetch={false} href={`/kahveler?roaster=${encodeURIComponent(roaster.slug)}`}>Tüm {catalog.total} kahveyi gör →</Link></div> : null}
     {signupsEnabled() && <NewsletterForm source="roaster" variant="card" className="mt-12" title="Bu kavurucudan yeni kahve gelince" description="Haftalık özet ve aylık bültende haber veririz." />}
   </div>;
 }

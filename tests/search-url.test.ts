@@ -22,7 +22,7 @@ describe('buildGlobalSearchUrl', () => {
         currentQuery: 'origin=Kenya&priceMin=120&page=3&sort=price_asc',
         nextSearch: 'espresso',
       }),
-      '/kahveler?origin=Kenya&priceMin=120&sort=price_asc&search=espresso'
+      '/kahveler?search=espresso&origin=Kenya&priceMin=120&sort=price_asc'
     );
   });
 

@@ -29,7 +29,7 @@ const HOW_IT_WORKS = [
 
 function FeedSection({ title, href, coffees }: { title: string; href: string; coffees: CatalogCoffee[] }) {
   if (!coffees.length) return null;
-  return <section className="section-space border-t border-line"><div className="section-heading"><h2>{title}</h2><Link href={href} className="text-link">Tümünü gör ↗</Link></div><DiscoveryGrid coffees={coffees} source="home" /></section>;
+  return <section className="section-space border-t border-line"><div className="section-heading"><h2>{title}</h2><Link href={href} prefetch={false} className="text-link">Tümünü gör ↗</Link></div><DiscoveryGrid coffees={coffees} source="home" /></section>;
 }
 
 // Runs before paint: a stored list reserves the Listem panel's cell, so the page does not jump when it hydrates.
