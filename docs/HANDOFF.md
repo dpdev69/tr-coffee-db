@@ -1,56 +1,109 @@
-# Agent handoff — 2026-10-04
+# Handoff — 2026-10-05
 
-Start here. This file is the current state; [v2-handoff.md](v2-handoff.md) is the 2026-09-15 staging handoff and is partly stale (see "Doc drift").
+Start here. This file is the current state. [launch-day.md](launch-day.md) is the production checklist, [read-budget.md](read-budget.md) explains the database read budget and its staging checks, [monthly-issue.md](monthly-issue.md) is the newsletter workflow, and [marketing-plan.md](marketing-plan.md) is the go-to-market plan. [v2-handoff.md](v2-handoff.md) is a 2026-09-15 snapshot and is stale.
 
 ## Where things are
 
-- **Repo:** `dpdev69/tr-coffee-db` (private). Work branch **`001-kahvedrop-v2`**, pushed, 5 commits ahead of `main`, CI green on the last two pushes. **No PR opened yet.** `backup/v2-pre-rebase` is a local-only safety branch from before the rebase onto main #13/#14; delete it once the PR merges.
-- **Staging:** https://coffeedb-v2-web-staging.hellobasalt.workers.dev (noindex). It runs code from 2026-09-15; **nothing from this session is deployed.**
-- **Stack:** Next 16 App Router through vinext on Cloudflare Workers, D1 catalog, crawler Worker + Queues (Cloudflare cron is **off**, `crons: []`), Kit newsletter (form `9918321`). The daily catalog refresh runs from GitHub Actions `scrape.yml` → `scripts/v2-refresh.mts` → D1 REST API.
-- **Other folders:** `../free-catalog-refresh` is a worktree already squash-merged as main #14 (safe to `git worktree remove`). `/Users/me/Documents/claude/projects/coffee` is an obsolete v1 copy with no commits; ignore it.
+- **Repo:** `dpdev69/tr-coffee-db` (private). Everything is on `main` (pull requests 15 to 36), CI green, 452 tests.
+- **Staging:** https://coffeedb-v2-web-staging.hellobasalt.workers.dev runs `main`. It tells search engines not to index it. Signup is on there.
+- **Production:** does not exist. Configuration is ready (`wrangler.production.jsonc`, `wrangler.crawler.production.jsonc`) with placeholders, and `npm run deploy:production` refuses to run until they are filled.
+- **Catalog:** 42 qualified sources, about 490 listed coffees. The nightly refresh is GitHub Actions `scrape.yml`; GitHub starts it around 02:30 to 03:00 UTC, not at its scheduled midnight.
+- **Stack:** Next 16 App Router through vinext on Cloudflare Workers, D1 on the **free plan**, Kit for email. The crawler Worker's cron and queue path stay off.
+- **Legacy:** the old Vercel project `tr-coffee-db` is disconnected from GitHub but its last deployment is still online. `/Users/me/Documents/claude/projects/coffee` is an obsolete v1 copy; ignore it.
 
-## What this session shipped (oldest first)
+### State of the staging database at the time of writing
 
-| Commit | What |
-| --- | --- |
-| `ab9f910` | Snapshot of all previously uncommitted v2 work, rebased onto main #13/#14. Where main was newer (refresh/ingestion/d1-rest) main won; where local was newer (catalog, parsers, profile-truth) local won. |
-| `e4882c1` | Catalog truthfulness: grind/roast variants at the same weight+price collapse into one package (`collapsePackages` + `PACKAGE_KEY` in `shared/v2/catalog.ts`), name-only exclusions for subscriptions/sets/drip bags/cases (`shared/v2/coffee-eligibility.ts`), read repair of glued storefront labels in origin/process/roast/altitude/farm/producer and HTML-entity/“YENİ –” name cleanup (`shared/v2/profile-truth.ts`), price sort+filter on the card's package (`PREFERRED_PRICE`), Turkish-folded search with gesha/geisha + TR/EN origin synonyms, last-page clamp, `/firsatlar` defaults to price drops. |
-| `e24045e` | KVKK art. 10/11 notice on `/privacy`, required consent checkbox on the newsletter form, contact moved off private-repo GitHub Issues. **Controller and contact are `null` in `src/lib/legal.ts`** → pages show “henüz belirlenmedi”. |
-| `ba12977` | Weekly digest: `scripts/v2-digest.mts` + `.github/workflows/digest.yml` (Mon 06:00 Istanbul). Reuses `listCatalog` event feeds, creates a Kit **draft** only (`send_at: null`, guarded), skips when <3 items. Never previewed with real events (local D1 has none). |
-| `a455ac6` | Migration `0005_current_offers_freshness.sql` (coffee is current only if seen within 7 days of its roaster's last *successful* crawl), crawler `queue()` honors `CRAWLS_ENABLED`, DLQ name via `CRAWL_DLQ_QUEUE`, stage-driven cache namespace, production fails at startup without `NEXT_PUBLIC_SITE_URL`, unchanged features not rewritten per crawl, weekly `d1-backup.yml` (gzipped artifact, 30 days). |
+On 2026-10-05 the database exceeded the free plan's 5 million rows-read daily allowance (26.8 million in 24 hours) and Cloudflare refused reads until 00:00 UTC. The cause was the catalog page recounting all 28 landing pages on every view, with nothing cached, while agents tested against staging. The fix is merged (pull requests 35 and 36), but **three things could not be done while the database was cut off** and are the first items under "Next work".
 
-Verification at handoff: `npm test` 344/344, `npm run lint`, `npm run typecheck`, `npm run scrapers:typecheck`, `npm run build:cloudflare`, `npm run build:crawler` all pass on Node 26 locally; CI (Node 22) green.
+## Owner decisions (do not reverse without asking)
 
-## Blocked on the owner (do not invent these)
+- **No animation** and no three.js. Only plain hover colour changes.
+- **No price per 100 g** anywhere in the interface. Tests forbid it.
+- **Palette "İznik"** (porcelain, cobalt, coral) and Bricolage Grotesque for headings. Change colours only through the tokens at the top of `src/app/globals.css`.
+- **Free database plan.** Do not propose the paid plan as a fix.
+- **No scheduled work on the owner's Mac.**
+- **Newsletter:** a monthly editorial issue ("KahveDrop Mektup") plus the automated weekly digest. Code only ever creates Kit drafts.
+- **Production waits for the domain**, and launches with **signup hidden** (`SIGNUPS_ENABLED`, default off).
+- **Never disguise the crawler.** No spoofed browsers, proxies or rewritten client addresses. A block is solved by asking the roaster.
+- **Agents must not load-test or crawl staging.** For realistic local data use the dump at `.local/backups/staging-pre-0007.sql` (git-ignored) with migrations 0007 and 0008 applied on top.
+- The brand name **KahveDrop is provisional**; it lives in `src/lib/brand.ts`.
 
-1. **Apply 0005 to staging:** `npm run db:migrate:staging`. Remote ledger was checked read-only: 0001–0004 applied, only 0005 pending. Needs owner OK — it changes the live staging DB.
-2. **GitHub settings:** secret `KIT_API_KEY`, variable `SITE_URL`. Run `d1-backup.yml` once manually: Cloudflare doesn't document the export permission; the existing `CLOUDFLARE_D1_API_TOKEN` (D1 Edit) should work, a read-only token may not.
-3. **Legal identity:** set `DATA_CONTROLLER` and `CONTACT_EMAIL` in `src/lib/legal.ts`. The open KVKK/İYS/transfer-abroad questions are in [kit-setup.md](kit-setup.md); the notice text is not legal advice.
-4. **Domain + branded sender** in Kit, then production Cloudflare resources (checklist in [cloudflare-deployment.md](cloudflare-deployment.md)) and cutover approval per [cutover-runbook.md](cutover-runbook.md).
-5. **Kit recipients:** the API can't target a form, so the digest draft has no `subscriber_filter`; the owner picks recipients in Kit. If Kit rejects drafts without it, create a segment of form 9918321 and pass `{all:[{type:'segment',ids:[…]}]}`.
+## What was built on 2026-10-04 and 2026-10-05
 
-## Suggested next work (ranked)
+| Area | What |
+|---|---|
+| Data pipeline | Manual corrections that survive crawls (`data/corrections.json`), per-offer failure isolation, roasters synced from `configs.ts`, bag sizes grouped into one coffee, offers hidden after 7 days unconfirmed, attributes taken only where the roaster states them, IKAS tasting-note fields read |
+| New arrivals | One definition of a genuine new arrival (`GENUINE_NEW` in `shared/v2/catalog.ts`, 30-day window) used by `/yeni`, the badge, home counts, both emails and issue pages |
+| Sources | 42 qualified. Added and qualified: Caffe Di Toee, Coffee Sapiens, Lot Coffee, Mayard |
+| Design | İznik palette, fluid layout from 320 to 2200 px, 21 visual flaws fixed, phone menu, desktop search, filter chips |
+| Discovery | Ranked quiz with reasons (`shared/v2/quiz-rank.ts`, `/quiz/sonuc`), saved list (`/listem`), coffee of the day, since-last-visit counts; all device-local, no accounts |
+| Newsletter | Signup with consent recorded, signup switch, weekly digest, monthly issue from `content/bulten/YYYY-MM.md` to `/bulten` pages and a Kit draft, sponsor slot built and off |
+| Search engines | Descriptions from catalog facts, per-coffee share image, structured data, 27 origin and process landing pages, canonical rules, real 404s |
+| Capacity | Six-hour edge cache with nightly purge, nightly shared results (migration 0008), lighter queries, canonical addresses, per-client limit on cache misses, optional global brake, warm-up after purge and deploy |
+| Launch | Production configuration and guard, `docs/launch-day.md` |
+| Marketing | `docs/marketing-plan.md`; competitors already track prices, so the site leads with taste and editorial |
 
-1. **Open the PR** `001-kahvedrop-v2` → `main` (ask first). Then deploy to staging and re-run the live checks below.
-2. **Newsletter surface:** form appears only at home-bottom — add to `/firsatlar` (incl. its empty state), `/yeni`, detail pages, footer. Fix `newsletter-form.tsx`: the success state is dead (navigates to `/tesekkurler` immediately) and the no-JS fallback posts form-encoded data that `/api/subscribe` rejects as JSON 400.
-3. ~~**`/yeni` default** lists the whole catalog sorted by first-seen~~ Done on fix/new-arrivals: /yeni lists genuine arrivals of the last 30 days; the rule is in [event-engine.md](event-engine.md).
-4. **Images:** 42 staging coffees (8%) have dead upstream images, mostly Coffeerem, Kronotrop, Ordinarius. Re-crawl images or fall back to the roaster name tile (already the null-image fallback).
-5. ~~**Caching/perf**~~ Done on perf/read-budget: edge caching for every catalog page and JSON endpoint, a D1-backed cache for results shared by every visitor, nightly purge. Numbers and rollout in [read-budget.md](read-budget.md).
-6. **Data polish:** cross-size twins (“KOYU” vs “KOYU 2.5KG”, “– Espresso” twins) are separate coffees; Old Java “Cold Brew” is listed (left in deliberately: name-only exclusion would hide cold-brew beans); 310 offers lack weight; English labels leak (“Filter / Pour Over”, `/compare` shows “Brazil”); tasting-note casing is inconsistent.
-7. **Desktop search:** `header.tsx` renders `SearchInput` only in the mobile menu, and `src/lib/search-url.ts` targets legacy `/coffees`.
-8. **Cleanup:** dead components (grep-confirm first: `sidebar-filters.tsx`, `coffee-card/grid`, `pagination`, `report-issue-form`, `lib/api/rate-limit`, `lib/supabase/client`), unused `@vercel/analytics`, “TR CoffeeDB” leftovers in `package.json`/`.gitleaks.toml`/`TODOS.md`, stale `codex/*` branches.
+## Owner to-do
 
-Enabling the Cloudflare cron needs all of these together: `crons` set, `CRAWLS_ENABLED="true"`, queue delivery resumed, **`scrape.yml` schedule disabled** (two writers duplicate observations), and Workers Paid (free-plan subrequest/CPU limits break the queue crawler).
+1. **Set the cache purge token** (not set yet). It lets the nightly job clear cached pages so new prices show at once. Without it pages refresh on their own within six hours.
+   ```bash
+   T=$(openssl rand -hex 32); printf %s "$T" | gh secret set CACHE_PURGE_TOKEN --repo dpdev69/tr-coffee-db; cd ~/Documents/codex/coffeedb/coffee && printf %s "$T" | npx wrangler secret put CACHE_PURGE_TOKEN --config wrangler.jsonc; unset T
+   ```
+2. **Optional, recommended on the free plan: enable the read brake.** In the Cloudflare dashboard create an API token with "Account Analytics: Read", then store it as the Worker secret `D1_ANALYTICS_TOKEN` (`npx wrangler secret put D1_ANALYTICS_TOKEN --config wrangler.jsonc`). Above 3.5 million rows read in a day the site then stops spending rows on uncached catalog views and keeps the rest for the nightly refresh.
+3. **Decide on Coffeerem and Sezy.** They refuse GitHub's network; the relay through our own Worker was refused too. Recommended: mark both inactive in `scrapers/src/roasters/configs.ts`, remove the relay code, and ask them by email. Until then the nightly job reports them as failing every night and their coffees drop off the site.
+4. **Buy the domain** (kahvedrop.com was unregistered when checked) and settle the name. Then follow `docs/launch-day.md`.
+5. **Legal identity:** set the data controller and contact email in `src/lib/legal.ts`. The privacy page shows "henüz belirlenmedi" until then. Get the KVKK and İYS review before any sponsored send.
+6. **Kit:** create custom fields `consent_at` and `consent_version`, and a branded sender. Then signup can be switched on (Part B of `docs/launch-day.md`).
+7. **November issue:** draft pull request 27 has three researched scene items. Write the picks, title and intro, re-check the World Barista Championship item after 25 October, then set `published: true`.
+8. **Product calls still open:**
+   - Blends and Turkish coffee are hidden by the specialty rule, inconsistently across roasters (Kronotrop "DARK Espresso" hidden, "DARK Filtre" shown).
+   - Gourme "Honduras El Jardin (100GR)" is dropped because the shop files it under "Deneme Seti".
+   - Share cards now show roasters' product photos; the marketing plan says to ask permission first.
+   - The home hero shows live counts instead of the tagline "Türkiye'nin bağımsız kahve rehberi".
+   - A coffee can show both "Geri geldi" and "Yeni".
+   - `/compare` opened directly shows its empty state even with coffees selected.
+   - Campaign tag in emails is the bare month (`2026-11`); `mektup-2026-11` is a one-line change.
+   - Whether a sponsor's coffees may appear in that issue's picks (the marketing plan says no; not enforced).
+9. **Marketing**, after the domain is live: the plan's week-by-week list. Message the Kahve Kulübü admin and the kahve.one owner privately before anything public. Your account Brokenchemex already has a thread there (12304).
+10. **Old Vercel site:** decide whether to delete the project or redirect it to the new domain at launch.
+
+## Next work (for whoever continues)
+
+**First, after 00:00 UTC when the database is back**
+
+1. Apply migration 0008 to staging from `coffee/`: `npm run db:migrate:staging`. It was refused on 2026-10-05 because the database was cut off. Code already deployed works without it but stores no shared results.
+2. Run the staging checks under "Rollout" in `docs/read-budget.md`. The ones that matter most:
+   - A page goes from uncached to cached: request `/kahveler` twice with `-H 'Accept: text/html'`; `cf-cache-status` should read MISS, then HIT.
+   - **The purge works:** `POST /api/cache` with the token returns `{"purged":true}`. This is unproven; it never worked locally. If it fails, a quiet page can show a price about 30 hours old, and it must be fixed before launch.
+   - The limit works: about 25 made-up searches in a row give 200s, then 429s. Run it once only; it costs about 140,000 rows.
+3. Check the next nightly run's summary: about 80,000 rows read, the purge step, the warm-up listing all stored results.
+4. Re-check staging pages on live data: `/yeni` should list about 12 to 15 coffees; home and `/firsatlar` should agree on price drops.
+
+**Before launch**
+
+5. Pull request 36 (the cache-miss guard and the new Worker entry `workers/web.ts`) was verified on staging only for what works without a database, and had **no independent review**. Review it.
+6. Rehearse loading a full export into a fresh database and applying migrations. It has never been run (`docs/launch-day.md`, steps 7 and 8).
+7. Staging acceptance checks never run in this work: a real Kit signup end to end, analytics events, and the weekly digest against real events.
+8. `docs/launch-day.md` step 0 lists the launch gates; keep it in step with this file.
+
+**Backlog**
+
+- Vitus is configured but unqualified: the shop was entirely sold out. Re-check when stock returns.
+- Roasters on platforms without an adapter: 3 Cores, Gordion, Eleonora, Old School (all Wix), Kava, ROR, Octagon, Manifesto. One Wix adapter unlocks four.
+- Shopify currency is still assumed to be TRY (marked in `scrapers/src/v2/parsers.ts`).
+- Data debris at the source: scraper text in some tasting notes, bag sizes and years inside names. The interface hides the worst; fixing the parsers is better.
+- Dead Kronotrop images.
+- An issue page for a past month can miss arrivals when more than 100 coffees arrived later (marked in the code).
+- The Supabase packages and `supabase/` folder are kept only for rollback and the legacy `/compare` query.
+- Leftover checkouts `../wt-fluid`, `../wt-visual` and `../wt-integration`, and the branches `fix/fluid-layout` and `fix/visual-pass`, can be removed. The first two were kept because the owner had local servers running from them (ports 3171 and 3151).
 
 ## How this codebase wants changes made
 
-- **Read [AGENTS.md](../AGENTS.md):** Next 16 has breaking changes; read `node_modules/next/dist/docs/` before using Next APIs. vinext is beta; check `npm run build:cloudflare` after UI changes.
-- **One choke point per concern.** Every public query goes through `coffeeOnlySql()`; every coffee is built in `hydrate()`; source metadata is repaired at read time in `truthfulMetadata()`; every parser builds products in `coffee()` (`scrapers/src/v2/parsers.ts`). Fix there, not in components, so existing D1 rows are covered without a recrawl.
-- **Unknown beats wrong.** Missing weight → no unit price; prose in a fact field → field dropped. Raw source data stays intact in `raw_metadata_json`; `price_observations` are immutable and DEAL detection depends on repeated same-price observations — don't dedupe them.
-- **Test against real data.** A full staging catalog dump from 2026-10-04 is not in the repo; regenerate by paging `/api/catalog?perPage=100&page=N`. A local D1 copy (2026-09-14 data, no events) lives under `.wrangler/state/v3/d1/`; open it read-only with `node:sqlite`. Tests apply all migrations via `applyMigrations()` in `tests/helpers/v2-sqlite.ts`.
-- **Remote is the owner's call.** No deploys, `--remote` wrangler writes, Kit calls or pushes without explicit approval. Read-only checks (`wrangler d1 migrations list --remote`, GET on staging) are fine.
-
-## Doc drift (fix when touching these)
-
-- `docs/v2-handoff.md` / `docs/staging-acceptance.md`: 284 tests (now 344), 14 qualified sources (code lists 38; only `cho-coffee` unqualified), “remote CI has not run” (it has), `/rankings` listed as a utility (it redirects to `/kahveler`), staging counts 481/38/1,170 (live API showed 511/39/3,400 offer rows before package collapse).
-- `TODOS.md` predates v2: the zero-product WooCommerce adapters it lists are now qualified, and `ordinarius` was rewritten as IdeaSoft.
+- Read `node_modules/next/dist/docs/` before writing Next code; this version differs from common knowledge, and vinext differs again (React's ViewTransition does nothing; a root `loading.tsx` turns 404s into 200s; pages with a query string need the cache header from `next.config.ts`).
+- Every concern has one place: `coffeeOnlySql()` and `shared/v2/coffee-eligibility.ts` for what is a coffee, `hydrate()` and the views `public_catalog_coffees` and `current_offers` for what is listed, `truthfulMetadata()` for attributes, the parser's `coffee()` builder for ingestion.
+- "Unknown beats wrong": never guess an attribute. Price observations are immutable.
+- CI runs Node 22 and `npm run check`, which includes a legacy `next build` stricter than the Cloudflare build: server files must not import client-only modules. Run `npm run check`, `npm test`, `npm run build:cloudflare` and `npm run build:crawler` before a pull request, and **read the CI result before merging**. A failed font download in the legacy build is transient; re-run it.
+- D1 refuses LIKE patterns over 50 bytes and rows over 2 MB.
+- Wrangler reports an exhausted read allowance as error 7500, and sometimes as 7403 "not authorized".
+- Remote steps on staging (migrations, deploys, workflow runs) are pre-approved. Production, anything public, and anything that sends email stop for the owner.
+- Deploy staging from `coffee/`: `npm run build:cloudflare && npm run deploy:vinext`, and `npx wrangler deploy --config wrangler.crawler.jsonc` for the crawler. Database backups are in `.local/backups/`.
