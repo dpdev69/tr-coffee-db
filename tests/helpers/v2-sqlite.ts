@@ -7,10 +7,16 @@ export function applyMigrations(sqlite: DatabaseSync) {
   const directory = new URL('../../migrations/d1/', import.meta.url);
   for (const name of readdirSync(directory).filter(name => name.endsWith('.sql')).sort()) sqlite.exec(readFileSync(new URL(name, directory), 'utf8'));
 }
+/** Give a test database D1's limits where this Node version allows it. */
+export function applyD1Limits(sqlite: DatabaseSync) {
+  const limits = (sqlite as unknown as { limits?: { likePatternLength: number; exprDepth: number } }).limits;
+  if (limits) { limits.likePatternLength = 50; limits.exprDepth = 100; }
+}
 export class TestCatalogDatabase implements CatalogDatabase {
   readonly sqlite = new DatabaseSync(':memory:');
   // D1's own limits, so a query D1 refuses fails here too: GLOB/LIKE patterns over 50 bytes, expressions deeper than 100.
-  constructor() { this.sqlite.limits.likePatternLength = 50; this.sqlite.limits.exprDepth = 100; applyMigrations(this.sqlite); }
+  // Node 22 (CI) has no `limits` on DatabaseSync, so the limits apply only on newer Node; the queries must pass either way.
+  constructor() { applyD1Limits(this.sqlite); applyMigrations(this.sqlite); }
   prepare(sql: string): Statement { return new TestStatement(this, sql); }
   async batch(statements: Statement[]) {
     this.sqlite.exec('BEGIN');
