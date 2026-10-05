@@ -6,6 +6,7 @@ import { deviceStore } from '@/lib/device-store';
 import { BREW_METHOD_LABELS, FLAVOR_CATEGORY_LABELS, PROCESS_LABELS, ROAST_LABELS } from '@/lib/constants/filter-options';
 import { DEVICE_NOTE, SavedRow, savedStatus, useSaved, useSavedItems } from '@/components/coffee/saved-list';
 import { DiscoveryGrid } from './discovery-card';
+import { parseQuizAnswers, quizQuery } from '@/lib/quiz-filters';
 import type { CatalogCoffee } from '../../../shared/v2/catalog';
 import type { PublicCatalogCoffee } from '../../../shared/v2/public-catalog';
 import type { RawMetadata } from '../../../shared/v2/types';
@@ -54,7 +55,7 @@ export function SinceLastVisit() {
   }, []);
   return <section className="mb-10 mt-8 flex flex-wrap content-start items-center gap-x-4 gap-y-3 sm:min-h-16" aria-live="polite" aria-busy={!state}>
     <h2 className="mr-2 w-full font-display text-[26px] sm:w-auto">{state ? (state.returning ? 'Son ziyaretinden beri' : 'Son 7 günde') : ' '}</h2>
-    {CHANGES.map(([type, label, href]) => <Link key={type} href={href} className="inline-flex min-h-11 items-baseline gap-2 rounded-full border border-line bg-surface px-[18px] py-2.5 text-[15px] text-ink hover:border-accent">
+    {CHANGES.map(([type, label, href]) => <Link key={type} href={href} prefetch={false} className="inline-flex min-h-11 items-baseline gap-2 rounded-full border border-line bg-surface px-[18px] py-2.5 text-[15px] text-ink hover:border-accent">
       <span className="font-display text-[22px] font-semibold text-accent">{state?.counts ? state.counts[type].toLocaleString('tr-TR') : '·'}</span>{label}
     </Link>)}
   </section>;
@@ -114,8 +115,9 @@ const usable = (item: unknown): item is PublicCatalogCoffee => {
 /** Isolated so the contract lives in one place: any failure means null, and the caller keeps plain new arrivals. */
 async function fetchMatches(profile: Profile, signal: AbortSignal): Promise<CatalogCoffee[] | null> {
   try {
-    const query = new URLSearchParams({ brew: profile.brew.join(','), taste: profile.taste.join(','), roast: profile.roast.join(','), process: profile.process.join(','), limit: '4' });
-    const response = await fetch(`/api/quiz/match?${query}`, { signal });
+    // The canonical address (src/lib/canonical-address.ts): one edge entry per answer set; 4 is the endpoint's default limit.
+    const query = quizQuery(parseQuizAnswers(profile));
+    const response = await fetch(query ? `/api/quiz/match?${query}` : '/api/quiz/match', { signal });
     if (!response.ok) return null;
     const data = await response.json() as { coffees?: unknown; items?: unknown };
     const list = Array.isArray(data.coffees) ? data.coffees : Array.isArray(data.items) ? data.items : [];

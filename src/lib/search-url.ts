@@ -1,4 +1,4 @@
-import { normalizeSearchTerm } from '@/lib/filter-contract';
+import { canonicalListing } from '@/lib/canonical-address';
 
 const CATALOG_PATH = '/kahveler';
 
@@ -16,16 +16,8 @@ export function buildGlobalSearchUrl({
     pathname === CATALOG_PATH && currentQuery
       ? new URLSearchParams(currentQuery)
       : new URLSearchParams();
-  const search = normalizeSearchTerm(nextSearch);
-
-  if (search) {
-    params.set('search', search);
-  } else {
-    params.delete('search');
-  }
-
+  params.set('search', nextSearch);
   params.delete('page');
-
-  const query = params.toString();
-  return query ? `${CATALOG_PATH}?${query}` : CATALOG_PATH;
+  // canonicalListing normalises the term (and drops it when empty), so the router asks for the one cached address.
+  return canonicalListing(CATALOG_PATH, params);
 }

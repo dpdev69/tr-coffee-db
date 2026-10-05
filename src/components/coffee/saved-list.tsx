@@ -83,7 +83,8 @@ export function useSavedItems(saved: SavedCoffee[]): Map<string, SavedItem> | nu
   useEffect(() => {
     if (!key) return;
     const controller = new AbortController();
-    const query = new URLSearchParams(key.split(',').map(slug => ['slug', slug]));
+    // Sorted and deduplicated, the endpoint's canonical address: one edge entry per set of saved coffees, whatever the order.
+    const query = new URLSearchParams([...new Set(key.split(','))].sort().map(slug => ['slug', slug]));
     fetch(`/api/saved?${query}`, { signal: controller.signal })
       .then(response => (response.ok ? response.json() as Promise<{ items?: SavedItem[] }> : Promise.reject(new Error(String(response.status)))))
       .then(data => setState({ key, value: new Map((data.items ?? []).map(item => [item.slug, item])) }))

@@ -6,12 +6,15 @@ interface __BaseEnv_CloudflareEnv {
 	ANALYTICS: AnalyticsEngineDataset;
 	SUBSCRIBE_LIMITER: RateLimit;
 	EVENT_LIMITER: RateLimit;
+	CATALOG_LIMITER: RateLimit;
+	PAGE_LIMITER: RateLimit;
 	IMAGES: ImagesBinding;
 	CF_VERSION_METADATA: WorkerVersionMetadata;
 	ASSETS: Fetcher;
 	DEPLOYMENT_STAGE: "staging";
 	SIGNUPS_ENABLED: "true";
 	WEB_ANALYTICS_TOKEN: "008e6a1fb0184349ac3913e1d8c34100";
+	D1_BUDGET_ACCOUNT_ID: "4c1a4493b8584296f35c3eddc8279112";
 	WEB_ANALYTICS_HOST: "coffeedb-v2-web-staging.hellobasalt.workers.dev";
 	KIT_FORM_ID: string;
 	KIT_API_KEY: string;

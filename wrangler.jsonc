@@ -5,7 +5,8 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "main": "vinext/server/fetch-handler",
+  // The miss guard runs before the app (workers/miss-guard.ts).
+  "main": "workers/web.ts",
   "assets": {
     "directory": "dist/client",
     "not_found_handling": "none",
@@ -43,6 +44,8 @@
     "SIGNUPS_ENABLED": "true",
     "KIT_FORM_ID": "9918321",
     "WEB_ANALYTICS_TOKEN": "008e6a1fb0184349ac3913e1d8c34100",
+    // The account whose daily D1 reads the brake watches; the brake also needs the secret D1_ANALYTICS_TOKEN.
+    "D1_BUDGET_ACCOUNT_ID": "4c1a4493b8584296f35c3eddc8279112",
     "WEB_ANALYTICS_HOST": "coffeedb-v2-web-staging.hellobasalt.workers.dev"
   },
   "analytics_engine_datasets": [
@@ -63,6 +66,23 @@
     {
       "name": "EVENT_LIMITER",
       "namespace_id": "1002",
+      "simple": {
+        "limit": 60,
+        "period": 60
+      }
+    },
+    // Cache misses per client per minute (workers/miss-guard.ts, docs/read-budget.md): list-sized renders, then single-coffee ones.
+    {
+      "name": "CATALOG_LIMITER",
+      "namespace_id": "1003",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    },
+    {
+      "name": "PAGE_LIMITER",
+      "namespace_id": "1004",
       "simple": {
         "limit": 60,
         "period": 60
