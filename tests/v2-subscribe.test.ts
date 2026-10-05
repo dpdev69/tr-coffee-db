@@ -10,7 +10,7 @@ function request(body: unknown = { email, website: '', consent: true, source: 'h
   return new Request(`${origin}/api/subscribe`, { method: 'POST', headers: { origin, 'Content-Type': 'application/json', 'cf-connecting-ip': '192.0.2.4', ...headers }, body: JSON.stringify(body) });
 }
 function environment(success = true): SubscribeEnvironment {
-  return { KIT_API_KEY: fakeKey, KIT_FORM_ID: '9918321', SUBSCRIBE_LIMITER: { limit: async () => ({ success }) } };
+  return { SIGNUPS_ENABLED: 'true', KIT_API_KEY: fakeKey, KIT_FORM_ID: '9918321', SUBSCRIBE_LIMITER: { limit: async () => ({ success }) } };
 }
 function provider(state = 'inactive', status = 201) {
   const calls: Array<{ url: string; init: RequestInit; body: Record<string, unknown> }> = [];
@@ -111,7 +111,7 @@ test('honeypot uses generic success and rate limits use only ephemeral IP, with 
   assert.equal(trapped.outcome, 'honeypot'); assert.deepEqual(trapped.body, { ok: true, message: SUBSCRIBE_MESSAGE });
   const limited = await handleSubscribe(request(), environment(false), { fetch: kit.fetcher });
   assert.equal(limited.status, 429); assert.equal(subscribeResponse(limited).headers.get('retry-after'), '60');
-  for (const env of [{}, { ...environment(), KIT_API_KEY: '' }, { ...environment(), KIT_FORM_ID: '../1' }, { ...environment(), SUBSCRIBE_LIMITER: undefined },
+  for (const env of [{ SIGNUPS_ENABLED: 'true' }, { ...environment(), KIT_API_KEY: '' }, { ...environment(), KIT_FORM_ID: '../1' }, { ...environment(), SUBSCRIBE_LIMITER: undefined },
     { ...environment(), SUBSCRIBE_LIMITER: { limit: async () => { throw new Error(email + fakeKey); } } }]) {
     const result = await handleSubscribe(request(), env, { fetch: kit.fetcher }); assert.equal(result.status, 503);
     assert(!JSON.stringify(result).includes(email)); assert(!JSON.stringify(result).includes(fakeKey));

@@ -1,6 +1,7 @@
 /** Server request logic. Credentials are injected only by the route; no client or persistent storage imports. */
 import { ANALYTICS_SOURCES, emitProductEvent, type AnalyticsEnvironment } from '../../shared/v2/analytics';
 import { newsletterConsent } from './brand';
+import { signupsEnabled } from './signups';
 
 export const SUBSCRIBE_MESSAGE = 'Neredeyse tamam. Aboneliğini tamamlamak için e-posta kutuna gelecek onay iletisindeki bağlantıya tıkla. Gelmezse spam klasörüne de bak.';
 const BODY_LIMIT = 4096;
@@ -16,11 +17,13 @@ export const analyticsSource = (source: string) => ((ANALYTICS_SOURCES as readon
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
 const STATES = new Set(['active', 'inactive', 'cancelled', 'bounced', 'complained']);
 export interface SubscribeEnvironment extends Pick<AnalyticsEnvironment, 'ANALYTICS' | 'DEPLOYMENT_STAGE'> {
+  /** The signup switch (src/lib/signups.ts). Anything but "true" refuses every request. */
+  SIGNUPS_ENABLED?: string;
   KIT_API_KEY?: string;
   KIT_FORM_ID?: string;
   SUBSCRIBE_LIMITER?: { limit(input: { key: string }): Promise<{ success: boolean }> };
 }
-export type SubscribeOutcome = 'accepted' | 'suppressed' | 'honeypot' | 'invalid' | 'consent' | 'limited' | 'unavailable' | 'provider_error';
+export type SubscribeOutcome = 'accepted' | 'suppressed' | 'honeypot' | 'invalid' | 'consent' | 'limited' | 'unavailable' | 'provider_error' | 'disabled';
 export interface SubscribeResult {
   status: number;
   body: { ok: boolean; message: string };
@@ -42,6 +45,9 @@ const failure = (status: number, message: string, outcome: SubscribeOutcome): Su
 const noConsent = () => failure(400, 'Devam etmek için onay kutusunu işaretlemelisin.', 'consent');
 const invalid = () => failure(400, 'Geçerli bir e-posta adresiyle yeniden deneyebilirsin.', 'invalid');
 export const subscribeUnavailable = () => failure(503, 'Abonelik şu anda kullanılamıyor. Lütfen daha sonra yeniden dene.', 'unavailable');
+
+/** Signups are switched off: a plain, non-error answer. Nothing is validated, rate limited or sent to the provider. */
+const signupsOff = (): SubscribeResult => ({ status: 200, body: { ok: false, message: 'Bülten kayıtları şu anda kapalı. E-posta adresi toplamıyoruz.' }, outcome: 'disabled' });
 
 async function boundedText(input: Request | Response, limit: number): Promise<string> {
   const declared = input.headers.get('content-length');
@@ -147,6 +153,11 @@ const FORM_CODES: Partial<Record<SubscribeOutcome, string>> = { invalid: 'gecers
 
 /** Same pipeline for JSON (fetch) and form-encoded (no-JavaScript) posts; form posts additionally get a redirect target. */
 export async function handleSubscribe(request: Request, env: SubscribeEnvironment, dependencies: SubscribeDependencies = {}): Promise<SubscribeResult> {
+  if (!signupsEnabled(env)) {
+    const off = signupsOff();
+    // A no-JavaScript form post from a stale cached page lands on the thank-you page, which says signups are closed.
+    return /^application\/x-www-form-urlencoded(?:\s*;|$)/i.test(request.headers.get('content-type') ?? '') ? { ...off, location: '/tesekkurler' } : off;
+  }
   const result = await subscribe(request, env, dependencies);
   if (!/^application\/x-www-form-urlencoded(?:\s*;|$)/i.test(request.headers.get('content-type') ?? '')) return result;
   // Success goes to the thank-you page. Failure returns to the page the form was on, at the form's own

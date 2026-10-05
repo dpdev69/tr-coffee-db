@@ -20,6 +20,8 @@ jobs:
     env:
       CLOUDFLARE_ACCOUNT_ID: '4c1a4493b8584296f35c3eddc8279112'
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+      # Repository variable D1_DATABASE_NAME selects the database to export; unset keeps staging (docs/launch-day.md switches it).
+      D1_DATABASE_NAME: ${{ vars.D1_DATABASE_NAME || 'coffeedb-v2-staging' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -32,7 +34,7 @@ jobs:
         run: |
           test -n "$CLOUDFLARE_API_TOKEN" || { echo '::error::CLOUDFLARE_D1_API_TOKEN is missing'; exit 1; }
           # stdout carries a one-hour signed download URL; keep it out of the job log.
-          npx wrangler d1 export coffeedb-v2-staging --remote --output d1-backup.sql > /dev/null
+          npx wrangler d1 export "$D1_DATABASE_NAME" --remote --output d1-backup.sql > /dev/null
           test -s d1-backup.sql
           gzip -9 d1-backup.sql
       - uses: actions/upload-artifact@v4
