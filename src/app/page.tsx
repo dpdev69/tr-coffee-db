@@ -68,6 +68,8 @@ export default async function HomePage() {
   } catch (error) { unstable_rethrow(error); }
   return <div className="page-shell studio-home">
     <JsonLd data={{ '@type': 'Organization', name: brand.name, url: absoluteUrl('/'), logo: absoluteUrl(brand.logoPath), description: brand.description }} />
+    {/* The catalog search reads `search` (parseDiscoveryFilters). */}
+    <JsonLd data={{ '@type': 'WebSite', name: brand.name, url: absoluteUrl('/'), inLanguage: 'tr-TR', potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${absoluteUrl('/kahveler')}?search={search_term_string}` }, 'query-input': 'required name=search_term_string' } }} />
     <section className="studio-hero">
       <div className="studio-hero-copy">
         <p className="eyebrow">Türkiye’nin bağımsız kahve rehberi</p>

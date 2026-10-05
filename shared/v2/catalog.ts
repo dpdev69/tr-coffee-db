@@ -85,6 +85,13 @@ export async function countCatalog(db:CatalogDatabase,filters:CatalogFilters):Pr
   return (await db.prepare(`SELECT count(*) AS count FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${where}`).bind(...values).first<{count:number}>())?.count??0;
 }
 
+/** Listed coffees and their roasters for one filter, counted with the catalog's own filter rules (origin and process landing pages). */
+export async function catalogFacts(db:CatalogDatabase,filters:CatalogFilters):Promise<{coffees:number;roasters:number}> {
+  const {where,values}=buildFilters(filters);
+  const row=await db.prepare(`SELECT count(*) AS coffees,count(DISTINCT c.roaster_id) AS roasters FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${where}`).bind(...values).first<{coffees:number;roasters:number}>();
+  return {coffees:row?.coffees??0,roasters:row?.roasters??0};
+}
+
 export const CHANGE_EVENTS=['NEW','PRICE_DROP','RESTOCKED'] as const;
 export type ChangeDay={day:string}&Record<typeof CHANGE_EVENTS[number],number>;
 const ISTANBUL_MS=3*3600000;

@@ -6,6 +6,7 @@ import { ROAST_LABELS } from '@/lib/constants/filter-options';
 import type { CatalogCoffee, CatalogOffer } from '../../../shared/v2/catalog';
 import { coffeeOrigin, coffeeProcess, currentBadges, EVENT_LABELS, featureText, OfferPrice, preferredOffer, publicOfferLabel, savedPackage, tasteSummary } from './discovery-card';
 import { SaveToggle } from '@/components/coffee/saved-list';
+import { originLanding, processLanding } from '@/lib/catalog-landing';
 
 /** Round serif initial on tint; stands in for a roaster logo we do not have. */
 const INITIAL_SIZES={sm:'h-11 w-11 bg-ground text-[19px]',md:'h-14 w-14 bg-surface text-2xl',lg:'h-28 w-28 bg-tint text-5xl'};
@@ -14,7 +15,7 @@ export function RoasterInitial({name,size='md'}:{name:string;size?:keyof typeof 
   return <span aria-hidden="true" className={`inline-flex flex-none items-center justify-center rounded-full font-display text-warm ${INITIAL_SIZES[size]}`}>{name.trim().charAt(0).toLocaleUpperCase('tr-TR')}</span>;
 }
 
-type Fact=[label:string,value:string|null|undefined,source:string|null];
+type Fact=[label:string,value:string|null|undefined,source:string|null,href?:string];
 export function DiscoveryDetail({coffee}:{coffee:CatalogCoffee}){
   const tastes=tasteSummary(coffee),raw=coffee.rawMetadata;
   const declaredScore=typeof raw.scaScore==='number'&&Number.isFinite(raw.scaScore)&&raw.scaScore>0&&raw.scaScore<=100?raw.scaScore.toLocaleString('tr-TR'):null;
@@ -22,7 +23,9 @@ export function DiscoveryDetail({coffee}:{coffee:CatalogCoffee}){
   // Raw fields are what the roaster published; feature fallbacks say whether a rule inferred them from the description.
   const source=(rawValue:unknown,...features:string[])=>rawValue?'kavurucu belirtiyor':coffee.features.find(f=>features.includes(f.feature))?.sourceType==='RULE_INFERRED'?'açıklamadan çıkarıldı':'kavurucu belirtiyor';
   const declared='kavurucu belirtiyor';
-  const facts:Fact[]=[['Köken',coffeeOrigin(coffee),source(raw.country,'normalized_origin','origin_country')],['Bölge',raw.region,declared],['Üretici',raw.producer,declared],['Çiftlik',raw.farm,declared],['Rakım',raw.altitude,declared],['İşlem',coffeeProcess(coffee),source(raw.process,'process_family','process')],['Varyete',raw.varieties?.join(' · ')||featureText(coffee,'normalized_variety','variety').join(' · '),source(raw.varieties?.length,'normalized_variety','variety')],['Kavrum',roast?(ROAST_LABELS[roast]??roast):null,source(raw.roast,'roast_classification','roast_level')],['Hasat',raw.harvestYear,declared],['Kavrum tarihi',raw.roastDate,declared],...(declaredScore?[['SCA · kavurucu beyanı',declaredScore,null] as Fact]:[])];
+  const origin=coffeeOrigin(coffee),processLabel=coffeeProcess(coffee);
+  // A single known origin or process links to its landing page.
+  const facts:Fact[]=[['Köken',origin,source(raw.country,'normalized_origin','origin_country'),origin?originLanding(origin)?.path:undefined],['Bölge',raw.region,declared],['Üretici',raw.producer,declared],['Çiftlik',raw.farm,declared],['Rakım',raw.altitude,declared],['İşlem',processLabel,source(raw.process,'process_family','process'),processLabel?processLanding(processLabel)?.path:undefined],['Varyete',raw.varieties?.join(' · ')||featureText(coffee,'normalized_variety','variety').join(' · '),source(raw.varieties?.length,'normalized_variety','variety')],['Kavrum',roast?(ROAST_LABELS[roast]??roast):null,source(raw.roast,'roast_classification','roast_level')],['Hasat',raw.harvestYear,declared],['Kavrum tarihi',raw.roastDate,declared],...(declaredScore?[['SCA · kavurucu beyanı',declaredScore,null] as Fact]:[])];
   const notes=raw.tastingNotes?.length?raw.tastingNotes:featureText(coffee,'flavor_notes_normalized');
   const renderOffer=(offer:CatalogOffer)=><div key={offer.id} className={`rounded-xl bg-surface px-4 py-3.5 ${offer.inStock===true?'border border-line':'border border-dashed border-line'}`}><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="mb-1 text-base font-semibold">{publicOfferLabel(offer)}{offer.inStock===false?<span className="font-normal text-muted"> · Tükendi</span>:offer.inStock===null?<span className="font-normal text-muted"> · Stok doğrulanmadı</span>:null}</p><OfferPrice offer={offer}/></div>{offer.purchaseUrl?<a href={`/go/${offer.id}?source=detail`} className={offer.inStock===true?'button-dark':'button-light'} rel="nofollow">Kavurucuda gör ↗</a>:<span className="text-sm text-muted">Satış bağlantısı doğrulanmadı</span>}</div>
             {offer.compareAtMinor!=null&&offer.priceMinor!=null&&offer.compareAtMinor>offer.priceMinor?<p className="mt-3 text-xs leading-5 text-muted">Kavurucu referans fiyatı: {formatMoney(offer.compareAtMinor/100,offer.currency??'(para birimi belirtilmemiş)')}. Bu beyan, geçmiş gözlemlerimizle doğrulanmış bir indirim anlamına gelmez.</p>:null}</div>;
@@ -46,7 +49,7 @@ export function DiscoveryDetail({coffee}:{coffee:CatalogCoffee}){
     </div>
     <section className="mt-14">
       <h2 className="mb-2 font-display text-3xl">Çekirdeği tanı.</h2>
-      <dl className="grid gap-x-10 sm:grid-cols-2 lg:grid-cols-4">{facts.map(([label,value,from])=><div key={label} className="border-b border-line py-3.5"><dt className="mb-1 text-[13px] text-muted">{label}</dt>{value?<dd className="font-medium">{value}{from?<span className="block text-xs font-normal text-muted">{from}</span>:null}</dd>:<dd className="italic text-muted">Kavurucu belirtmemiş</dd>}</div>)}</dl>
+      <dl className="grid gap-x-10 sm:grid-cols-2 lg:grid-cols-4">{facts.map(([label,value,from,href])=><div key={label} className="border-b border-line py-3.5"><dt className="mb-1 text-[13px] text-muted">{label}</dt>{value?<dd className="font-medium">{href?<Link href={href} className="text-accent underline-offset-4 hover:underline">{value}</Link>:value}{from?<span className="block text-xs font-normal text-muted">{from}</span>:null}</dd>:<dd className="italic text-muted">Kavurucu belirtmemiş</dd>}</div>)}</dl>
       {notes.length?<div className="mt-6"><h3 className="text-sm font-semibold">Tadım notları</h3><p className="mt-2 text-sm leading-7 text-muted">{notes.join(' · ')}</p></div>:null}
       {raw.description?<details className="mt-5"><summary className="inline-flex min-h-11 items-center text-sm font-semibold text-accent">Kavurucunun açıklaması</summary><p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] leading-7">{raw.description}</p></details>:null}
     </section>

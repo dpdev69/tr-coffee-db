@@ -15,6 +15,7 @@
     "scrapers:scrape": "npm --prefix scrapers run scrape --",
     "audit:images": "tsx scripts/audit-image-health.ts",
     "audit:metadata": "tsx scripts/audit-catalog-metadata.ts",
+    "pretest": "tsx scripts/bulten-bundle.mts",
     "test": "tsx --test tests/*.test.ts",
     "check": "npm run lint && npm run typecheck && npm run build && npm run scrapers:typecheck",
     "prebuild": "tsx scripts/bulten-bundle.mts",

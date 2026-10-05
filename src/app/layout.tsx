@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { brand } from "@/lib/brand";
+import { SITE_CARD } from "@/lib/page-metadata";
 import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -46,11 +47,13 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     locale: 'tr_TR',
     type: 'website',
+    images: [SITE_CARD],
   },
   twitter: {
     card: 'summary_large_image',
     title: brand.title,
     description: SITE_DESCRIPTION,
+    images: [SITE_CARD],
   },
   robots: {
     index: brand.production,

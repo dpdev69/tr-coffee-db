@@ -50,13 +50,14 @@ describe('public visibility query surfaces', () => {
   });
 
   it('gates durable sitemap routes and retires the old click write endpoint', async () => {
-    const sitemap = readSource('src/app/sitemap.ts');
+    const sitemap = readSource('src/app/sitemap.ts') + readSource('src/lib/sitemap-entries.ts');
     assert.match(sitemap, /FROM public_catalog_coffees c WHERE/);
     assert.match(sitemap, /coffeeOnlySql/);
     // lastModified must come from real content changes, never from per-crawl touch stamps.
     assert.doesNotMatch(sitemap, /last_seen_at|last_success_at|updated_at/);
     assert.match(sitemap, /coffee_events e WHERE e.coffee_id=c.id/);
-    assert.match(sitemap, /FROM roasters WHERE active=1/);
+    // Roasters are the ones the roaster index lists (active, with a listed coffee); tests/seo.test.ts checks the rows.
+    assert.match(sitemap, /listRoasters\(db\)/);
     assert.match(sitemap, /\/kahve\/\$\{encodeURIComponent\(c.slug\)/);
     assert.match(sitemap, /\/kavurucu\/\$\{encodeURIComponent\(r.slug\)/);
     assert.doesNotMatch(sitemap, /supabase/);

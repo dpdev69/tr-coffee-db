@@ -1,10 +1,12 @@
-import { pageMetadata } from '@/lib/page-metadata';
+import { listingMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { DiscoveryCatalog, type DiscoverySearchParams } from '@/components/v2/discovery-catalog';
 import { getFirstSearchParamValue } from '@/lib/filter-contract';
-export const metadata: Metadata = pageMetadata('Yeni kahve keşifleri', 'Yeni kahve keşifleri ve yeniden satışa giren paketler.', '/yeni');
+export async function generateMetadata({ searchParams }: { searchParams: Promise<DiscoverySearchParams> }): Promise<Metadata> {
+  return listingMetadata('Yeni kahve keşifleri', 'Kavuruculardan kataloğa yeni giren nitelikli kahveler, en yenisi önce: köken, işlem, tadım notları ve paket fiyatları. Son 7 günde yeniden satışa girenler de burada.', '/yeni', await searchParams);
+}
 export default async function NewPage({ searchParams }: { searchParams: Promise<DiscoverySearchParams> }) {
   const params = await searchParams;
   const restocked = getFirstSearchParamValue(params.event) === 'RESTOCKED';

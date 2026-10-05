@@ -13,6 +13,8 @@ const COUNTRIES: ReadonlyArray<readonly [string, string, ...string[]]> = [
 ];
 function key(value: string): string { return value.trim().replace(/ı/g, 'i').normalize('NFKD').replace(/\p{Diacritic}/gu, '').toLowerCase(); }
 function country(value: string) { const normalized = key(value); return COUNTRIES.find(names => names.some(name => key(name) === normalized)); }
+/** True for a country in the translation table above, under any of its names. */
+export function isKnownCountry(value: string): boolean { return Boolean(country(value)); }
 export function canonicalCountry(value: string): string { return country(value)?.[0] ?? value.trim(); }
 export function countryLabel(value: string): string { return country(value)?.[1] ?? value.trim(); }
 export function countryOptions(values: string[]): Array<{ value: string; label: string }> {
