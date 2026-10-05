@@ -33,7 +33,7 @@ Verification at handoff: `npm test` 344/344, `npm run lint`, `npm run typecheck`
 
 1. **Open the PR** `001-kahvedrop-v2` → `main` (ask first). Then deploy to staging and re-run the live checks below.
 2. **Newsletter surface:** form appears only at home-bottom — add to `/firsatlar` (incl. its empty state), `/yeni`, detail pages, footer. Fix `newsletter-form.tsx`: the success state is dead (navigates to `/tesekkurler` immediately) and the no-JS fallback posts form-encoded data that `/api/subscribe` rejects as JSON 400.
-3. **`/yeni` default** lists the whole catalog sorted by first-seen, not genuine arrivals; decide with the owner whether it should default to NEW events (empty until live crawls produce them).
+3. ~~**`/yeni` default** lists the whole catalog sorted by first-seen~~ Done on fix/new-arrivals: /yeni lists genuine arrivals of the last 30 days; the rule is in [event-engine.md](event-engine.md).
 4. **Images:** 42 staging coffees (8%) have dead upstream images, mostly Coffeerem, Kronotrop, Ordinarius. Re-crawl images or fall back to the roaster name tile (already the null-image fallback).
 5. **Caching/perf:** `src/app/layout.tsx` awaits `cookies()`, so every page is dynamic and staging sends `no-store`. Read consent client-side to let static pages cache. `getSimilarCoffees` scans up to 5,000 rows per detail view (`ponytail:` comment).
 6. **Data polish:** cross-size twins (“KOYU” vs “KOYU 2.5KG”, “– Espresso” twins) are separate coffees; Old Java “Cold Brew” is listed (left in deliberately: name-only exclusion would hide cold-brew beans); 310 offers lack weight; English labels leak (“Filter / Pour Over”, `/compare` shows “Brazil”); tasting-note casing is inconsistent.

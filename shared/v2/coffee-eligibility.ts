@@ -2,7 +2,7 @@ import type { RawMetadata } from './types';
 
 /** Retail identity/taxonomy only. Brew instructions and tasting notes are not product types. */
 const EQUIPMENT = ['ekipman', 'equipment', 'aksesuar', 'accessories', 'seramik', 'ceramic', 'stoneware', 'fincan', 'kupa', 'mug', 'dripper', 'grinder', 'ogutucu', 'degirmen', 'terazi', 'kettle', 'filter paper', 'filtre kagidi', 'filtre kagit', 'kahvesi setleri', 'kahve setleri', 'cup set', 'tea set', 'gift set', 'hediye set', 'workshop', 'atolye', 'egitim', 'makinesi', 'machine', 'bardak', 'surahi', 'tote bag', 'bez canta', 'termos', 'thermos', 'tumbler', 'flask', 'matara'];
-const NON_COFFEE_NAMES = ['matcha', 'chasen', 'chawan', 'paper chocolate', 'mixed fruit box', 'kakao tozu', 'cikolata bar', 'chocolate bar', 'green tea', 'black tea', 'herbal tea', 'yesil cay', 'siyah cay', 'bitki cayi', 'ekmek', 'ekmegi', 'bread',
+const NON_COFFEE_NAMES = ['matcha', 'chasen', 'chawan', 'paper chocolate', 'mixed fruit box', 'kakao tozu', 'cikolata bar', 'chocolate bar', 'green tea', 'black tea', 'herbal tea', 'yesil cay', 'siyah cay', 'bitki cayi', 'ekmek', 'ekmegi', 'bread', 'bean to bar',
   // Not a comparable bean package: subscriptions, multi-coffee sets, drip bags and wholesale cases (names only; tags/notes can mention these).
   'kahve plani', 'abonelik', 'abonelig', 'subscription', 'seti', 'ikili paket', 'uclu paket', 'dortlu paket', 'fuar paket', 'drip bag', 'hazir filtre', 'koli'];
 // Sets and multi-packs by name: the word "set" ("İKİLİ SET") and a pack count ("3x75GR", "2 x 100 g").

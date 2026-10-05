@@ -56,7 +56,7 @@ const TRACEABILITY_PATTERNS = [
   /\bnano\s*lot\b/i,
 ];
 
-const STRUCTURED_ORIGIN_TITLE_COUNTRY_PATTERN =
+export const STRUCTURED_ORIGIN_TITLE_COUNTRY_PATTERN =
   /\b(?:etiyopya|ethiopia|ethiopian|kolombiya|colombia|colombian|brezilya|brazil|brazilian|brasil|kenya|kenyan|guatemala|guatemalan|kosta\s*rika|kostarika|costa\s*rica|panama|panamanian|peru|peruvian|honduras|honduran|el\s*salvador|salvadoran|meksika|mexico|mexican|endonezya|indonesia|indonesian|sumatra|rwanda|ruanda|rwandan|burundi|burundian|tanzanya|tanzania|tanzanian|uganda|ugandan|nikaragua|nicaragua|bolivya|bolivia|ekvador|ecuador|hindistan|india|indian|yemen|yemeni|kongo|congo|drc|dominik|dominican|küba|cuba|papua|png|çin|china|yunnan|myanmar|burma|vietnam)\b/i;
 
 const STRUCTURED_ORIGIN_TITLE_PROCESS_PATTERN =

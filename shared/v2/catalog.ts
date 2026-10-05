@@ -68,14 +68,15 @@ export async function listCatalog(db:CatalogDatabase,filters:CatalogFilters={},n
   const perPage=Number.isFinite(filters.perPage)?Math.min(100,Math.max(1,Math.floor(filters.perPage!))):24;
   const from='FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id';
   const sorts:Record<string,string>={
-    newest:'c.first_seen_at DESC,c.id',
+    // Genuine arrivals first, newest first; coffees whose arrival is unknown follow in the order they entered the catalog.
+    newest:'a.arrived_at DESC NULLS LAST,c.first_seen_at DESC,c.id',
     price_asc:`${PREFERRED_PRICE} ASC NULLS LAST,c.id`,
     price_desc:`${PREFERRED_PRICE} DESC NULLS LAST,c.id`,
     unit_price_asc:`(SELECT min(1.0*o.current_price_minor/o.weight_g) FROM current_offers o WHERE o.coffee_id ${IN_GROUP} AND o.in_stock=1 AND o.currency='TRY' AND o.weight_g>0) ASC NULLS LAST,c.id`,
   };
   const [total,coffees]=await Promise.all([
     db.prepare(`SELECT count(*) AS count ${from} WHERE ${where}`).bind(...values).first<{count:number}>(),
-    db.prepare(`SELECT ${COFFEE_COLUMNS} ${from} WHERE ${where} ORDER BY ${sorts[filters.sort??'newest']??sorts.newest} LIMIT ? OFFSET ?`).bind(...values,perPage,(page-1)*perPage).all<CoffeeRow>().then(rows=>hydrate(db,rows.results,now)),
+    db.prepare(`SELECT ${COFFEE_COLUMNS} ${from} ${ARRIVALS_JOIN} WHERE ${where} ORDER BY ${sorts[filters.sort??'newest']??sorts.newest} LIMIT ? OFFSET ?`).bind(...values,perPage,(page-1)*perPage).all<CoffeeRow>().then(rows=>hydrate(db,rows.results,now)),
   ]);
   return {coffees,total:total?.count??0,page,perPage,totalPages:Math.ceil((total?.count??0)/perPage)};
 }
@@ -101,7 +102,9 @@ export async function catalogChangesByDay(db:CatalogDatabase,now=Date.now()):Pro
   const days=Array.from({length:30},(_,i)=>({day:new Date(now+ISTANBUL_MS-(29-i)*86400000).toISOString().slice(0,10),NEW:0,PRICE_DROP:0,RESTOCKED:0}));
   const from=new Date(Date.parse(`${days[0].day}T00:00:00Z`)-ISTANBUL_MS).toISOString();
   const perType=CHANGE_EVENTS.map(type=>`(e.type='${type}'${eventValidity(type)})`).join(' OR ');
-  const rows=await db.prepare(`SELECT day,type,count(*) AS count FROM (SELECT date(max(e.created_at),'+3 hours') AS day,e.type AS type FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id JOIN coffee_events e ON e.coffee_id ${IN_GROUP} WHERE ${coffeeOnlySql()} AND e.created_at>=? AND (${perType}) GROUP BY c.id,e.type) GROUP BY day,type`).bind(from).all<{day:string;type:typeof CHANGE_EVENTS[number];count:number}>();
+  // Valid events first (a few per day), then their listed coffees: checking validity per coffee and event was 5x slower.
+  const rows=await db.prepare(`WITH valid AS MATERIALIZED (SELECT e.coffee_id,e.type,e.created_at FROM coffee_events e WHERE e.created_at>=? AND (${perType}))
+    SELECT day,type,count(*) AS count FROM (SELECT date(max(e.created_at),'+3 hours') AS day,e.type AS type FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id JOIN valid e ON e.coffee_id ${IN_GROUP} WHERE ${coffeeOnlySql()} GROUP BY c.id,e.type) GROUP BY day,type`).bind(from).all<{day:string;type:typeof CHANGE_EVENTS[number];count:number}>();
   for(const row of rows.results)days.find(d=>d.day===row.day)![row.type]=row.count;
   return days;
 }
@@ -145,8 +148,34 @@ export async function listOrigins(db:CatalogDatabase):Promise<string[]> {
   return rows.results.map(row=>row.value);
 }
 
+/** The one definition of "new" (alias e = a NEW event): the roaster started selling this coffee between two crawls we can date.
+ * A NEW event is emitted only by a live crawl (imports and a roaster's first baseline emit none). It counts when:
+ * - the roaster's previous successful crawl ran at most 7 days earlier;
+ * - the shop's own date agrees: a Shopify published_at after that previous crawl confirms it, one before it means we
+ *   missed the product then. Without a shop date, both crawls must use the same parser version (after a parser or
+ *   discovery change, a first sighting can be an old product the old parser missed, so it proves nothing);
+ * - no older coffee of the roaster is the same coffee under another identity: same group, same name, or the same name
+ *   plus a size ("Koyu" / "Koyu 2.5KG"), which covers a re-identified product, a regrouped size and a re-listing.
+ * Rows are never rewritten; past artefact events stay stored and simply fail this rule.
+ * ponytail: the name match is a folded-string heuristic (a renamed product reads as new); store a name key if that bites. */
+// "a" is "b" plus a size: separators, then a digit ("koyu 2.5kg", "guji (250g)", "guji - 1 kg"). No GLOB on the
+// name itself: D1 refuses LIKE/GLOB patterns longer than 50 bytes ("pattern too complex").
+const sizeTwin=(a:string,b:string)=>{const rest=`substr(${a},length(${b})+1)`,trimmed=`ltrim(${rest},' -–—(/|,.:')`;
+  return `(length(${a})>length(${b}) AND substr(${a},1,length(${b}))=${b} AND ${trimmed}<>${rest} AND ${trimmed} GLOB '[0-9]*')`;};
+const GENUINE_NEW=`EXISTS(SELECT 1 FROM coffees x JOIN crawl_runs r ON r.id=json_extract(e.after_json,'$.firstObservationRunId') AND r.roaster_id=x.roaster_id
+    JOIN crawl_runs p ON p.id=(SELECT q.id FROM crawl_runs q WHERE q.roaster_id=r.roaster_id AND q.status='success' AND q.mode<>'import' AND q.started_at<r.started_at ORDER BY q.started_at DESC LIMIT 1)
+    WHERE x.id=e.coffee_id AND julianday(r.started_at)-julianday(p.started_at)<=7
+    AND coalesce(julianday(json_extract(x.raw_metadata_json,'$.sourceData.published_at'))>=julianday(p.started_at),p.parser_version=r.parser_version)
+    AND NOT EXISTS(SELECT 1 FROM (SELECT s.id,s.canonical_coffee_id,${foldSql('s.name')} AS sn,${foldSql('x.name')} AS xn FROM coffees s
+      WHERE s.roaster_id=x.roaster_id AND s.id<>x.id AND julianday(s.first_seen_at)<julianday(r.started_at)) s
+      WHERE s.id=x.canonical_coffee_id OR s.canonical_coffee_id=x.id OR s.canonical_coffee_id=x.canonical_coffee_id OR s.sn=s.xn OR ${sizeTwin('s.xn','s.sn')} OR ${sizeTwin('s.sn','s.xn')}))`;
+/** When the listed coffee (alias c) genuinely arrived, or NULL when that is unknown. */
+/** Each listed coffee's genuine arrival time (a.arrived_at), NULL when unknown. Not correlated: computed once per query. */
+const ARRIVALS_JOIN=`LEFT JOIN (SELECT g.group_id,max(e.created_at) AS arrived_at FROM coffee_events e JOIN coffee_group_members g ON g.coffee_id=e.coffee_id WHERE e.type='NEW' AND ${GENUINE_NEW} GROUP BY g.group_id) a ON a.group_id=c.id`;
+
 /** Extra rule an event must meet to still count, as " AND ..." SQL (alias e = the event). */
 function eventValidity(type:string):string {
+  if(type==='NEW')return ` AND ${GENUINE_NEW}`;
   // A deal/drop badge is valid only while its triggering observation still matches the current offer price.
   if(type==='DEAL'||type==='PRICE_DROP')return " AND EXISTS(SELECT 1 FROM current_offers o JOIN price_observations p ON p.id=e.observation_id WHERE o.id=e.offer_id AND o.in_stock=1 AND o.current_price_minor=p.price_minor AND o.currency=p.currency AND o.weight_g=p.weight_g)";
   // Another available SKU cannot keep a sold-out/retired package in the restock feed.
@@ -176,12 +205,14 @@ function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
   metadata('brewMethods',filters.brewMethod);
   if(filters.roaster?.length){const input=filters.roaster.slice(0,20);conditions.push(`r.slug IN (${placeholders(input.length)})`);values.push(...input);}
   if(filters.search?.trim()){
-    // SQLite LIKE only folds ASCII case, so both sides are folded (İ/ı/ş/ğ/ü/ö/ç) before matching.
+    // SQLite only folds ASCII case, so both sides are folded (İ/ı/ş/ğ/ü/ö/ç) before matching.
     const term=fold(filters.search.trim().slice(0,100));
     const terms=[...new Set([term,...SEARCH_SYNONYMS.flatMap(pair=>pair.flatMap(word=>term.includes(word)?pair.map(other=>term.replaceAll(word,other)):[]))])].slice(0,4);
     const fields=[foldSql('c.name'),foldSql('r.name'),foldSql("coalesce(json_extract(c.raw_metadata_json,'$.description'),'')")];
-    conditions.push(`(${terms.flatMap(()=>fields.map(field=>`${field} LIKE ? ESCAPE '\\'`)).join(' OR ')})`);
-    values.push(...terms.flatMap(value=>fields.map(()=>`%${value.replace(/[\\%_]/g,'\\$&')}%`)));
+    // instr, not LIKE: D1 refuses LIKE patterns over 50 bytes, which broke every search of about 48 characters or more.
+    // Both sides are already folded, and instr treats % and _ literally, so nothing needs escaping.
+    conditions.push(`(${terms.flatMap(()=>fields.map(field=>`instr(${field},?)>0`)).join(' OR ')})`);
+    values.push(...terms.flatMap(value=>fields.map(()=>value)));
   }
   for(const [filter,field] of [['farm','farm'],['producer','producer'],['variety','varieties']] as const){
     const input=filters[filter];
@@ -209,10 +240,11 @@ function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
     if(Number.isFinite(filters.priceMax)){conditions.push(`${PREFERRED_PRICE}<=?`);values.push(Math.round(Math.max(0,filters.priceMax!)*100));}
   }
   if(filters.event&&EVENT_TYPES.has(filters.event)){
-    const eventConditions=[`e.coffee_id ${IN_GROUP}`,'e.type=?'];values.push(filters.event);
+    const eventConditions=['e.type=?'];values.push(filters.event);
     if(filters.since&&Number.isFinite(Date.parse(filters.since))){eventConditions.push('e.created_at>=?');values.push(new Date(filters.since).toISOString());}
     const validity=eventValidity(filters.event);if(validity)eventConditions.push(validity.slice(5));
-    conditions.push(`EXISTS(SELECT 1 FROM coffee_events e WHERE ${eventConditions.join(' AND ')})`);
+    // Not correlated with c: the few valid events are found once, not checked again for every listed coffee.
+    conditions.push(`c.id IN (SELECT g.group_id FROM coffee_events e JOIN coffee_group_members g ON g.coffee_id=e.coffee_id WHERE ${eventConditions.join(' AND ')})`);
   }
   return {where:conditions.join(' AND '),values};
 }
@@ -238,7 +270,7 @@ export async function hydrate(db:CatalogDatabase,rows:CoffeeRow[],now:number):Pr
   const [offers,features,events]=await Promise.all([
     db.prepare(`SELECT o.*,g.group_id FROM coffee_group_members g JOIN current_offers o ON o.coffee_id=g.coffee_id WHERE g.group_id IN (${list}) ORDER BY o.in_stock DESC NULLS LAST,o.current_price_minor ASC NULLS LAST,o.id`).bind(...ids).all<OfferRow&{group_id:string}>(),
     db.prepare(`SELECT * FROM coffee_feature_values WHERE coffee_id IN (${list}) ORDER BY feature,source_type`).bind(...ids).all<FeatureRow>(),
-    db.prepare(`SELECT * FROM (SELECT e.*,g.group_id,row_number() OVER(PARTITION BY g.group_id,e.type ORDER BY e.created_at DESC,e.id DESC) AS position FROM coffee_group_members g JOIN coffee_events e ON e.coffee_id=g.coffee_id WHERE g.group_id IN (${list})) WHERE position=1 ORDER BY created_at DESC`).bind(...ids).all<EventRow&{group_id:string}>(),
+    db.prepare(`SELECT * FROM (SELECT e.*,g.group_id,row_number() OVER(PARTITION BY g.group_id,e.type ORDER BY e.created_at DESC,e.id DESC) AS position FROM coffee_group_members g JOIN coffee_events e ON e.coffee_id=g.coffee_id WHERE g.group_id IN (${list}) AND (e.type<>'NEW' OR ${GENUINE_NEW})) WHERE position=1 ORDER BY created_at DESC`).bind(...ids).all<EventRow&{group_id:string}>(),
   ]);
   return rows.map(row=>{
     // A group shows its members' sizes, so a size left in the parent's name would describe only one of them.
@@ -293,7 +325,7 @@ export async function listEvents(db:CatalogDatabase,type?:CoffeeEvent['type'],li
   const accepted=type&&EVENT_TYPES.has(type)?type:null;
   const values:SqlValue[]=accepted?[accepted]:[];
   values.push(Math.min(100,Math.max(1,Number.isFinite(limit)?Math.floor(limit):30)));
-  const rows=await db.prepare(`SELECT e.* FROM coffee_events e JOIN coffees c ON c.id=e.coffee_id WHERE c.visibility='public' AND ${coffeeOnlySql()} ${accepted?'AND e.type=?':''} ORDER BY e.created_at DESC,e.id DESC LIMIT ?`).bind(...values).all<EventRow>();
+  const rows=await db.prepare(`SELECT e.* FROM coffee_events e JOIN coffees c ON c.id=e.coffee_id WHERE c.visibility='public' AND ${coffeeOnlySql()} AND (e.type<>'NEW' OR ${GENUINE_NEW}) ${accepted?'AND e.type=?':''} ORDER BY e.created_at DESC,e.id DESC LIMIT ?`).bind(...values).all<EventRow>();
   return rows.results.map(eventFromRow);
 }
 

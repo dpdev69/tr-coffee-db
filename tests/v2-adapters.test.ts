@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { describe, it } from 'node:test';
 import { crawlRoaster } from '../scrapers/src/v2/crawl.ts';
 import { canonicalUrl, money } from '../scrapers/src/v2/primitives.ts';
-import { choOptions, parseChoProduct, parseIdeaProduct, parseKafeinProduct, parseKronotropProduct, parseMilestonesProduct, parseProbadorCatalog, parseTicimaxProduct, parseIkasPage, parseParsaProduct, parseShopifyPage, parseStructuredProductPage, parseWooProduct } from '../scrapers/src/v2/parsers.ts';
+import { choOptions, parseChoProduct, parseIdeaProduct, parseKafeinProduct, parseKronotropProduct, parseMilestonesProduct, parseProbadorCatalog, parseTicimaxProduct, parseIkasPage, parseIkasProducts, parseParsaProduct, parseShopifyPage, parseStructuredProductPage, parseWooProduct } from '../scrapers/src/v2/parsers.ts';
 import type { RoasterConfig } from '../scrapers/src/types.ts';
 
 const fixture = (name: string) => readFile(new URL(`./fixtures/v2/${name}`, import.meta.url), 'utf8');
@@ -36,6 +36,12 @@ describe('V2 pure adapter contracts', () => {
     const product = parseIkasPage(html, config)[0];
     assert.deepEqual(product.offers.map(o => [o.sourceVariantId, o.price, o.inStock]), [['v1', 500, false], ['v2', 1800, null]]);
     assert.throws(() => parseIkasPage(html.replace('"id":"v1",', ''), config), /variant ID missing/);
+  });
+  it('keeps an uncategorised IKAS coffee named by its origin; a bean-to-bar bar with an origin stays hidden', () => {
+    // Gourme, 2026-10-05: "Etiyopya Chelchele Limited Edition" has no category and was kept only by a per-roaster origin list.
+    const ikas = (id: string, name: string) => ({ id, name, metaData: { slug: id }, categories: [], tags: [], variants: [{ id: `${id}-v`, prices: [{ sellPrice: 900 }], stocks: [{ stockCount: 3 }] }] });
+    const products = parseIkasProducts([ikas('peru', 'Peru Finca Churupampa Limited Edition'), ikas('ETIOPYA', 'ETİYOPYA GUJI'), ikas('bar', 'Kolombiya Opita - Bean To Bar Çikolata 45gr'), ikas('shirt', 'Calibre Design T-Shirt')], { ...config, platform: 'ikas' });
+    assert.deepEqual(products.map(p => [p.name, p.visibility]), [['Peru Finca Churupampa Limited Edition', 'public'], ['ETİYOPYA GUJI', 'public'], ['Kolombiya Opita - Bean To Bar Çikolata 45gr', 'hidden']]);
   });
   it('keeps Parsa raw origin/producer and every package with stable source option keys', async () => {
     const product = parseParsaProduct(await json('parsa.json'), config);

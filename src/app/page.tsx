@@ -10,6 +10,7 @@ import { absoluteUrl } from '@/lib/site';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
 import { RoasterInitial } from '@/components/v2/discovery-detail';
 import { getCatalogCounts, getCoffeeOfTheDay, listCatalog, listRoasters, type CatalogCoffee, type CatalogRoaster } from '../../shared/v2/catalog';
+import { ARRIVAL_DAYS } from '../../shared/v2/events';
 import { CoffeeImage } from '@/components/v2/coffee-image';
 import { SAVED_KEY } from '@/lib/device-keys';
 import { SavedPanel, SinceLastVisit, TasteArrivals } from '@/components/v2/home-personal';
@@ -59,7 +60,7 @@ export default async function HomePage() {
     const db = await getCatalogDatabase();
     const since = new Date(Math.floor(now / 300000) * 300000 - 7 * 86400000).toISOString();
     const [counts, catalog, drops, restocked, roasters, day] = await Promise.all([
-      getCatalogCounts(db), listCatalog(db, { sort: 'newest', perPage: 4 }),
+      getCatalogCounts(db), listCatalog(db, { event: 'NEW', since: new Date(Math.floor(now / 300000) * 300000 - ARRIVAL_DAYS * 86400000).toISOString(), perPage: 4 }),
       listCatalog(db, { event: 'PRICE_DROP', since, perPage: 4 }),
       listCatalog(db, { event: 'RESTOCKED', since, perPage: 4 }),
       listRoasters(db), getCoffeeOfTheDay(db, now),
@@ -96,7 +97,7 @@ export default async function HomePage() {
     </section>
     {data ? <>
       <section className="section-space studio-latest">
-        <TasteArrivals>{data.catalog.length ? <DiscoveryGrid coffees={data.catalog} source="home" /> : <DiscoveryEmpty>Henüz satışta bir kahve yok. Yeni paketler eklendiğinde burada bulacaksın.</DiscoveryEmpty>}</TasteArrivals>
+        <TasteArrivals>{data.catalog.length ? <DiscoveryGrid coffees={data.catalog} source="home" /> : <DiscoveryEmpty title={`Son ${ARRIVAL_DAYS} günde yeni gelen kahve yok.`}>Kavurucular yeni bir kahve çıkardığında burada göreceksin.</DiscoveryEmpty>}</TasteArrivals>
         <div className="studio-counts"><span><strong>{data.counts.coffees.toLocaleString('tr-TR')}</strong> kahve</span><span><strong>{data.counts.roasters}</strong> kavurucu</span><p>Tek bir yerde. Kendi fiyatlarıyla.</p></div>
       </section>
       <FeedSection title="Fiyatı düşenler." href="/firsatlar" coffees={data.drops} />

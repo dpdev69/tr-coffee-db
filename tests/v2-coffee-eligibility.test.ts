@@ -15,7 +15,9 @@ const excluded=[product('ying-yang','Ying Yang'),product('new-ceramic','Yeni tas
   product('thermos-taxonomy','Yeni tasarım',['TERMOSLAR']),product('tumbler','Coffee Tumbler'),product('flask','Coffee Flask'),product('bottle','Kahve Matarası'),product('bread-en','Sourdough Bread'),
   product('plan','12 Haftalık Kahve Planı · 4 × 250 g / 2 Haftada Bir'),product('drip','Burundi Baho / Drip Bag Kahve'),product('drip-tr','Drip Hazır Filtre Kahve'),product('set','Best of Panama Seti'),product('case','Colombia Supremo Huila Çekirdek Kahve 1 Kg x 10 Adet (Koli)'),product('fair','Fuar Paket'),
   // Coffee Sapiens and Vitus, 2026-10-05: two 100 g packs, and a box of three 75 g coffees.
-  product('sapiens-set','EVOLUTION & MUTATION İKİLİ SET'),product('vitus-box','XOX Espresso Experience 3x75GR'),product('two-pack','Kenya & Ethiopia 2 x 100 g'),product('trio','Üçlü Paket Filtre'),product('sub','Aylık Kahve Aboneliği')];
+  product('sapiens-set','EVOLUTION & MUTATION İKİLİ SET'),product('vitus-box','XOX Espresso Experience 3x75GR'),product('two-pack','Kenya & Ethiopia 2 x 100 g'),product('trio','Üçlü Paket Filtre'),product('sub','Aylık Kahve Aboneliği'),
+  // Spada, 2026-10-05: chocolate bars named by their cacao origin.
+  product('bean-to-bar','Kolombiya Opita - Bean To Bar Çikolata 45gr')];
 const allowed=[product('colombia','Colombia China Alta Ibagué Washed'),{...product('fruit','Berry coffee'),rawMetadata:{description:'Seramik V60 dripper, filtre kağıdı ve fincan kullanın. Termosta içebilir, ekmek ile servis edebilirsiniz.',tastingNotes:['green tea','chocolate bar','bread']}},product('unknown-weight','Ethiopia'),
   product('cascara-process','Colombia San Adolfo Cascara'),product('decaf-water','Lala Salama Sparkling Water Kafeinsiz'),product('sugar-decaf','Colombia Sugar Cane Decaf'),
   product('sunset','Sunset Espresso'),product('one-bag','Ethiopia Guji 1x250 g')];
@@ -29,7 +31,9 @@ test('one coffee-only policy rejects non-coffee identity/taxonomy in JS and SQL 
   assert.deepEqual(sqlRows.map(row=>row.source_product_id).sort(),allowed.map(row=>row.sourceProductId).sort());
   assert.equal(db.sqlite.prepare("SELECT count(*) n FROM coffees WHERE visibility='hidden'").get()?.n,excluded.length);
   assert.equal(db.sqlite.prepare('SELECT count(*) n FROM coffees').get()?.n,excluded.length+allowed.length,'identities preserved');
-  assert.equal((await listEvents(db,'NEW')).length,allowed.length,'excluded products produce no discovery event');
+  // Emission only: a roaster's first crawl has no earlier crawl to date an arrival, so none of these reads as new (GENUINE_NEW).
+  assert.equal(db.sqlite.prepare("SELECT count(*) n FROM coffee_events WHERE type='NEW'").get()?.n,allowed.length,'excluded products produce no discovery event');
+  assert.equal((await listEvents(db,'NEW')).length,0);
   db.sqlite.close();
 });
 

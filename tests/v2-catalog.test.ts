@@ -6,7 +6,7 @@ import {ingestCrawl,registerRoaster} from '../shared/v2/ingestion';
 import {getCatalogCounts,getCoffeeDetail,getRoasterDetail,getSavedCoffees,getSimilarCoffees,listCatalog,listEvents,listRoasters} from '../shared/v2/catalog';
 import {rankQuizMatches} from '../shared/v2/quiz-rank';
 import type {CrawlInput,SourceCoffee} from '../shared/v2/types';
-import {applyMigrations} from './helpers/v2-sqlite';
+import {applyD1Limits,applyMigrations} from './helpers/v2-sqlite';
 
 class SQLite implements CatalogDatabase {
   db=new DatabaseSync(':memory:');
@@ -246,6 +246,10 @@ test('price sort/filter use the package the card shows; search folds Turkish cas
   for(const search of ['etiyopya','ethiopia','geisha','GESHA'])assert.equal((await listCatalog(db,{search})).total,1,search);
   assert.equal((await listCatalog(db,{search:'brazil'})).total,1);
   assert.equal((await listCatalog(db,{search:'50%_'})).total,0,'LIKE wildcards stay literal');
+  // D1 refuses LIKE patterns over 50 bytes; a long query must still run. This database gets D1's limit so the old query fails here.
+  applyD1Limits(db.db);
+  assert.equal((await listCatalog(db,{search:'a very long search that no coffee could possibly match in this catalog'})).total,0);
+  assert.equal((await listCatalog(db,{search:'x'.repeat(100)})).total,0);
 });
 test('an offer skipped nightly stops reading as current after 7 days in every reader; a valid sighting brings it straight back',async()=>{
   const db=await setup();
