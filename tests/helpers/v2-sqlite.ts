@@ -9,7 +9,8 @@ export function applyMigrations(sqlite: DatabaseSync) {
 }
 export class TestCatalogDatabase implements CatalogDatabase {
   readonly sqlite = new DatabaseSync(':memory:');
-  constructor() { applyMigrations(this.sqlite); }
+  // D1's own limits, so a query D1 refuses fails here too: GLOB/LIKE patterns over 50 bytes, expressions deeper than 100.
+  constructor() { this.sqlite.limits.likePatternLength = 50; this.sqlite.limits.exprDepth = 100; applyMigrations(this.sqlite); }
   prepare(sql: string): Statement { return new TestStatement(this, sql); }
   async batch(statements: Statement[]) {
     this.sqlite.exec('BEGIN');
