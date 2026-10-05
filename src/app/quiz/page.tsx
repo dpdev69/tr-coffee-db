@@ -12,12 +12,12 @@ export const metadata: Metadata = pageMetadata('Damak tadına göre kahve bul', 
 
 export default function QuizPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:max-w-5xl lg:px-8">
+    <div className="page-shell section-space max-w-5xl">
       <div className="mx-auto max-w-3xl text-center">
         <p className="eyebrow">
           Fincanını bul
         </p>
-        <h1 className="mt-3 font-display text-5xl leading-none text-ink">
+        <h1 className="mt-3 font-display text-title leading-none text-ink">
           Damak tadına göre kahve bul.
         </h1>
         <p className="mt-4 text-muted">

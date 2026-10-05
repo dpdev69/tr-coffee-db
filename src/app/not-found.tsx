@@ -14,7 +14,7 @@ export default function NotFound() {
   return (
     <section className="page-shell flex min-h-[60vh] flex-col items-start justify-center py-20">
       <p className="eyebrow">404 · Sayfa bulunamadı</p>
-      <h1 className="mt-5 max-w-2xl font-display text-5xl leading-[1.08] sm:text-6xl">Bu sayfayı bulamadık.</h1>
+      <h1 className="mt-5 max-w-2xl font-display text-title">Bu sayfayı bulamadık.</h1>
       <p className="mt-6 max-w-lg text-base leading-8 text-muted">Bağlantı değişmiş veya sayfa kaldırılmış olabilir. Bir sonraki güzel kahveni bulmak için keşfe devam edebilirsin.</p>
       <div className="mt-8 flex flex-wrap items-center gap-6">
         <Link href="/kahveler" className="button-dark">Kahveleri keşfet <span aria-hidden="true">↗</span></Link>

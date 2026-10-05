@@ -72,7 +72,7 @@ export default async function IssuePage({ params }: { params: Promise<{ month: s
     <JsonLd data={breadcrumbList([['Bülten', '/bulten'], [issue.title, path]])} />
     <article className="mx-auto max-w-[760px]">
       <p className="eyebrow">{brand.monthlyName} · {monthLabel(issue.month)}{issue.published ? '' : ' · Taslak'}</p>
-      <h1 className="mt-3 font-display text-[clamp(36px,5vw,56px)] leading-[1.06]">{issue.title}</h1>
+      <h1 className="mt-3 font-display text-title">{issue.title}</h1>
       <p className="mt-4 text-lg leading-relaxed text-muted">{issue.intro}</p>
 
       <h2 className={heading}>Bu ayın favorileri</h2>
@@ -103,7 +103,7 @@ export default async function IssuePage({ params }: { params: Promise<{ month: s
 
       {fresh.length ? <>
         <h2 className={heading}>Bu ay gelenler</h2>
-        <div className="mt-4 grid gap-5 sm:grid-cols-2">{fresh.map(coffee => <DiscoveryCard key={coffee.id} coffee={coffee} source="issue" />)}</div>
+        <div className="mt-4 card-grid">{fresh.map(coffee => <DiscoveryCard key={coffee.id} coffee={coffee} source="issue" />)}</div>
       </> : null}
 
       {drops.length ? <>

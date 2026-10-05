@@ -123,7 +123,7 @@ export default async function ComparePage({
       <div className="section-heading">
         <div>
           <p className="eyebrow">Kısa listen</p>
-          <h1 className="mt-3 font-display text-4xl sm:text-5xl">
+          <h1 className="mt-3 font-display text-title">
             Aynı masada, yan yana.
           </h1>
         </div>
@@ -246,7 +246,7 @@ export default async function ComparePage({
       ) : (
         !failed && (
           <div className="empty-catalog">
-            <h2 className="font-display text-3xl">
+            <h2 className="font-display text-subtitle">
               Kararsız kaldığın kahveleri buraya getir.
             </h2>
             <p>

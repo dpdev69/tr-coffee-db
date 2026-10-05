@@ -48,7 +48,7 @@ export default async function LandingPage({ params, searchParams }: Props) {
   return <div className="page-shell section-space">
     <JsonLd data={breadcrumbList([['Kahveler', '/kahveler'], [heading, landing.path]])} />
     <nav aria-label="İçerik yolu" className="mb-3 text-sm"><Link href="/kahveler" className="inline-flex min-h-11 items-center text-accent hover:underline">← Tüm kahveler</Link></nav>
-    <div className="section-heading"><div><p className="eyebrow">{landing.facet === 'koken' ? 'Köken' : 'İşlem'}</p><h1 className="mt-3 font-display text-5xl">{heading}</h1>
+    <div className="section-heading"><div><p className="eyebrow">{landing.facet === 'koken' ? 'Köken' : 'İşlem'}</p><h1 className="mt-3 font-display text-title">{heading}</h1>
       {facts?.coffees ? <p className="mt-4 max-w-2xl text-sm leading-7 text-muted">Şu an {facts.roasters} kavurucudan {landingPhrase(landing)} {facts.coffees} kahve listede. {landing.facet === 'koken' ? 'Köken' : 'İşlem'} bilgisi kavurucunun sayfasından gelir; kavurucu belirtmediyse ürün açıklamasından çıkarılmış olabilir.</p> : null}</div></div>
     <DiscoveryCatalog params={query} path={landing.path} preset={preset(landing)} />
     {signupsEnabled() && <NewsletterForm source="catalog" variant="card" className="mt-12" title="Yeni gelenleri kaçırma" description="Yeni gelenleri ve fiyatı düşenleri haftada bir, ayın seçkisini ayda bir gönderelim." />}
