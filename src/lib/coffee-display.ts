@@ -42,7 +42,9 @@ export function displayNotes(notes: readonly string[]): string[] {
   const seen = new Set<string>();
   return notes.flatMap(raw => {
     let note = raw.replace(/\s+/g, ' ').trim();
-    if (!note || NOT_A_NOTE.test(note.toLocaleLowerCase('tr-TR')) || isKnownCountry(note)) return [];
+    // An origin is not a taste: 'Etiyopya', 'Guatemala Antigua', 'Kosta Rika Tarrazu' are store tags.
+    const words = note.split(' ');
+    if (!note || NOT_A_NOTE.test(note.toLocaleLowerCase('tr-TR')) || isKnownCountry(words[0]) || isKnownCountry(words.slice(0, 2).join(' '))) return [];
     if (shouting(note)) note = calm(note, true);
     note = capitalize(note);
     const key = note.toLocaleLowerCase('tr-TR');

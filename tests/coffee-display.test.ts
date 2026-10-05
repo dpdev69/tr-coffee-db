@@ -20,7 +20,7 @@ describe('coffee display helpers', () => {
     assert.equal(displayCoffeeName('Kenya Nyeri AA'), 'Kenya Nyeri AA');
   });
   it('drops store tags from tasting notes and tidies their casing', () => {
-    assert.deepEqual(displayNotes(['Filtre Kahve', 'Etiyopya', 'FİZİKSEL MAĞAZA', 'ERİK', 'erik', 'kahve soğudukça çikolata notaları']), ['Erik', 'Kahve soğudukça çikolata notaları']);
+    assert.deepEqual(displayNotes(['Filtre Kahve', 'Etiyopya', 'Guatemala Antigua', 'Kosta Rika Tarrazu', 'FİZİKSEL MAĞAZA', 'ERİK', 'erik', 'kahve soğudukça çikolata notaları']), ['Erik', 'Kahve soğudukça çikolata notaları']);
   });
   it('shows a package option as its weight only when it says nothing else', () => {
     assert.equal(displayPackageLabel('GRAMAJ: 1000', 1000), '1 kg');
