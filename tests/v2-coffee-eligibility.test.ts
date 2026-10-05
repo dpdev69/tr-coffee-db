@@ -31,7 +31,9 @@ test('one coffee-only policy rejects non-coffee identity/taxonomy in JS and SQL 
   assert.deepEqual(sqlRows.map(row=>row.source_product_id).sort(),allowed.map(row=>row.sourceProductId).sort());
   assert.equal(db.sqlite.prepare("SELECT count(*) n FROM coffees WHERE visibility='hidden'").get()?.n,excluded.length);
   assert.equal(db.sqlite.prepare('SELECT count(*) n FROM coffees').get()?.n,excluded.length+allowed.length,'identities preserved');
-  assert.equal((await listEvents(db,'NEW')).length,allowed.length,'excluded products produce no discovery event');
+  // Emission only: a roaster's first crawl has no earlier crawl to date an arrival, so none of these reads as new (GENUINE_NEW).
+  assert.equal(db.sqlite.prepare("SELECT count(*) n FROM coffee_events WHERE type='NEW'").get()?.n,allowed.length,'excluded products produce no discovery event');
+  assert.equal((await listEvents(db,'NEW')).length,0);
   db.sqlite.close();
 });
 

@@ -2,6 +2,10 @@ import { stableId } from './identity';
 import type { CoffeeEvent, Json, PriceObservation } from './types';
 
 export const EVENT_RULE_VERSION = 'v2.1';
+/** Days a genuine arrival counts as new: /yeni, the "Yeni" badge and the home page's arrivals. Live crawls of
+ * 39 roasters recorded about one first-seen coffee a day (17 in 2026-09-15..10-04), so a roaster releases roughly
+ * once a month: 30 days shows each active roaster's latest release and fills about one page. Read by GENUINE_NEW in catalog.ts. */
+export const ARRIVAL_DAYS = 30;
 export const VERIFIED_DEAL_MIN_DROP_PERCENT = 10;
 export const VERIFIED_DEAL_BASELINE_OBSERVATIONS = 2;
 

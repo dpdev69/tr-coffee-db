@@ -68,7 +68,8 @@ export async function listCatalog(db:CatalogDatabase,filters:CatalogFilters={},n
   const perPage=Number.isFinite(filters.perPage)?Math.min(100,Math.max(1,Math.floor(filters.perPage!))):24;
   const from='FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id';
   const sorts:Record<string,string>={
-    newest:'c.first_seen_at DESC,c.id',
+    // Genuine arrivals first, newest first; coffees whose arrival is unknown follow in the order they entered the catalog.
+    newest:`${ARRIVED_AT} DESC NULLS LAST,c.first_seen_at DESC,c.id`,
     price_asc:`${PREFERRED_PRICE} ASC NULLS LAST,c.id`,
     price_desc:`${PREFERRED_PRICE} DESC NULLS LAST,c.id`,
     unit_price_asc:`(SELECT min(1.0*o.current_price_minor/o.weight_g) FROM current_offers o WHERE o.coffee_id ${IN_GROUP} AND o.in_stock=1 AND o.currency='TRY' AND o.weight_g>0) ASC NULLS LAST,c.id`,
@@ -145,8 +146,32 @@ export async function listOrigins(db:CatalogDatabase):Promise<string[]> {
   return rows.results.map(row=>row.value);
 }
 
+/** The one definition of "new" (alias e = a NEW event): the roaster started selling this coffee between two crawls we can date.
+ * A NEW event is emitted only by a live crawl (imports and a roaster's first baseline emit none). It counts when:
+ * - the roaster's previous successful crawl ran at most 7 days earlier;
+ * - the shop's own date agrees: a Shopify published_at after that previous crawl confirms it, one before it means we
+ *   missed the product then. Without a shop date, both crawls must use the same parser version (after a parser or
+ *   discovery change, a first sighting can be an old product the old parser missed, so it proves nothing);
+ * - no older coffee of the roaster is the same coffee under another identity: same group, same name, or the same name
+ *   plus a size ("Koyu" / "Koyu 2.5KG"), which covers a re-identified product, a regrouped size and a re-listing.
+ * Rows are never rewritten; past artefact events stay stored and simply fail this rule.
+ * ponytail: names compare with GLOB, so a name holding * ? [ can over-match (reads as not new); store a name key if that bites. */
+// "a" is "b" plus a size: up to three separators, then a digit ("koyu 2.5kg", "guji (250g)", "guji - 1 kg").
+const sizeTwin=(a:string,b:string)=>[1,2,3].map(n=>`${a} GLOB ${b}||'${'[^a-z0-9]'.repeat(n)}[0-9]*'`).join(' OR ');
+const GENUINE_NEW=`EXISTS(SELECT 1 FROM coffees x JOIN crawl_runs r ON r.id=json_extract(e.after_json,'$.firstObservationRunId') AND r.roaster_id=x.roaster_id
+    JOIN crawl_runs p ON p.id=(SELECT q.id FROM crawl_runs q WHERE q.roaster_id=r.roaster_id AND q.status='success' AND q.mode<>'import' AND q.started_at<r.started_at ORDER BY q.started_at DESC LIMIT 1)
+    WHERE x.id=e.coffee_id AND julianday(r.started_at)-julianday(p.started_at)<=7
+    AND coalesce(julianday(json_extract(x.raw_metadata_json,'$.sourceData.published_at'))>=julianday(p.started_at),p.parser_version=r.parser_version)
+    AND NOT EXISTS(SELECT 1 FROM (SELECT s.id,s.canonical_coffee_id,${foldSql('s.name')} AS sn,${foldSql('x.name')} AS xn FROM coffees s
+      WHERE s.roaster_id=x.roaster_id AND s.id<>x.id AND julianday(s.first_seen_at)<julianday(r.started_at)) s
+      WHERE s.id=x.canonical_coffee_id OR s.canonical_coffee_id=x.id OR s.canonical_coffee_id=x.canonical_coffee_id OR s.sn=s.xn OR ${sizeTwin('s.xn','s.sn')} OR ${sizeTwin('s.sn','s.xn')}))`;
+/** When the listed coffee (alias c) genuinely arrived, or NULL when that is unknown. */
+// Members are read from coffees directly: the group view per sorted row doubled the catalog query's time.
+const ARRIVED_AT=`(SELECT max(e.created_at) FROM coffee_events e WHERE e.type='NEW' AND (e.coffee_id=c.id OR e.coffee_id IN (SELECT m.id FROM coffees m WHERE m.canonical_coffee_id=c.id)) AND ${GENUINE_NEW})`;
+
 /** Extra rule an event must meet to still count, as " AND ..." SQL (alias e = the event). */
 function eventValidity(type:string):string {
+  if(type==='NEW')return ` AND ${GENUINE_NEW}`;
   // A deal/drop badge is valid only while its triggering observation still matches the current offer price.
   if(type==='DEAL'||type==='PRICE_DROP')return " AND EXISTS(SELECT 1 FROM current_offers o JOIN price_observations p ON p.id=e.observation_id WHERE o.id=e.offer_id AND o.in_stock=1 AND o.current_price_minor=p.price_minor AND o.currency=p.currency AND o.weight_g=p.weight_g)";
   // Another available SKU cannot keep a sold-out/retired package in the restock feed.
@@ -238,7 +263,7 @@ export async function hydrate(db:CatalogDatabase,rows:CoffeeRow[],now:number):Pr
   const [offers,features,events]=await Promise.all([
     db.prepare(`SELECT o.*,g.group_id FROM coffee_group_members g JOIN current_offers o ON o.coffee_id=g.coffee_id WHERE g.group_id IN (${list}) ORDER BY o.in_stock DESC NULLS LAST,o.current_price_minor ASC NULLS LAST,o.id`).bind(...ids).all<OfferRow&{group_id:string}>(),
     db.prepare(`SELECT * FROM coffee_feature_values WHERE coffee_id IN (${list}) ORDER BY feature,source_type`).bind(...ids).all<FeatureRow>(),
-    db.prepare(`SELECT * FROM (SELECT e.*,g.group_id,row_number() OVER(PARTITION BY g.group_id,e.type ORDER BY e.created_at DESC,e.id DESC) AS position FROM coffee_group_members g JOIN coffee_events e ON e.coffee_id=g.coffee_id WHERE g.group_id IN (${list})) WHERE position=1 ORDER BY created_at DESC`).bind(...ids).all<EventRow&{group_id:string}>(),
+    db.prepare(`SELECT * FROM (SELECT e.*,g.group_id,row_number() OVER(PARTITION BY g.group_id,e.type ORDER BY e.created_at DESC,e.id DESC) AS position FROM coffee_group_members g JOIN coffee_events e ON e.coffee_id=g.coffee_id WHERE g.group_id IN (${list}) AND (e.type<>'NEW' OR ${GENUINE_NEW})) WHERE position=1 ORDER BY created_at DESC`).bind(...ids).all<EventRow&{group_id:string}>(),
   ]);
   return rows.map(row=>{
     // A group shows its members' sizes, so a size left in the parent's name would describe only one of them.
@@ -293,7 +318,7 @@ export async function listEvents(db:CatalogDatabase,type?:CoffeeEvent['type'],li
   const accepted=type&&EVENT_TYPES.has(type)?type:null;
   const values:SqlValue[]=accepted?[accepted]:[];
   values.push(Math.min(100,Math.max(1,Number.isFinite(limit)?Math.floor(limit):30)));
-  const rows=await db.prepare(`SELECT e.* FROM coffee_events e JOIN coffees c ON c.id=e.coffee_id WHERE c.visibility='public' AND ${coffeeOnlySql()} ${accepted?'AND e.type=?':''} ORDER BY e.created_at DESC,e.id DESC LIMIT ?`).bind(...values).all<EventRow>();
+  const rows=await db.prepare(`SELECT e.* FROM coffee_events e JOIN coffees c ON c.id=e.coffee_id WHERE c.visibility='public' AND ${coffeeOnlySql()} AND (e.type<>'NEW' OR ${GENUINE_NEW}) ${accepted?'AND e.type=?':''} ORDER BY e.created_at DESC,e.id DESC LIMIT ?`).bind(...values).all<EventRow>();
   return rows.results.map(eventFromRow);
 }
 

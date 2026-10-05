@@ -7,6 +7,7 @@ import { getCatalogDatabase } from '@/lib/v2-runtime';
 import { getFirstSearchParamValue, getPageParamValue, getStringArrayParamValue, normalizeSearchTerm, type SearchParamValue } from '@/lib/filter-contract';
 import { FLAVOR_CATEGORY_LABELS, PROCESS_LABELS, ROAST_LABELS, BREW_METHOD_LABELS } from '@/lib/constants/filter-options';
 import { listCatalog, listOrigins, listRoasters, type CatalogFilters } from '../../../shared/v2/catalog';
+import { ARRIVAL_DAYS } from '../../../shared/v2/events';
 import { DiscoveryEmpty, DiscoveryGrid } from './discovery-card';
 import { JsonLd, itemList } from '@/components/layout/json-ld';
 
@@ -41,8 +42,9 @@ export async function DiscoveryCatalog({params:query,path='/kahveler',event,pres
   const params=preset?Object.fromEntries(Object.entries(query).filter(([key])=>!(key in preset))):query;
   const filters=parseDiscoveryFilters({...params,...preset});
   // Server request time defines the seven-day feed window.
+  const days=event==='NEW'?ARRIVAL_DAYS:7;
   // eslint-disable-next-line react-hooks/purity
-  if(event){filters.event=event;filters.since=new Date(Math.floor(Date.now()/300000)*300000-7*86400000).toISOString();}
+  if(event){filters.event=event;filters.since=new Date(Math.floor(Date.now()/300000)*300000-days*86400000).toISOString();}
   let result:Awaited<ReturnType<typeof listCatalog>>;
   let roasters:Awaited<ReturnType<typeof listRoasters>>=[];
   let origins:ReturnType<typeof countryOptions>=[];
@@ -76,11 +78,12 @@ export async function DiscoveryCatalog({params:query,path='/kahveler',event,pres
       </details>
       <div className="mt-4 flex flex-wrap items-center gap-3"><button type="submit" className="button-dark">Kahveleri göster →</button><label className="ml-auto flex items-center text-sm">Sırala <select name="sort" defaultValue={filters.sort} className="ml-2 min-h-11 rounded-[10px] border border-line bg-surface px-3"><option value="newest">En yeni</option><option value="price_asc">Paket fiyatı: artan</option><option value="price_desc">Paket fiyatı: azalan</option></select></label></div>
     </TrackedFilterForm>
-    <div className="mb-7"><ul aria-label="Sonuçlar ve uygulanan filtreler" className="flex flex-wrap items-center gap-2.5"><li className="mr-1.5 text-[15px] font-semibold"><span className="tabular-nums">{result.total.toLocaleString('tr-TR')}</span> kahve{event?' · Son 7 gün':''}</li>{chips.map(chip=><li key={chip.href}><Link href={chip.href} className="filter-chip" aria-label={`Filtreyi kaldır: ${chip.label}`}>{chip.label}<span aria-hidden="true">×</span></Link></li>)}{chips.length?<li><Link href={clearHref} className="ml-1.5 inline-flex min-h-11 items-center text-sm text-accent hover:underline">Filtreleri temizle</Link></li>:null}</ul>
+    <div className="mb-7"><ul aria-label="Sonuçlar ve uygulanan filtreler" className="flex flex-wrap items-center gap-2.5"><li className="mr-1.5 text-[15px] font-semibold"><span className="tabular-nums">{result.total.toLocaleString('tr-TR')}</span> kahve{event?` · Son ${days} gün`:''}</li>{chips.map(chip=><li key={chip.href}><Link href={chip.href} className="filter-chip" aria-label={`Filtreyi kaldır: ${chip.label}`}>{chip.label}<span aria-hidden="true">×</span></Link></li>)}{chips.length?<li><Link href={clearHref} className="ml-1.5 inline-flex min-h-11 items-center text-sm text-accent hover:underline">Filtreleri temizle</Link></li>:null}</ul>
       <p className="mt-1 text-sm text-muted">Sipariş kavurucunun kendi sitesinde tamamlanır.</p></div>
     <h2 className="sr-only">Kahveler</h2>
     {result.coffees.length?<JsonLd data={itemList(result.coffees.map(coffee=>[coffee.name,`/kahve/${coffee.slug}`]),{offset:(result.page-1)*result.perPage,total:result.total})}/>:null}
-    {result.coffees.length?<DiscoveryGrid coffees={result.coffees} source={event?'feed':'catalog'}/>:<DiscoveryEmpty title={event?'Henüz doğrulanmış bir değişiklik yok.':'Bu filtrelerle kahve bulamadık.'}>{event?'Doğrulanmış bir değişiklik olduğunda burada göreceksin. Kahveleri keşfete göz atabilirsin.':'Daha geniş bir fiyat aralığı deneyebilir veya filtreleri temizleyebilirsin.'}<Link href={event?'/yeni':path} className="text-link">{event?'Kahveleri keşfet →':'Tüm kahveleri göster →'}</Link></DiscoveryEmpty>}
+    {result.coffees.length?<DiscoveryGrid coffees={result.coffees} source={event?'feed':'catalog'}/>:event==='NEW'?<DiscoveryEmpty title={`Son ${days} günde yeni gelen kahve yok.`}>Kavurucuların mağazalarını her gece tarıyoruz; bir kahveyi ilk gördüğümüz gece buraya ekliyoruz. Ne zaman satışa çıktığını bilmediğimiz kahveleri yeni diye göstermiyoruz.</DiscoveryEmpty>
+      :<DiscoveryEmpty title={event?'Henüz doğrulanmış bir değişiklik yok.':'Bu filtrelerle kahve bulamadık.'}>{event?'Doğrulanmış bir değişiklik olduğunda burada göreceksin. Kahveleri keşfete göz atabilirsin.':'Daha geniş bir fiyat aralığı deneyebilir veya filtreleri temizleyebilirsin.'}<Link href={event?'/yeni':path} className="text-link">{event?'Kahveleri keşfet →':'Tüm kahveleri göster →'}</Link></DiscoveryEmpty>}
     {result.totalPages>1?<nav aria-label="Katalog sayfaları" className="mt-8 flex items-center justify-center gap-4">{result.page>1?<Link className="button-light" href={linkToPage(result.page-1)}>← Önceki</Link>:null}<span className="text-sm">{result.page} / {result.totalPages}</span>{result.page<result.totalPages?<Link className="button-light" href={linkToPage(result.page+1)}>Sonraki →</Link>:null}</nav>:null}
   </>;
 }
