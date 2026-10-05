@@ -51,7 +51,7 @@ export function DiscoveryCard({coffee,source='catalog'}:{coffee:CatalogCoffee;so
   const listed=displayNotes(coffee.rawMetadata.tastingNotes??[]),notes=listed.length?listed.slice(0,3):tasteSummary(coffee),name=displayCoffeeName(coffee.name);
   return <article className="coffee-card relative">
     <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="coffee-card-image block" aria-label={`${name} detayları`}>
-      <CoffeeImage roaster={coffee.roaster.name} source={coffee.rawMetadata.imageUrl} alt={name} sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 28vw" className="absolute inset-0 h-full w-full object-contain p-4"/>
+      <CoffeeImage roaster={coffee.roaster.name} source={coffee.rawMetadata.imageUrl} alt={name} sizes="(max-width: 599px) 92vw, (max-width: 1199px) 46vw, 25vw" className="absolute inset-0 h-full w-full object-contain p-4"/>
       {badges.length>0?<span className="absolute left-3 top-3 flex flex-wrap gap-1">{badges.map(event=><span key={event.id} className="coffee-card-badge">{EVENT_LABELS[event.type]}</span>)}</span>:null}
     </Link>
     <SaveToggle slug={coffee.slug} name={coffee.name} offer={savedPackage(offer)} className="absolute right-2.5 top-2.5"/>
@@ -65,5 +65,5 @@ export function DiscoveryCard({coffee,source='catalog'}:{coffee:CatalogCoffee;so
     <div className="coffee-card-footer">{offer?.purchaseUrl?<a href={`/go/${offer.id}?source=${encodeURIComponent(source)}`} className="text-link" rel="nofollow">Kavurucuda gör <span aria-hidden="true">↗</span></a>:<Link href={`/kahve/${coffee.slug}`} className="text-link">Paketleri incele →</Link>}<CompareToggle slug={coffee.slug} name={coffee.name}/></div>
   </article>;
 }
-export function DiscoveryGrid({coffees,source='catalog'}:{coffees:CatalogCoffee[];source?:string}){return <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{coffees.map(coffee=><DiscoveryCard key={coffee.id} coffee={coffee} source={source}/>)}</div>;}
+export function DiscoveryGrid({coffees,source='catalog'}:{coffees:CatalogCoffee[];source?:string}){return <div className="card-grid">{coffees.map(coffee=><DiscoveryCard key={coffee.id} coffee={coffee} source={source}/>)}</div>;}
 export function DiscoveryEmpty({title='Burada henüz kahve yok.',children,action=['/kahveler','Tüm kahveleri keşfet ↗']}:{title?:string;children:React.ReactNode;action?:[href:string,label:string]}){return <div className="empty-catalog"><h3>{title}</h3><p>{children}</p><Link href={action[0]} className="text-link">{action[1]}</Link></div>;}

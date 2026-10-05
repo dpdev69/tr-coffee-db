@@ -15,7 +15,7 @@ export default function Error({ error, reset, unstable_retry }: { error: Error &
   return (
     <section className="page-shell flex min-h-[60vh] flex-col items-start justify-center py-20">
       <p className="eyebrow">Bir şeyler ters gitti</p>
-      <h1 className="mt-5 max-w-2xl font-display text-5xl leading-[1.08] sm:text-6xl">Bu sayfa şu an açılmadı.</h1>
+      <h1 className="mt-5 max-w-2xl font-display text-title">Bu sayfa şu an açılmadı.</h1>
       <p className="mt-6 max-w-lg text-base leading-8 text-muted">Geçici bir sorun olabilir. Yeniden deneyebilir ya da kahve kataloğuna dönebilirsin.{error.digest ? ` Hata kodu: ${error.digest}` : ''}</p>
       <div className="mt-8 flex flex-wrap items-center gap-4">
         <button type="button" onClick={retry} className="button-dark button-lg">Yeniden dene</button>

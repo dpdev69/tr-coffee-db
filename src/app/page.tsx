@@ -88,14 +88,14 @@ export default async function HomePage() {
       {data?.day ? <DayCard coffee={data.day} now={now} /> : null}
       <div className="saved-panel-slot"><SavedPanel /></div>
     </div>
-    <nav className="studio-paths" aria-label="Kahveni keşfet">
+    <nav className="studio-paths grid-trio" aria-label="Kahveni keşfet">
       <Link href="/quiz"><span className="studio-path-number">01</span><div><strong>Damak tadını keşfet</strong><p>Kısa bir testle başla.</p></div><span aria-hidden="true">↗</span></Link>
       <Link href="/yeni"><span className="studio-path-number">02</span><div><strong>Yeni kahvelere bak</strong><p>Kataloğun son keşifleri.</p></div><span aria-hidden="true">↗</span></Link>
       <Link href="/kahveler"><span className="studio-path-number">03</span><div><strong>Kendi kahveni seç</strong><p>Tat, köken ve paket fiyatı.</p></div><span aria-hidden="true">↗</span></Link>
     </nav>
-    <section className="mt-10 rounded-[18px] border border-line bg-surface p-6 sm:p-10" aria-labelledby="how-it-works">
-      <h2 id="how-it-works" className="mb-6 font-display text-[30px] sm:text-[34px]">Nasıl çalışır</h2>
-      <ol className="grid gap-8 md:grid-cols-3">{HOW_IT_WORKS.map(([title, body], index) => <li key={title} className="flex flex-col gap-2"><span className="font-display text-[40px] leading-none text-warm">{index + 1}</span><span className="font-display text-[23px]">{title}</span><span className="text-[15px] leading-relaxed text-muted">{body}</span></li>)}</ol>
+    <section className="mt-10 rounded-[18px] border border-line bg-surface p-[clamp(24px,3.5%,48px)]" aria-labelledby="how-it-works">
+      <h2 id="how-it-works" className="mb-6 font-display text-heading">Nasıl çalışır</h2>
+      <ol className="grid-trio">{HOW_IT_WORKS.map(([title, body], index) => <li key={title} className="flex flex-col gap-2"><span className="font-display text-[40px] leading-none text-warm">{index + 1}</span><span className="font-display text-[23px]">{title}</span><span className="text-[15px] leading-relaxed text-muted">{body}</span></li>)}</ol>
     </section>
     {data ? <>
       <section className="section-space studio-latest">
@@ -104,9 +104,9 @@ export default async function HomePage() {
       <FeedSection title="Fiyatı düşenler." href="/firsatlar" coffees={data.drops} />
       <FeedSection title="Tekrar raflarda." href="/yeni?event=RESTOCKED" coffees={data.restocked} />
       {data.roasters.length ? <section className="section-space"><div className="section-heading"><h2>Kavurucular.</h2><Link href="/kavurucular" className="text-link">{data.roasters.length} kavurucunun hepsi →</Link></div>
-        <ul className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">{[...data.roasters].sort((a, b) => b.coffeeCount - a.coffeeCount).slice(0, 8).map(roaster => <li key={roaster.id}><Link href={`/kavurucu/${roaster.slug}`} className="flex h-full min-h-11 items-center gap-3.5 rounded-[14px] border border-line bg-surface px-[18px] py-4 hover:border-accent"><RoasterInitial name={roaster.name} size="sm" /><span><span className="block font-display text-lg">{roaster.name}</span><span className="text-[13px] text-muted">{roaster.city || 'Bağımsız kavurucu'}</span></span></Link></li>)}</ul>
+        <ul className="grid-quad">{[...data.roasters].sort((a, b) => b.coffeeCount - a.coffeeCount).slice(0, 8).map(roaster => <li key={roaster.id}><Link href={`/kavurucu/${roaster.slug}`} className="flex h-full min-h-11 items-center gap-3.5 rounded-[14px] border border-line bg-surface px-[18px] py-4 hover:border-accent"><RoasterInitial name={roaster.name} size="sm" /><span><span className="block font-display text-lg">{roaster.name}</span><span className="text-[13px] text-muted">{roaster.city || 'Bağımsız kavurucu'}</span></span></Link></li>)}</ul>
       </section> : null}
     </> : <section className="section-space"><DataSourceNotice title="Kahveler şu an yüklenemiyor." message="Katalog bağlantısına ulaşamadık. Yeniden deneyebilir veya damak tadını keşfetmek için testi çözebilirsin." actionHref="/kahveler" actionLabel="Kataloğu yeniden aç" /></section>}
-    <section className="studio-journal"><div><p className="eyebrow">Kahve molası</p><h2>Güzel kahve,<br /><em>küçük bir ritüel.</em></h2><p>Çekirdeğini seçtin. Şimdi doğru oranı bul, suyunu hazırla ve kendi fincanını demle.</p><Link href="/guide#calculator" className="text-link">Demleme rehberine git ↗</Link></div>{signupsEnabled() && <NewsletterForm source="home-bottom" />}</section>
+    <section className="studio-journal grid-pair"><div><p className="eyebrow">Kahve molası</p><h2>Güzel kahve,<br /><em>küçük bir ritüel.</em></h2><p>Çekirdeğini seçtin. Şimdi doğru oranı bul, suyunu hazırla ve kendi fincanını demle.</p><Link href="/guide#calculator" className="text-link">Demleme rehberine git ↗</Link></div>{signupsEnabled() && <NewsletterForm source="home-bottom" />}</section>
   </div>;
 }

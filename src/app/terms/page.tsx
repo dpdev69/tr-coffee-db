@@ -11,11 +11,11 @@ export const metadata: Metadata = pageMetadata('Kullanım Şartları', `${SITE_N
 
 export default function TermsPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="page-shell section-space max-w-3xl">
       <p className="eyebrow">
         Güven
       </p>
-      <h1 className="mt-3 font-display text-5xl leading-none text-ink">Kullanım Şartları</h1>
+      <h1 className="mt-3 font-display text-title leading-none text-ink">Kullanım Şartları</h1>
       <p className="mt-4 text-sm leading-6 text-muted">
         {SITE_NAME}, Türkiye&apos;deki bağımsız kavurucuların kahvelerini keşfetmeye
         yardımcı olan bilgilendirme amaçlı bir katalogdur.

@@ -134,7 +134,7 @@ export function QuizContainer() {
           {selectedCount > 0 ? `${selectedCount} seçim` : 'Bu adım sıralamaya katılmayacak.'}
         </p>
 
-        <div className="mt-6 flex justify-between gap-3">
+        <div className="mt-6 flex flex-wrap justify-between gap-3">
           <button
             type="button"
             onClick={() => setStepIndex((index) => Math.max(0, index - 1))}

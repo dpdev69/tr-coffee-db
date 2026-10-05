@@ -26,27 +26,27 @@ export function Header() {
   const pathname = usePathname();
   const closeMenu = () => menuRef.current?.close();
   const current = (href: string) => (pathname.startsWith(href) ? 'page' : undefined);
-  const wordmark = <span className="font-display text-[22px] font-semibold text-accent lg:text-[26px]">{brand.name}</span>;
+  const wordmark = <span className="font-display text-[clamp(22px,1rem+0.6vw,28px)] font-semibold text-accent">{brand.name}</span>;
   return (
     <header className="site-header sticky top-0 z-50 border-b border-line bg-ground/95 backdrop-blur-md">
-      <div className="page-shell flex h-16 items-center gap-7 lg:h-[72px]">
+      <div className="page-shell flex h-16 items-center gap-[clamp(16px,2vw,40px)] lg:h-[72px]">
         <Link href="/" aria-label={`${brand.name} ana sayfa`} className="inline-flex min-h-11 shrink-0 items-center">
           {wordmark}
         </Link>
-        <nav aria-label="Ana menü" className="hidden items-center gap-6 lg:flex">
+        <nav aria-label="Ana menü" className="hidden items-center gap-[clamp(14px,1.6vw,32px)] lg:flex">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               aria-current={current(link.href)}
-              className="inline-flex min-h-11 items-center text-[15px] text-ink hover:text-accent aria-[current=page]:font-semibold aria-[current=page]:text-accent"
+              className="inline-flex min-h-11 items-center whitespace-nowrap text-[15px] text-ink hover:text-accent aria-[current=page]:font-semibold aria-[current=page]:text-accent"
             >
               {link.label}
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-3">
-          <div className="hidden w-56 lg:block xl:w-64">
+        <div className="ml-auto flex min-w-0 items-center justify-end gap-3 lg:flex-[0_1_28rem]">
+          <div className="hidden min-w-36 flex-[0_1_18rem] lg:block">
             <Suspense fallback={searchFallback}>
               <SearchInput />
             </Suspense>

@@ -16,7 +16,7 @@ export default function IssueIndexPage() {
   return <div className="page-shell section-space">
     <div className="mx-auto max-w-[760px]">
       <p className="eyebrow">Aylık bülten</p>
-      <h1 className="mt-3 font-display text-5xl leading-[1.08]">{brand.monthlyName}</h1>
+      <h1 className="mt-3 font-display text-title leading-[1.08]">{brand.monthlyName}</h1>
       <p className="mt-4 text-lg leading-relaxed text-muted">Ayın favori kahveleri ve Türkiye kahve sahnesinden haberler, ayda bir.</p>
       {issues.length ? <ol className="mt-10 border-t border-line">
         {issues.map(issue => <li key={issue.month} className="border-b border-line py-6">
