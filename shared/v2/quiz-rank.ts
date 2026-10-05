@@ -1,4 +1,4 @@
-import { COFFEE_COLUMNS, hydrate, type CatalogCoffee, type CoffeeRow } from './catalog';
+import { COFFEE_COLUMNS, hydrate, listedRows, type CatalogCoffee, type CoffeeRow } from './catalog';
 import { coffeeOnlySql, fold } from './coffee-eligibility';
 import type { CatalogDatabase } from './database';
 import { FACT_FEATURES, truthfulFeatures, truthfulMetadata } from './profile-truth';
@@ -125,18 +125,24 @@ export function rankCandidates(answers: QuizAnswers, candidates: QuizCandidate[]
 }
 
 export type QuizMatch = CatalogCoffee & { quizReasons: QuizReason[]; quizExact: boolean };
-/** One candidate query on the public view, scoring in TypeScript, hydration of the winners only (as getSimilarCoffees). */
+/** One candidate query on the public view, scoring in TypeScript, hydration of the winners only (as getSimilarCoffees).
+ * The scored candidates are the same for every answer set, so they are built once per refresh (derived cache). */
 export async function rankQuizMatches(db: CatalogDatabase, answers: QuizAnswers, limit = 8): Promise<{ coffees: QuizMatch[]; exact: boolean; total: number }> {
+  const candidates = await (db.derive ? db.derive('quiz-candidates', () => quizCandidates(db)) : quizCandidates(db));
+  const ranked = rankCandidates(answers, candidates, Math.min(12, Math.max(1, Math.floor(limit) || 8)));
+  const rows = await listedRows(db, ranked.map(entry => entry.id));
+  const hydrated = await hydrate(db, rows, Date.now());
+  const coffees = hydrated.map(coffee => { const entry = ranked.find(item => item.id === coffee.id)!; return { ...coffee, quizReasons: entry.reasons, quizExact: entry.exact }; });
+  return { coffees, exact: coffees.some(coffee => coffee.quizExact), total: candidates.length };
+}
+async function quizCandidates(db: CatalogDatabase): Promise<QuizCandidate[]> {
   // Whole fact groups, not only the features scored: a MANUAL row on any member (say flavor_notes_normalized) must silence the rest.
   const names = [...new Set(['brewMethods', 'tastingNotes', 'roast', 'process'].flatMap(fact => FACT_FEATURES[fact]))].map(name => `'${name}'`).join(',');
   // ponytail: same 5,000 newest cap as getSimilarCoffees; move scoring into SQL if the catalog outgrows it.
   const rows = await db.prepare(`SELECT ${COFFEE_COLUMNS},(SELECT json_group_array(json_object('feature',f.feature,'value',json(f.value_json),'sourceType',f.source_type,'version',f.version)) FROM coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN (${names})) AS quiz_features_json FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} ORDER BY c.first_seen_at DESC,c.id LIMIT 5000`).all<CoffeeRow & { quiz_features_json: string }>();
-  const candidates = rows.results.map(row => toCandidate(row));
-  const ranked = rankCandidates(answers, candidates, Math.min(12, Math.max(1, Math.floor(limit) || 8)));
-  const byId = new Map(rows.results.map(row => [row.id, row]));
-  const hydrated = await hydrate(db, ranked.map(entry => byId.get(entry.id)!), Date.now());
-  const coffees = hydrated.map((coffee, index) => ({ ...coffee, quizReasons: ranked[index].reasons, quizExact: ranked[index].exact }));
-  return { coffees, exact: coffees.some(coffee => coffee.quizExact), total: candidates.length };
+  // Only what scoring reads (evidence(): the roast and process fields, and each feature's name, value and provenance), already repaired.
+  return rows.results.map(row => { const candidate = toCandidate(row); return { id: candidate.id, roasterId: candidate.roasterId, firstSeenAt: candidate.firstSeenAt,
+    raw: { roast: candidate.raw.roast, process: candidate.raw.process }, features: candidate.features.map(({ feature, value, sourceType }) => ({ feature, value, sourceType })) }; });
 }
 export function toCandidate(row: CoffeeRow & { quiz_features_json: string }): QuizCandidate {
   const parse = <T,>(text: string, fallback: T): T => { try { return JSON.parse(text) as T; } catch { return fallback; } };

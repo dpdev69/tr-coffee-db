@@ -14,6 +14,7 @@ const CATALOG_ROUTES = new Set(['/', '/yeni', '/firsatlar', '/kahveler', '/kavur
 const CHANGED_SQL = `max(c.first_seen_at,
   coalesce((SELECT max(e.created_at) FROM coffee_events e WHERE e.coffee_id=c.id),''),
   coalesce((SELECT max(o.last_price_change_at) FROM offers o WHERE o.coffee_id=c.id),''))`;
+type SitemapCoffees = { results: Array<{ slug: string; roaster_id: string; changed: string }> };
 const date = (iso: string | undefined) => (iso ? new Date(iso) : undefined);
 
 export function staticSitemap(latest?: string): MetadataRoute.Sitemap {
@@ -29,7 +30,8 @@ export function staticSitemap(latest?: string): MetadataRoute.Sitemap {
  */
 export async function catalogSitemap(db: CatalogDatabase): Promise<MetadataRoute.Sitemap> {
   const [coffees, roasters, landings] = await Promise.all([
-    db.prepare(`SELECT c.slug, c.roaster_id, ${CHANGED_SQL} AS changed FROM public_catalog_coffees c WHERE ${coffeeOnlySql()}`).all<{ slug: string; roaster_id: string; changed: string }>(),
+    // Same for every request until the next refresh; vinext never edge-caches the sitemap, so it is shared as a derived result.
+    (db.derive ?? ((_: string, compute: () => Promise<SitemapCoffees>) => compute()))('sitemap-coffees', () => db.prepare(`SELECT c.slug, c.roaster_id, ${CHANGED_SQL} AS changed FROM public_catalog_coffees c WHERE ${coffeeOnlySql()}`).all<{ slug: string; roaster_id: string; changed: string }>()),
     listRoasters(db), listLandings(db),
   ]);
   const roasterChanged = new Map<string, string>();

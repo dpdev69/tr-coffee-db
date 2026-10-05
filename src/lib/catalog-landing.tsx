@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { canonicalCountry, countryLabel, countryOptions, isKnownCountry } from '../../shared/v2/country-labels';
-import { catalogFacts, listOrigins, type CatalogFilters } from '../../shared/v2/catalog';
+import { catalogFacts, catalogFactsMany, listOrigins, type CatalogFilters } from '../../shared/v2/catalog';
 import type { CatalogDatabase } from '../../shared/v2/database';
 import { PROCESS_LABELS, PROCESS_VALUES } from './constants/filter-options';
 import { normalizeCityFilterValue } from './filter-contract';
@@ -41,8 +41,15 @@ export function findLanding(facet: string, value: string): Landing | null {
 export async function listLandings(db: CatalogDatabase): Promise<LandingWithFacts[]> {
   const origins = countryOptions(await listOrigins(db)).flatMap(({ value }) => originLanding(value) ?? []);
   const all = [...origins, ...PROCESSES.map(process => landing('islem', process))];
-  const facts = await Promise.all(all.map(item => catalogFacts(db, item.filters)));
+  const facts = await catalogFactsMany(db, all.map(item => item.filters));
   return all.map((item, index) => ({ ...item, ...facts[index] })).filter(item => item.coffees > 0);
+}
+
+/** One landing's facts. The shared landing list already counted it with the same filter (listLandings is derived once per
+ * refresh); a landing missing from that list (nothing listed today) is counted on its own. */
+export async function landingFacts(db: CatalogDatabase, landing: Landing): Promise<{ coffees: number; roasters: number }> {
+  const listed = (await listLandings(db)).find(item => item.path === landing.path);
+  return listed ? { coffees: listed.coffees, roasters: listed.roasters } : catalogFacts(db, landing.filters);
 }
 
 /** "Etiyopya kökenli" / "natürel işlemli": the phrase every landing sentence is built on. */
