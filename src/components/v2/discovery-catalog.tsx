@@ -8,6 +8,7 @@ import { getFirstSearchParamValue, getPageParamValue, getStringArrayParamValue, 
 import { FLAVOR_CATEGORY_LABELS, PROCESS_LABELS, ROAST_LABELS, BREW_METHOD_LABELS } from '@/lib/constants/filter-options';
 import { listCatalog, listOrigins, listRoasters, type CatalogFilters } from '../../../shared/v2/catalog';
 import { DiscoveryEmpty, DiscoveryGrid } from './discovery-card';
+import { JsonLd, itemList } from '@/components/layout/json-ld';
 
 export type DiscoverySearchParams=Record<string,SearchParamValue>;
 const first=getFirstSearchParamValue;
@@ -35,8 +36,10 @@ export function filterChips(params:DiscoverySearchParams,path:string,valueLabel:
   const chips=entries.flatMap(([key,value],index)=>key in CHIP_LABELS&&value.trim()?[{label:`${CHIP_LABELS[key]}: ${valueLabel(key,value.trim())}`,href:href((_,other)=>other!==index)}]:[]);
   return {chips,clearHref:href(key=>!(key in CHIP_LABELS))};
 }
-export async function DiscoveryCatalog({params,path='/kahveler',event}:{params:DiscoverySearchParams;path?:string;event?:CatalogFilters['event']}){
-  const filters=parseDiscoveryFilters(params);
+/** `preset` fixes filters for a landing page (one origin or process): applied always, never shown as a removable chip; the form then searches the whole catalog. */
+export async function DiscoveryCatalog({params:query,path='/kahveler',event,preset}:{params:DiscoverySearchParams;path?:string;event?:CatalogFilters['event'];preset?:DiscoverySearchParams}){
+  const params=preset?Object.fromEntries(Object.entries(query).filter(([key])=>!(key in preset))):query;
+  const filters=parseDiscoveryFilters({...params,...preset});
   // Server request time defines the seven-day feed window.
   // eslint-disable-next-line react-hooks/purity
   if(event){filters.event=event;filters.since=new Date(Math.floor(Date.now()/300000)*300000-7*86400000).toISOString();}
@@ -55,7 +58,7 @@ export async function DiscoveryCatalog({params,path='/kahveler',event}:{params:D
   const {chips,clearHref}=filterChips(params,path,(key,value)=>labels[key]?.(value)??value);
   const advancedOpen=Boolean(filters.altitude||filters.farm||filters.producer||filters.variety||filters.process?.length||filters.roast?.length||filters.brewMethod?.length);
   return <>
-    <TrackedFilterForm key={JSON.stringify([path,params,event])} action={path} page={path==='/yeni'?'new':path==='/firsatlar'?'deals':'catalog'} className="discovery-filters mb-5 rounded-[14px] border border-line bg-surface p-4 sm:p-5">
+    <TrackedFilterForm key={JSON.stringify([path,params,event])} action={preset?'/kahveler':path} page={path==='/yeni'?'new':path==='/firsatlar'?'deals':'catalog'} className="discovery-filters mb-5 rounded-[14px] border border-line bg-surface p-4 sm:p-5">
       {event ? <input type="hidden" name="event" value={event} /> : null}
       <label className="flex flex-col gap-2 text-[13px] font-medium text-muted">Kahve veya kavurucu ara<input type="search" name="search" defaultValue={first(params.search)} placeholder="Bir isimle başla…" className="min-h-12 rounded-[10px] border border-line bg-surface px-4 text-base font-normal text-ink"/></label>
       {/* Phones fold the filters behind one summary (the chips below say what is applied); from lg up globals.css shows .filter-more inline. */}
@@ -75,6 +78,8 @@ export async function DiscoveryCatalog({params,path='/kahveler',event}:{params:D
     </TrackedFilterForm>
     <div className="mb-7"><ul aria-label="Sonuçlar ve uygulanan filtreler" className="flex flex-wrap items-center gap-2.5"><li className="mr-1.5 text-[15px] font-semibold"><span className="tabular-nums">{result.total.toLocaleString('tr-TR')}</span> kahve{event?' · Son 7 gün':''}</li>{chips.map(chip=><li key={chip.href}><Link href={chip.href} className="filter-chip" aria-label={`Filtreyi kaldır: ${chip.label}`}>{chip.label}<span aria-hidden="true">×</span></Link></li>)}{chips.length?<li><Link href={clearHref} className="ml-1.5 inline-flex min-h-11 items-center text-sm text-accent hover:underline">Filtreleri temizle</Link></li>:null}</ul>
       <p className="mt-1 text-sm text-muted">Sipariş kavurucunun kendi sitesinde tamamlanır.</p></div>
+    <h2 className="sr-only">Kahveler</h2>
+    {result.coffees.length?<JsonLd data={itemList(result.coffees.map(coffee=>[coffee.name,`/kahve/${coffee.slug}`]),{offset:(result.page-1)*result.perPage,total:result.total})}/>:null}
     {result.coffees.length?<DiscoveryGrid coffees={result.coffees} source={event?'feed':'catalog'}/>:<DiscoveryEmpty title={event?'Henüz doğrulanmış bir değişiklik yok.':'Bu filtrelerle kahve bulamadık.'}>{event?'Doğrulanmış bir değişiklik olduğunda burada göreceksin. Kahveleri keşfete göz atabilirsin.':'Daha geniş bir fiyat aralığı deneyebilir veya filtreleri temizleyebilirsin.'}<Link href={event?'/yeni':path} className="text-link">{event?'Kahveleri keşfet →':'Tüm kahveleri göster →'}</Link></DiscoveryEmpty>}
     {result.totalPages>1?<nav aria-label="Katalog sayfaları" className="mt-8 flex items-center justify-center gap-4">{result.page>1?<Link className="button-light" href={linkToPage(result.page-1)}>← Önceki</Link>:null}<span className="text-sm">{result.page} / {result.totalPages}</span>{result.page<result.totalPages?<Link className="button-light" href={linkToPage(result.page+1)}>Sonraki →</Link>:null}</nav>:null}
   </>;
