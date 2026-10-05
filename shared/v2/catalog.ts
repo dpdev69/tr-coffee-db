@@ -205,12 +205,14 @@ function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
   metadata('brewMethods',filters.brewMethod);
   if(filters.roaster?.length){const input=filters.roaster.slice(0,20);conditions.push(`r.slug IN (${placeholders(input.length)})`);values.push(...input);}
   if(filters.search?.trim()){
-    // SQLite LIKE only folds ASCII case, so both sides are folded (İ/ı/ş/ğ/ü/ö/ç) before matching.
+    // SQLite only folds ASCII case, so both sides are folded (İ/ı/ş/ğ/ü/ö/ç) before matching.
     const term=fold(filters.search.trim().slice(0,100));
     const terms=[...new Set([term,...SEARCH_SYNONYMS.flatMap(pair=>pair.flatMap(word=>term.includes(word)?pair.map(other=>term.replaceAll(word,other)):[]))])].slice(0,4);
     const fields=[foldSql('c.name'),foldSql('r.name'),foldSql("coalesce(json_extract(c.raw_metadata_json,'$.description'),'')")];
-    conditions.push(`(${terms.flatMap(()=>fields.map(field=>`${field} LIKE ? ESCAPE '\\'`)).join(' OR ')})`);
-    values.push(...terms.flatMap(value=>fields.map(()=>`%${value.replace(/[\\%_]/g,'\\$&')}%`)));
+    // instr, not LIKE: D1 refuses LIKE patterns over 50 bytes, which broke every search of about 48 characters or more.
+    // Both sides are already folded, and instr treats % and _ literally, so nothing needs escaping.
+    conditions.push(`(${terms.flatMap(()=>fields.map(field=>`instr(${field},?)>0`)).join(' OR ')})`);
+    values.push(...terms.flatMap(value=>fields.map(()=>value)));
   }
   for(const [filter,field] of [['farm','farm'],['producer','producer'],['variety','varieties']] as const){
     const input=filters[filter];
