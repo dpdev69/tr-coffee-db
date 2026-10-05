@@ -10,6 +10,7 @@ import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
 import { getRoasterDetail } from '../../../../shared/v2/catalog';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
+import { signupsEnabled } from '@/lib/signups';
 import { roasterSiteUrl } from '../../../../shared/v2/outbound';
 
 // Matches the 5-minute D1 read cache: the edge may serve a page this stale, never older.
@@ -45,6 +46,6 @@ export default async function RoasterPage({ params }: { params: Promise<{ slug: 
     <h2 className="sr-only">{roaster.name} kahveleri</h2>
     {catalog.coffees.length ? <DiscoveryGrid coffees={catalog.coffees} /> : <DiscoveryEmpty title="Şu an satışta doğrulanmış bir kahve yok.">Kavurucunun sayfasını koruyoruz. Yeniden satışa çıkan kahveler burada yer alacak.</DiscoveryEmpty>}
     {catalog.total > catalog.coffees.length ? <div className="mt-8 text-center"><Link className="button-dark" href={`/kahveler?roaster=${encodeURIComponent(roaster.slug)}`}>Tüm {catalog.total} kahveyi gör →</Link></div> : null}
-    <NewsletterForm source="roaster" variant="card" className="mt-12" title="Bu kavurucudan yeni kahve gelince" description="Haftalık özet ve aylık bültende haber veririz." />
+    {signupsEnabled() && <NewsletterForm source="roaster" variant="card" className="mt-12" title="Bu kavurucudan yeni kahve gelince" description="Haftalık özet ve aylık bültende haber veririz." />}
   </div>;
 }

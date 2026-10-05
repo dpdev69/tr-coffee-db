@@ -5,6 +5,7 @@ import { unstable_rethrow } from 'next/navigation';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { DiscoveryEmpty, OfferPrice, preferredOffer } from '@/components/v2/discovery-card';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
+import { signupsEnabled } from '@/lib/signups';
 import { brand } from '@/lib/brand';
 import { pageMetadata } from '@/lib/page-metadata';
 import { formatQuizReason, hasQuizSelections, parseQuizAnswers, quizAnswerSummary, quizQuery } from '@/lib/quiz-filters';
@@ -85,7 +86,7 @@ export default async function QuizResultPage({ searchParams }: { searchParams: P
         )}
       </div>
 
-      <NewsletterForm source="quiz" className="mt-12" title="Damağına uyan yeni kahveler gelince haber verelim" description={`${brand.signupPromise} Cevapların e-postanla birlikte gönderilmez.`} />
+      {signupsEnabled() && <NewsletterForm source="quiz" className="mt-12" title="Damağına uyan yeni kahveler gelince haber verelim" description={`${brand.signupPromise} Cevapların e-postanla birlikte gönderilmez.`} />}
     </div>
   );
 }

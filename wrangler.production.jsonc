@@ -1,0 +1,79 @@
+// Production web Worker. Built and deployed only by `npm run deploy:production` (docs/launch-day.md), which runs
+// scripts/production-guard.mjs first: it refuses while any value starting with REPLACE_ remains, here or in the build output.
+// Keep everything except the names, identifiers and vars below identical to wrangler.jsonc (tests/production-config.test.ts checks).
+// NEXT_PUBLIC_SITE_URL is not written here: the deploy script passes it from the environment at build and as a runtime var.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "coffeedb-v2-web",
+  "compatibility_date": "2026-09-14",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "main": "vinext/server/fetch-handler",
+  "assets": {
+    "directory": "dist/client",
+    "not_found_handling": "none",
+    "binding": "ASSETS"
+  },
+  "cache": {
+    "enabled": true
+  },
+  "version_metadata": {
+    "binding": "CF_VERSION_METADATA"
+  },
+  "account_id": "4c1a4493b8584296f35c3eddc8279112",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "coffeedb-v2",
+      "database_id": "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID",
+      "migrations_dir": "migrations/d1"
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.01
+    }
+  },
+  "vars": {
+    "DEPLOYMENT_STAGE": "production",
+    // Signup switch: stays "false" until docs/launch-day.md "Turning on signups" is complete. Absent also means off (src/lib/signups.ts).
+    "SIGNUPS_ENABLED": "false",
+    "KIT_FORM_ID": "9918321",
+    "WEB_ANALYTICS_TOKEN": "REPLACE_WITH_PRODUCTION_WEB_ANALYTICS_TOKEN",
+    "WEB_ANALYTICS_HOST": "REPLACE_WITH_PRODUCTION_HOSTNAME"
+  },
+  "analytics_engine_datasets": [
+    {
+      "binding": "ANALYTICS",
+      "dataset": "coffeedb_v2"
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "SUBSCRIBE_LIMITER",
+      "namespace_id": "2001",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    },
+    {
+      "name": "EVENT_LIMITER",
+      "namespace_id": "2002",
+      "simple": {
+        "limit": 60,
+        "period": 60
+      }
+    }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  }
+}

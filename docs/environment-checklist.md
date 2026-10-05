@@ -17,5 +17,6 @@
 | SUBSCRIBE_LIMITER/EVENT_LIMITER | platform abuse bounds | bindings configured |
 | Supabase service/anon URL/keys | legacy export/rollback | existing files, never committed |
 | DNS, sender domain, Kit sender address | public launch/deliverability | final owned domain and verified branded sender pending |
+| SIGNUPS_ENABLED | newsletter signup switch (wrangler var; absent means off) | staging true; production file false |
 
 Use Cloudflare secrets for keys, not vars or public env. Existing .env.local and scrapers/.env untouched; .dev.vars ignored and mode0600. Avoid source/email response bodies in exception logs. Never print keys or pass them as command arguments. Confirm exact environment before any secret upload/deploy. No production domain assumed owned.

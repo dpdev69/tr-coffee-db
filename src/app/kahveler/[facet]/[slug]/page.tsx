@@ -5,6 +5,7 @@ import { notFound, unstable_rethrow } from 'next/navigation';
 import { JsonLd, breadcrumbList } from '@/components/layout/json-ld';
 import { DiscoveryCatalog, type DiscoverySearchParams } from '@/components/v2/discovery-catalog';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
+import { signupsEnabled } from '@/lib/signups';
 import { findLanding, landingHeading, landingPhrase, type Landing } from '@/lib/catalog-landing';
 import { listingMetadata } from '@/lib/page-metadata';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
@@ -49,6 +50,6 @@ export default async function LandingPage({ params, searchParams }: Props) {
     <div className="section-heading"><div><p className="eyebrow">{landing.facet === 'koken' ? 'Köken' : 'İşlem'}</p><h1 className="mt-3 font-display text-title">{heading}</h1>
       {facts?.coffees ? <p className="mt-4 max-w-2xl text-sm leading-7 text-muted">Şu an {facts.roasters} kavurucudan {landingPhrase(landing)} {facts.coffees} kahve listede. {landing.facet === 'koken' ? 'Köken' : 'İşlem'} bilgisi kavurucunun sayfasından gelir; kavurucu belirtmediyse ürün açıklamasından çıkarılmış olabilir.</p> : null}</div></div>
     <DiscoveryCatalog params={await searchParams} path={landing.path} preset={preset(landing)} />
-    <NewsletterForm source="catalog" variant="card" className="mt-12" title="Yeni gelenleri kaçırma" description="Yeni gelenleri ve fiyatı düşenleri haftada bir, ayın seçkisini ayda bir gönderelim." />
+    {signupsEnabled() && <NewsletterForm source="catalog" variant="card" className="mt-12" title="Yeni gelenleri kaçırma" description="Yeni gelenleri ve fiyatı düşenleri haftada bir, ayın seçkisini ayda bir gönderelim." />}
   </div>;
 }

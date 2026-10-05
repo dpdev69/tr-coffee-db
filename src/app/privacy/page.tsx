@@ -2,6 +2,7 @@ import { pageMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/site';
+import { signupsEnabled } from '@/lib/signups';
 import { CONTACT_EMAIL, DATA_CONTROLLER, LEGAL_PENDING, LEGAL_UPDATED } from '@/lib/legal';
 
 // Static copy: cacheable at the edge, re-rendered at most hourly (so a deploy shows within the hour).
@@ -30,7 +31,7 @@ export default function PrivacyPage() {
           </p>
         </PolicySection>
 
-        <PolicySection title="Bülten aboneliği">
+        {signupsEnabled() && <PolicySection title="Bülten aboneliği">
           <p>
             Bülten için yalnızca e-posta adresini isteriz. Adresin sunucumuz üzerinden
             Kit’e iletilir; katalog veritabanımıza, uygulama günlüklerine veya ürün
@@ -58,12 +59,12 @@ export default function PrivacyPage() {
             sunucularda işlenir. Saklama: adresin abonelik sürdükçe Kit’te tutulur. Ayrıldığında, sana
             yeniden e-posta gönderilmemesi için yalnızca Kit’in gönderim engeli kaydında kalır.
           </p>
-        </PolicySection>
+        </PolicySection>}
 
         <PolicySection title="Site kullanımı ve ölçüm">
           <p>
             İsteğe bağlı ölçüme izin verdiğinde genel ziyaret ve performans ölçümü için Cloudflare Web Analytics,
-            kahve görüntüleme, filtre kullanımı, bülten başvurusu, kısa test ve
+            kahve görüntüleme, filtre kullanımı, {signupsEnabled() ? 'bülten başvurusu, ' : ''}kısa test ve
             kavurucuya geçiş sayıları için Cloudflare Workers Analytics Engine
             kullanılır. Ürün olaylarına e-posta, IP adresi, kullanıcı kimliği,
             arama metni veya tam sayfa adresi eklemeyiz. Bir kavurucuya geçişte
@@ -77,7 +78,7 @@ export default function PrivacyPage() {
             Ürün olayları Cloudflare Analytics Engine’in üç aylık saklama
             süresine tabidir. Cloudflare’ın altyapı verilerini nasıl işlediğini{' '}
             <a href="https://www.cloudflare.com/privacypolicy/" className="underline underline-offset-4">gizlilik politikasında</a>{' '}
-            bulabilirsin.
+            bulabilirsin.{!signupsEnabled() && ' Sitenin altyapı ve ölçüm verileri Cloudflare tarafından yurt dışındaki sunucularda işlenir.'}
           </p>
         </PolicySection>
 
@@ -103,7 +104,7 @@ export default function PrivacyPage() {
 
         <PolicySection title="Kontrol sizde">
           <p>
-            Çerez tercihin bir yıl boyunca kahvedrop_consent çerezinde tutulur. Sayfanın altındaki Çerez tercihleri düğmesiyle değiştirebilirsin. Ölçümü reddedersen kullanım olayları gönderilmez; bültene kaydolmaya ve kavurucuya gitmeye devam edebilirsin. Karşılaştırma listeniz, bu tarayıcının yerel depolamasında en fazla üç kahvenin
+            Çerez tercihin bir yıl boyunca kahvedrop_consent çerezinde tutulur. Sayfanın altındaki Çerez tercihleri düğmesiyle değiştirebilirsin. Ölçümü reddedersen kullanım olayları gönderilmez; {signupsEnabled() ? 'bültene kaydolmaya ve ' : ''}kavurucuya gitmeye devam edebilirsin. Karşılaştırma listeniz, bu tarayıcının yerel depolamasında en fazla üç kahvenin
             kimliği olarak saklanır. Bir hesapla eşleştirilmez. Karşılaştırma çubuğundaki
             temizleme düğmesiyle veya tarayıcınızın site verilerini silerek kaldırabilirsiniz.
             Paylaştığınız karşılaştırma adresi, seçilen kahveleri adresin içinde taşır.

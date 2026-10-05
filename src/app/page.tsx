@@ -3,6 +3,7 @@ import { displayCoffeeName, displayNotes } from '@/lib/coffee-display';
 import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
+import { signupsEnabled } from '@/lib/signups';
 import { DiscoveryEmpty, DiscoveryGrid } from '@/components/v2/discovery-card';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { brand } from '@/lib/brand';
@@ -106,6 +107,6 @@ export default async function HomePage() {
         <ul className="grid-quad">{[...data.roasters].sort((a, b) => b.coffeeCount - a.coffeeCount).slice(0, 8).map(roaster => <li key={roaster.id}><Link href={`/kavurucu/${roaster.slug}`} className="flex h-full min-h-11 items-center gap-3.5 rounded-[14px] border border-line bg-surface px-[18px] py-4 hover:border-accent"><RoasterInitial name={roaster.name} size="sm" /><span><span className="block font-display text-lg">{roaster.name}</span><span className="text-[13px] text-muted">{roaster.city || 'Bağımsız kavurucu'}</span></span></Link></li>)}</ul>
       </section> : null}
     </> : <section className="section-space"><DataSourceNotice title="Kahveler şu an yüklenemiyor." message="Katalog bağlantısına ulaşamadık. Yeniden deneyebilir veya damak tadını keşfetmek için testi çözebilirsin." actionHref="/kahveler" actionLabel="Kataloğu yeniden aç" /></section>}
-    <section className="studio-journal grid-pair"><div><p className="eyebrow">Kahve molası</p><h2>Güzel kahve,<br /><em>küçük bir ritüel.</em></h2><p>Çekirdeğini seçtin. Şimdi doğru oranı bul, suyunu hazırla ve kendi fincanını demle.</p><Link href="/guide#calculator" className="text-link">Demleme rehberine git ↗</Link></div><NewsletterForm source="home-bottom" /></section>
+    <section className="studio-journal grid-pair"><div><p className="eyebrow">Kahve molası</p><h2>Güzel kahve,<br /><em>küçük bir ritüel.</em></h2><p>Çekirdeğini seçtin. Şimdi doğru oranı bul, suyunu hazırla ve kendi fincanını demle.</p><Link href="/guide#calculator" className="text-link">Demleme rehberine git ↗</Link></div>{signupsEnabled() && <NewsletterForm source="home-bottom" />}</section>
   </div>;
 }
