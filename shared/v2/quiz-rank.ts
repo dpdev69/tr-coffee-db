@@ -17,6 +17,15 @@ export interface QuizReason { dimension: QuizDimension; kind: 'match' | 'near' |
 /** Everything ranking may look at. Popularity, clicks and sponsorship are deliberately not part of it. */
 export interface QuizCandidate { id: string; roasterId: string; firstSeenAt: string; raw: RawMetadata; features: Array<Pick<FeatureValue, 'feature' | 'value' | 'sourceType'>> }
 export interface QuizRanked { id: string; score: number; exact: boolean; reasons: QuizReason[] }
+type Evidence = { values: string[]; provenance: QuizProvenance };
+/** A candidate with its evidence already read for every dimension: what the derived result stores (about 250 bytes a
+ * coffee instead of 530, and no text matching per request). Scoring reads it exactly as it reads evidence(). */
+export interface QuizScored { id: string; roasterId: string; firstSeenAt: string; evidence: Partial<Record<QuizDimension, Evidence>> }
+export function withEvidence(candidate: QuizCandidate): QuizScored {
+  const found: QuizScored['evidence'] = {};
+  for (const dimension of QUIZ_DIMENSIONS) { const item = evidence(candidate, dimension); if (item) found[dimension] = item; }
+  return { id: candidate.id, roasterId: candidate.roasterId, firstSeenAt: candidate.firstSeenAt, evidence: found };
+}
 
 const ROASTS = ['light', 'medium_light', 'medium', 'medium_dark', 'dark'];
 const BREWS = ['espresso', 'filter', 'french_press', 'aeropress', 'turkish', 'cold_brew', 'moka_pot'];
@@ -59,7 +68,7 @@ function ids(dimension: QuizDimension, value: Json): string[] {
 }
 
 /** The best-trusted source that says anything usable. A lower tier never adds to or overrides a higher one. */
-export function evidence(candidate: QuizCandidate, dimension: QuizDimension): { values: string[]; provenance: QuizProvenance } | null {
+export function evidence(candidate: QuizCandidate, dimension: QuizDimension): Evidence | null {
   const fromFeatures = (sourceType: FeatureValue['sourceType']) => [...new Set(candidate.features
     .filter(feature => feature.sourceType === sourceType && FEATURES[dimension].includes(feature.feature))
     .flatMap(feature => ids(dimension, feature.value)))];
@@ -79,13 +88,13 @@ export function evidence(candidate: QuizCandidate, dimension: QuizDimension): { 
 }
 
 /** Pure: the answers and the coffee's own data decide the order, nothing else. */
-export function scoreCandidate(answers: QuizAnswers, candidate: QuizCandidate): QuizRanked {
+export function scoreCandidate(answers: QuizAnswers, candidate: QuizCandidate | QuizScored): QuizRanked {
   let score = 0, exact = true;
   const reasons: QuizReason[] = [];
   for (const dimension of QUIZ_DIMENSIONS) {
     const wanted = answers[dimension];
     if (!wanted.length) continue; // Skipped ("Fark etmez"): not part of the score at all.
-    const found = evidence(candidate, dimension);
+    const found = 'evidence' in candidate ? candidate.evidence[dimension] ?? null : evidence(candidate, dimension);
     if (!found) { exact = false; reasons.push({ dimension, kind: 'missing', values: [], provenance: null }); continue; }
     const trust = TRUST[found.provenance], firm = found.provenance === 'manual' || found.provenance === 'stated' || found.provenance === 'labelled';
     const matched = found.values.filter(value => wanted.includes(value));
@@ -110,7 +119,7 @@ export function scoreCandidate(answers: QuizAnswers, candidate: QuizCandidate): 
 }
 
 /** Best first, newer first on ties; at most `perRoaster` per roaster unless that would leave the list short. */
-export function rankCandidates(answers: QuizAnswers, candidates: QuizCandidate[], limit: number, perRoaster = 2): QuizRanked[] {
+export function rankCandidates(answers: QuizAnswers, candidates: Array<QuizCandidate | QuizScored>, limit: number, perRoaster = 2): QuizRanked[] {
   const scored = candidates.map(candidate => ({ candidate, ranked: scoreCandidate(answers, candidate) }))
     .sort((a, b) => b.ranked.score - a.ranked.score || b.candidate.firstSeenAt.localeCompare(a.candidate.firstSeenAt) || a.candidate.id.localeCompare(b.candidate.id));
   const picked: typeof scored = [], overflow: typeof scored = [], perCount = new Map<string, number>();
@@ -135,14 +144,13 @@ export async function rankQuizMatches(db: CatalogDatabase, answers: QuizAnswers,
   const coffees = hydrated.map(coffee => { const entry = ranked.find(item => item.id === coffee.id)!; return { ...coffee, quizReasons: entry.reasons, quizExact: entry.exact }; });
   return { coffees, exact: coffees.some(coffee => coffee.quizExact), total: candidates.length };
 }
-async function quizCandidates(db: CatalogDatabase): Promise<QuizCandidate[]> {
+async function quizCandidates(db: CatalogDatabase): Promise<QuizScored[]> {
   // Whole fact groups, not only the features scored: a MANUAL row on any member (say flavor_notes_normalized) must silence the rest.
   const names = [...new Set(['brewMethods', 'tastingNotes', 'roast', 'process'].flatMap(fact => FACT_FEATURES[fact]))].map(name => `'${name}'`).join(',');
   // ponytail: same 5,000 newest cap as getSimilarCoffees; move scoring into SQL if the catalog outgrows it.
   const rows = await db.prepare(`SELECT ${COFFEE_COLUMNS},(SELECT json_group_array(json_object('feature',f.feature,'value',json(f.value_json),'sourceType',f.source_type,'version',f.version)) FROM coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN (${names})) AS quiz_features_json FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} ORDER BY c.first_seen_at DESC,c.id LIMIT 5000`).all<CoffeeRow & { quiz_features_json: string }>();
-  // Only what scoring reads (evidence(): the roast and process fields, and each feature's name, value and provenance), already repaired.
-  return rows.results.map(row => { const candidate = toCandidate(row); return { id: candidate.id, roasterId: candidate.roasterId, firstSeenAt: candidate.firstSeenAt,
-    raw: { roast: candidate.raw.roast, process: candidate.raw.process }, features: candidate.features.map(({ feature, value, sourceType }) => ({ feature, value, sourceType })) }; });
+  // Only what scoring reads: each dimension's evidence, read from the repaired facts.
+  return rows.results.map(row => withEvidence(toCandidate(row)));
 }
 export function toCandidate(row: CoffeeRow & { quiz_features_json: string }): QuizCandidate {
   const parse = <T,>(text: string, fallback: T): T => { try { return JSON.parse(text) as T; } catch { return fallback; } };

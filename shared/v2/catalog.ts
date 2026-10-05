@@ -364,32 +364,38 @@ export async function listEvents(db:CatalogDatabase,type?:CoffeeEvent['type'],li
 }
 
 const SIMILARITY_FEATURES=[...FACT_FEATURES.country,...FACT_FEATURES.process,...FACT_FEATURES.tastingNotes].map(feature=>`'${feature}'`).join(',');
-type SimilarityCandidate={id:string;roaster_id:string;name:string;canonical_url:string;first_seen_at:string;country:RawMetadata['country'];process:RawMetadata['process'];features:Array<Pick<FeatureValue,'feature'|'value'|'sourceType'>>};
+/** What similarity reads of a candidate, already resolved: the three fact lists (after the MANUAL rule) and the name, lower-cased.
+ * Stored once per refresh as a derived result, so it is kept small: about 290 bytes a coffee, 1.45 MB at the 5,000 cap. */
+type SimilarityCandidate={id:string;roasterId:string;name:string;url:string;firstSeenAt:string;origin:string[];process:string[];flavor:string[]};
+const lowerTr=(values:string[])=>[...new Set(values.map(value=>value.toLocaleLowerCase('tr-TR')))];
 /** Explainable catalog similarity, never a personalized numerical match. */
 export async function getSimilarCoffees(db:CatalogDatabase,coffee:CatalogCoffee,limit=4):Promise<Array<CatalogCoffee&{similarityReasons:string[]}>> {
   // The candidates are the same for every coffee page, so they are read once per refresh (derived cache), not per view.
   // ponytail: cap at the same 5,000 newest candidates; move ranking into indexed SQL if the catalog outgrows it.
   const candidates=await derived(db,'similar-candidates',async()=>(await db.prepare(`SELECT ${COFFEE_COLUMNS},(SELECT json_group_array(json_object('feature',f.feature,'value',json(f.value_json),'sourceType',f.source_type)) FROM coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN (${SIMILARITY_FEATURES})) AS similarity_features_json FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} ORDER BY c.first_seen_at DESC,c.id LIMIT 5000`).all<CoffeeRow&{similarity_features_json:string}>()).results.map((row):SimilarityCandidate=>{
     const raw=parseJson<RawMetadata>(row.raw_metadata_json,{});
-    return {id:row.id,roaster_id:row.roaster_id,name:row.name,canonical_url:row.canonical_url,first_seen_at:row.first_seen_at,country:raw.country,process:raw.process,features:parseJson(row.similarity_features_json,[])};
+    const all=parseJson<Array<Pick<FeatureValue,'feature'|'value'|'sourceType'>>>(row.similarity_features_json,[]);
+    // Same rule as the filters: a MANUAL fact replaces raw and inferred values of its kind.
+    const facts=(field:string,declared:string|null|undefined,...names:string[])=>{
+      const manual=all.filter(f=>f.sourceType==='MANUAL'&&FACT_FEATURES[field].includes(f.feature));
+      return lowerTr(manual.length?featureStrings({features:manual},...names):featureStrings({features:all},...names).concat(declared??[]));
+    };
+    return {id:row.id,roasterId:row.roaster_id,name:row.name.toLocaleLowerCase('tr-TR'),url:row.canonical_url,firstSeenAt:row.first_seen_at,
+      origin:facts('country',raw.country,'normalized_origin','origin_country'),process:facts('process',raw.process,'process_family','process'),flavor:facts('tastingNotes',null,'flavor_families','flavor_categories')};
   }));
-  const origin=featureStrings(coffee,'normalized_origin','origin_country').concat(coffee.rawMetadata.country??[]);
-  const process=featureStrings(coffee,'process_family','process').concat(coffee.rawMetadata.process??[]);
-  const flavor=featureStrings(coffee,'flavor_families','flavor_categories');
-  const selected=candidates.filter(c=>c.id!==coffee.id&&c.canonical_url!==coffee.canonicalUrl&&!(c.roaster_id===coffee.roaster.id&&c.name.toLocaleLowerCase('tr-TR')===coffee.name.toLocaleLowerCase('tr-TR')))
+  const origin=lowerTr(featureStrings(coffee,'normalized_origin','origin_country').concat(coffee.rawMetadata.country??[]));
+  const process=lowerTr(featureStrings(coffee,'process_family','process').concat(coffee.rawMetadata.process??[]));
+  const flavor=lowerTr(featureStrings(coffee,'flavor_families','flavor_categories'));
+  const name=coffee.name.toLocaleLowerCase('tr-TR');
+  const overlaps=(left:string[],right:string[])=>left.some(value=>right.includes(value));
+  const selected=candidates.filter(c=>c.id!==coffee.id&&c.url!==coffee.canonicalUrl&&!(c.roasterId===coffee.roaster.id&&c.name===name))
     .map(row=>{
-      const all=row.features;
-      // Same rule as the filters: a MANUAL fact replaces raw and inferred values of its kind.
-      const facts=(field:string,declared:string|null|undefined,...names:string[])=>{
-        const manual=all.filter(f=>f.sourceType==='MANUAL'&&FACT_FEATURES[field].includes(f.feature));
-        return manual.length?featureStrings({features:manual},...names):featureStrings({features:all},...names).concat(declared??[]);
-      };
       const reasons:string[]=[];
-      if(overlaps(origin,facts('country',row.country,'normalized_origin','origin_country')))reasons.push('Aynı kökenden');
-      if(overlaps(process,facts('process',row.process,'process_family','process')))reasons.push('Benzer işleme yöntemi');
-      if(overlaps(flavor,facts('tastingNotes',null,'flavor_families','flavor_categories')))reasons.push('Benzer tat profili');
+      if(overlaps(origin,row.origin))reasons.push('Aynı kökenden');
+      if(overlaps(process,row.process))reasons.push('Benzer işleme yöntemi');
+      if(overlaps(flavor,row.flavor))reasons.push('Benzer tat profili');
       return {row,similarityReasons:reasons};
-    }).filter(c=>c.similarityReasons.length>0).sort((a,b)=>b.similarityReasons.length-a.similarityReasons.length||b.row.first_seen_at.localeCompare(a.row.first_seen_at)||a.row.id.localeCompare(b.row.id))
+    }).filter(c=>c.similarityReasons.length>0).sort((a,b)=>b.similarityReasons.length-a.similarityReasons.length||b.row.firstSeenAt.localeCompare(a.row.firstSeenAt)||a.row.id.localeCompare(b.row.id))
     .slice(0,Math.min(12,Math.max(0,Number.isFinite(limit)?Math.floor(limit):4)));
   const rows=await listedRows(db,selected.map(candidate=>candidate.row.id));
   const hydrated=await hydrate(db,rows,Date.now());
@@ -402,4 +408,3 @@ export async function listedRows(db:CatalogDatabase,ids:string[]):Promise<Coffee
   return ids.flatMap(id=>rows.filter(row=>row.id===id));
 }
 function featureStrings(coffee:{features:Array<Pick<FeatureValue,'feature'|'value'>>},...names:string[]):string[]{return coffee.features.filter(f=>names.includes(f.feature)).flatMap(f=>typeof f.value==='string'?[f.value]:Array.isArray(f.value)?f.value.filter((v):v is string=>typeof v==='string'):[]);}
-function overlaps(left:string[],right:string[]):boolean{return left.some(a=>right.some(b=>a.toLocaleLowerCase('tr-TR')===b.toLocaleLowerCase('tr-TR')));}
