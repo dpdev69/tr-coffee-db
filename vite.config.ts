@@ -11,6 +11,8 @@ export default defineConfig({
       images: { optimizer: imagesOptimizer() },
     }),
     cloudflare({
+      // Production builds name wrangler.production.jsonc; unset means the default staging wrangler.jsonc.
+      ...(process.env.WRANGLER_CONFIG ? { configPath: process.env.WRANGLER_CONFIG } : {}),
       viteEnvironment: {
         name: "rsc",
         childEnvironments: ["ssr"],
