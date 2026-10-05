@@ -1,4 +1,5 @@
 import { imageHosts } from './shared/v2/image-hosts';
+import { EDGE_CACHE_CONTROL } from './shared/v2/read-cache';
 import type { NextConfig } from "next";
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -58,6 +59,11 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: securityHeaders,
       },
+      // Catalog pages are the same for every visitor (personal state lives in the browser) and change once a night, so the
+      // edge keeps each address, query string included, for EDGE_CACHE_CONTROL. This also covers query-string pages, which
+      // vinext would otherwise send as no-store. A render that failed to read the catalog opts out (keepOutOfEdgeCache).
+      ...["/", "/kahveler", "/kahveler/:facet/:slug", "/yeni", "/firsatlar", "/quiz/sonuc", "/kahve/:slug", "/kavurucu/:slug", "/kavurucular", "/bulten/:month"]
+        .map((source) => ({ source, headers: [{ key: "CDN-Cache-Control", value: EDGE_CACHE_CONTROL }] })),
     ];
   },
   images: {

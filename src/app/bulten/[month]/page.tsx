@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { notFound, unstable_rethrow } from 'next/navigation';
 import { brand } from '@/lib/brand';
 import { absoluteUrl } from '@/lib/site';
-import { getCatalogDatabase } from '@/lib/v2-runtime';
+import { getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
 import { itemLines } from '@/lib/digest-lines';
 import { JsonLd, breadcrumbList } from '@/components/layout/json-ld';
 import { DiscoveryCard } from '@/components/v2/discovery-card';
@@ -16,8 +16,8 @@ import type { CoffeeEvent } from '../../../../shared/v2/types';
 import { campaignUrl, monthLabel, monthWindow, PICK_STATUS, resolvePicks, type Inline, type Issue } from '../issue';
 import { issues } from '../issues.generated';
 
-// Matches the 5-minute D1 read cache, like the coffee pages: the picks' prices and the month's lists stay this fresh.
-export const revalidate = 300;
+// The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
+export const revalidate = 21600;
 const MAX_ITEMS = 8;
 
 /** Only bundled issues exist here; a production build bundles only `published: true` files (scripts/bulten-bundle.mts). */
@@ -40,6 +40,7 @@ const loadCatalog = cache(async (issue: Issue) => {
     return { picks, fresh, drops };
   } catch (error) {
     unstable_rethrow(error);
+    keepOutOfEdgeCache();
     return { picks: await resolvePicks(null, issue.picks), fresh: [], drops: [] };
   }
 });

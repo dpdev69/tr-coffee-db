@@ -3,7 +3,7 @@ import { canonicalCountry, countryLabel, countryOptions } from '../../../shared/
 import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
-import { getCatalogDatabase } from '@/lib/v2-runtime';
+import { getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
 import { getFirstSearchParamValue, getPageParamValue, getStringArrayParamValue, normalizeSearchTerm, type SearchParamValue } from '@/lib/filter-contract';
 import { FLAVOR_CATEGORY_LABELS, PROCESS_LABELS, ROAST_LABELS, BREW_METHOD_LABELS } from '@/lib/constants/filter-options';
 import { listCatalog, listOrigins, listRoasters, type CatalogFilters } from '../../../shared/v2/catalog';
@@ -53,7 +53,7 @@ export async function DiscoveryCatalog({params:query,path='/kahveler',event,pres
     const [catalog,roasterRows,originRows]=await Promise.all([listCatalog(db,filters),listRoasters(db),listOrigins(db)]);
     // A stale or hand-edited ?page= past the end shows the last page instead of a false empty state.
     result=catalog.page>catalog.totalPages&&catalog.totalPages>0?await listCatalog(db,{...filters,page:catalog.totalPages}):catalog;roasters=roasterRows;origins=countryOptions(originRows);
-  }catch(error){unstable_rethrow(error);console.error('Catalog read failed', error instanceof Error ? error.message : 'Unknown database error');return <DataSourceNotice title="Katalog şu an yüklenemiyor." message="Güncel kahveleri doğrulayamıyoruz. Biraz sonra yeniden deneyebilir veya demleme rehberini kullanabilirsin." actionHref="/guide" actionLabel="Demleme rehberi"/>;}
+  }catch(error){unstable_rethrow(error);keepOutOfEdgeCache();console.error('Catalog read failed', error instanceof Error ? error.message : 'Unknown database error');return <DataSourceNotice title="Katalog şu an yüklenemiyor." message="Güncel kahveleri doğrulayamıyoruz. Biraz sonra yeniden deneyebilir veya demleme rehberini kullanabilirsin." actionHref="/guide" actionLabel="Demleme rehberi"/>;}
   const linkToPage=(page:number)=>{const query=new URLSearchParams();for(const [key,value]of Object.entries(params))for(const item of Array.isArray(value)?value:value?[value]:[])if(key!=='page')query.append(key,item);query.set('page',String(page));return `${path}?${query}`;};
   const roasterName=new Map(roasters.map(roaster=>[roaster.slug,roaster.name]));
   const labels:Record<string,(value:string)=>string>={origin:value=>countryLabel(canonicalCountry(value)),process:value=>PROCESS_LABELS[value]??value,taste:value=>FLAVOR_CATEGORY_LABELS[value as keyof typeof FLAVOR_CATEGORY_LABELS]??value,roaster:value=>roasterName.get(value)??value,roast:value=>ROAST_LABELS[value]??value,brewMethod:value=>BREW_METHOD_LABELS[value]??value,priceMin:value=>`${value} TL`,priceMax:value=>`${value} TL`,search:value=>`“${value}”`};

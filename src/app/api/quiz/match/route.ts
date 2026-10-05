@@ -2,6 +2,7 @@ import { publicCatalogCoffee } from '../../../../../shared/v2/public-catalog';
 import { rankQuizMatches } from '../../../../../shared/v2/quiz-rank';
 import { formatQuizReason, parseMatchLimit, parseQuizAnswers } from '@/lib/quiz-filters';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
+import { EDGE_CACHE_HEADERS } from '../../../../../shared/v2/read-cache';
 
 const HEADERS = { 'Cache-Control': 'no-store' };
 const MAX_QUERY = 1024;
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
     return Response.json({
       answers, exact: result.exact, total: result.total,
       coffees: result.coffees.map((coffee) => ({ ...publicCatalogCoffee(coffee), reasons: coffee.quizReasons.map(formatQuizReason) })),
-    }, { headers: HEADERS });
+    }, { headers: EDGE_CACHE_HEADERS });
   } catch {
     return Response.json({ error: 'Katalog şu anda yüklenemiyor.' }, { status: 503, headers: HEADERS });
   }

@@ -7,7 +7,7 @@ import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { brand } from '@/lib/brand';
 import { pageMetadata } from '@/lib/page-metadata';
 import { formatQuizReason, hasQuizSelections, parseQuizAnswers, quizAnswerSummary, quizQuery } from '@/lib/quiz-filters';
-import { getCatalogDatabase } from '@/lib/v2-runtime';
+import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
 import { rankQuizMatches } from '../../../../shared/v2/quiz-rank';
 
 // A result is personal and lives in its URL: shareable, bookmarkable, never indexed.
@@ -17,12 +17,14 @@ export const metadata: Metadata = {
 };
 
 export default async function QuizResultPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const answers = parseQuizAnswers(await searchParams);
+  const params = await searchParams;
+  dropTrackingParams('/quiz/sonuc', params);
+  const answers = parseQuizAnswers(params);
   const answered = hasQuizSelections(answers);
   const query = quizQuery(answers);
   let result: Awaited<ReturnType<typeof rankQuizMatches>> | null = null;
   try { result = await rankQuizMatches(await getCatalogDatabase(), answers, 8); }
-  catch (error) { unstable_rethrow(error); console.error('Quiz ranking failed', error instanceof Error ? error.message : 'Unknown database error'); }
+  catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); console.error('Quiz ranking failed', error instanceof Error ? error.message : 'Unknown database error'); }
 
   const heading = !answered ? 'Her şeye açık bir damak' : result && !result.exact ? 'Tam eşleşme yok; en yakın seçenekler' : 'Sana en yakın kahveler';
   const intro = !answered
