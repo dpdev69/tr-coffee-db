@@ -39,6 +39,8 @@
   },
   "vars": {
     "DEPLOYMENT_STAGE": "staging",
+    // Signup switch: staging collects emails. Absent or anything but "true" means off (src/lib/signups.ts).
+    "SIGNUPS_ENABLED": "true",
     "KIT_FORM_ID": "9918321",
     "WEB_ANALYTICS_TOKEN": "008e6a1fb0184349ac3913e1d8c34100",
     "WEB_ANALYTICS_HOST": "coffeedb-v2-web-staging.hellobasalt.workers.dev"

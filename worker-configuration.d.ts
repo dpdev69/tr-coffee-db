@@ -10,6 +10,7 @@ interface __BaseEnv_CloudflareEnv {
 	CF_VERSION_METADATA: WorkerVersionMetadata;
 	ASSETS: Fetcher;
 	DEPLOYMENT_STAGE: "staging";
+	SIGNUPS_ENABLED: "true";
 	WEB_ANALYTICS_TOKEN: "008e6a1fb0184349ac3913e1d8c34100";
 	WEB_ANALYTICS_HOST: "coffeedb-v2-web-staging.hellobasalt.workers.dev";
 	KIT_FORM_ID: string;
@@ -23,7 +24,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "DEPLOYMENT_STAGE" | "WEB_ANALYTICS_TOKEN" | "WEB_ANALYTICS_HOST" | "KIT_FORM_ID" | "KIT_API_KEY">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "DEPLOYMENT_STAGE" | "SIGNUPS_ENABLED" | "WEB_ANALYTICS_TOKEN" | "WEB_ANALYTICS_HOST" | "KIT_FORM_ID" | "KIT_API_KEY">> {}
 }
 
 // Begin runtime types
