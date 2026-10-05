@@ -25,8 +25,9 @@ export class D1RestDatabase implements CatalogDatabase {
     return result;
   }
   private async send(batch: Query[]): Promise<Result[]> {
-    // Leave room for public reads and health writes within the free daily quota.
-    if (this.rowsWritten >= 65_000 || this.rowsRead >= 3_000_000) throw new Error('Refresh database budget reached; remaining sources deferred.');
+    // A full night reads about 80,000 rows and writes about 28,000 (docs/read-budget.md). The caps are ~9x and ~2x that:
+    // a runaway job stops at 15% of the free plan's 5,000,000 daily reads and leaves the rest to visitors.
+    if (this.rowsWritten >= 65_000 || this.rowsRead >= 750_000) throw new Error('Refresh database budget reached; remaining sources deferred.');
     const response = await this.request(`https://api.cloudflare.com/client/v4/accounts/${this.accountId}/d1/database/${this.databaseId}/query`, {
       method: 'POST', headers: { Authorization: `Bearer ${this.token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ batch }), signal: AbortSignal.timeout(60_000),

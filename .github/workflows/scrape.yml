@@ -59,3 +59,13 @@ jobs:
       - name: Apply manual corrections
         if: ${{ !cancelled() }}
         run: scrapers/node_modules/.bin/tsx scripts/v2-apply-corrections.mts
+      # Pages and JSON are kept at the edge for 6 hours (shared/v2/read-cache.ts); dropping them now shows tonight's
+      # catalog at once. Needs the Worker secret and the repository secret CACHE_PURGE_TOKEN (same value) and vars.SITE_URL.
+      - name: Purge the edge cache
+        if: ${{ !cancelled() }}
+        env:
+          CACHE_PURGE_TOKEN: ${{ secrets.CACHE_PURGE_TOKEN }}
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          if [ -z "$CACHE_PURGE_TOKEN" ] || [ -z "$SITE_URL" ]; then echo '::notice::Edge purge not configured; pages refresh within 6 hours.'; exit 0; fi
+          curl -fsS --max-time 30 -X POST -H "Authorization: Bearer $CACHE_PURGE_TOKEN" "${SITE_URL%/}/api/cache"

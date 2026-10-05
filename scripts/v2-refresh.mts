@@ -10,6 +10,7 @@ import { ALL_ROASTER_CONFIGS } from '../scrapers/src/roasters/configs';
 import { crawlRoaster, PARSER_VERSION, type CrawlOptions } from '../scrapers/src/v2/crawl';
 import { collectRoasterProductHosts } from '../scrapers/src/url-policy';
 import { D1RestDatabase } from './v2-d1-rest';
+import { invalidateDerived } from '../shared/v2/read-cache';
 
 /** configs.ts is the single source of truth for roasters; one missing from it is deactivated, never deleted. */
 export async function syncRoasters(db: CatalogDatabase, configs = ALL_ROASTER_CONFIGS, now = new Date().toISOString()) {
@@ -87,6 +88,8 @@ async function main() {
     await syncRoasters(db);
     results=await refreshCatalog(db,{scheduledAt,slugs:process.argv.slice(2),relay:process.env.CRAWL_RELAY_URL&&process.env.CRAWL_RELAY_TOKEN?relayFetch(process.env.CRAWL_RELAY_URL,process.env.CRAWL_RELAY_TOKEN):undefined,report:async result=>{results.push(result);console.log(JSON.stringify(result));await appendFile(resolve(directory,'results.jsonl'),JSON.stringify(result)+'\n');}});
   } catch(error) { failure=safeDiagnostic(error instanceof Error?error.message:String(error));console.error(failure);process.exitCode=1; }
+  // Also run alone (workflow_dispatch for a few roasters): shared results are recomputed from the new data. Corrections invalidate again.
+  await db.batch(invalidateDerived(db)).catch(error=>console.error(safeDiagnostic(error instanceof Error?error.message:String(error))));
   const summary={scheduledAt,results,failure,elapsedMs:Math.round(performance.now()-started),rowsRead:db.rowsRead,rowsWritten:db.rowsWritten};
   await writeFile(resolve(directory,'summary.json'),JSON.stringify(summary,null,2));
   if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,`${failure?`**Refresh stopped:** ${failure}\n\n`:''}Catalog refresh: ${results.filter(r=>r.status==='success'||r.status==='already_completed').length}/${results.length} successful. D1 rows read ${db.rowsRead}; written ${db.rowsWritten}.\n\n| Source | Status | Products | Offers |\n|---|---|---:|---:|\n${results.map(r=>`| ${r.slug} | ${r.status} | ${r.products??0} | ${r.offers??0} |`).join('\n')}\n`);
