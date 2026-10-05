@@ -98,7 +98,7 @@ test('a pick whose coffee is gone still shows the name and note, marked unavaila
   const html = buildIssueEmail(issue, picks, empty, site).html;
   assert.match(html, /Silinmis Kahve<\/p><p[^>]*>Artık satışta değil<\/p><p[^>]*>Hiç yok\.<\/p>/);
   assert.match(html, /Coffee b<\/a><\/p><p[^>]*>Artık satışta değil/);
-  assert.match(html, /Coffee a<\/a><\/p><p[^>]*>250g · 100 TL<\/p>/);
+  assert.match(html, /Coffee a<\/a><\/p><p[^>]*>250 g · 100 TL<\/p>/);
   assert.doesNotMatch(html, /silinmis-kahve/, 'a coffee that no longer exists gets no link');
   db.sqlite.close();
 });

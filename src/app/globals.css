@@ -119,6 +119,7 @@
     font-size: 14px;
     font-weight: 600;
     color: var(--color-accent);
+    gap: 0.3em; /* flex drops the space before an arrow span */
   }
   .text-link:hover {
     text-decoration: underline;
@@ -152,7 +153,7 @@
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    align-items: start;
+    align-items: baseline; /* the link sits on the heading's line, not beside its intro */
     margin-bottom: 24px;
   }
   .section-heading h2 {
@@ -229,9 +230,13 @@
   .studio-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 22px;
+    gap: 12px 16px;
     align-items: center;
     margin-top: 28px;
+  }
+  /* Phones: two full-width calls to action, one above the other, as in the design. */
+  .studio-actions a {
+    width: 100%;
   }
   .studio-small {
     font-size: 12px;
@@ -240,13 +245,14 @@
   }
   .studio-paths {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
-  }
-  .studio-paths a {
-    display: flex;
-    align-items: center;
     gap: 16px;
+  }
+  /* Number above the title, arrow on the right: the design's path card. */
+  .studio-paths a {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-content: start;
+    gap: 8px 16px;
     padding: 24px;
     border: 1px solid var(--color-line);
     border-radius: 14px;
@@ -268,30 +274,19 @@
     margin-top: 6px;
   }
   .studio-paths a > span:last-child {
-    margin-left: auto;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
     color: var(--color-accent);
   }
   .studio-path-number {
-    align-self: flex-start;
+    grid-column: 1;
     color: var(--color-warm);
     font-size: 13px;
     font-weight: 600;
   }
   .studio-latest {
     padding-top: 54px;
-  }
-  .studio-counts {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 15px;
-    margin-top: 26px;
-    font-size: 13px;
-    color: var(--color-muted);
-  }
-  .studio-counts strong {
-    color: var(--color-accent);
-    font-size: 17px;
   }
   .studio-journal {
     display: grid;
@@ -328,11 +323,13 @@
   .coffee-card:hover {
     border-color: var(--color-accent);
   }
+  /* White behind the photo: most packshots are shot on white, so they sit in the card instead of in a second frame. */
   .coffee-card-image {
     position: relative;
     aspect-ratio: 4 / 3;
     overflow: hidden;
-    background: var(--color-tint);
+    border-bottom: 1px solid var(--color-line);
+    background: var(--color-surface);
   }
   .coffee-card-badge {
     padding: 5px 10px;
@@ -389,7 +386,7 @@
     color: var(--color-accent);
     padding: 6px 10px;
     border: 1px solid var(--color-line);
-    border-radius: 6px;
+    border-radius: 999px;
   }
   .compare-toggle:hover {
     background: var(--color-tint);
@@ -426,6 +423,7 @@
     color: var(--color-chip);
   }
   .compare-dock a {
+    gap: 0.3em;
     margin-left: auto;
     background: var(--color-chip);
     color: var(--color-accent-deep);
@@ -649,7 +647,6 @@
     }
     .section-heading {
       gap: 20px;
-      align-items: end;
     }
     .section-heading h2 {
       font-size: 34px;
@@ -666,22 +663,8 @@
     .studio-intro {
       margin-top: 26px;
     }
-    .studio-paths {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .studio-paths a {
-      padding: 24px 18px;
-      border-bottom: 0;
-      border-right: 1px solid var(--color-line);
-    }
-    .studio-paths a:first-child {
-      padding-left: 0;
-    }
-    .studio-counts {
-      gap: 24px;
-    }
-    .studio-counts p {
-      margin-left: auto;
+    .studio-actions a {
+      width: auto;
     }
     .studio-journal {
       grid-template-columns: 1fr 1fr;
@@ -706,6 +689,9 @@
     }
   }
   @media (min-width: 1024px) {
+    .studio-paths {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
     .guide-layout {
       gap: 48px;
     }
@@ -757,6 +743,11 @@
   html[data-saved-list] .saved-panel-slot {
     min-height: 260px;
   }
+}
+
+/* A page with its own sign-up form (or the thank-you page) drops the footer's copy. Unlayered, so it beats the form's `flex` utility. */
+body:has(main [data-newsletter]) .footer-newsletter {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
