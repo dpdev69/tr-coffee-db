@@ -14,6 +14,7 @@ import { safeDiagnostic } from '../shared/v2/ingestion';
 import { cleanCoffeeName, FACT_FEATURES } from '../shared/v2/profile-truth';
 import type { Json } from '../shared/v2/types';
 import { D1RestDatabase } from './v2-d1-rest';
+import { invalidateDerived } from '../shared/v2/read-cache';
 
 export interface Correction { coffeeSlug: string; features?: Record<string, Json>; visibility?: 'public' | 'hidden'; canonicalOf?: string | null }
 interface CoffeeRow { id: string; roaster_id: string; name: string; slug: string; visibility: string; first_seen_at: string; current: number }
@@ -88,6 +89,8 @@ export async function applyCorrections(db: CatalogDatabase, corrections: Correct
     // The crawled value is not kept apart; a cleared override is replaced by the next crawl.
     ...[...overrides].map(([id, visibility]) => db.prepare('UPDATE coffees SET visibility_override=?,visibility=?,updated_at=? WHERE id=? AND (visibility_override IS NOT ? OR visibility<>?)').bind(visibility, visibility, now, id, visibility, visibility)),
     ...[...links].map(([child, parent]) => db.prepare('UPDATE coffees SET canonical_coffee_id=?,updated_at=? WHERE id=? AND canonical_coffee_id IS NOT ?').bind(parent, now, child, parent)),
+    // Last writer of the nightly job: shared results (counts, lists, candidates) are recomputed from here on.
+    ...invalidateDerived(db),
   );
   await db.batch(statements);
   const name = (id: string) => coffees.find(row => row.id === id)!.slug;

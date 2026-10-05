@@ -124,7 +124,8 @@ test('similarity ranks declared/inferred values with Turkish duplicates excluded
   const result=await getSimilarCoffees(counted,current,2);
   const winners=all.filter(c=>['strongest','inferred'].includes(c.sourceProductId!)).sort((a,b)=>a.id.localeCompare(b.id));
   assert.deepEqual(result,winners.map(c=>({...c,similarityReasons:['Aynı kökenden','Benzer işleme yöntemi','Benzer tat profili']})));
-  assert.equal(reads,4);assert.deepEqual(hydratedIds,winners.map(c=>c.id));
+  // Candidates, the winners' rows by id (the candidate list itself is shared through the derived cache), then hydration.
+  assert.equal(reads,5);assert.deepEqual(hydratedIds,winners.map(c=>c.id));
   assert.equal((await getSimilarCoffees(db,current,0)).length,0);
   assert.equal((await getSimilarCoffees(db,current,-1)).length,0);
   assert.equal((await getSimilarCoffees(db,current,NaN)).length,3);

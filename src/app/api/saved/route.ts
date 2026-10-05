@@ -1,8 +1,10 @@
 import { getSavedCoffees, SAVED_LIMIT } from '../../../../shared/v2/catalog';
 import { publicCatalogCoffee } from '../../../../shared/v2/public-catalog';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
+import { EDGE_CACHE_HEADERS } from '../../../../shared/v2/read-cache';
 
-/** GET ?slug=a&slug=b (at most 50, unknown or malformed slugs are skipped) → { items: [{ slug, availability, restockedAt, coffee }] }. Nothing is stored. */
+/** GET ?slug=a&slug=b (at most 50, unknown or malformed slugs are skipped) → { items: [{ slug, availability, restockedAt, coffee }] }. Nothing is stored.
+ * The answer depends only on the slugs in the address, never on who asks, so the edge may keep it like any catalog response. */
 export async function GET(request: Request) {
   const slugs = new URL(request.url).searchParams.getAll('slug');
   if (slugs.length > SAVED_LIMIT) return Response.json({ error: `En fazla ${SAVED_LIMIT} kahve.` }, { status: 400, headers: { 'Cache-Control': 'no-store' } });
@@ -12,7 +14,7 @@ export async function GET(request: Request) {
       slug: savedSlug, availability,
       restockedAt: coffee.latestEvents.find(event => event.type === 'RESTOCKED')?.createdAt ?? null,
       coffee: publicCatalogCoffee(coffee),
-    })) }, { headers: { 'Cache-Control': 'no-store' } });
+    })) }, { headers: EDGE_CACHE_HEADERS });
   } catch {
     return Response.json({ error: 'Listen şu anda yüklenemiyor.' }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }

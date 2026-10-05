@@ -15,6 +15,16 @@ describe('GitHub Actions workflows', () => {
     assert.doesNotMatch(source, /SUPABASE|ALLOW_ROASTER_FAILURES|SKIP_ROASTERS/);
   });
 
+  it('purges the edge only after a step that wrote tonight\'s data succeeded', () => {
+    const source = readSource('.github/workflows/scrape.yml');
+    const purge = source.slice(source.indexOf('- name: Purge the edge cache'));
+    assert.match(source, /id: refresh\n/);
+    assert.match(source, /id: corrections\n/);
+    // With the database out of its allowance both writers fail; a purge then would swap every good page for an outage notice.
+    assert.match(purge, /if: \$\{\{ !cancelled\(\) && \(steps\.refresh\.outcome == 'success' \|\| steps\.corrections\.outcome == 'success'\) \}\}/);
+    assert.match(purge, /secrets\.CACHE_PURGE_TOKEN/);
+  });
+
   it('keeps CI and scraper workflows aligned to the checked-in Node version', () => {
     const ci = readSource('.github/workflows/ci.yml');
     const scrape = readSource('.github/workflows/scrape.yml');

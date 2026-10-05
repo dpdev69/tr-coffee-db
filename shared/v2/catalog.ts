@@ -54,11 +54,16 @@ const PREFERRED_PRICE=`(SELECT o.current_price_minor FROM current_offers o WHERE
 const SEARCH_SYNONYMS=[['geisha','gesha'],['etiyopya','ethiopia'],['kolombiya','colombia'],['brezilya','brazil'],['kenya','kenia'],['natural','dogal'],['washed','yikanmis']];
 const placeholders=(length:number)=>Array.from({length},()=>'?').join(',');
 function parseJson<T>(value:string,fallback:T):T { try{return JSON.parse(value) as T;}catch{return fallback;} }
+/** A result that is the same for every visitor until the next refresh goes through the database's derived cache when it has one
+ * (shared/v2/read-cache.ts); tests and scripts read live. Only for results that do not depend on the clock or the visitor. */
+function derived<T>(db:CatalogDatabase,name:string,compute:()=>Promise<T>):Promise<T>{return db.derive?db.derive(name,compute):compute();}
 function eventFromRow(row:EventRow):CoffeeEvent { return {id:row.id,coffeeId:row.coffee_id,offerId:row.offer_id,type:row.type,createdAt:row.created_at,before:parseJson<Json>(row.before_json,null),after:parseJson<Json>(row.after_json,null),idempotencyKey:row.idempotency_key,observationId:row.observation_id}; }
 
 export async function getCatalogCounts(db:CatalogDatabase):Promise<{coffees:number;roasters:number;offers:number}> {
+  return derived(db,'counts',async()=>{
   const counts=await db.prepare(`SELECT count(DISTINCT c.id) AS coffees,count(DISTINCT c.roaster_id) AS roasters,count(DISTINCT ${PACKAGE_KEY}) AS offers FROM public_catalog_coffees c ${GROUP_OFFERS} AND o.in_stock=1 WHERE ${coffeeOnlySql()}`).first<{coffees:number;roasters:number;offers:number}>();
   return counts??{coffees:0,roasters:0,offers:0};
+  });
 }
 
 /** Every current-list count and row query starts from the same canonical view. */
@@ -74,11 +79,13 @@ export async function listCatalog(db:CatalogDatabase,filters:CatalogFilters={},n
     price_desc:`${PREFERRED_PRICE} DESC NULLS LAST,c.id`,
     unit_price_asc:`(SELECT min(1.0*o.current_price_minor/o.weight_g) FROM current_offers o WHERE o.coffee_id ${IN_GROUP} AND o.in_stock=1 AND o.currency='TRY' AND o.weight_g>0) ASC NULLS LAST,c.id`,
   };
-  const [total,coffees]=await Promise.all([
-    db.prepare(`SELECT count(*) AS count ${from} WHERE ${where}`).bind(...values).first<{count:number}>(),
-    db.prepare(`SELECT ${COFFEE_COLUMNS} ${from} ${ARRIVALS_JOIN} WHERE ${where} ORDER BY ${sorts[filters.sort??'newest']??sorts.newest} LIMIT ? OFFSET ?`).bind(...values,perPage,(page-1)*perPage).all<CoffeeRow>().then(rows=>hydrate(db,rows.results,now)),
-  ]);
-  return {coffees,total:total?.count??0,page,perPage,totalPages:Math.ceil((total?.count??0)/perPage)};
+  // One pass: the total rides on each row (the ORDER BY already visits every match), instead of a second scan to count.
+  const order=sorts[filters.sort??'newest']??sorts.newest;
+  // Arrival times only matter to the newest sort (about 3,000 rows); price sorts skip them.
+  const rows=(await db.prepare(`SELECT ${COFFEE_COLUMNS},count(*) OVER() AS total_count ${from} ${order===sorts.newest?ARRIVALS_JOIN:''} WHERE ${where} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values,perPage,(page-1)*perPage).all<CoffeeRow&{total_count:number}>()).results;
+  // Only a page past the end comes back empty while matches exist; then the count is asked for separately.
+  const total=rows.length?rows[0].total_count:page>1?(await db.prepare(`SELECT count(*) AS count ${from} WHERE ${where}`).bind(...values).first<{count:number}>())?.count??0:0;
+  return {coffees:await hydrate(db,rows,now),total,page,perPage,totalPages:Math.ceil(total/perPage)};
 }
 
 export async function countCatalog(db:CatalogDatabase,filters:CatalogFilters):Promise<number> {
@@ -88,9 +95,29 @@ export async function countCatalog(db:CatalogDatabase,filters:CatalogFilters):Pr
 
 /** Listed coffees and their roasters for one filter, counted with the catalog's own filter rules (origin and process landing pages). */
 export async function catalogFacts(db:CatalogDatabase,filters:CatalogFilters):Promise<{coffees:number;roasters:number}> {
-  const {where,values}=buildFilters(filters);
-  const row=await db.prepare(`SELECT count(*) AS coffees,count(DISTINCT c.roaster_id) AS roasters FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${where}`).bind(...values).first<{coffees:number;roasters:number}>();
-  return {coffees:row?.coffees??0,roasters:row?.roasters??0};
+  return (await catalogFactsMany(db,[filters]))[0];
+}
+/** catalogFacts for several filters in one pass over the listed coffees per query, not one pass per filter.
+ * Callers pass a bounded set (the landing pages), since each distinct set is one derived-cache entry. */
+export async function catalogFactsMany(db:CatalogDatabase,list:CatalogFilters[]):Promise<Array<{coffees:number;roasters:number}>> {
+  return derived(db,`facts:${JSON.stringify(list)}`,async()=>{
+    const built=list.map(filters=>buildFilters(filters));
+    const facts:Array<{coffees:number;roasters:number}>=[];
+    for(let start=0;start<built.length;){
+      // D1 binds at most 100 parameters per statement.
+      let end=start+1,bound=built[start].values.length;
+      while(end<built.length&&bound+built[end].values.length<=100)bound+=built[end++].values.length;
+      const chunk=built.slice(start,end);
+      // Each filter is evaluated once per coffee (MATERIALIZED), then counted like catalogFacts' own count(*) and count(DISTINCT roaster).
+      const row=await db.prepare(`WITH m AS MATERIALIZED (SELECT c.roaster_id${chunk.map((item,index)=>`,(${item.conditions.slice(1).join(' AND ')||'1'}) AS m${index}`).join('')}
+        FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()})
+        SELECT ${chunk.map((_,index)=>`count(CASE WHEN m${index} THEN 1 END) AS c${index},count(DISTINCT CASE WHEN m${index} THEN roaster_id END) AS r${index}`).join(',')} FROM m`)
+        .bind(...chunk.flatMap(item=>item.values)).first<Record<string,number>>();
+      chunk.forEach((_,index)=>facts.push({coffees:row?.[`c${index}`]??0,roasters:row?.[`r${index}`]??0}));
+      start=end;
+    }
+    return facts;
+  });
 }
 
 export const CHANGE_EVENTS=['NEW','PRICE_DROP','RESTOCKED'] as const;
@@ -102,9 +129,9 @@ export async function catalogChangesByDay(db:CatalogDatabase,now=Date.now()):Pro
   const days=Array.from({length:30},(_,i)=>({day:new Date(now+ISTANBUL_MS-(29-i)*86400000).toISOString().slice(0,10),NEW:0,PRICE_DROP:0,RESTOCKED:0}));
   const from=new Date(Date.parse(`${days[0].day}T00:00:00Z`)-ISTANBUL_MS).toISOString();
   const perType=CHANGE_EVENTS.map(type=>`(e.type='${type}'${eventValidity(type)})`).join(' OR ');
-  // Valid events first (a few per day), then their listed coffees: checking validity per coffee and event was 5x slower.
+  // Valid events first (a few per day), then the groups they belong to: pairing every listed coffee with every valid event read 148,000 rows.
   const rows=await db.prepare(`WITH valid AS MATERIALIZED (SELECT e.coffee_id,e.type,e.created_at FROM coffee_events e WHERE e.created_at>=? AND (${perType}))
-    SELECT day,type,count(*) AS count FROM (SELECT date(max(e.created_at),'+3 hours') AS day,e.type AS type FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id JOIN valid e ON e.coffee_id ${IN_GROUP} WHERE ${coffeeOnlySql()} GROUP BY c.id,e.type) GROUP BY day,type`).bind(from).all<{day:string;type:typeof CHANGE_EVENTS[number];count:number}>();
+    SELECT day,type,count(*) AS count FROM (SELECT date(max(e.created_at),'+3 hours') AS day,e.type AS type FROM valid e CROSS JOIN coffee_group_members g ON g.coffee_id=e.coffee_id JOIN public_catalog_coffees c ON c.id=g.group_id JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} GROUP BY c.id,e.type) GROUP BY day,type`).bind(from).all<{day:string;type:typeof CHANGE_EVENTS[number];count:number}>();
   for(const row of rows.results)days.find(d=>d.day===row.day)![row.type]=row.count;
   return days;
 }
@@ -113,11 +140,14 @@ export async function catalogChangesByDay(db:CatalogDatabase,now=Date.now()):Pro
  * Candidates are dealt round-robin by roaster, so consecutive days land on different roasters while the list is stable.
  * ponytail: a catalog that changes size overnight can shift the slot and repeat a roaster; store yesterday's pick if that matters. */
 export async function getCoffeeOfTheDay(db:CatalogDatabase,now=Date.now()):Promise<CatalogCoffee|null> {
-  const candidates=await db.prepare(`SELECT c.id,c.roaster_id FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} AND json_array_length(c.raw_metadata_json,'$.tastingNotes')>0 AND json_extract(c.raw_metadata_json,'$.imageUrl') LIKE 'http%' ORDER BY c.roaster_id,c.id`).all<{id:string;roaster_id:string}>();
-  const byRoaster=new Map<string,string[]>();
-  for(const row of candidates.results)byRoaster.set(row.roaster_id,[...(byRoaster.get(row.roaster_id)??[]),row.id]);
-  const queues=[...byRoaster.values()];const order:string[]=[];
-  for(let round=0;order.length<candidates.results.length;round++)for(const queue of queues)if(queue[round])order.push(queue[round]);
+  const order=await derived(db,'day-order',async()=>{
+    const candidates=await db.prepare(`SELECT c.id,c.roaster_id FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} AND json_array_length(c.raw_metadata_json,'$.tastingNotes')>0 AND json_extract(c.raw_metadata_json,'$.imageUrl') LIKE 'http%' ORDER BY c.roaster_id,c.id`).all<{id:string;roaster_id:string}>();
+    const byRoaster=new Map<string,string[]>();
+    for(const row of candidates.results)byRoaster.set(row.roaster_id,[...(byRoaster.get(row.roaster_id)??[]),row.id]);
+    const queues=[...byRoaster.values()];const order:string[]=[];
+    for(let round=0;order.length<candidates.results.length;round++)for(const queue of queues)if(queue[round])order.push(queue[round]);
+    return order;
+  });
   const day=Math.floor((now+3*3600000)/86400000);
   // Read repair can still empty a listing's notes; the next slot stands in.
   for(let step=0;step<Math.min(order.length,5);step++){
@@ -142,10 +172,12 @@ export async function getSavedCoffees(db:CatalogDatabase,slugs:string[],now=Date
 
 /** Origin filter options follow the filter rule: a MANUAL origin replaces raw and inferred origins for its coffee. */
 export async function listOrigins(db:CatalogDatabase):Promise<string[]> {
+  return derived(db,'origins',async()=>{
   const features=FACT_FEATURES.country.map(feature=>`'${feature}'`).join(',');
   const manual=`EXISTS(SELECT 1 FROM coffee_feature_values m WHERE m.coffee_id=c.id AND m.source_type='MANUAL' AND m.feature IN (${features}))`;
   const rows=await db.prepare(`SELECT DISTINCT value FROM (SELECT json_extract(c.raw_metadata_json,'$.country') AS value FROM public_catalog_coffees c WHERE NOT ${manual} UNION ALL SELECT j.value FROM coffee_feature_values f JOIN public_catalog_coffees c ON c.id=f.coffee_id JOIN json_each(f.value_json) j WHERE f.feature IN (${features}) AND j.type='text' AND (f.source_type='MANUAL' OR NOT ${manual})) WHERE value IS NOT NULL AND value<>'unknown' ORDER BY value`).all<{value:string}>();
   return rows.results.map(row=>row.value);
+  });
 }
 
 /** The one definition of "new" (alias e = a NEW event): the roaster started selling this coffee between two crawls we can date.
@@ -183,7 +215,7 @@ function eventValidity(type:string):string {
   return '';
 }
 
-function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
+function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[];conditions:string[]} {
   const conditions=[coffeeOnlySql()];const values:SqlValue[]=[];
   // Querying declared and inferred fields together is useful; their display/provenance remains separate.
   const metadata=(field:string,accepted?:string[],expand?:(input:string[])=>string[])=>{
@@ -246,7 +278,7 @@ function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[]} {
     // Not correlated with c: the few valid events are found once, not checked again for every listed coffee.
     conditions.push(`c.id IN (SELECT g.group_id FROM coffee_events e JOIN coffee_group_members g ON g.coffee_id=e.coffee_id WHERE ${eventConditions.join(' AND ')})`);
   }
-  return {where:conditions.join(' AND '),values};
+  return {where:conditions.join(' AND '),values,conditions};
 }
 
 /** Details are durable even after stock loss/discontinuation; hidden/unclassified coffees stay private. */
@@ -308,9 +340,11 @@ function collapsePackages(offers:CatalogOffer[]):CatalogOffer[] {
 }
 
 export async function listRoasters(db:CatalogDatabase):Promise<CatalogRoaster[]> {
+  return derived(db,'roasters',async()=>{
   const rows=await db.prepare(`SELECT r.*,count(DISTINCT c.id) AS coffee_count,count(DISTINCT ${PACKAGE_KEY}) AS offer_count FROM roasters r JOIN public_catalog_coffees c ON c.roaster_id=r.id ${GROUP_OFFERS} AND o.in_stock=1 WHERE ${coffeeOnlySql()} GROUP BY r.id ORDER BY r.name,r.id`)
     .all<{id:string;slug:string;name:string;website_url:string;city:string|null;adapter:string;coffee_count:number;offer_count:number;last_attempt_at:string|null;last_success_at:string|null;crawl_health:string}>();
   return rows.results.map(r=>({id:r.id,slug:r.slug,name:r.name,websiteUrl:r.website_url,city:r.city,adapter:r.adapter,coffeeCount:r.coffee_count,offerCount:r.offer_count,lastAttemptAt:r.last_attempt_at,lastSuccessAt:r.last_success_at,crawlHealth:r.crawl_health}));
+  });
 }
 export async function getRoasterDetail(db:CatalogDatabase,slug:string):Promise<{roaster:CatalogRoaster;catalog:Awaited<ReturnType<typeof listCatalog>>}|null> {
   const row=await db.prepare('SELECT id,slug,name,website_url,city,adapter,last_attempt_at,last_success_at,crawl_health FROM roasters WHERE slug=?').bind(slug)
@@ -330,31 +364,42 @@ export async function listEvents(db:CatalogDatabase,type?:CoffeeEvent['type'],li
 }
 
 const SIMILARITY_FEATURES=[...FACT_FEATURES.country,...FACT_FEATURES.process,...FACT_FEATURES.tastingNotes].map(feature=>`'${feature}'`).join(',');
+type SimilarityCandidate={id:string;roaster_id:string;name:string;canonical_url:string;first_seen_at:string;country:RawMetadata['country'];process:RawMetadata['process'];features:Array<Pick<FeatureValue,'feature'|'value'|'sourceType'>>};
 /** Explainable catalog similarity, never a personalized numerical match. */
 export async function getSimilarCoffees(db:CatalogDatabase,coffee:CatalogCoffee,limit=4):Promise<Array<CatalogCoffee&{similarityReasons:string[]}>> {
+  // The candidates are the same for every coffee page, so they are read once per refresh (derived cache), not per view.
   // ponytail: cap at the same 5,000 newest candidates; move ranking into indexed SQL if the catalog outgrows it.
-  const candidates=await db.prepare(`SELECT ${COFFEE_COLUMNS},(SELECT json_group_array(json_object('feature',f.feature,'value',json(f.value_json),'sourceType',f.source_type)) FROM coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN (${SIMILARITY_FEATURES})) AS similarity_features_json FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} ORDER BY c.first_seen_at DESC,c.id LIMIT 5000`).all<CoffeeRow&{similarity_features_json:string}>();
+  const candidates=await derived(db,'similar-candidates',async()=>(await db.prepare(`SELECT ${COFFEE_COLUMNS},(SELECT json_group_array(json_object('feature',f.feature,'value',json(f.value_json),'sourceType',f.source_type)) FROM coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN (${SIMILARITY_FEATURES})) AS similarity_features_json FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${coffeeOnlySql()} ORDER BY c.first_seen_at DESC,c.id LIMIT 5000`).all<CoffeeRow&{similarity_features_json:string}>()).results.map((row):SimilarityCandidate=>{
+    const raw=parseJson<RawMetadata>(row.raw_metadata_json,{});
+    return {id:row.id,roaster_id:row.roaster_id,name:row.name,canonical_url:row.canonical_url,first_seen_at:row.first_seen_at,country:raw.country,process:raw.process,features:parseJson(row.similarity_features_json,[])};
+  }));
   const origin=featureStrings(coffee,'normalized_origin','origin_country').concat(coffee.rawMetadata.country??[]);
   const process=featureStrings(coffee,'process_family','process').concat(coffee.rawMetadata.process??[]);
   const flavor=featureStrings(coffee,'flavor_families','flavor_categories');
-  const selected=candidates.results.filter(c=>c.id!==coffee.id&&c.canonical_url!==coffee.canonicalUrl&&!(c.roaster_id===coffee.roaster.id&&c.name.toLocaleLowerCase('tr-TR')===coffee.name.toLocaleLowerCase('tr-TR')))
+  const selected=candidates.filter(c=>c.id!==coffee.id&&c.canonical_url!==coffee.canonicalUrl&&!(c.roaster_id===coffee.roaster.id&&c.name.toLocaleLowerCase('tr-TR')===coffee.name.toLocaleLowerCase('tr-TR')))
     .map(row=>{
-      const raw=parseJson<RawMetadata>(row.raw_metadata_json,{});
-      const all=parseJson<Array<Pick<FeatureValue,'feature'|'value'|'sourceType'>>>(row.similarity_features_json,[]);
+      const all=row.features;
       // Same rule as the filters: a MANUAL fact replaces raw and inferred values of its kind.
       const facts=(field:string,declared:string|null|undefined,...names:string[])=>{
         const manual=all.filter(f=>f.sourceType==='MANUAL'&&FACT_FEATURES[field].includes(f.feature));
         return manual.length?featureStrings({features:manual},...names):featureStrings({features:all},...names).concat(declared??[]);
       };
       const reasons:string[]=[];
-      if(overlaps(origin,facts('country',raw.country,'normalized_origin','origin_country')))reasons.push('Aynı kökenden');
-      if(overlaps(process,facts('process',raw.process,'process_family','process')))reasons.push('Benzer işleme yöntemi');
+      if(overlaps(origin,facts('country',row.country,'normalized_origin','origin_country')))reasons.push('Aynı kökenden');
+      if(overlaps(process,facts('process',row.process,'process_family','process')))reasons.push('Benzer işleme yöntemi');
       if(overlaps(flavor,facts('tastingNotes',null,'flavor_families','flavor_categories')))reasons.push('Benzer tat profili');
       return {row,similarityReasons:reasons};
     }).filter(c=>c.similarityReasons.length>0).sort((a,b)=>b.similarityReasons.length-a.similarityReasons.length||b.row.first_seen_at.localeCompare(a.row.first_seen_at)||a.row.id.localeCompare(b.row.id))
     .slice(0,Math.min(12,Math.max(0,Number.isFinite(limit)?Math.floor(limit):4)));
-  const hydrated=await hydrate(db,selected.map(candidate=>candidate.row),Date.now());
-  return hydrated.map((candidate,index)=>({...candidate,similarityReasons:selected[index].similarityReasons}));
+  const rows=await listedRows(db,selected.map(candidate=>candidate.row.id));
+  const hydrated=await hydrate(db,rows,Date.now());
+  return hydrated.map(candidate=>({...candidate,similarityReasons:selected.find(item=>item.row.id===candidate.id)!.similarityReasons}));
+}
+/** Listed coffees by id, in the order given; one that left the catalog since its id was cached is skipped. */
+export async function listedRows(db:CatalogDatabase,ids:string[]):Promise<CoffeeRow[]> {
+  if(!ids.length)return [];
+  const rows=(await db.prepare(`SELECT ${COFFEE_COLUMNS} FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE c.id IN (${placeholders(ids.length)})`).bind(...ids).all<CoffeeRow>()).results;
+  return ids.flatMap(id=>rows.filter(row=>row.id===id));
 }
 function featureStrings(coffee:{features:Array<Pick<FeatureValue,'feature'|'value'>>},...names:string[]):string[]{return coffee.features.filter(f=>names.includes(f.feature)).flatMap(f=>typeof f.value==='string'?[f.value]:Array.isArray(f.value)?f.value.filter((v):v is string=>typeof v==='string'):[]);}
 function overlaps(left:string[],right:string[]):boolean{return left.some(a=>right.some(b=>a.toLocaleLowerCase('tr-TR')===b.toLocaleLowerCase('tr-TR')));}

@@ -6,17 +6,16 @@ import { JsonLd, breadcrumbList } from '@/components/layout/json-ld';
 import { DiscoveryCatalog, type DiscoverySearchParams } from '@/components/v2/discovery-catalog';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { signupsEnabled } from '@/lib/signups';
-import { findLanding, landingHeading, landingPhrase, type Landing } from '@/lib/catalog-landing';
+import { findLanding, landingFacts, landingHeading, landingPhrase, type Landing } from '@/lib/catalog-landing';
 import { listingMetadata } from '@/lib/page-metadata';
-import { getCatalogDatabase } from '@/lib/v2-runtime';
-import { catalogFacts } from '../../../../../shared/v2/catalog';
+import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
 
 type Props = { params: Promise<{ facet: string; slug: string }>; searchParams: Promise<DiscoverySearchParams> };
 
 /** The catalog with one origin or process preset: same filter, same cards, its own address and copy. */
 const loadFacts = cache(async (landing: Landing) => {
-  try { return await catalogFacts(await getCatalogDatabase(), landing.filters); }
-  catch (error) { unstable_rethrow(error); return null; }
+  try { return await landingFacts(await getCatalogDatabase(), landing); }
+  catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); return null; }
 });
 async function resolve(params: Props['params']) {
   const { facet, slug } = await params;
@@ -43,13 +42,15 @@ export default async function LandingPage({ params, searchParams }: Props) {
   const resolved = await resolve(params);
   if (!resolved) notFound();
   const { landing, facts } = resolved;
+  const query = await searchParams;
+  dropTrackingParams(landing.path, query);
   const heading = landingHeading(landing);
   return <div className="page-shell section-space">
     <JsonLd data={breadcrumbList([['Kahveler', '/kahveler'], [heading, landing.path]])} />
     <nav aria-label="İçerik yolu" className="mb-3 text-sm"><Link href="/kahveler" className="inline-flex min-h-11 items-center text-accent hover:underline">← Tüm kahveler</Link></nav>
     <div className="section-heading"><div><p className="eyebrow">{landing.facet === 'koken' ? 'Köken' : 'İşlem'}</p><h1 className="mt-3 font-display text-title">{heading}</h1>
       {facts?.coffees ? <p className="mt-4 max-w-2xl text-sm leading-7 text-muted">Şu an {facts.roasters} kavurucudan {landingPhrase(landing)} {facts.coffees} kahve listede. {landing.facet === 'koken' ? 'Köken' : 'İşlem'} bilgisi kavurucunun sayfasından gelir; kavurucu belirtmediyse ürün açıklamasından çıkarılmış olabilir.</p> : null}</div></div>
-    <DiscoveryCatalog params={await searchParams} path={landing.path} preset={preset(landing)} />
+    <DiscoveryCatalog params={query} path={landing.path} preset={preset(landing)} />
     {signupsEnabled() && <NewsletterForm source="catalog" variant="card" className="mt-12" title="Yeni gelenleri kaçırma" description="Yeni gelenleri ve fiyatı düşenleri haftada bir, ayın seçkisini ayda bir gönderelim." />}
   </div>;
 }

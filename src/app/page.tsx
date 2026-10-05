@@ -9,7 +9,7 @@ import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { brand } from '@/lib/brand';
 import { JsonLd } from '@/components/layout/json-ld';
 import { absoluteUrl } from '@/lib/site';
-import { getCatalogDatabase } from '@/lib/v2-runtime';
+import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
 import { RoasterInitial } from '@/components/v2/discovery-detail';
 import { getCatalogCounts, getCoffeeOfTheDay, listCatalog, listRoasters, type CatalogCoffee, type CatalogRoaster } from '../../shared/v2/catalog';
 import { ARRIVAL_DAYS } from '../../shared/v2/events';
@@ -17,8 +17,8 @@ import { CoffeeImage } from '@/components/v2/coffee-image';
 import { SAVED_KEY } from '@/lib/device-keys';
 import { SavedPanel, SinceLastVisit, TasteArrivals } from '@/components/v2/home-personal';
 
-// Matches the 5-minute D1 read cache: the edge may serve a page this stale, never older.
-export const revalidate = 300;
+// The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
+export const revalidate = 21600;
 export const metadata: Metadata = { title: { absolute: brand.title }, description: brand.description, alternates: { canonical: '/' } };
 
 const HOW_IT_WORKS = [
@@ -53,7 +53,8 @@ function DayCard({ coffee, now }: { coffee: CatalogCoffee; now: number }) {
   </Link>;
 }
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams?: Promise<Record<string, string | string[] | undefined>> } = {}) {
+  dropTrackingParams('/', await searchParams);
   let data: { counts: Awaited<ReturnType<typeof getCatalogCounts>>; catalog: CatalogCoffee[]; drops: CatalogCoffee[]; restocked: CatalogCoffee[]; roasters: CatalogRoaster[]; day: CatalogCoffee | null } | null = null;
   // Server request time picks the day's coffee and the verified-event window.
   // eslint-disable-next-line react-hooks/purity
@@ -68,7 +69,7 @@ export default async function HomePage() {
       listRoasters(db), getCoffeeOfTheDay(db, now),
     ]);
     data = { counts, catalog: catalog.coffees, drops: drops.coffees, restocked: restocked.coffees, roasters, day };
-  } catch (error) { unstable_rethrow(error); }
+  } catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); }
   return <div className="page-shell studio-home">
     <JsonLd data={{ '@type': 'Organization', name: brand.name, url: absoluteUrl('/'), logo: absoluteUrl(brand.logoPath), description: brand.description }} />
     {/* The catalog search reads `search` (parseDiscoveryFilters). */}
