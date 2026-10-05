@@ -33,10 +33,12 @@
 }
 :root {
   --page-max: 1680px;
-  --gutter: clamp(16px, 4vw, 64px);
-  --section-space: clamp(32px, 2rem + 2.5vw, 72px);
+  /* Paddings and margins scale with % (of the containing width) rather than vw: a % keeps the same computed value while
+     the window is dragged, so the browser's scroll anchoring keeps the reader's place; a vw value would switch it off. */
+  --gutter: clamp(16px, 4%, 64px);
+  --section-space: clamp(32px, 2rem + 2.5%, 72px);
   --grid-gap: clamp(16px, 0.75rem + 0.8vw, 28px);
-  --card-min: 15rem; /* narrowest a coffee card's footer (two 44px controls) fits */
+  --card-min: 16.5rem; /* narrowest card whose footer keeps both controls on one line */
 }
 
 @theme inline {
@@ -106,13 +108,13 @@
     gap: var(--grid-gap);
     grid-template-columns: 1fr;
   }
-  @container (min-width: 32rem) {
+  @container (min-width: 35rem) {
     .card-grid:has(> :nth-child(4):last-child),
     .grid-quad {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
-  @container (min-width: 64rem) {
+  @container (min-width: 70rem) {
     .card-grid:has(> :nth-child(4):last-child),
     .grid-quad {
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -125,7 +127,7 @@
     gap: var(--grid-gap);
     grid-template-columns: 1fr;
   }
-  @container (min-width: 46rem) {
+  @container (min-width: 52rem) {
     .card-grid:has(> :nth-child(3):last-child),
     .grid-trio {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -165,7 +167,7 @@
   }
   .button-lg {
     min-height: 52px;
-    padding-inline: clamp(18px, 3vw, 28px);
+    padding-inline: 24px;
     font-size: 17px;
   }
   .button-dark {
@@ -267,7 +269,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 40px;
-    padding-block: clamp(40px, 1rem + 5vw, 96px) clamp(48px, 2rem + 2vw, 72px);
+    padding-block: clamp(40px, 1rem + 5%, 96px) clamp(48px, 2rem + 2%, 72px);
   }
   .studio-hero-copy {
     flex: 1 1 440px;
@@ -293,7 +295,7 @@
   }
   .studio-intro {
     max-width: 34em;
-    margin-top: clamp(20px, 2vw, 28px);
+    margin-top: clamp(20px, 2%, 28px);
     font-size: clamp(16px, 0.9rem + 0.25vw, 18px);
     line-height: 1.9;
     color: var(--color-muted);
@@ -364,7 +366,7 @@
   .studio-journal {
     align-items: center;
     border-top: 1px solid var(--color-line);
-    padding-block: clamp(40px, 5vw, 80px) clamp(48px, 6vw, 96px);
+    padding-block: clamp(40px, 5%, 80px) clamp(48px, 6%, 96px);
   }
   .studio-journal h2 {
     margin-top: 20px;
@@ -439,6 +441,8 @@
   }
   .coffee-card-footer {
     display: flex;
+    flex-wrap: wrap;
+    white-space: nowrap;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
@@ -640,7 +644,7 @@
     border: 1px solid var(--color-line);
     border-radius: 14px;
     background: var(--color-tint);
-    padding: clamp(20px, 2.5vw, 32px);
+    padding: clamp(20px, 5%, 32px);
   }
   .calculator .eyebrow {
     color: var(--color-accent); /* warm is under 4.5:1 on tint */

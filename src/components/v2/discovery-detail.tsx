@@ -49,7 +49,7 @@ export function DiscoveryDetail({coffee}:{coffee:CatalogCoffee}){
     </div>
     <section className="mt-14">
       <h2 className="mb-2 font-display text-subtitle">Çekirdeği tanı.</h2>
-      <dl className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,13rem),1fr))] gap-x-[clamp(24px,3vw,40px)]">{facts.map(([label,value,from,href])=><div key={label} className="border-b border-line py-3.5"><dt className="mb-1 text-[13px] text-muted">{label}</dt>{value?<dd className="font-medium">{href?<Link href={href} className="text-accent underline-offset-4 hover:underline">{value}</Link>:value}{from?<span className="block text-xs font-normal text-muted">{from}</span>:null}</dd>:<dd className="italic text-muted">Kavurucu belirtmemiş</dd>}</div>)}</dl>
+      <dl className="grid gap-x-[clamp(24px,3vw,40px)] @md:grid-cols-2 @5xl:grid-cols-5">{facts.map(([label,value,from,href])=><div key={label} className="border-b border-line py-3.5"><dt className="mb-1 text-[13px] text-muted">{label}</dt>{value?<dd className="font-medium">{href?<Link href={href} className="text-accent underline-offset-4 hover:underline">{value}</Link>:value}{from?<span className="block text-xs font-normal text-muted">{from}</span>:null}</dd>:<dd className="italic text-muted">Kavurucu belirtmemiş</dd>}</div>)}</dl>
       {notes.length?<div className="mt-6"><h3 className="text-sm font-semibold">Tadım notları</h3><p className="mt-2 text-sm leading-7 text-muted">{notes.join(' · ')}</p></div>:null}
       {raw.description?<details className="mt-5"><summary className="inline-flex min-h-11 items-center text-sm font-semibold text-accent">Kavurucunun açıklaması</summary><p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] leading-7">{raw.description}</p></details>:null}
     </section>

@@ -93,7 +93,7 @@ export default async function HomePage() {
       <Link href="/yeni"><span className="studio-path-number">02</span><div><strong>Yeni kahvelere bak</strong><p>Kataloğun son keşifleri.</p></div><span aria-hidden="true">↗</span></Link>
       <Link href="/kahveler"><span className="studio-path-number">03</span><div><strong>Kendi kahveni seç</strong><p>Tat, köken ve paket fiyatı.</p></div><span aria-hidden="true">↗</span></Link>
     </nav>
-    <section className="mt-10 rounded-[18px] border border-line bg-surface p-[clamp(24px,3vw,48px)]" aria-labelledby="how-it-works">
+    <section className="mt-10 rounded-[18px] border border-line bg-surface p-[clamp(24px,3.5%,48px)]" aria-labelledby="how-it-works">
       <h2 id="how-it-works" className="mb-6 font-display text-heading">Nasıl çalışır</h2>
       <ol className="grid-trio">{HOW_IT_WORKS.map(([title, body], index) => <li key={title} className="flex flex-col gap-2"><span className="font-display text-[40px] leading-none text-warm">{index + 1}</span><span className="font-display text-[23px]">{title}</span><span className="text-[15px] leading-relaxed text-muted">{body}</span></li>)}</ol>
     </section>

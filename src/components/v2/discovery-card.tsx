@@ -51,7 +51,7 @@ export function DiscoveryCard({coffee,source='catalog'}:{coffee:CatalogCoffee;so
   const listed=displayNotes(coffee.rawMetadata.tastingNotes??[]),notes=listed.length?listed.slice(0,3):tasteSummary(coffee),name=displayCoffeeName(coffee.name);
   return <article className="coffee-card relative">
     <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="coffee-card-image block" aria-label={`${name} detayları`}>
-      <CoffeeImage roaster={coffee.roaster.name} source={coffee.rawMetadata.imageUrl} alt={name} sizes="(max-width: 527px) 92vw, (max-width: 1119px) 46vw, 25vw" className="absolute inset-0 h-full w-full object-contain p-4"/>
+      <CoffeeImage roaster={coffee.roaster.name} source={coffee.rawMetadata.imageUrl} alt={name} sizes="(max-width: 599px) 92vw, (max-width: 1199px) 46vw, 25vw" className="absolute inset-0 h-full w-full object-contain p-4"/>
       {badges.length>0?<span className="absolute left-3 top-3 flex flex-wrap gap-1">{badges.map(event=><span key={event.id} className="coffee-card-badge">{EVENT_LABELS[event.type]}</span>)}</span>:null}
     </Link>
     <SaveToggle slug={coffee.slug} name={coffee.name} offer={savedPackage(offer)} className="absolute right-2.5 top-2.5"/>
