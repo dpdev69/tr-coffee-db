@@ -88,13 +88,13 @@ describe('UX and compliance surfaces', () => {
 
   it('exposes privacy and terms routes in navigation and sitemap', () => {
     const footer = readSource('src/components/layout/footer.tsx');
-    const sitemap = readSource('src/app/sitemap.ts');
+    const sitemap = readSource('src/lib/sitemap-entries.ts');
 
     assert.match(footer, /href="\/privacy"/);
     assert.match(footer, /href="\/terms"/);
     assert.match(sitemap, /['"]\/privacy['"]/);
     assert.match(sitemap, /['"]\/terms['"]/);
-    assert.match(sitemap, /url:absoluteUrl\(path\)/);
+    assert.match(sitemap, /url: absoluteUrl\(path\)/);
   });
 
   it('links a roaster website only through the checked redirect, rendered only when that check passes', () => {
