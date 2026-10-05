@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
+import { displayCoffeeName } from '@/lib/coffee-display';
 import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { DiscoveryEmpty, OfferPrice, preferredOffer } from '@/components/v2/discovery-card';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
+import { signupsEnabled } from '@/lib/signups';
 import { brand } from '@/lib/brand';
 import { pageMetadata } from '@/lib/page-metadata';
 import { formatQuizReason, hasQuizSelections, parseQuizAnswers, quizAnswerSummary, quizQuery } from '@/lib/quiz-filters';
@@ -58,7 +60,7 @@ export default async function QuizResultPage({ searchParams }: { searchParams: P
                 <li key={coffee.id} className="flex flex-wrap items-start gap-x-4 gap-y-4 rounded-[14px] sm:gap-x-6 border border-line bg-surface p-5 sm:p-6">
                   <span className="w-8 font-display text-[32px] leading-none text-warm sm:w-9 sm:text-[40px]" aria-hidden="true">{index + 1}</span>
                   <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-1.5">
-                    <h2 className="font-display text-2xl leading-tight text-ink"><Link href={`/kahve/${coffee.slug}`} prefetch={false} className="hover:underline">{coffee.name}</Link></h2>
+                    <h2 className="font-display text-2xl leading-tight text-ink"><Link href={`/kahve/${coffee.slug}`} prefetch={false} className="hover:underline">{displayCoffeeName(coffee.name)}</Link></h2>
                     <p className="text-sm text-muted"><Link href={`/kavurucu/${coffee.roaster.slug}`} className="hover:text-accent hover:underline">{coffee.roaster.name}</Link>{coffee.roaster.city ? ` · ${coffee.roaster.city}` : ''}</p>
                     {coffee.quizReasons.length ? (
                       <ul className="mt-2 flex flex-col gap-1.5" aria-label="Neden bu kahve">
@@ -86,7 +88,7 @@ export default async function QuizResultPage({ searchParams }: { searchParams: P
         )}
       </div>
 
-      <NewsletterForm source="quiz" className="mt-12" title="Damağına uyan yeni kahveler gelince haber verelim" description={`${brand.signupPromise} Cevapların e-postanla birlikte gönderilmez.`} />
+      {signupsEnabled() && <NewsletterForm source="quiz" className="mt-12" title="Damağına uyan yeni kahveler gelince haber verelim" description={`${brand.signupPromise} Cevapların e-postanla birlikte gönderilmez.`} />}
     </div>
   );
 }

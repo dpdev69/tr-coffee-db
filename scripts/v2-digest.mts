@@ -17,7 +17,8 @@ export type DigestInput = Record<'PRICE_DROP' | 'DEAL' | 'NEW' | 'RESTOCKED', Ca
 export interface Digest { subject: string; previewText: string; description: string; html: string; text: string; itemCount: number; generatedAt: string; sections: { title: string; count: number }[] }
 
 const MAX_ITEMS = 8;
-const GREEN = '#244b3d', INK = '#1f1d1b', MUTED = '#625e57', LINE = '#dedfd7', PAPER = '#faf9f6';
+// Email clients cannot read the site's CSS tokens; these mirror the palette at the top of src/app/globals.css.
+const ACCENT = '#2340c7', INK = '#171a2b', MUTED = '#555a6e', LINE = '#d6dae6', PAPER = '#f7f8f6';
 const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
 export function escapeHtml(value: string): string {
@@ -39,15 +40,15 @@ export function digestSections(input: DigestInput) {
 
 function sectionsHtml(sections: ReturnType<typeof digestSections>, link: (slug: string) => string): string {
   const e = escapeHtml;
-  return sections.map(section => `<h2 style="margin:32px 0 8px;font-size:20px;color:${GREEN};font-family:Georgia,'Times New Roman',serif">${e(section.title)}</h2>` +
+  return sections.map(section => `<h2 style="margin:32px 0 8px;font-size:20px;color:${ACCENT};font-family:Georgia,'Times New Roman',serif">${e(section.title)}</h2>` +
     section.items.map(item => {
       const line = itemLines(item);
       return `<div style="padding:14px 0;border-top:1px solid ${LINE}">` +
-        `<p style="margin:0;font-size:12px;font-weight:600;color:${GREEN}">${e(line.roaster)}</p>` +
+        `<p style="margin:0;font-size:12px;font-weight:600;color:${ACCENT}">${e(line.roaster)}</p>` +
         `<p style="margin:4px 0;font-size:17px;font-weight:600"><a href="${e(link(item.coffee.slug))}" style="color:${INK};text-decoration:underline">${e(line.name)}</a></p>` +
         (line.origin ? `<p style="margin:2px 0;font-size:14px;color:${MUTED}">${e(line.origin)}</p>` : '') +
-        (line.tastes ? `<p style="margin:2px 0;font-size:14px;color:${GREEN}">${e(line.tastes)}</p>` : '') +
-        (line.drop ? `<p style="margin:6px 0 2px;font-size:14px;font-weight:600;color:${GREEN}">${e(line.drop)}</p>` : '') +
+        (line.tastes ? `<p style="margin:2px 0;font-size:14px;color:${ACCENT}">${e(line.tastes)}</p>` : '') +
+        (line.drop ? `<p style="margin:6px 0 2px;font-size:14px;font-weight:600;color:${ACCENT}">${e(line.drop)}</p>` : '') +
         `<p style="margin:2px 0;font-size:14px;color:${INK}">${e(line.price)}</p></div>`;
     }).join('')).join('');
 }
@@ -85,16 +86,16 @@ export function buildIssueEmail(issue: Issue, picks: ResolvedPick[], input: Dige
   const site = new URL(siteUrl);
   // Every link back to the site carries the issue's campaign tags; links to other sites stay as the owner wrote them.
   const siteLink = (href: string) => { const url = new URL(href, site); return url.origin === site.origin ? campaignUrl(url, issue.month) : url.toString(); };
-  const inline = (parts: Inline) => parts.map(part => part.href ? `<a href="${e(siteLink(part.href))}" style="color:${GREEN};text-decoration:underline">${e(part.text)}</a>` : e(part.text)).join('');
+  const inline = (parts: Inline) => parts.map(part => part.href ? `<a href="${e(siteLink(part.href))}" style="color:${ACCENT};text-decoration:underline">${e(part.text)}</a>` : e(part.text)).join('');
   const paragraph = (parts: Inline) => `<p style="margin:8px 0;font-size:15px;color:${INK}">${inline(parts)}</p>`;
-  const heading = (text: string) => `<h2 style="margin:32px 0 8px;font-size:22px;color:${GREEN};font-family:Georgia,'Times New Roman',serif">${e(text)}</h2>`;
+  const heading = (text: string) => `<h2 style="margin:32px 0 8px;font-size:22px;color:${ACCENT};font-family:Georgia,'Times New Roman',serif">${e(text)}</h2>`;
   const coffeeLink = (slug: string) => siteLink(`/kahve/${encodeURIComponent(slug)}`);
 
   const pickHtml = picks.map(pick => {
     const line = pick.coffee ? itemLines({ coffee: pick.coffee }) : null;
     const status = pick.status === 'sold_out' || pick.status === 'gone' ? PICK_STATUS[pick.status] : null;
     return `<div style="padding:14px 0;border-top:1px solid ${LINE}">` +
-      (line ? `<p style="margin:0;font-size:12px;font-weight:600;color:${GREEN}">${e(line.roaster)}</p>` : '') +
+      (line ? `<p style="margin:0;font-size:12px;font-weight:600;color:${ACCENT}">${e(line.roaster)}</p>` : '') +
       `<p style="margin:4px 0;font-size:17px;font-weight:600">${pick.coffee ? `<a href="${e(coffeeLink(pick.coffee.slug))}" style="color:${INK};text-decoration:underline">${e(pick.name)}</a>` : e(pick.name)}</p>` +
       (status ? `<p style="margin:2px 0;font-size:14px;font-weight:600;color:${MUTED}">${e(status)}</p>` : line ? `<p style="margin:2px 0;font-size:14px;color:${INK}">${e(line.price)}</p>` : '') +
       `<p style="margin:8px 0 0;font-size:15px;color:${INK}">${inline(pick.note)}</p></div>`;
@@ -107,7 +108,7 @@ export function buildIssueEmail(issue: Issue, picks: ResolvedPick[], input: Dige
     `<p style="margin:4px 0 0;font-size:12px;color:${MUTED}">${e(SPONSOR_DISCLOSURE)}</p>` +
     `<p style="margin:12px 0 4px;font-size:20px;font-family:Georgia,'Times New Roman',serif;color:${INK}">${e(issue.sponsor.name)}</p>` +
     `<p style="margin:0 0 8px;font-size:15px;color:${INK}">${e(issue.sponsor.description)}</p>` +
-    `<a href="${e(campaignUrl(sponsorUrl, issue.month))}" style="font-size:15px;font-weight:600;color:${GREEN}">Sponsorun sitesine git →</a></div>` : '';
+    `<a href="${e(campaignUrl(sponsorUrl, issue.month))}" style="font-size:15px;font-weight:600;color:${ACCENT}">Sponsorun sitesine git →</a></div>` : '';
   const sections = digestSections(input);
   const label = `${brand.monthlyName} · ${monthLabel(issue.month)}`;
   const html = `<!-- Kit's Classic template wraps this body and adds the unsubscribe link and sender address footer. -->
@@ -115,7 +116,7 @@ export function buildIssueEmail(issue: Issue, picks: ResolvedPick[], input: Dige
 <p style="margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:${MUTED}">${e(label)}</p>
 <h1 style="margin:8px 0 8px;font-size:28px;font-family:Georgia,'Times New Roman',serif;color:${INK}">${e(issue.title)}</h1>
 <p style="margin:0;font-size:16px;color:${MUTED}">${e(issue.intro)}</p>
-<p style="margin:8px 0 0;font-size:13px"><a href="${e(siteLink(`/bulten/${issue.month}`))}" style="color:${GREEN}">Bu sayıyı web'de oku</a></p>
+<p style="margin:8px 0 0;font-size:13px"><a href="${e(siteLink(`/bulten/${issue.month}`))}" style="color:${ACCENT}">Bu sayıyı web'de oku</a></p>
 ${heading('Bu ayın favorileri')}${issue.picksText.map(paragraph).join('')}${pickHtml}
 ${sceneHtml}
 ${sponsorHtml}

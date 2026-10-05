@@ -1,12 +1,15 @@
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
+import { signupsEnabled } from '@/lib/signups';
+import { ConsentControls } from '@/components/v2/consent-controls';
 
 export function Footer() {
   return (
     <footer className="mt-auto border-t border-line bg-ground text-ink">
       <div className="page-shell py-10">
-        <NewsletterForm source="footer" variant="card" compact className="mb-8" title="Ayda bir bülten, haftada bir fiyat özeti" description="İstediğin an çıkarsın." />
+        {/* Hidden by globals.css on pages that carry their own sign-up form, so a page never shows two. */}
+        {signupsEnabled() && <NewsletterForm source="footer" variant="card" compact className="footer-newsletter mb-8" title="Ayda bir bülten, haftada bir fiyat özeti" description="İstediğin an çıkarsın." />}
         <div className="grid gap-8 sm:grid-cols-[1.3fr_1fr_1fr]">
           <div>
             <Link
@@ -54,6 +57,7 @@ export function Footer() {
             >
               Kullanım şartları
             </Link>
+            <ConsentControls />
           </div>
         </div>
       </div>

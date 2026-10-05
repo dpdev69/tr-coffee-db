@@ -40,8 +40,8 @@ KIT_FORM_ID=9918321, KIT_API_KEY secret server-only; NEXT_PUBLIC_SITE_URL must b
 
 Sources checked 2026-09-14: https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/ ; https://developers.cloudflare.com/queues/configuration/batching-retries/ ; https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/ ; https://developers.cloudflare.com/analytics/analytics-engine/get-started/ .
 
-## Production checklist (not configured)
-No production env block exists; do not invent resource IDs. A production deploy needs its own:
+## Production checklist (prepared, not created)
+Production configuration now exists as `wrangler.production.jsonc` and `wrangler.crawler.production.jsonc`; resource identifiers that do not exist yet are `REPLACE_*` placeholders and `scripts/production-guard.mjs` blocks the `*:production` scripts until they are filled. Step by step: [launch-day.md](launch-day.md). Signups are a separate deployment setting, `SIGNUPS_ENABLED` (staging `true`, production `false`). A production deploy needs its own:
 - D1 database (name + ID) for both Workers, its migrations applied, and the `db:migrate`/refresh/backup workflows pointed at it.
 - Queues: main crawl queue and its DLQ; crawler var `CRAWL_DLQ_QUEUE` must equal the main consumer's `dead_letter_queue`.
 - Web vars: `DEPLOYMENT_STAGE=production` (also namespaces the catalog read cache), `NEXT_PUBLIC_SITE_URL` at build and as a runtime var (the web Worker throws at startup without it), Web Analytics token/host, `KIT_FORM_ID`.

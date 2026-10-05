@@ -1,0 +1,65 @@
+// Production crawler Worker, deployed only by `npm run deploy:crawler:production` (docs/launch-day.md) after scripts/production-guard.mjs
+// finds no REPLACE_ value. Disabled until the first verified baseline: no cron, CRAWLS_ENABLED=false, CRAWL_MODE=baseline.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "coffeedb-v2-crawler",
+  "account_id": "4c1a4493b8584296f35c3eddc8279112",
+  "main": "workers/crawler.ts",
+  "compatibility_date": "2026-09-14",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "coffeedb-v2",
+      "database_id": "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID",
+      "migrations_dir": "migrations/d1"
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.01
+    }
+  },
+  "vars": {
+    "CRAWLS_ENABLED": "false",
+    "CRAWL_MODE": "baseline",
+    // Must equal the main consumer's dead_letter_queue; the handler only closes jobs there.
+    "CRAWL_DLQ_QUEUE": "coffeedb-v2-crawls-dlq"
+  },
+  "triggers": {
+    "crons": []
+  },
+  "queues": {
+    "producers": [
+      {
+        "binding": "CRAWL_QUEUE",
+        "queue": "coffeedb-v2-crawls"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "coffeedb-v2-crawls",
+        "max_batch_size": 1,
+        "max_concurrency": 2,
+        "max_retries": 4,
+        "retry_delay": 300,
+        "dead_letter_queue": "coffeedb-v2-crawls-dlq"
+      },
+      {
+        "queue": "coffeedb-v2-crawls-dlq",
+        "max_batch_size": 1,
+        "max_concurrency": 1,
+        "max_retries": 10,
+        "retry_delay": 300
+      }
+    ]
+  }
+}

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import { displayCoffeeName, displayNotes } from '@/lib/coffee-display';
 import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
+import { signupsEnabled } from '@/lib/signups';
 import { DiscoveryEmpty, DiscoveryGrid } from '@/components/v2/discovery-card';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { brand } from '@/lib/brand';
@@ -36,17 +38,17 @@ const dayLabel = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long
 
 /** Same card for every visitor on a given day; caches with the page. */
 function DayCard({ coffee, now }: { coffee: CatalogCoffee; now: number }) {
-  const notes = (coffee.rawMetadata.tastingNotes ?? []).slice(0, 3).join(', ');
+  const notes = displayNotes(coffee.rawMetadata.tastingNotes ?? []).slice(0, 3).join(', ');
   return <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="group relative flex min-h-[300px] gap-6 overflow-hidden rounded-[28px] bg-accent p-7 text-on-accent sm:p-9">
     <span className="flex min-w-0 flex-1 flex-col gap-3">
       <span className="text-[13px] font-semibold tracking-[0.04em] text-chip">GÜNÜN KAHVESİ · {dayLabel.format(now).toLocaleUpperCase('tr-TR')}</span>
-      <span className="font-display text-[clamp(28px,3.4vw,38px)] font-medium leading-[1.08]">{coffee.name}</span>
+      <span className="font-display text-[clamp(28px,3.4vw,38px)] font-medium leading-[1.08]">{displayCoffeeName(coffee.name)}</span>
       <span className="text-base text-chip">{coffee.roaster.name}{notes ? ` · ${notes}` : ''}</span>
       <span className="mt-auto text-[15px] font-semibold group-hover:underline">Kahveyi gör →</span>
       <span className="text-[13px] text-chip">Her gün başka bir kahve. Yarın yenisi gelir.</span>
     </span>
     <span className="relative hidden w-[38%] max-w-56 flex-none self-center overflow-hidden rounded-2xl bg-surface sm:block sm:aspect-square">
-      <CoffeeImage source={coffee.rawMetadata.imageUrl!} roaster={coffee.roaster.name} alt="" sizes="224px" className="absolute inset-0 h-full w-full object-contain p-3" />
+      <CoffeeImage source={coffee.rawMetadata.imageUrl} roaster={coffee.roaster.name} alt="" sizes="224px" className="absolute inset-0 h-full w-full object-contain p-3" />
     </span>
   </Link>;
 }
@@ -74,7 +76,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
     <JsonLd data={{ '@type': 'WebSite', name: brand.name, url: absoluteUrl('/'), inLanguage: 'tr-TR', potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${absoluteUrl('/kahveler')}?search={search_term_string}` }, 'query-input': 'required name=search_term_string' } }} />
     <section className="studio-hero">
       <div className="studio-hero-copy">
-        <p className="eyebrow">Türkiye’nin bağımsız kahve rehberi</p>
+        <p className="eyebrow">{data ? `${data.counts.coffees.toLocaleString('tr-TR')} kahve · ${data.counts.roasters} kavurucu · her gün güncel` : 'Türkiye’nin bağımsız kahve rehberi'}</p>
         <h1>İyi bir kahve.<br /><em>Senin damak tadın.</em></h1>
         <p className="studio-intro">Her çekirdeğin bir hikâyesi, her fincanın bir karakteri var. Sana uygun kahveyi keşfet, doğrudan kavurucusundan al.</p>
         <div className="studio-actions"><Link href="/quiz" className="button-dark button-lg">Kahvemi bul</Link><Link href="/kahveler" className="button-light button-lg">Kataloğu keşfet</Link></div>
@@ -99,14 +101,13 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
     {data ? <>
       <section className="section-space studio-latest">
         <TasteArrivals>{data.catalog.length ? <DiscoveryGrid coffees={data.catalog} source="home" /> : <DiscoveryEmpty title={`Son ${ARRIVAL_DAYS} günde yeni gelen kahve yok.`}>Kavurucular yeni bir kahve çıkardığında burada göreceksin.</DiscoveryEmpty>}</TasteArrivals>
-        <div className="studio-counts"><span><strong>{data.counts.coffees.toLocaleString('tr-TR')}</strong> kahve</span><span><strong>{data.counts.roasters}</strong> kavurucu</span><p>Tek bir yerde. Kendi fiyatlarıyla.</p></div>
       </section>
       <FeedSection title="Fiyatı düşenler." href="/firsatlar" coffees={data.drops} />
       <FeedSection title="Tekrar raflarda." href="/yeni?event=RESTOCKED" coffees={data.restocked} />
       {data.roasters.length ? <section className="section-space"><div className="section-heading"><h2>Kavurucular.</h2><Link href="/kavurucular" className="text-link">{data.roasters.length} kavurucunun hepsi →</Link></div>
-        <ul className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">{[...data.roasters].sort((a, b) => b.coffeeCount - a.coffeeCount).slice(0, 8).map(roaster => <li key={roaster.id}><Link href={`/kavurucu/${roaster.slug}`} className="flex min-h-11 items-center gap-3.5 rounded-[14px] border border-line bg-surface px-[18px] py-4 hover:border-accent"><RoasterInitial name={roaster.name} size="sm" /><span><span className="block font-display text-lg">{roaster.name}</span><span className="text-[13px] text-muted">{roaster.city || 'Bağımsız kavurucu'}</span></span></Link></li>)}</ul>
+        <ul className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">{[...data.roasters].sort((a, b) => b.coffeeCount - a.coffeeCount).slice(0, 8).map(roaster => <li key={roaster.id}><Link href={`/kavurucu/${roaster.slug}`} className="flex h-full min-h-11 items-center gap-3.5 rounded-[14px] border border-line bg-surface px-[18px] py-4 hover:border-accent"><RoasterInitial name={roaster.name} size="sm" /><span><span className="block font-display text-lg">{roaster.name}</span><span className="text-[13px] text-muted">{roaster.city || 'Bağımsız kavurucu'}</span></span></Link></li>)}</ul>
       </section> : null}
     </> : <section className="section-space"><DataSourceNotice title="Kahveler şu an yüklenemiyor." message="Katalog bağlantısına ulaşamadık. Yeniden deneyebilir veya damak tadını keşfetmek için testi çözebilirsin." actionHref="/kahveler" actionLabel="Kataloğu yeniden aç" /></section>}
-    <section className="studio-journal"><div><p className="eyebrow">Kahve molası</p><h2>Güzel kahve,<br /><em>küçük bir ritüel.</em></h2><p>Çekirdeğini seçtin. Şimdi doğru oranı bul, suyunu hazırla ve kendi fincanını demle.</p><Link href="/guide#calculator" className="text-link">Demleme rehberine git ↗</Link></div><NewsletterForm source="home-bottom" /></section>
+    <section className="studio-journal"><div><p className="eyebrow">Kahve molası</p><h2>Güzel kahve,<br /><em>küçük bir ritüel.</em></h2><p>Çekirdeğini seçtin. Şimdi doğru oranı bul, suyunu hazırla ve kendi fincanını demle.</p><Link href="/guide#calculator" className="text-link">Demleme rehberine git ↗</Link></div>{signupsEnabled() && <NewsletterForm source="home-bottom" />}</section>
   </div>;
 }

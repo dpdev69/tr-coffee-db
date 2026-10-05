@@ -10,6 +10,7 @@ import { itemLines } from '@/lib/digest-lines';
 import { JsonLd, breadcrumbList } from '@/components/layout/json-ld';
 import { DiscoveryCard } from '@/components/v2/discovery-card';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
+import { signupsEnabled } from '@/lib/signups';
 import { SponsorCard } from '@/components/v2/sponsor-card';
 import { listCatalog, type CatalogCoffee } from '../../../../shared/v2/catalog';
 import type { CoffeeEvent } from '../../../../shared/v2/types';
@@ -118,7 +119,7 @@ export default async function IssuePage({ params }: { params: Promise<{ month: s
         </ul>
       </> : null}
 
-      <NewsletterForm source="issue" className="mt-14" title="Gelecek sayı e-postana gelsin" />
+      {signupsEnabled() && <NewsletterForm source="issue" className="mt-14" title="Gelecek sayı e-postana gelsin" />}
       <nav aria-label="Diğer sayılar" className="mt-8 flex justify-between gap-4 text-[15px]">
         {older ? <Link href={`/bulten/${older.month}`} className="text-link">← {monthLabel(older.month)}</Link> : <span />}
         <Link href="/bulten" className="text-link">Tüm sayılar</Link>

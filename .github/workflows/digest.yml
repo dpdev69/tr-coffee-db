@@ -19,7 +19,8 @@ jobs:
     timeout-minutes: 10
     env:
       CLOUDFLARE_ACCOUNT_ID: '4c1a4493b8584296f35c3eddc8279112'
-      CLOUDFLARE_D1_DATABASE_ID: '5090f52d-546e-4ba6-bdcd-b4ee531a29a3'
+      # Repository variable CLOUDFLARE_D1_DATABASE_ID selects the database; unset keeps staging (docs/launch-day.md switches it).
+      CLOUDFLARE_D1_DATABASE_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID || '5090f52d-546e-4ba6-bdcd-b4ee531a29a3' }}
       CLOUDFLARE_D1_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
     steps:
       - uses: actions/checkout@v5

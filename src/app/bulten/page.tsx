@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
+import { signupsEnabled } from '@/lib/signups';
 import { monthLabel } from './issue';
 import { issues } from './issues.generated';
 
@@ -23,8 +24,8 @@ export default function IssueIndexPage() {
           <h2 className="mt-1 font-display text-[26px] leading-tight"><Link href={`/bulten/${issue.month}`} className="hover:text-accent hover:underline">{issue.title}</Link></h2>
           <p className="mt-2 text-base leading-relaxed text-muted">{issue.intro}</p>
         </li>)}
-      </ol> : <p className="mt-10 border-t border-line pt-6 text-base text-muted">İlk sayı yakında. Yayımlandığında e-postana gelsin.</p>}
-      <NewsletterForm source="issue" className="mt-14" title="Gelecek sayı e-postana gelsin" />
+      </ol> : <p className="mt-10 border-t border-line pt-6 text-base text-muted">{signupsEnabled() ? 'İlk sayı yakında. Yayımlandığında e-postana gelsin.' : 'İlk sayı yakında.'}</p>}
+      {signupsEnabled() && <NewsletterForm source="issue" className="mt-14" title="Gelecek sayı e-postana gelsin" />}
     </div>
   </div>;
 }

@@ -10,7 +10,7 @@ export const petra: RoasterConfig = {
   websiteUrl: 'https://petracoffee.com',
   shopUrl: 'https://petracoffee.com',
   platform: 'shopify',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   productTypeFilter: ['kahve', 'coffee'],
 };
@@ -21,7 +21,7 @@ export const montag: RoasterConfig = {
   websiteUrl: 'https://montagcoffee.com',
   shopUrl: 'https://montagcoffee.com',
   platform: 'shopify',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   productTypeFilter: ['filtre kahve', 'espresso kahve', 'kahve'],
 };
@@ -44,7 +44,7 @@ export const coachCoffee: RoasterConfig = {
   websiteUrl: 'https://coachcoffeeco.com',
   shopUrl: 'https://coachcoffeeco.com',
   platform: 'shopify',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   tagFilters: ['kahve', 'coffee'],
 };
@@ -55,7 +55,7 @@ export const coffeenutz: RoasterConfig = {
   websiteUrl: 'https://www.coffeenutz.net',
   shopUrl: 'https://www.coffeenutz.net',
   platform: 'shopify',
-  city: 'Izmir',
+  city: 'İzmir',
   priceFormat: 'tl',
   productTypeFilter: ['taze kavrulmuş kahve', 'kahve'],
 };
@@ -77,7 +77,7 @@ export const nokCoffee: RoasterConfig = {
   websiteUrl: 'https://www.nokcoffee.com',
   shopUrl: 'https://www.nokcoffee.com',
   platform: 'shopify',
-  city: 'Izmir',
+  city: 'İzmir',
   priceFormat: 'tl',
   productTypeFilter: ['single origin', 'arabica', 'kahve', 'coffee'],
 };
@@ -88,7 +88,7 @@ export const boxx: RoasterConfig = {
   websiteUrl: 'https://boxxcoffee.com',
   shopUrl: 'https://boxxcoffee.com',
   platform: 'shopify',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   productTypeFilter: ['specialty', 'kahve', 'coffee'],
 };
@@ -99,7 +99,7 @@ export const nullCoffee: RoasterConfig = {
   websiteUrl: 'https://null.coffee',
   shopUrl: 'https://null.coffee',
   platform: 'shopify',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   productTypeFilter: ['specialty coffee'],
 };
@@ -110,7 +110,7 @@ export const kimma: RoasterConfig = {
   websiteUrl: 'https://kimmacoffee.com',
   shopUrl: 'https://shop.kimmacoffee.com',
   platform: 'shopify',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
 };
 
@@ -120,7 +120,7 @@ export const cupOfJoy: RoasterConfig = {
   websiteUrl: 'https://cupofjoy.com.tr',
   shopUrl: 'https://cupofjoy.com.tr',
   platform: 'shopify',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   productTypeFilter: ['kahve'],
 };
@@ -131,7 +131,7 @@ export const coffeeSapiens: RoasterConfig = {
   websiteUrl: 'https://www.coffeesapiens.com',
   shopUrl: 'https://www.coffeesapiens.com',
   platform: 'shopify',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   // No product_type or tags; the full catalog also lists zero-price brew guides ("FRENCH PRESS") that would read as coffees.
   collectionHandle: 'coffee-collection',
@@ -148,7 +148,7 @@ export const baristocrat: RoasterConfig = {
   websiteUrl: 'https://www.baristocrat.com',
   shopUrl: 'https://www.baristocrat.com',
   platform: 'woocommerce',
-  city: 'Izmir',
+  city: 'İzmir',
   priceFormat: 'kurus', // 75000 = 750 TL
 };
 
@@ -158,7 +158,7 @@ export const coffeeFriendzone: RoasterConfig = {
   websiteUrl: 'https://coffeefriendzone.com',
   shopUrl: 'https://coffeefriendzone.com',
   platform: 'woocommerce',
-  city: 'Izmir',
+  city: 'İzmir',
   priceFormat: 'kurus',
 };
 
@@ -168,7 +168,7 @@ export const coffeemamma: RoasterConfig = {
   websiteUrl: 'https://coffeemamma.com.tr',
   shopUrl: 'https://coffeemamma.com.tr',
   platform: 'woocommerce',
-  city: 'Izmir',
+  city: 'İzmir',
   priceFormat: 'tl', // 520 = 520 TL
 };
 
@@ -188,7 +188,7 @@ export const oldJava: RoasterConfig = {
   websiteUrl: 'https://oldjavacoffee.com',
   shopUrl: 'https://oldjavacoffee.com',
   platform: 'woocommerce',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'kurus', // 60000 = 600 TL
   // This uncategorized wholesale offer has only 1×60 kg, 5×60 kg, and 10×60 kg options.
   // Source: https://oldjavacoffee.com/urun/cafe-abyssinia-etiopia/
@@ -201,7 +201,7 @@ export const ordinarius: RoasterConfig = {
   websiteUrl: 'https://ordinariuscoffee.com',
   shopUrl: 'https://www.ordinariuscoffee.com/kategori/kahve',
   platform: 'custom',
-  city: 'Eskisehir',
+  city: 'Eskişehir',
   priceFormat: 'kurus',
   selectors: {productList:'.showcase',productLink:'.showcase-title a',productName:'.showcase-title',productPrice:'.showcase-price',productImage:'img',description:''},
 };
@@ -212,7 +212,7 @@ export const parsa: RoasterConfig = {
   websiteUrl: 'https://parsacoffeeroasters.com',
   shopUrl: 'https://parsacoffeeroasters.com/tr/magaza',
   platform: 'custom',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   structuredDataParser: 'parsa-catalog',
 };
@@ -223,7 +223,7 @@ export const poka: RoasterConfig = {
   websiteUrl: 'https://poka.coffee',
   shopUrl: 'https://poka.coffee',
   platform: 'woocommerce',
-  city: 'Izmir',
+  city: 'İzmir',
   priceFormat: 'kurus', // 60000 = 600 TL
 };
 
@@ -258,7 +258,7 @@ export const molecule: RoasterConfig = {
   websiteUrl: 'https://coffeemolecule.com',
   shopUrl: 'https://coffeemolecule.com',
   platform: 'woocommerce',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl', // 680 = 680 TL
 };
 
@@ -268,7 +268,7 @@ export const williams: RoasterConfig = {
   websiteUrl: 'https://williamsroastery.com',
   shopUrl: 'https://williamsroastery.com',
   platform: 'woocommerce',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl', // 1200 = 1200 TL
 };
 
@@ -294,7 +294,7 @@ export const story: RoasterConfig = {
   websiteUrl: 'https://storyroasters.com',
   shopUrl: 'https://storyroasters.com/nitelikli-kahve',
   platform: 'ikas',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   structuredDataParser: 'next-data-products',
 };
@@ -305,7 +305,7 @@ export const spada: RoasterConfig = {
   websiteUrl: 'https://spadacoffee.com',
   shopUrl: 'https://spadacoffee.com/kahve',
   platform: 'ikas',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   structuredDataParser: 'next-data-products',
 };
@@ -316,7 +316,7 @@ export const gourme: RoasterConfig = {
   websiteUrl: 'https://gourmecoffee.com',
   shopUrl: 'https://gourmecoffee.com/kahveler',
   platform: 'ikas',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   structuredDataParser: 'next-data-products',
   coffeeProductKeywords: [
@@ -358,7 +358,7 @@ export const kernel: RoasterConfig = {
   websiteUrl: 'https://kernelcoffee.co',
   shopUrl: 'https://kernelcoffee.co/kahve-1',
   platform: 'ikas',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   structuredDataParser: 'next-data-products',
 };
@@ -369,7 +369,7 @@ export const orkunUstel: RoasterConfig = {
   websiteUrl: 'https://orkunustel.com',
   shopUrl: 'https://orkunustel.com/nitelikli-kahve',
   platform: 'ikas',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   structuredDataParser: 'next-data-products',
   coffeeProductKeywords: [
@@ -392,7 +392,7 @@ export const calibre: RoasterConfig = {
   websiteUrl: 'https://coffeecalibre.com',
   shopUrl: 'https://coffeecalibre.com',
   platform: 'ikas',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   structuredDataParser: 'next-data-products',
   coffeeProductKeywords: [
@@ -483,7 +483,7 @@ export const kronotrop: RoasterConfig = {
   websiteUrl: 'https://kronotrop.com.tr',
   shopUrl: 'https://kronotrop.com.tr/alisveris/kategori/kahveler',
   platform: 'custom',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   derivePackageFromProductPage: true,
   selectors: {
@@ -503,7 +503,7 @@ export const probador: RoasterConfig = {
   websiteUrl: 'https://probadorcolectiva.com',
   shopUrl: 'https://probadorcolectiva.com/urunler',
   platform: 'custom',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   structuredDataParser: 'probador-products',
 };
@@ -514,7 +514,7 @@ export const kafeinKultur: RoasterConfig = {
   websiteUrl: 'https://www.kafeinkultur.com',
   shopUrl: 'https://www.kafeinkultur.com/kafeinkultur',
   platform: 'custom',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   derivePackageFromProductPage: true,
   selectors: {
@@ -535,7 +535,7 @@ export const coffeerem: RoasterConfig = {
   websiteUrl: 'https://coffeerem.com',
   shopUrl: 'https://coffeerem.com/magaza/',
   platform: 'woocommerce',
-  city: 'Izmir',
+  city: 'İzmir',
   priceFormat: 'tl',
   derivePackageFromProductPage: true,
   selectors: {
@@ -556,7 +556,7 @@ export const coffeeDepartment: RoasterConfig = {
   websiteUrl: 'https://coffeedepartment.co',
   shopUrl: 'https://coffeedepartment.co/kahveler',
   platform: 'custom',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   derivePackageFromProductPage: true,
   selectors: {
@@ -597,7 +597,7 @@ export const choCoffee: RoasterConfig = {
   websiteUrl: 'https://chocoffeeroastery.com',
   shopUrl: 'https://chocoffeeroastery.com/tr/kahve',
   platform: 'custom',
-  city: 'Istanbul',
+  city: 'İstanbul',
   priceFormat: 'tl',
   derivePackageFromProductPage: true,
   selectors: {

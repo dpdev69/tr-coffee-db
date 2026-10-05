@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { displayCoffeeName } from '@/lib/coffee-display';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { formatMoney } from '@/lib/coffee-display';
 import { deviceStore, SAVED_KEY } from '@/lib/device-store';
@@ -99,11 +100,11 @@ const money = (minor: number | null | undefined, currency: string | null | undef
 export function SavedRow({ saved, item, compact = false }: { saved: SavedCoffee; item: SavedItem | undefined; compact?: boolean }) {
   const status = savedStatus(saved, item);
   const coffee = item?.coffee;
-  const name = coffee?.name ?? 'Bu kahve artık listede yok';
+  const name = coffee ? displayCoffeeName(coffee.name) : 'Bu kahve artık listede yok';
   const highlight = status.kind === 'drop' || status.kind === 'restocked';
   const price = status.kind === 'gone' ? null : status.kind === 'sold_out' ? 'Tükendi' : money(status.offer.priceMinor, status.offer.currency);
   const body = <>
-    {compact ? null : <span aria-hidden="true" className="inline-flex h-16 w-16 flex-none items-center justify-center rounded-[14px] bg-tint font-display text-[22px] text-warm">{(coffee?.roaster.name ?? '?').charAt(0).toLocaleUpperCase('tr-TR')}</span>}
+    {compact ? null : <span aria-hidden="true" className="hidden h-16 w-16 flex-none items-center sm:inline-flex justify-center rounded-[14px] bg-tint font-display text-[22px] text-warm">{(coffee?.roaster.name ?? '?').charAt(0).toLocaleUpperCase('tr-TR')}</span>}
     <span className="min-w-0 flex-[1_1_180px]">
       <span className="block font-display text-lg leading-tight text-ink">{name}</span>
       {coffee ? <span className="block text-[13px] text-muted">{coffee.roaster.name}</span> : null}

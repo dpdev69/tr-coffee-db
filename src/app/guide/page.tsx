@@ -21,7 +21,7 @@ export default function GuidePage() {
         <h1 className="mt-4 font-display text-5xl leading-[1.08] sm:text-6xl">
           Kahveni biraz
           <br />
-          <em className="text-accent">daha yakından tanı.</em>
+          <em className="not-italic text-accent">daha yakından tanı.</em>
         </h1>
         <p className="mt-5 max-w-xl text-base leading-7 text-muted">
           Seçmek için uzman olman gerekmiyor. Pakette neye bakacağını bil,

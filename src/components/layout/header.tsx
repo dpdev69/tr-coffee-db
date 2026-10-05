@@ -8,7 +8,7 @@ import { SearchInput } from '@/components/ui/search-input';
 
 const links = [
   { href: '/kahveler', label: 'Kahveler' },
-  { href: '/yeni', label: 'Yeni keşifler' },
+  { href: '/yeni', label: 'Yeni gelenler' },
   { href: '/firsatlar', label: 'Fırsatlar' },
   { href: '/kavurucular', label: 'Kavurucular' },
   { href: '/bulten', label: 'Bülten' },
