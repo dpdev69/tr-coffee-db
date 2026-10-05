@@ -12,6 +12,12 @@ export const EDGE_CACHE_HEADERS = { 'Cache-Control': 'public, max-age=0, must-re
  * every click still runs and is counted); only when the Worker fails, for instance with the daily database allowance
  * spent, does the edge send the visitor on with the last redirect it saw for that address, for up to a day. */
 export const OUTAGE_ONLY_HEADERS = { 'Cache-Control': 'max-age=0, must-revalidate', 'CDN-Cache-Control': 'public, max-age=0, stale-if-error=86400' };
+/** Edge policy for a response whose content changes at Istanbul midnight (/api/since): fresh until then at the latest, and no
+ * stale-while-revalidate, which would hand the first visitor after midnight yesterday's copy. stale-if-error stays. */
+export function untilIstanbulMidnight(now = Date.now()): string {
+  const untilMidnight = 86400 - Math.floor((now + 3 * 3600000) / 1000) % 86400;
+  return EDGE_CACHE_CONTROL.replace(/max-age=\d+/, maxAge => `max-age=${Math.min(Number(maxAge.slice(8)), untilMidnight)}`).replace(/,\s*stale-while-revalidate=\d+/, '');
+}
 type Purge = { purge(options: { purgeEverything: true }): unknown };
 /** Purges Workers Cache with the first handle that has purge() (the request's ctx.cache, then cloudflare:workers).
  * A missing, throwing or unsuccessful purge is false, never an exception, so the caller answers 503 rather than 500. */
