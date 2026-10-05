@@ -7,7 +7,6 @@ import { Footer } from "@/components/layout/footer";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_URL } from "@/lib/site";
 import { CompareDock } from "@/components/coffee/compare-controls";
 import { WebAnalytics } from "@/components/v2/web-analytics";
-import { ConsentControls } from "@/components/v2/consent-controls";
 import { CONSENT_COOKIE } from "../../shared/v2/consent";
 import "./globals.css";
 
@@ -89,7 +88,6 @@ export default function RootLayout({
         <main id="main-content" className="flex-1">{children}</main>
         <CompareDock />
         <Footer />
-        <ConsentControls />
         <WebAnalytics />
       </body>
     </html>
