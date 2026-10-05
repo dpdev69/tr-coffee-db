@@ -1,4 +1,4 @@
-import type { CatalogDatabase, Statement } from './database';
+import type { CatalogDatabase, SqlValue, Statement } from './database';
 
 /** The catalog changes once a night, so a page or JSON response is the same for every visitor until the next refresh.
  * Workers Cache (tiered, shared by every location) keeps it for 6 hours and the nightly job purges it once corrections
@@ -57,4 +57,31 @@ export function withDerivedCache(db:CatalogDatabase,namespace:string,ttlSeconds=
 export function invalidateDerived(db:CatalogDatabase):Statement[] {
   return [db.prepare(DERIVED_CACHE_TABLE),db.prepare(`DELETE FROM derived_cache WHERE key<>'${INVALIDATED}'`),
     db.prepare(`INSERT INTO derived_cache(key,value_json,created_at) VALUES('${INVALIDATED}','',strftime('%Y-%m-%dT%H:%M:%fZ','now')) ON CONFLICT(key) DO UPDATE SET created_at=excluded.created_at`)];
+}
+
+const requestReads = new WeakMap<object, Map<string, Promise<unknown>>>();
+/** For a router (RSC) request without a loading boundary, vinext runs the page once to catch redirects and not-found and
+ * then renders it, so every catalog read happened twice. Within one request (scope) each read statement and derived
+ * result is now asked for once and shared; nothing outlives the request. A failed read is not kept. */
+export function readOncePerRequest(db: CatalogDatabase, scope: object | null | undefined): CatalogDatabase {
+  if (!scope) return db;
+  let memo = requestReads.get(scope);
+  if (!memo) requestReads.set(scope, memo = new Map());
+  const reads = memo;
+  const once = <T>(key: string, run: () => Promise<T>): Promise<T> => {
+    if (!reads.has(key)) reads.set(key, run().catch(error => { reads.delete(key); throw error; }));
+    return reads.get(key) as Promise<T>;
+  };
+  const raw = new WeakMap<Statement, Statement>();
+  const wrap = (sql: string, statement: Statement, values: SqlValue[]): Statement => {
+    const key = `${sql}\u0000${JSON.stringify(values)}`;
+    const wrapped: Statement = { bind: (...next) => wrap(sql, statement.bind(...next), next), all: <T>() => once(`all:${key}`, () => statement.all<T>()), first: <T>() => once(`first:${key}`, () => statement.first<T>()) };
+    raw.set(wrapped, statement);
+    return wrapped;
+  };
+  return {
+    prepare: sql => /^\s*(?:SELECT|WITH)\b/i.test(sql) ? wrap(sql, db.prepare(sql), []) : db.prepare(sql),
+    batch: statements => db.batch(statements.map(statement => raw.get(statement) ?? statement)),
+    ...db.derive ? { derive: <T>(name: string, compute: () => Promise<T>) => once(`derive:${name}`, () => db.derive!(name, compute)) } : {},
+  };
 }

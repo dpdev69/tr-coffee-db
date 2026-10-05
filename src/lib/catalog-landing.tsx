@@ -63,6 +63,6 @@ export function landingHeading(item: Landing) {
 export function LandingLinks({ landings }: { landings: LandingWithFacts[] }) {
   const groups: [string, LandingWithFacts[]][] = [['Kökene göre', landings.filter(item => item.facet === 'koken')], ['İşleme göre', landings.filter(item => item.facet === 'islem')]];
   return <nav aria-label="Kökene ve işleme göre kahveler" className="mt-12 grid gap-6 border-t border-line pt-8 sm:grid-cols-2">
-    {groups.map(([title, items]) => items.length ? <div key={title}><h2 className="mb-3 font-display text-2xl">{title}</h2><ul className="flex flex-wrap gap-2">{items.map(item => <li key={item.path}><Link href={item.path} className="filter-option">{item.label} <span className="text-muted">{item.coffees}</span></Link></li>)}</ul></div> : null)}
+    {groups.map(([title, items]) => items.length ? <div key={title}><h2 className="mb-3 font-display text-2xl">{title}</h2><ul className="flex flex-wrap gap-2">{items.map(item => <li key={item.path}><Link href={item.path} prefetch={false} className="filter-option">{item.label} <span className="text-muted">{item.coffees}</span></Link></li>)}</ul></div> : null)}
   </nav>;
 }

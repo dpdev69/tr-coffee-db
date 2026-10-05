@@ -1,6 +1,7 @@
 import { markRouteCacheabilityFinalResponseUncacheable } from 'vinext/shims/cacheability-classification';
 import { permanentRedirect } from 'next/navigation';
-import { TRACKING_PARAM, withDerivedCache } from '../../shared/v2/read-cache';
+import { getRequestExecutionContext } from 'vinext/shims/request-context';
+import { readOncePerRequest, TRACKING_PARAM, withDerivedCache } from '../../shared/v2/read-cache';
 import type { CatalogDatabase } from '../../shared/v2/database';
 
 /** vinext resolves the native Workers import; Next's legacy build can still compile and serve utility routes. */
@@ -14,7 +15,7 @@ export async function getCatalogDatabase(): Promise<CatalogDatabase> {
   const env = await getV2Environment();
   if (!env.DB) throw new Error('Catalog binding unavailable');
   // The Worker version keys derived results, so a deploy never reads a shape written by older code.
-  return withDerivedCache(env.DB, `${env.DEPLOYMENT_STAGE || 'local'}:${env.CF_VERSION_METADATA?.id ?? 'dev'}`);
+  return readOncePerRequest(withDerivedCache(env.DB, `${env.DEPLOYMENT_STAGE || 'local'}:${env.CF_VERSION_METADATA?.id ?? 'dev'}`), getRequestExecutionContext());
 }
 
 /** Pages are cached at the edge by next.config.ts; a render that could not read the catalog must not be. vinext's own veto
