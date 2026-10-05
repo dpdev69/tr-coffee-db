@@ -31,11 +31,11 @@ export default async function QuizResultPage({ searchParams }: { searchParams: P
     : `Bugün listede olan ${result?.total ?? 0} kahveyi cevaplarına göre sıraladık. Kavurucunun kendi yazdığı bilgi, bizim açıklamadan çıkardığımızdan daha ağır basar; bilgisi olmayan kahve ne öne geçer ne geride kalır.`;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="page-shell section-space max-w-5xl">
       <div className="quiz-result-head">
         <div className="min-w-0">
           <p className="eyebrow">Damak testi sonucu</p>
-          <h1 className="mt-3 font-display text-[clamp(34px,4.6vw,52px)] leading-[1.08] text-ink">{heading}</h1>
+          <h1 className="mt-3 font-display text-title text-ink">{heading}</h1>
           <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-muted">{intro}</p>
           <div className="mt-5 flex flex-wrap items-center gap-2" aria-label="Cevapların">
             {quizAnswerSummary(answers).map((chip) => <span key={chip} className="rounded-full border border-line bg-surface px-3.5 py-2 text-sm text-ink">{chip}</span>)}

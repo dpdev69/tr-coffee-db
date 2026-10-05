@@ -18,7 +18,7 @@ export default function GuidePage() {
         author: { '@type': 'Organization', name: brand.name, url: absoluteUrl('/') }, publisher: { '@type': 'Organization', name: brand.name, url: absoluteUrl('/') } }} />
       <div className="mb-10 max-w-3xl">
         <p className="eyebrow">Daha iyi bir fincan için</p>
-        <h1 className="mt-4 font-display text-5xl leading-[1.08] sm:text-6xl">
+        <h1 className="mt-4 font-display text-title">
           Kahveni biraz
           <br />
           <em className="not-italic text-accent">daha yakından tanı.</em>
@@ -36,7 +36,7 @@ export default function GuidePage() {
           </Link>
         </div>
       </div>
-      <div className="guide-layout">
+      <div className="guide-layout grid-pair">
         <article className="guide-copy">
           <h2>Pakette üç şeye bak.</h2>
           <p>

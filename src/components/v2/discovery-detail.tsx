@@ -31,12 +31,12 @@ export function DiscoveryDetail({coffee}:{coffee:CatalogCoffee}){
             {offer.compareAtMinor!=null&&offer.priceMinor!=null&&offer.compareAtMinor>offer.priceMinor?<p className="mt-3 text-xs leading-5 text-muted">Kavurucu referans fiyatı: {formatMoney(offer.compareAtMinor/100,offer.currency??'(para birimi belirtilmemiş)')}. Bu beyan, geçmiş gözlemlerimizle doğrulanmış bir indirim anlamına gelmez.</p>:null}</div>;
   return <>
     <nav aria-label="İçerik yolu" className="mb-4 flex flex-wrap items-center gap-2 text-sm"><Link href="/kahveler" className="inline-flex min-h-11 items-center text-accent hover:underline">Kahveler</Link><span className="text-muted" aria-hidden="true">/</span><Link href={`/kavurucu/${coffee.roaster.slug}`} className="inline-flex min-h-11 items-center text-accent hover:underline">{coffee.roaster.name}</Link><span className="text-muted" aria-hidden="true">/</span><span className="text-muted" aria-current="page">{name}</span></nav>
-    <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
-      <div className="relative aspect-square max-w-[560px] overflow-hidden rounded-[18px] border border-line bg-surface lg:rounded-3xl"><CoffeeImage roaster={coffee.roaster.name} source={raw.imageUrl} alt={name} sizes="(max-width: 1023px) 90vw, 45vw" loading="eager" className="absolute inset-0 h-full w-full object-contain p-6"/></div>
+    <div className="grid-pair items-start">
+      <div className="relative aspect-square max-w-[560px] overflow-hidden rounded-[18px] border border-line bg-surface lg:rounded-3xl"><CoffeeImage roaster={coffee.roaster.name} source={raw.imageUrl} alt={name} sizes="(max-width: 799px) 92vw, 45vw" loading="eager" className="absolute inset-0 h-full w-full object-contain p-6"/></div>
       <div className="flex flex-col gap-5">
         <div>
           <p className="mb-2.5 flex flex-wrap items-center gap-2 text-[15px]"><Link href={`/kavurucu/${coffee.roaster.slug}`} className="inline-flex min-h-11 items-center font-semibold text-accent hover:underline">{coffee.roaster.name}</Link>{coffee.roaster.city?<span className="text-muted">· {coffee.roaster.city}</span>:null}{currentBadges(coffee).map(event=><span key={event.id} className="coffee-card-badge">{EVENT_LABELS[event.type]}</span>)}</p>
-          <h1 className="mb-3.5 font-display text-[clamp(32px,4vw,50px)] leading-[1.06]">{name}</h1>
+          <h1 className="mb-3.5 font-display text-title">{name}</h1>
           <p className="mb-3.5 text-[17px]">{[coffeeOrigin(coffee),coffeeProcess(coffee),roast&&roast!=='unknown'?ROAST_LABELS[roast]:null].filter(Boolean).join(' · ')||<span className="italic text-muted">Köken ve işlem bilgisi bekleniyor</span>}</p>
           {(notes.length?notes.slice(0,5):tastes).length?<ul aria-label="Tadım notları" className="flex flex-wrap gap-2">{(notes.length?notes.slice(0,5):tastes).map(note=><li key={note} className="rounded-full bg-chip px-3.5 py-1.5 text-[15px] text-accent-deep">{note}</li>)}</ul>:<p className="italic text-muted">Tat profili henüz belirtilmemiş</p>}
         </div>
@@ -48,8 +48,8 @@ export function DiscoveryDetail({coffee}:{coffee:CatalogCoffee}){
       </div>
     </div>
     <section className="mt-14">
-      <h2 className="mb-2 font-display text-3xl">Çekirdeği tanı.</h2>
-      <dl className="grid gap-x-10 sm:grid-cols-2 lg:grid-cols-4">{facts.map(([label,value,from,href])=><div key={label} className="border-b border-line py-3.5"><dt className="mb-1 text-[13px] text-muted">{label}</dt>{value?<dd className="font-medium">{href?<Link href={href} className="text-accent underline-offset-4 hover:underline">{value}</Link>:value}{from?<span className="block text-xs font-normal text-muted">{from}</span>:null}</dd>:<dd className="italic text-muted">Kavurucu belirtmemiş</dd>}</div>)}</dl>
+      <h2 className="mb-2 font-display text-subtitle">Çekirdeği tanı.</h2>
+      <dl className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,13rem),1fr))] gap-x-[clamp(24px,3vw,40px)]">{facts.map(([label,value,from,href])=><div key={label} className="border-b border-line py-3.5"><dt className="mb-1 text-[13px] text-muted">{label}</dt>{value?<dd className="font-medium">{href?<Link href={href} className="text-accent underline-offset-4 hover:underline">{value}</Link>:value}{from?<span className="block text-xs font-normal text-muted">{from}</span>:null}</dd>:<dd className="italic text-muted">Kavurucu belirtmemiş</dd>}</div>)}</dl>
       {notes.length?<div className="mt-6"><h3 className="text-sm font-semibold">Tadım notları</h3><p className="mt-2 text-sm leading-7 text-muted">{notes.join(' · ')}</p></div>:null}
       {raw.description?<details className="mt-5"><summary className="inline-flex min-h-11 items-center text-sm font-semibold text-accent">Kavurucunun açıklaması</summary><p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] leading-7">{raw.description}</p></details>:null}
     </section>

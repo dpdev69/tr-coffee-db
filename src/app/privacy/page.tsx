@@ -11,11 +11,11 @@ export const metadata: Metadata = pageMetadata('Gizlilik', `${SITE_NAME} hangi v
 
 export default function PrivacyPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="page-shell section-space max-w-3xl">
       <p className="eyebrow">
         Güven
       </p>
-      <h1 className="mt-3 font-display text-5xl leading-none text-ink">Gizlilik</h1>
+      <h1 className="mt-3 font-display text-title leading-none text-ink">Gizlilik</h1>
       <p className="mt-4 text-sm leading-6 text-muted">
         {SITE_NAME} hesap, ödeme ya da teslimat bilgisi toplamaz. Satın alma işlemleri
         kavurucuların kendi sitelerinde tamamlanır.

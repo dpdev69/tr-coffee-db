@@ -15,6 +15,30 @@
   --color-on-accent: #ffffff; /* text and icons on accent fills */
   --color-warm: #c63d24; /* eyebrows, numerals, small details on ground/surface only (4.4:1 on tint) */
 }
+/*
+ * Fluid layout. One set of values that grows with the window, so there is no width where the layout stops responding:
+ * the page column grows to --page-max, gutters and section spacing scale with the viewport, headings use the clamp
+ * scale below (utilities text-display, text-title, text-heading, text-subtitle), and card grids pick their own column
+ * count (.card-grid). rem bounds keep browser zoom and the visitor's font size working.
+ */
+@theme static {
+  --text-display: clamp(2.5rem, 1.6rem + 3.6vw, 4.75rem); /* home hero */
+  --text-display--line-height: 1.06;
+  --text-title: clamp(2.25rem, 1.8rem + 1.6vw, 3.5rem); /* page h1 */
+  --text-title--line-height: 1.08;
+  --text-heading: clamp(1.625rem, 1.3rem + 1.1vw, 2.5rem); /* section h2 */
+  --text-heading--line-height: 1.15;
+  --text-subtitle: clamp(1.5rem, 1.25rem + 0.8vw, 2.125rem); /* smaller h2 */
+  --text-subtitle--line-height: 1.2;
+}
+:root {
+  --page-max: 1680px;
+  --gutter: clamp(16px, 4vw, 64px);
+  --section-space: clamp(32px, 2rem + 2.5vw, 72px);
+  --grid-gap: clamp(16px, 0.75rem + 0.8vw, 28px);
+  --card-min: 15rem; /* narrowest a coffee card's footer (two 44px controls) fits */
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -61,11 +85,57 @@
     font-weight: 500;
     letter-spacing: -0.01em;
   }
+  /* Also a size container, so grids inside it can count columns from the column's width (.card-grid, .grid-trio). */
   .page-shell {
     width: 100%;
-    max-width: 1280px;
+    max-width: var(--page-max);
     margin-inline: auto;
-    padding-inline: 20px;
+    padding-inline: var(--gutter);
+    container-type: inline-size;
+  }
+  /* Open-ended lists: as many columns as fit at --card-min, empty tracks kept so one or two results never stretch. */
+  .card-grid {
+    display: grid;
+    gap: var(--grid-gap);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min)), 1fr));
+  }
+  /* Fixed sets of four (home feeds, similar coffees, top roasters): 1, 2 or 4 across, never 3 + 1. */
+  .card-grid:has(> :nth-child(4):last-child),
+  .grid-quad {
+    display: grid;
+    gap: var(--grid-gap);
+    grid-template-columns: 1fr;
+  }
+  @container (min-width: 32rem) {
+    .card-grid:has(> :nth-child(4):last-child),
+    .grid-quad {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @container (min-width: 64rem) {
+    .card-grid:has(> :nth-child(4):last-child),
+    .grid-quad {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  /* Sets of three: one column, then three; never 2 + 1. */
+  .card-grid:has(> :nth-child(3):last-child),
+  .grid-trio {
+    display: grid;
+    gap: var(--grid-gap);
+    grid-template-columns: 1fr;
+  }
+  @container (min-width: 46rem) {
+    .card-grid:has(> :nth-child(3):last-child),
+    .grid-trio {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  /* Two blocks side by side once each gets 22rem, stacked below that. */
+  .grid-pair {
+    display: grid;
+    gap: clamp(28px, 4vw, 64px);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
   }
   .eyebrow {
     font-size: 12px;
@@ -84,17 +154,18 @@
     align-items: center;
     gap: 12px;
     min-height: 44px;
-    padding: 0 20px;
+    max-width: 100%;
+    padding: 6px 20px;
     border: 1px solid var(--color-accent);
     border-radius: 999px;
     font-size: 15px;
     font-weight: 600;
-    white-space: nowrap;
+    text-align: center; /* wraps only when a label is wider than the column (a 320px phone) */
     transition: background 0.2s;
   }
   .button-lg {
     min-height: 52px;
-    padding-inline: 28px;
+    padding-inline: clamp(18px, 3vw, 28px);
     font-size: 17px;
   }
   .button-dark {
@@ -144,27 +215,27 @@
 
   /* Sections */
   .section-space {
-    padding-block: 32px;
+    padding-block: var(--section-space);
   }
   .section-space.pt-0 {
     padding-top: 0;
   }
   .section-heading {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: 12px;
+    gap: 0 clamp(12px, 2vw, 24px);
     align-items: baseline; /* the link sits on the heading's line, not beside its intro */
     margin-bottom: 24px;
   }
   .section-heading h2 {
     font-family: var(--font-display);
-    font-size: 26px;
+    font-size: var(--text-heading);
     font-weight: 500;
     line-height: 1.15;
     margin-top: 8px;
   }
   .section-heading > .text-link {
-    font-size: 12px;
     white-space: nowrap;
   }
   .catalog-caption {
@@ -196,7 +267,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 40px;
-    padding-block: 40px 48px;
+    padding-block: clamp(40px, 1rem + 5vw, 96px) clamp(48px, 2rem + 2vw, 72px);
   }
   .studio-hero-copy {
     flex: 1 1 440px;
@@ -210,7 +281,7 @@
   .studio-hero h1 {
     margin-top: 24px;
     font-family: var(--font-display);
-    font-size: clamp(42px, 10vw, 62px);
+    font-size: var(--text-display);
     line-height: 1.06;
     letter-spacing: -0.01em;
     font-weight: 500;
@@ -221,9 +292,9 @@
     font-style: normal;
   }
   .studio-intro {
-    max-width: 490px;
-    margin-top: 20px;
-    font-size: 16px;
+    max-width: 34em;
+    margin-top: clamp(20px, 2vw, 28px);
+    font-size: clamp(16px, 0.9rem + 0.25vw, 18px);
     line-height: 1.9;
     color: var(--color-muted);
   }
@@ -234,19 +305,21 @@
     align-items: center;
     margin-top: 28px;
   }
-  /* Phones: two full-width calls to action, one above the other, as in the design. */
+  /* Phones: two full-width calls to action, one above the other, as in the design; side by side once both fit. */
   .studio-actions a {
-    width: 100%;
+    flex: 1 1 100%;
+  }
+  @container (min-width: 30rem) {
+    .studio-actions a {
+      flex: 0 0 auto;
+    }
   }
   .studio-small {
     font-size: 12px;
     color: var(--color-muted);
     margin-top: 14px;
   }
-  .studio-paths {
-    display: grid;
-    gap: 16px;
-  }
+
   /* Number above the title, arrow on the right: the design's path card. */
   .studio-paths a {
     display: grid;
@@ -289,17 +362,14 @@
     padding-top: 54px;
   }
   .studio-journal {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 30px;
     align-items: center;
     border-top: 1px solid var(--color-line);
-    padding-block: 48px 64px;
+    padding-block: clamp(40px, 5vw, 80px) clamp(48px, 6vw, 96px);
   }
   .studio-journal h2 {
     margin-top: 20px;
     font-family: var(--font-display);
-    font-size: 44px;
+    font-size: var(--text-title);
     font-weight: 500;
     line-height: 1.12;
   }
@@ -406,6 +476,7 @@
     max-width: 760px;
     margin: 12px auto;
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     align-items: center;
     background: var(--color-accent);
@@ -539,14 +610,11 @@
 
   /* Guide */
   .guide-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 28px;
     align-items: start;
   }
   .guide-copy h2 {
     font-family: var(--font-display);
-    font-size: 32px;
+    font-size: var(--text-subtitle);
     line-height: 1.2;
     margin-block: 32px 14px;
   }
@@ -572,14 +640,14 @@
     border: 1px solid var(--color-line);
     border-radius: 14px;
     background: var(--color-tint);
-    padding: 22px;
+    padding: clamp(20px, 2.5vw, 32px);
   }
   .calculator .eyebrow {
     color: var(--color-accent); /* warm is under 4.5:1 on tint */
   }
   .calculator h2 {
     font-family: var(--font-display);
-    font-size: 32px;
+    font-size: var(--text-subtitle);
     margin-top: 8px;
   }
   .calculator label {
@@ -637,39 +705,7 @@
     margin-top: 8px;
   }
 
-  /* Tablet and up */
   @media (min-width: 768px) {
-    .page-shell {
-      padding-inline: 32px;
-    }
-    .section-space {
-      padding-block: 40px;
-    }
-    .section-heading {
-      gap: 20px;
-    }
-    .section-heading h2 {
-      font-size: 34px;
-    }
-    .section-heading > .text-link {
-      font-size: 14px;
-    }
-    .studio-hero {
-      padding-block: 72px 56px;
-    }
-    .studio-hero h1 {
-      font-size: clamp(44px, 5.2vw, 72px);
-    }
-    .studio-intro {
-      margin-top: 26px;
-    }
-    .studio-actions a {
-      width: auto;
-    }
-    .studio-journal {
-      grid-template-columns: 1fr 1fr;
-      gap: 70px;
-    }
     .compare-dock {
       gap: 16px;
       padding: 14px 18px;
@@ -681,20 +717,8 @@
       padding: 10px 16px;
       font-size: 14px;
     }
-    .guide-layout {
-      grid-template-columns: 1.05fr 1fr;
-    }
-    .calculator {
-      padding: 28px;
-    }
   }
   @media (min-width: 1024px) {
-    .studio-paths {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .guide-layout {
-      gap: 48px;
-    }
     /* Phones fold these filters into a <details>; desktop shows them inline (its summary is lg:hidden). */
     .filter-more::details-content {
       display: block;
@@ -735,10 +759,8 @@
     display: grid;
     gap: 24px;
   }
-  @media (min-width: 1024px) {
-    html[data-saved-list] .home-daylist {
-      grid-template-columns: 1fr 1fr;
-    }
+  html[data-saved-list] .home-daylist {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 25rem), 1fr));
   }
   html[data-saved-list] .saved-panel-slot {
     min-height: 260px;
