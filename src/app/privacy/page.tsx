@@ -12,7 +12,7 @@ export const metadata: Metadata = pageMetadata('Gizlilik', `${SITE_NAME} hangi v
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">
+      <p className="eyebrow">
         Güven
       </p>
       <h1 className="mt-3 font-display text-5xl leading-none text-ink">Gizlilik</h1>

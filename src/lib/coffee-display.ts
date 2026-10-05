@@ -36,7 +36,7 @@ export function displayCoffeeName(name: string): string {
   return shouting(name) ? calm(name) : name;
 }
 
-const NOT_A_NOTE = /(?:^|\s)(?:kahve|kahvesi|kahveler|coffee)$|mağaza|^(?:filtre|espresso|filtre bazlı|espresso bazlı|türkiye|specialty|nitelikli)$/i;
+const NOT_A_NOTE = /(?:^|\s)(?:kahve|kahvesi|kahveler|coffee)$|mağaza|^(?:fresh roasted|taze kavrulmuş|filtre|espresso|filtre bazlı|espresso bazlı|türkiye|specialty|nitelikli)$/i;
 /** Tasting notes as shown: store tags (“Filtre Kahve”, “Etiyopya”, “FİZİKSEL MAĞAZA”) dropped, capitals calmed, first letter capital, no repeats. */
 export function displayNotes(notes: readonly string[]): string[] {
   const seen = new Set<string>();

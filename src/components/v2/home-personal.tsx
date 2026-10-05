@@ -140,9 +140,9 @@ export function TasteArrivals({ children }: { children: ReactNode }) {
   return <>
     <p className="mb-2.5 flex min-h-11 flex-wrap items-center gap-x-3.5 gap-y-1 text-sm text-muted">
       {profile ? <><span className="font-semibold tracking-[0.04em] text-warm">DAMAK PROFİLİN</span>{words ? <span>{words}</span> : null}<Link href="/quiz" className="text-link inline-flex min-h-11 items-center">Değiştir</Link></>
-        : <><span>Damak tadını henüz bilmiyoruz.</span><Link href="/quiz" className="text-link inline-flex min-h-11 items-center">4 soruda bul, sana en yakın kahveleri gösterelimyalım →</Link></>}
+        : <><span>Damak tadını henüz bilmiyoruz.</span><Link href="/quiz" className="text-link inline-flex min-h-11 items-center">4 soruda bul, sana en yakın kahveleri gösterelim →</Link></>}
     </p>
-    <div className="section-heading"><div><h2>{personal ? 'Damağına en yakın kahveler.' : 'Yeni keşifler.'}</h2><p className="mt-3 max-w-xl text-sm leading-7 text-muted">{personal ? 'Damak profiline en yakın kahveler.' : 'Farklı kavuruculardan, farklı karakterlerde çekirdekler. Bir sonraki favorini bul.'}</p></div><Link href="/yeni" className="text-link">Tümünü keşfet ↗</Link></div>
+    <div className="section-heading"><div><h2>{personal ? 'Damağına en yakın kahveler.' : 'Yeni keşifler.'}</h2><p className="mt-3 max-w-xl text-sm leading-7 text-muted">{personal ? 'Testteki cevaplarına göre seçtik; profilin bu cihazda kalır.' : 'Farklı kavuruculardan, farklı karakterlerde çekirdekler. Bir sonraki favorini bul.'}</p></div><Link href="/yeni" className="text-link">Tümünü keşfet ↗</Link></div>
     {personal ? <DiscoveryGrid coffees={personal} source="home" /> : children}
   </>;
 }

@@ -56,7 +56,8 @@ export async function DiscoveryCatalog({params:query,path='/kahveler',event,pres
   const roasterName=new Map(roasters.map(roaster=>[roaster.slug,roaster.name]));
   const labels:Record<string,(value:string)=>string>={origin:value=>countryLabel(canonicalCountry(value)),process:value=>PROCESS_LABELS[value]??value,taste:value=>FLAVOR_CATEGORY_LABELS[value as keyof typeof FLAVOR_CATEGORY_LABELS]??value,roaster:value=>roasterName.get(value)??value,roast:value=>ROAST_LABELS[value]??value,brewMethod:value=>BREW_METHOD_LABELS[value]??value,priceMin:value=>`${value} TL`,priceMax:value=>`${value} TL`,search:value=>`“${value}”`};
   const {chips,clearHref}=filterChips(params,path,(key,value)=>labels[key]?.(value)??value);
-  const advancedOpen=Boolean(filters.altitude||filters.farm||filters.producer||filters.variety||filters.process?.length||filters.roast?.length||filters.brewMethod?.length);
+  // Only what the visitor chose opens the panel: a landing page's preset is not theirs to see unfolded.
+  const advancedOpen=['altitude','farm','producer','variety','process','roast','brewMethod'].some(key=>first(params[key]));
   return <>
     <TrackedFilterForm key={JSON.stringify([path,params,event])} action={preset?'/kahveler':path} page={path==='/yeni'?'new':path==='/firsatlar'?'deals':'catalog'} className="discovery-filters mb-5 rounded-[14px] border border-line bg-surface p-4 sm:p-5">
       {event ? <input type="hidden" name="event" value={event} /> : null}
@@ -80,7 +81,7 @@ export async function DiscoveryCatalog({params:query,path='/kahveler',event,pres
       <p className="mt-1 text-sm text-muted">Sipariş kavurucunun kendi sitesinde tamamlanır.</p></div>
     <h2 className="sr-only">Kahveler</h2>
     {result.coffees.length?<JsonLd data={itemList(result.coffees.map(coffee=>[coffee.name,`/kahve/${coffee.slug}`]),{offset:(result.page-1)*result.perPage,total:result.total})}/>:null}
-    {result.coffees.length?<DiscoveryGrid coffees={result.coffees} source={event?'feed':'catalog'}/>:<DiscoveryEmpty title={event?'Henüz doğrulanmış bir değişiklik yok.':'Bu filtrelerle kahve bulamadık.'}>{event?'Doğrulanmış bir değişiklik olduğunda burada göreceksin. Kahveleri keşfete göz atabilirsin.':'Daha geniş bir fiyat aralığı deneyebilir veya filtreleri temizleyebilirsin.'}<Link href={event?'/yeni':path} className="text-link">{event?'Kahveleri keşfet →':'Tüm kahveleri göster →'}</Link></DiscoveryEmpty>}
+    {result.coffees.length?<DiscoveryGrid coffees={result.coffees} source={event?'feed':'catalog'}/>:<DiscoveryEmpty title={event?'Henüz doğrulanmış bir değişiklik yok.':'Bu filtrelerle kahve bulamadık.'} action={event?['/yeni','Yeni keşiflere bak →']:[clearHref,'Filtreleri temizle →']}>{event?'Doğrulanmış bir değişiklik olduğunda burada göreceksin. O zamana kadar yeni keşiflere göz atabilirsin.':'Daha geniş bir fiyat aralığı deneyebilir veya filtreleri temizleyebilirsin.'}</DiscoveryEmpty>}
     {result.totalPages>1?<nav aria-label="Katalog sayfaları" className="mt-8 flex items-center justify-center gap-4">{result.page>1?<Link className="button-light" href={linkToPage(result.page-1)}>← Önceki</Link>:null}<span className="text-sm">{result.page} / {result.totalPages}</span>{result.page<result.totalPages?<Link className="button-light" href={linkToPage(result.page+1)}>Sonraki →</Link>:null}</nav>:null}
   </>;
 }

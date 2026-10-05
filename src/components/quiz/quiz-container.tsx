@@ -117,7 +117,7 @@ export function QuizContainer() {
         <h2
           ref={questionRef}
           tabIndex={-1}
-          className="rounded-md font-display text-[30px] leading-tight text-ink focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-4"
+          className="rounded-md font-display text-[30px] leading-tight text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4"
         >
           {current.question}
         </h2>
