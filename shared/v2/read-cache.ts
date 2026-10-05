@@ -31,26 +31,58 @@ export const TRACKING_PARAM = /^(?:utm_.+|fbclid|gclid|gbraid|wbraid|dclid|msclk
 const INVALIDATED = 'invalidated';
 /** Same statement as migrations/d1/0008_derived_cache.sql, so the nightly writers also work before that migration is applied. */
 export const DERIVED_CACHE_TABLE = 'CREATE TABLE IF NOT EXISTS derived_cache (key TEXT PRIMARY KEY, value_json TEXT NOT NULL, created_at TEXT NOT NULL) STRICT;';
+/** D1 refuses a row over 2,000,000 bytes. A larger value is not sent at all, and says so, rather than failing on the write. */
+export const MAX_DERIVED_BYTES = 1_900_000;
+/** How long a computation may hold its claim before another isolate takes over, and how long others wait for it. */
+const LEASE_MS = 60_000, WAIT_MS = 15_000, POLL_MS = 400;
+/** Computations in flight in this isolate, so simultaneous requests here share one. */
+const computing = new Map<string, Promise<unknown>>();
+type DerivedRow = { now: string; value_json: string | null; created_at: string | null; invalidated_at: string | null };
+
 /** Results that are the same for every visitor until the next refresh (counts, roaster and origin lists, landing facts,
  * similarity and quiz candidates) are kept in D1 itself, so one computation serves every isolate and location; the
  * Cache API used before is local to one data center and inert on workers.dev.
  * A row is used while it is younger than ttlSeconds and was written after the last invalidation. Its time is the
  * database clock read before computing, so a computation that overlaps an invalidation is never trusted.
+ * After a purge or a deploy many first readers arrive together: in one isolate they share one computation, and across
+ * isolates the first to claim `lease:<key>` computes while the others re-read the row (2 rows each) until it appears,
+ * for up to WAIT_MS, then compute themselves. A value that cannot be stored is logged with its size.
  * Any failure (including a database without migration 0008) falls through to the live query. */
 export function withDerivedCache(db:CatalogDatabase,namespace:string,ttlSeconds=86400):CatalogDatabase {
-  return {prepare:sql=>db.prepare(sql),batch:statements=>db.batch(statements),async derive<T>(name:string,compute:()=>Promise<T>):Promise<T>{
-    const key=`${namespace}:${name}`;
-    let now:string|null=null;
+  const read=(key:string)=>db.prepare(`SELECT strftime('%Y-%m-%dT%H:%M:%fZ','now') AS now,d.value_json,d.created_at,(SELECT created_at FROM derived_cache WHERE key='${INVALIDATED}') AS invalidated_at
+        FROM (SELECT 1) LEFT JOIN derived_cache d ON d.key=?`).bind(key).first<DerivedRow>();
+  const fresh=(row:DerivedRow|null):row is DerivedRow&{value_json:string}=>Boolean(row?.value_json&&row.created_at&&(!row.invalidated_at||row.created_at>row.invalidated_at)&&Date.parse(row.now)-Date.parse(row.created_at)<ttlSeconds*1000);
+  async function derive<T>(key:string,compute:()=>Promise<T>):Promise<T>{
+    let now:string|null=null, leased=false;
     try{
-      const row=await db.prepare(`SELECT strftime('%Y-%m-%dT%H:%M:%fZ','now') AS now,d.value_json,d.created_at,(SELECT created_at FROM derived_cache WHERE key='${INVALIDATED}') AS invalidated_at
-        FROM (SELECT 1) LEFT JOIN derived_cache d ON d.key=?`).bind(key).first<{now:string;value_json:string|null;created_at:string|null;invalidated_at:string|null}>();
+      let row=await read(key);
       now=row?.now??null;
-      if(row?.value_json&&row.created_at&&(!row.invalidated_at||row.created_at>row.invalidated_at)&&Date.parse(row.now)-Date.parse(row.created_at)<ttlSeconds*1000)return JSON.parse(row.value_json) as T;
+      if(fresh(row))return JSON.parse(row.value_json) as T;
+      leased=Boolean(now&&await db.prepare(`INSERT INTO derived_cache(key,value_json,created_at) VALUES(?,'',?) ON CONFLICT(key) DO UPDATE SET created_at=excluded.created_at WHERE derived_cache.created_at<? RETURNING key`)
+        .bind(`lease:${key}`,now,new Date(Date.parse(now!)-LEASE_MS).toISOString()).first());
+      if(now&&!leased)for(const until=Date.now()+WAIT_MS;Date.now()<until;){
+        await new Promise(resolve=>setTimeout(resolve,POLL_MS));
+        row=await read(key);
+        if(fresh(row))return JSON.parse(row.value_json) as T;
+      }
     }catch{/* No cache table or no database: compute below, and let the live query report a real outage. */}
-    const value=await compute();
-    if(now)try{await db.batch([db.prepare('INSERT INTO derived_cache(key,value_json,created_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json,created_at=excluded.created_at').bind(key,JSON.stringify(value),now)]);}
-    catch{/* A full or read-only database still serves the computed value. */}
+    const release=leased?[db.prepare('DELETE FROM derived_cache WHERE key=?').bind(`lease:${key}`)]:[];
+    let value:T;
+    try{value=await compute();}
+    catch(error){if(release.length)await db.batch(release).catch(()=>{});throw error;}
+    if(now){
+      const json=JSON.stringify(value), bytes=new TextEncoder().encode(json).byteLength;
+      const store=bytes>MAX_DERIVED_BYTES?[]:[db.prepare('INSERT INTO derived_cache(key,value_json,created_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json,created_at=excluded.created_at').bind(key,json,now)];
+      if(!store.length)console.error(`Derived result not stored: ${key} is ${bytes} bytes, over ${MAX_DERIVED_BYTES}; every reader recomputes it`);
+      if(store.length||release.length)try{await db.batch([...store,...release]);}
+      catch(error){console.error(`Derived result not stored: ${key} (${bytes} bytes): ${error instanceof Error?error.message:String(error)}`);}
+    }
     return value;
+  }
+  return {prepare:sql=>db.prepare(sql),batch:statements=>db.batch(statements),derive<T>(name:string,compute:()=>Promise<T>):Promise<T>{
+    const key=`${namespace}:${name}`;
+    if(!computing.has(key))computing.set(key,derive(key,compute).finally(()=>computing.delete(key)));
+    return computing.get(key) as Promise<T>;
   }};
 }
 /** After a refresh: every derived row is dropped and anything computed before this moment is ignored. Put it in the writer's own batch. */
