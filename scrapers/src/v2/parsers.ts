@@ -1,7 +1,7 @@
-import { coffeeExclusionReason } from '../../../shared/v2/coffee-eligibility.js';
+import { coffeeExclusionReason, fold } from '../../../shared/v2/coffee-eligibility.js';
 import { cleanCoffeeName, truthfulMetadata } from '../../../shared/v2/profile-truth.js';
 import { load } from 'cheerio';
-import { classifySpecialtyProduct } from '../specialty-classification.js';
+import { classifySpecialtyProduct, STRUCTURED_ORIGIN_TITLE_COUNTRY_PATTERN } from '../specialty-classification.js';
 import { normalize } from '../normalization/index.js';
 import { deriveProfileFeatures, profileInput } from './profile.js';
 import { isLikelyCatalogCoffeeProduct } from '../product-classification.js';
@@ -40,7 +40,9 @@ function classifyEligibility(raw: Record<string, unknown>, name: string, url: st
 
 function retail(parts: string[], config: RoasterConfig) {
   if (!isLikelyCatalogCoffeeProduct(parts)) return false;
-  return /kahve|coffee|filtre|espresso|çekirdek|cekirdek|single origin/i.test(parts.join(' ')) ||
+  // A coffee origin in the product's own name is coffee evidence too: limited editions often carry no
+  // category ("Etiyopya Chelchele Limited Edition"), and a per-roaster origin list misses the next origin.
+  return /kahve|coffee|filtre|espresso|çekirdek|cekirdek|single origin/i.test(parts.join(' ')) || STRUCTURED_ORIGIN_TITLE_COUNTRY_PATTERN.test(fold(parts[0] ?? '')) ||
     (config.coffeeProductKeywords ?? []).some(keyword => parts.join(' ').toLocaleLowerCase('tr').includes(keyword.toLocaleLowerCase('tr')));
 }
 
