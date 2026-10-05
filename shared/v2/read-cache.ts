@@ -12,6 +12,13 @@ export const EDGE_CACHE_HEADERS = { 'Cache-Control': 'public, max-age=0, must-re
  * every click still runs and is counted); only when the Worker fails, for instance with the daily database allowance
  * spent, does the edge send the visitor on with the last redirect it saw for that address, for up to a day. */
 export const OUTAGE_ONLY_HEADERS = { 'Cache-Control': 'max-age=0, must-revalidate', 'CDN-Cache-Control': 'public, max-age=0, stale-if-error=86400' };
+type Purge = { purge(options: { purgeEverything: true }): unknown };
+/** Purges Workers Cache with the first handle that has purge() (the request's ctx.cache, then cloudflare:workers).
+ * A missing, throwing or unsuccessful purge is false, never an exception, so the caller answers 503 rather than 500. */
+export async function purgeEverything(...handles: unknown[]): Promise<boolean> {
+  const cache = handles.find((handle): handle is Purge => typeof (handle as Partial<Purge> | null | undefined)?.purge === 'function');
+  try { return ((await cache?.purge({ purgeEverything: true })) as { success?: boolean } | undefined)?.success === true; } catch { return false; }
+}
 /** Per-click and campaign tags change nothing on a page; an address carrying one is redirected without it so it cannot split the edge cache. */
 export const TRACKING_PARAM = /^(?:utm_.+|fbclid|gclid|gbraid|wbraid|dclid|msclkid|yclid|igshid|ttclid|twclid|li_fat_id|mc_cid|mc_eid|_ga|_gl|srsltid)$/i;
 

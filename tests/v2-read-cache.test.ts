@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { DERIVED_CACHE_TABLE, invalidateDerived, TRACKING_PARAM, withDerivedCache } from '../shared/v2/read-cache';
+import { DERIVED_CACHE_TABLE, invalidateDerived, purgeEverything, TRACKING_PARAM, withDerivedCache } from '../shared/v2/read-cache';
 import { dropTrackingParams } from '../src/lib/v2-runtime';
 import { TestCatalogDatabase } from './helpers/v2-sqlite';
 
@@ -56,3 +56,16 @@ test('tracking parameters redirect to the same address without them; real filter
   assert.match(target({ gclid: 'x' })!, /;\/kahveler;308;?/);
   assert.match(target({ taste: ['fruity', 'floral'], utm_medium: 'x' })!, /;\/kahveler\?taste=fruity&taste=floral;308;?/);
 });
+
+test('the edge purge uses the first handle that can purge and never throws', async () => {
+  const calls: unknown[] = [];
+  const working = { purge: async (options: unknown) => { calls.push(options); return { success: true }; } };
+  assert.equal(await purgeEverything(undefined, null), false, 'no handle: 503, not a 500');
+  // Local workerd exposes a cache object without purge(); calling it used to throw a TypeError (500).
+  assert.equal(await purgeEverything({}, working), true);
+  assert.deepEqual(calls, [{ purgeEverything: true }]);
+  assert.equal(await purgeEverything({ purge: () => { throw new Error('sync'); } }), false);
+  assert.equal(await purgeEverything({ purge: async () => { throw new Error('async'); } }), false);
+  assert.equal(await purgeEverything({ purge: async () => ({ success: false }) }), false);
+});
+
