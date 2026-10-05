@@ -50,7 +50,8 @@ describe('GitHub Actions workflows', () => {
   it('exports a weekly read-only D1 backup kept as a private 30-day artifact', () => {
     const backup = readSource('.github/workflows/d1-backup.yml');
     assert.match(backup, /contents: read/);
-    assert.match(backup, /wrangler d1 export coffeedb-v2-staging --remote --output d1-backup\.sql > \/dev\/null/);
+    assert.match(backup, /wrangler d1 export "\$D1_DATABASE_NAME" --remote --output d1-backup\.sql > \/dev\/null/);
+    assert.match(backup, /D1_DATABASE_NAME: \$\{\{ vars\.D1_DATABASE_NAME \|\| 'coffeedb-v2-staging' \}\}/);
     assert.match(backup, /CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_D1_API_TOKEN \}\}/);
     assert.match(backup, /retention-days: 30/);
     assert.doesNotMatch(backup, /d1 execute|migrations apply/);
@@ -63,6 +64,16 @@ describe('GitHub Actions workflows', () => {
     assert.match(ci, /\.next\/cache/);
     assert.match(ci, /restore-keys/);
     assert.match(ci, /hashFiles\('package-lock\.json'\)/);
+  });
+});
+
+describe('workflow database targets', () => {
+  // Today's behaviour must not change: with no repository variable set, every workflow still targets staging.
+  it('take the database from repository variables and default to the staging values', () => {
+    for (const file of ['scrape.yml', 'digest.yml', 'monthly-issue.yml']) {
+      assert.match(readSource(`.github/workflows/${file}`), /CLOUDFLARE_D1_DATABASE_ID: \$\{\{ vars\.CLOUDFLARE_D1_DATABASE_ID \|\| '5090f52d-546e-4ba6-bdcd-b4ee531a29a3' \}\}/, file);
+    }
+    assert.match(readSource('.github/workflows/scrape.yml'), /CRAWL_RELAY_URL: \$\{\{ vars\.CRAWL_RELAY_URL \|\| 'https:\/\/coffeedb-v2-crawler-staging\.hellobasalt\.workers\.dev\/relay' \}\}/);
   });
 });
 
