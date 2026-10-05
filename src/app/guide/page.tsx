@@ -2,14 +2,20 @@ import { pageMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BrewCalculator } from '@/components/guide/brew-calculator';
+import { JsonLd } from '@/components/layout/json-ld';
+import { absoluteUrl } from '@/lib/site';
+import { brand } from '@/lib/brand';
 
 // Static copy: cacheable at the edge, re-rendered at most hourly (so a deploy shows within the hour).
 export const revalidate = 3600;
 
-export const metadata: Metadata = pageMetadata("Kahve Rehberi ve Demleme Hesaplayıcı", "Kahve seçimi, tadım notları ve işleme yöntemleri için kısa bir rehber. Filtre, espresso, French press ve AeroPress için demleme oranını hesapla.", "/guide");
+const description = "Kahve seçimi, tadım notları ve işleme yöntemleri için kısa bir rehber. Filtre, espresso, French press ve AeroPress için demleme oranını hesapla.";
+export const metadata: Metadata = pageMetadata("Kahve rehberi ve demleme hesaplayıcı", description, "/guide", { type: 'article' });
 export default function GuidePage() {
   return (
     <div className="page-shell section-space">
+      <JsonLd data={{ '@type': 'Article', headline: 'Kahveni biraz daha yakından tanı.', description, inLanguage: 'tr-TR', url: absoluteUrl('/guide'), mainEntityOfPage: absoluteUrl('/guide'),
+        author: { '@type': 'Organization', name: brand.name, url: absoluteUrl('/') }, publisher: { '@type': 'Organization', name: brand.name, url: absoluteUrl('/') } }} />
       <div className="mb-10 max-w-3xl">
         <p className="eyebrow">Daha iyi bir fincan için</p>
         <h1 className="mt-4 font-display text-5xl leading-[1.08] sm:text-6xl">

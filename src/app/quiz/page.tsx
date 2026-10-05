@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { QuizContainer } from '@/components/quiz/quiz-container';
-import { SITE_NAME } from '@/lib/site';
+import { pageMetadata } from '@/lib/page-metadata';
 
 // Static copy: cacheable at the edge, re-rendered at most hourly (so a deploy shows within the hour).
 export const revalidate = 3600;
@@ -8,24 +8,7 @@ export const revalidate = 3600;
 const description =
   '4 kısa soruyu yanıtla; damak tadına, demleme yöntemine ve kavrum tercihine en yakın nitelikli kahveleri sıralayalım.';
 
-export const metadata: Metadata = {
-  title: 'Damak Tadına Göre Kahve Bul',
-  description,
-  alternates: {
-    canonical: '/quiz',
-  },
-  openGraph: {
-    title: `Damak Tadına Göre Kahve Bul | ${SITE_NAME}`,
-    description,
-    url: '/quiz',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: `Damak Tadına Göre Kahve Bul | ${SITE_NAME}`,
-    description,
-  },
-};
+export const metadata: Metadata = pageMetadata('Damak tadına göre kahve bul', description, '/quiz');
 
 export default function QuizPage() {
   return (

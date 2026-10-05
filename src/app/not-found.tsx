@@ -2,9 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+  // A missing page names no canonical (the layout's default would point at the home page).
+  alternates: { canonical: null },
+  // Overrides the layout's production `index, follow`, which would otherwise sit beside the framework's own 404 `noindex`.
+  robots: { index: false, follow: true },
   title: 'Sayfa bulunamadı',
   description: 'Aradığın sayfa taşınmış veya kaldırılmış olabilir. Kahve kataloğuna dön ya da damak tadına göre bir kahve keşfet.',
-  robots: { index: false, follow: false },
 };
 
 export default function NotFound() {

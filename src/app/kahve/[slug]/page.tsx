@@ -1,4 +1,4 @@
-import { pageMetadata } from '@/lib/page-metadata';
+import { coffeeMetadata, pageMetadata } from '@/lib/page-metadata';
 import { DetailViewTracker } from '@/components/v2/product-tracking';
 import { cache } from 'react';
 import type { Metadata } from 'next';
@@ -7,23 +7,9 @@ import { DiscoveryDetail } from '@/components/v2/discovery-detail';
 import { DiscoveryGrid } from '@/components/v2/discovery-card';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { getCatalogDatabase } from '@/lib/v2-runtime';
-import { getCoffeeDetail, getSimilarCoffees, type CatalogCoffee } from '../../../../shared/v2/catalog';
-import { JsonLd, breadcrumbList } from '@/components/layout/json-ld';
-import { absoluteUrl } from '@/lib/site';
+import { getCoffeeDetail, getSimilarCoffees } from '../../../../shared/v2/catalog';
+import { JsonLd, breadcrumbList, productJsonLd } from '@/components/layout/json-ld';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
-
-/** Only fields the catalog holds: name, image, roaster as brand, and priced packages as offers. */
-function productJsonLd(coffee: CatalogCoffee) {
-  const image = coffee.rawMetadata.imageUrl;
-  const offers = coffee.offers.filter(offer => offer.priceMinor != null && offer.priceMinor > 0 && offer.currency).map(offer => ({
-    '@type': 'Offer', price: (offer.priceMinor! / 100).toFixed(2), priceCurrency: offer.currency,
-    ...(offer.inStock === null ? {} : { availability: `https://schema.org/${offer.inStock ? 'InStock' : 'OutOfStock'}` }),
-    ...(offer.purchaseUrl ? { url: offer.purchaseUrl } : {}),
-    seller: { '@type': 'Organization', name: coffee.roaster.name },
-  }));
-  return { '@type': 'Product', name: coffee.name, url: absoluteUrl(`/kahve/${coffee.slug}`), brand: { '@type': 'Brand', name: coffee.roaster.name },
-    ...(image && /^https?:\/\//.test(image) ? { image } : {}), ...(offers.length ? { offers } : {}) };
-}
 
 // Matches the 5-minute D1 read cache: the edge may serve a page this stale, never older.
 export const revalidate = 300;
@@ -33,7 +19,9 @@ const loadCoffee = cache(async (slug: string) => {
 });
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { coffee } = await loadCoffee((await params).slug);
-  return coffee ? pageMetadata(`${coffee.name} · ${coffee.roaster.name}`, `${coffee.name} için kavurucunun paketlerini, fiyatlarını ve çekirdek bilgilerini keşfet.`, `/kahve/${coffee.slug}`) : { ...pageMetadata('Kahve bulunamadı', 'Bu kahve artık katalogda bulunmuyor. Diğer çekirdekleri keşfet.', '/kahveler'), robots: { index: false } };
+  if (!coffee) return { ...pageMetadata('Kahve bulunamadı', 'Bu kahve artık katalogda bulunmuyor. Diğer çekirdekleri keşfet.', '/kahveler'), robots: { index: false } };
+  const { title, description, image } = coffeeMetadata(coffee);
+  return pageMetadata(title, description, `/kahve/${coffee.slug}`, { type: 'product', image });
 }
 export default async function CoffeePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
