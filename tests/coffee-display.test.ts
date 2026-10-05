@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  displayCoffeeName,
+  displayNotes,
+  displayPackageLabel,
   formatMoney,
   formatPackageWeight,
   formatVerifiedAt,
@@ -10,6 +13,22 @@ import {
 } from '@/lib/coffee-display';
 
 describe('coffee display helpers', () => {
+  it('calms capitals without guessing at codes or Turkish letters', () => {
+    assert.equal(displayCoffeeName('25/26 KENYA KARIMIKUI AA SL28 SL34 GESHA/YIKANMIŞ'), '25/26 Kenya Karimikui AA SL28 SL34 Gesha/Yıkanmış');
+    assert.equal(displayCoffeeName('TÜRK KAHVESİ HARMANI'), 'Türk Kahvesi Harmanı');
+    assert.equal(displayCoffeeName('INDONESIA MAS IYAN'), 'Indonesia Mas Iyan');
+    assert.equal(displayCoffeeName('Kenya Nyeri AA'), 'Kenya Nyeri AA');
+  });
+  it('drops store tags from tasting notes and tidies their casing', () => {
+    assert.deepEqual(displayNotes(['Filtre Kahve', 'Etiyopya', 'FİZİKSEL MAĞAZA', 'ERİK', 'erik', 'kahve soğudukça çikolata notaları']), ['Erik', 'Kahve soğudukça çikolata notaları']);
+  });
+  it('shows a package option as its weight only when it says nothing else', () => {
+    assert.equal(displayPackageLabel('GRAMAJ: 1000', 1000), '1 kg');
+    assert.equal(displayPackageLabel('Miktar: 250 Gr', 250), '250 g');
+    assert.equal(displayPackageLabel('250g', 500), '250g');
+    assert.equal(displayPackageLabel('GRAMAJ: 200 G Plastik Şişe', 200), '200 G Plastik Şişe');
+  });
+
   it('formats source check dates against the Turkish day boundary', () => {
     const now = new Date('2026-05-22T14:00:00+03:00');
 

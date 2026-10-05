@@ -3,9 +3,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { getCoffeeBySlug } from '@/lib/queries/coffees';
-import {
-  formatPackageWeight,
-} from '@/lib/coffee-display';
+import { displayCoffeeName, displayNotes, formatPackageWeight } from '@/lib/coffee-display';
+import { countryLabel } from '../../../shared/v2/country-labels';
 import {
   BREW_METHOD_LABELS,
   PROCESS_LABELS,
@@ -20,6 +19,8 @@ import type { CoffeeWithRoaster } from '@/lib/types/database';
 import type { LegacyCatalogCoffee } from '@/lib/v2-legacy';
 type ComparisonCoffee = CoffeeWithRoaster & Partial<Pick<LegacyCatalogCoffee, 'stock_status' | 'decaf_status'>>;
 
+/** The site-wide wording for a fact the roaster did not publish. */
+const UNSTATED = 'Kavurucu belirtmemiş';
 export const metadata: Metadata = {
   ...pageMetadata('Kahveleri Karşılaştır', 'Kahvelerin paket fiyatını, gramajını, kökenini ve tat notlarını yan yana karşılaştır.', '/compare'),
   robots: { index: false, follow: true },
@@ -77,42 +78,42 @@ export default async function ComparePage({
       value: (c) =>
         c.price_amount
           ? `${c.price_amount.toLocaleString('tr-TR')} ${c.price_currency === 'TRY' ? 'TL' : c.price_currency || '(para birimi bilinmiyor)'}`
-          : 'Belirtilmemiş',
+          : UNSTATED,
     },
     {
       label: 'Paket miktarı',
       value: (c) =>
-        c.weight_grams ? formatPackageWeight(c.weight_grams) : 'Belirtilmemiş',
+        c.weight_grams ? formatPackageWeight(c.weight_grams) : UNSTATED,
     },
     {
       label: 'Köken',
       value: (c) =>
-        [c.origin_country, c.origin_region].filter(Boolean).join(' · ') ||
-        'Belirtilmemiş',
+        [c.origin_country && countryLabel(c.origin_country), c.origin_region].filter(Boolean).join(' · ') ||
+        UNSTATED,
     },
     {
-      label: 'İşleme',
+      label: 'İşlem',
       value: (c) =>
         c.process !== 'unknown'
           ? (PROCESS_LABELS[c.process] ?? c.process)
-          : 'Belirtilmemiş',
+          : UNSTATED,
     },
     {
       label: 'Kavrum',
       value: (c) =>
         c.roast_level !== 'unknown'
           ? (ROAST_LABELS[c.roast_level] ?? c.roast_level)
-          : 'Belirtilmemiş',
+          : UNSTATED,
     },
     {
       label: 'Tadım notları',
-      value: (c) => c.flavor_notes.join(' · ') || c.flavor_notes_normalized.join(' · ') || 'Paylaşılmamış',
+      value: (c) => (displayNotes(c.flavor_notes).length ? displayNotes(c.flavor_notes) : displayNotes(c.flavor_notes_normalized)).join(' · ') || UNSTATED,
     },
     {
       label: 'Önerilen demleme',
       value: (c) =>
         c.brew_methods.map((m) => BREW_METHOD_LABELS[m] ?? m).join(' · ') ||
-        'Paylaşılmamış',
+        UNSTATED,
     },
     { label: 'Kafeinsiz', value: (c) => ('decaf_status' in c && c.decaf_status == null ? 'Bilinmiyor' : c.is_decaf ? 'Evet' : 'Hayır') },
     { label: 'Seçilen paketin stoku', value: (c) => ('stock_status' in c && c.stock_status == null ? 'Bilinmiyor' : c.is_available ? 'Stokta' : 'Stokta yok') },
@@ -198,7 +199,7 @@ export default async function ComparePage({
                           href={`/kahve/${coffee.slug}`}
                           className="hover:underline"
                         >
-                          {coffee.name_normalized ?? coffee.name}
+                          {displayCoffeeName(coffee.name_normalized ?? coffee.name)}
                         </Link>
                       </h2>
                       <CompareRemoveLink

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { displayCoffeeName } from '@/lib/coffee-display';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { formatMoney } from '@/lib/coffee-display';
 import { deviceStore, SAVED_KEY } from '@/lib/device-store';
@@ -99,7 +100,7 @@ const money = (minor: number | null | undefined, currency: string | null | undef
 export function SavedRow({ saved, item, compact = false }: { saved: SavedCoffee; item: SavedItem | undefined; compact?: boolean }) {
   const status = savedStatus(saved, item);
   const coffee = item?.coffee;
-  const name = coffee?.name ?? 'Bu kahve artık listede yok';
+  const name = coffee ? displayCoffeeName(coffee.name) : 'Bu kahve artık listede yok';
   const highlight = status.kind === 'drop' || status.kind === 'restocked';
   const price = status.kind === 'gone' ? null : status.kind === 'sold_out' ? 'Tükendi' : money(status.offer.priceMinor, status.offer.currency);
   const body = <>
