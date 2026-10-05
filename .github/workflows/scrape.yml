@@ -41,6 +41,7 @@ jobs:
       - name: Install crawler dependencies
         run: npm ci --prefix scrapers
       - name: Refresh all active roasters
+        id: refresh
         env:
           ROASTERS: ${{ inputs.roasters }}
         shell: bash
@@ -59,12 +60,15 @@ jobs:
           if-no-files-found: warn
       # Reviewed corrections and size-twin links; runs even when a source needs attention.
       - name: Apply manual corrections
+        id: corrections
         if: ${{ !cancelled() }}
         run: scrapers/node_modules/.bin/tsx scripts/v2-apply-corrections.mts
       # Pages and JSON are kept at the edge for 6 hours (shared/v2/read-cache.ts); dropping them now shows tonight's
       # catalog at once. Needs the Worker secret and the repository secret CACHE_PURGE_TOKEN (same value) and vars.SITE_URL.
+      # Only after a step that wrote tonight's data: when the database refuses reads (daily allowance spent), both fail,
+      # and purging then would replace every good edge copy with outage notices until the next day.
       - name: Purge the edge cache
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && (steps.refresh.outcome == 'success' || steps.corrections.outcome == 'success') }}
         env:
           CACHE_PURGE_TOKEN: ${{ secrets.CACHE_PURGE_TOKEN }}
           SITE_URL: ${{ vars.SITE_URL }}
