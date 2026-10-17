@@ -86,7 +86,7 @@ Never type or paste a secret value into this document, a ticket, a chat or a com
 - Note: the `workers.dev` address is also open to search engines but its pages name your domain as canonical. Optional: disable it in the Worker's Domains & Routes settings once the domain works.
 
 ### 13. Point the domain at the Worker
-- **Owner**, dashboard: Workers & Pages > `coffeedb-v2-web` > Settings > Domains & Routes > Add > Custom domain: `kahve.hellobasalt.dev`. Success: certificate active in a few minutes and step 12's checks pass on the real domain. Undo: remove the custom domain.
+- Done on 2026-10-17 with `wrangler deploy --domain kahve.hellobasalt.dev`. `npm run deploy:production` now passes the same flag on every deploy, so the domain stays attached; that deploy also leaves the `workers.dev` address off, since the config does not enable it. Undo: remove the custom domain in Workers & Pages > `coffeedb-v2-web` > Settings > Domains & Routes.
 
 ### 14. Permanent redirects from the old addresses
 - **Old site** `tr-coffee-db.vercel.app`: **Owner**, in the Vercel project's Domains settings, redirect it to the new domain as a permanent (308) redirect (or add a catch-all permanent redirect in the old project's `vercel.json`). Success: `curl -sI https://tr-coffee-db.vercel.app/` shows 308 and `location:` on the new domain; old paths such as `/coffees` and `/roasters` reach working pages. Undo: remove the redirect in Vercel. Do this only after step 13 works.
