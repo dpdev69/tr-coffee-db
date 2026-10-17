@@ -23,7 +23,7 @@ On 2026-10-05 the database exceeded the free plan's 5 million rows-read daily al
 - **Free database plan.** Do not propose the paid plan as a fix.
 - **No scheduled work on the owner's Mac.**
 - **Newsletter:** a monthly editorial issue ("KahveDrop Mektup") plus the automated weekly digest. Code only ever creates Kit drafts.
-- **Production waits for the domain**, and launches with **signup hidden** (`SIGNUPS_ENABLED`, default off).
+- **Production lives at `kahve.hellobasalt.dev`** under the Basalt studio (footer credit, `studio` in `src/lib/brand.ts`), and launches with **signup hidden** (`SIGNUPS_ENABLED`, default off).
 - **Never disguise the crawler.** No spoofed browsers, proxies or rewritten client addresses. A block is solved by asking the roaster.
 - **Agents must not load-test or crawl staging.** For realistic local data use the dump at `.local/backups/staging-pre-0007.sql` (git-ignored) with migrations 0007 and 0008 applied on top.
 - The brand name **KahveDrop is provisional**; it lives in `src/lib/brand.ts`.
@@ -51,7 +51,7 @@ On 2026-10-05 the database exceeded the free plan's 5 million rows-read daily al
    ```
 2. **Optional, recommended on the free plan: enable the read brake.** In the Cloudflare dashboard create an API token with "Account Analytics: Read", then store it as the Worker secret `D1_ANALYTICS_TOKEN` (`npx wrangler secret put D1_ANALYTICS_TOKEN --config wrangler.jsonc`). Above 3.5 million rows read in a day the site then stops spending rows on uncached catalog views and keeps the rest for the nightly refresh.
 3. **Decide on Coffeerem and Sezy.** They refuse GitHub's network; the relay through our own Worker was refused too. Recommended: mark both inactive in `scrapers/src/roasters/configs.ts`, remove the relay code, and ask them by email. Until then the nightly job reports them as failing every night and their coffees drop off the site.
-4. **Buy the domain** (kahvedrop.com was unregistered when checked) and settle the name. Then follow `docs/launch-day.md`.
+4. **Address decided (2026-10-17): `https://kahve.hellobasalt.dev`.** KahveDrop is a Basalt project; nothing to buy. Confirm the `hellobasalt.dev` zone is in the same Cloudflare account as the Workers, then follow `docs/launch-day.md`. The name KahveDrop is still provisional.
 5. **Legal identity:** set the data controller and contact email in `src/lib/legal.ts`. The privacy page shows "henüz belirlenmedi" until then. Get the KVKK and İYS review before any sponsored send.
 6. **Kit:** create custom fields `consent_at` and `consent_version`, and a branded sender. Then signup can be switched on (Part B of `docs/launch-day.md`).
 7. **November issue:** draft pull request 27 has three researched scene items. Write the picks, title and intro, re-check the World Barista Championship item after 25 October, then set `published: true`.

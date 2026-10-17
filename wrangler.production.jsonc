@@ -50,7 +50,7 @@
     "WEB_ANALYTICS_TOKEN": "REPLACE_WITH_PRODUCTION_WEB_ANALYTICS_TOKEN",
     // The account whose daily D1 reads the brake watches; the brake also needs the secret D1_ANALYTICS_TOKEN.
     "D1_BUDGET_ACCOUNT_ID": "4c1a4493b8584296f35c3eddc8279112",
-    "WEB_ANALYTICS_HOST": "REPLACE_WITH_PRODUCTION_HOSTNAME"
+    "WEB_ANALYTICS_HOST": "kahve.hellobasalt.dev"
   },
   "analytics_engine_datasets": [
     {
