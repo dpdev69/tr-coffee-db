@@ -22,6 +22,14 @@ export const brand = {
   production,
 } as const;
 
+/** The studio that makes KahveDrop. Footer credit and the home page's parentOrganization use it; the names match hellobasalt.dev/brand. */
+export const studio = {
+  name: 'Basalt',
+  url: 'https://hellobasalt.dev',
+  x: 'https://x.com/hellobasalt',
+  youtube: 'https://www.youtube.com/@hellobasalt',
+} as const;
+
 /** Wording shown beside the checkbox and the version stored in Kit with the signup. Change the text only together with the version. */
 export const newsletterConsent = {
   version: '2026-10-v1',

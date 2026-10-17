@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { brand } from '@/lib/brand';
+import { brand, studio } from '@/lib/brand';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { signupsEnabled } from '@/lib/signups';
 import { ConsentControls } from '@/components/v2/consent-controls';
@@ -58,6 +58,23 @@ export function Footer() {
               Kullanım şartları
             </Link>
             <ConsentControls />
+          </div>
+        </div>
+        <div className="mt-3 flex flex-col justify-between gap-1 text-xs text-muted sm:flex-row sm:items-center">
+          <p>
+            {brand.name} bir{' '}
+            <a href={studio.url} rel="noopener" className="hover:text-accent hover:underline">
+              {studio.name}
+            </a>{' '}
+            projesidir.
+          </p>
+          <div className="flex gap-5">
+            <a href={studio.x} rel="noopener me" className="inline-flex min-h-11 items-center hover:underline">
+              X @hellobasalt
+            </a>
+            <a href={studio.youtube} rel="noopener me" className="inline-flex min-h-11 items-center hover:underline">
+              YouTube @hellobasalt
+            </a>
           </div>
         </div>
       </div>
