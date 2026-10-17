@@ -22,12 +22,23 @@ export const brand = {
   production,
 } as const;
 
-/** The studio that makes KahveDrop. Footer credit and the home page's parentOrganization use it; the names match hellobasalt.dev/brand. */
+/**
+ * The studio that makes KahveDrop. The footer's "Basalt'tan diğerleri" column and the home page's parentOrganization use it.
+ * Follows the shared Basalt footer spec: live products only, Turkish products first, never this product, X and YouTube last.
+ */
 export const studio = {
   name: 'Basalt',
-  url: 'https://hellobasalt.dev',
+  url: 'https://hellobasalt.dev/',
+  supportEmail: 'support@hellobasalt.dev',
   x: 'https://x.com/hellobasalt',
   youtube: 'https://www.youtube.com/@hellobasalt',
+  products: [
+    { label: "Göçmeden, Türkiye'ye açık remote işler", url: 'https://gocmeden.hellobasalt.dev/' },
+    { label: 'Kaç Papel?, fiyat hafızası oyunu', url: 'https://kacpapel.app/' },
+    { label: 'Upright, ücretsiz fare uygulaması (Mac)', url: 'https://upright.hellobasalt.dev/' },
+    { label: 'Lull, yakında', url: 'https://lull.hellobasalt.dev/' },
+    { label: 'Cosmic Post, uzay fotoğrafı hatıraları', url: 'https://cosmicpost.lol/' },
+  ],
 } as const;
 
 /** Wording shown beside the checkbox and the version stored in Kit with the signup. Change the text only together with the version. */
