@@ -27,7 +27,7 @@
     {
       "binding": "DB",
       "database_name": "coffeedb-v2",
-      "database_id": "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID",
+      "database_id": "ff82f36e-f4e9-4b35-881b-310f3bc6271b",
       "migrations_dir": "migrations/d1"
     }
   ],
@@ -47,7 +47,8 @@
     // Signup switch: stays "false" until docs/launch-day.md "Turning on signups" is complete. Absent also means off (src/lib/signups.ts).
     "SIGNUPS_ENABLED": "false",
     "KIT_FORM_ID": "9918321",
-    "WEB_ANALYTICS_TOKEN": "REPLACE_WITH_PRODUCTION_WEB_ANALYTICS_TOKEN",
+    // Empty until a Cloudflare Web Analytics site exists for kahve.hellobasalt.dev; the beacon renders nothing without a token.
+    "WEB_ANALYTICS_TOKEN": "",
     // The account whose daily D1 reads the brake watches; the brake also needs the secret D1_ANALYTICS_TOKEN.
     "D1_BUDGET_ACCOUNT_ID": "4c1a4493b8584296f35c3eddc8279112",
     "WEB_ANALYTICS_HOST": "kahve.hellobasalt.dev"

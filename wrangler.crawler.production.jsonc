@@ -13,7 +13,7 @@
     {
       "binding": "DB",
       "database_name": "coffeedb-v2",
-      "database_id": "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID",
+      "database_id": "ff82f36e-f4e9-4b35-881b-310f3bc6271b",
       "migrations_dir": "migrations/d1"
     }
   ],
