@@ -3,10 +3,11 @@ import { canonicalCountry, countryLabel, countryOptions } from '../../../shared/
 import Link from 'next/link';
 import { redirect, unstable_rethrow } from 'next/navigation';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
-import { getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
+import { catalogLastGood, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
+import { withLastGood } from '../../../shared/v2/last-good';
 import { getFirstSearchParamValue, getPageParamValue, getStringArrayParamValue, normalizeSearchTerm, type SearchParamValue } from '@/lib/filter-contract';
 import { FLAVOR_CATEGORY_LABELS, PROCESS_LABELS, ROAST_LABELS, BREW_METHOD_LABELS } from '@/lib/constants/filter-options';
-import { listCatalog, listOrigins, listRoasters, type CatalogFilters } from '../../../shared/v2/catalog';
+import { lastGoodListingName, listCatalog, listOrigins, listRoasters, type CatalogFilters } from '../../../shared/v2/catalog';
 import { ARRIVAL_DAYS } from '../../../shared/v2/events';
 import { DiscoveryEmpty, DiscoveryGrid } from './discovery-card';
 import { exactText } from '@/lib/canonical-address';
@@ -38,6 +39,20 @@ export function filterChips(params:DiscoverySearchParams,path:string,valueLabel:
   const chips=entries.flatMap(([key,value],index)=>key in CHIP_LABELS&&value.trim()?[{label:`${CHIP_LABELS[key]}: ${valueLabel(key,value.trim())}`,href:href((_,other)=>other!==index)}]:[]);
   return {chips,clearHref:href(key=>!(key in CHIP_LABELS))};
 }
+/** The listing and its filter options. When the database cannot answer, the unfiltered listing comes from its last-good copy
+ * (`copy` says when it was written); beside a copy, missing options only empty two dropdowns, beside a live listing they
+ * fail the page as before. */
+async function readCatalog(filters:CatalogFilters){
+  const db=await getCatalogDatabase();
+  let copy:{writtenAt:string|null}|null=null;
+  const name=lastGoodListingName(filters);
+  const listing=name?withLastGood(await catalogLastGood(writtenAt=>{copy={writtenAt};}),name,()=>listCatalog(db,filters)):listCatalog(db,filters);
+  const [catalog,roasters,origins]=await Promise.allSettled([listing,listRoasters(db),listOrigins(db)]);
+  if(catalog.status==='rejected')throw catalog.reason;
+  const options=roasters.status==='rejected'?roasters:origins.status==='rejected'?origins:null;
+  if(options&&!copy)throw options.reason;
+  return {result:catalog.value,roasters:roasters.status==='fulfilled'?roasters.value:[],origins:origins.status==='fulfilled'?origins.value:[],copy:copy as {writtenAt:string|null}|null};
+}
 /** `preset` fixes filters for a landing page (one origin or process): applied always, never shown as a removable chip; the form then searches the whole catalog. */
 export async function DiscoveryCatalog({params:query,path='/kahveler',event,preset}:{params:DiscoverySearchParams;path?:string;event?:CatalogFilters['event'];preset?:DiscoverySearchParams}){
   const params=preset?Object.fromEntries(Object.entries(query).filter(([key])=>!(key in preset))):query;
@@ -49,10 +64,10 @@ export async function DiscoveryCatalog({params:query,path='/kahveler',event,pres
   let result:Awaited<ReturnType<typeof listCatalog>>;
   let roasters:Awaited<ReturnType<typeof listRoasters>>=[];
   let origins:ReturnType<typeof countryOptions>=[];
+  let copy:{writtenAt:string|null}|null=null;
   try{
-    const db=await getCatalogDatabase();
-    const [catalog,roasterRows,originRows]=await Promise.all([listCatalog(db,filters),listRoasters(db),listOrigins(db)]);
-    result=catalog;roasters=roasterRows;origins=countryOptions(originRows);
+    const read=await readCatalog(filters);
+    result=read.result;roasters=read.roasters;origins=countryOptions(read.origins);copy=read.copy;
   }catch(error){unstable_rethrow(error);keepOutOfEdgeCache();console.error('Catalog read failed', error instanceof Error ? error.message : 'Unknown database error');return <DataSourceNotice title="Katalog şu an yüklenemiyor." message="Güncel kahveleri doğrulayamıyoruz. Biraz sonra yeniden deneyebilir veya demleme rehberini kullanabilirsin." actionHref="/guide" actionLabel="Demleme rehberi"/>;}
   const linkToPage=(page:number)=>{const query=new URLSearchParams();for(const [key,value]of Object.entries(params))for(const item of Array.isArray(value)?value:value?[value]:[])if(key!=='page')query.append(key,item);if(page>1)query.set('page',String(page));return query.size?`${path}?${query}`:path;};
   // A stale or hand-edited ?page= past the end goes to the last page, at that page's own address (one cache entry, not one per number).
@@ -83,6 +98,7 @@ export async function DiscoveryCatalog({params:query,path='/kahveler',event,pres
     </TrackedFilterForm>
     <div className="mb-7"><ul aria-label="Sonuçlar ve uygulanan filtreler" className="flex flex-wrap items-center gap-2.5"><li className="mr-1.5 text-[15px] font-semibold"><span className="tabular-nums">{result.total.toLocaleString('tr-TR')}</span> kahve{event?` · Son ${days} gün`:''}</li>{chips.map(chip=><li key={chip.href}><Link href={chip.href} prefetch={false} className="filter-chip" aria-label={`Filtreyi kaldır: ${chip.label}`}>{chip.label}<span aria-hidden="true">×</span></Link></li>)}{chips.length?<li><Link href={clearHref} prefetch={false} className="ml-1.5 inline-flex min-h-11 items-center text-sm text-accent hover:underline">Filtreleri temizle</Link></li>:null}</ul>
       <p className="mt-1 text-sm text-muted">Sipariş kavurucunun kendi sitesinde tamamlanır.</p></div>
+    {copy?<div className="mb-6"><DataSourceNotice title="Veriler dünkü." message={`Katalog şu an güncellenemiyor, bu yüzden ${copy.writtenAt?`${new Date(copy.writtenAt).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})} tarihli `:''}son kopyasını gösteriyoruz. Fiyat ve stok değişmiş olabilir; siparişten önce kavurucunun sitesine bak.`}/></div>:null}
     <h2 className="sr-only">Kahveler</h2>
     {result.coffees.length?<JsonLd data={itemList(result.coffees.map(coffee=>[coffee.name,`/kahve/${coffee.slug}`]),{offset:(result.page-1)*result.perPage,total:result.total})}/>:null}
     {result.coffees.length?<DiscoveryGrid coffees={result.coffees} source={event?'feed':'catalog'}/>:event==='NEW'?<DiscoveryEmpty title={`Son ${days} günde yeni gelen kahve yok.`}>Kavurucuların mağazalarını her gece tarıyoruz; bir kahveyi ilk gördüğümüz gece buraya ekliyoruz. Ne zaman satışa çıktığını bilmediğimiz kahveleri yeni diye göstermiyoruz.</DiscoveryEmpty>
