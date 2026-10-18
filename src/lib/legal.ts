@@ -1,6 +1,7 @@
-/** Owner decisions still open (docs/kit-setup.md → owner/legal review). Set both before any public launch or campaign;
- * until then the privacy and terms pages show a visible "not yet set" marker instead of an invented identity. */
-export const DATA_CONTROLLER: string | null = null;
-export const CONTACT_EMAIL: string | null = null;
-export const LEGAL_UPDATED = '4 Ekim 2026';
-export const LEGAL_PENDING = 'henüz belirlenmedi (yayın öncesi tamamlanacak)';
+import { studio } from './brand';
+
+/** Who runs KahveDrop, as the privacy (KVKK aydınlatma) and terms pages name it. No personal name, street address or tax number:
+ * the studio has none to publish yet. Change LEGAL_UPDATED whenever the wording of either page changes. */
+export const DATA_CONTROLLER = 'bağımsız yazılım stüdyosu Basalt (hellobasalt.dev)';
+export const CONTACT_EMAIL = studio.supportEmail;
+export const LEGAL_UPDATED = '18 Ekim 2026';

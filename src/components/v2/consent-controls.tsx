@@ -22,7 +22,7 @@ export function ConsentControls() {
   return <>
     <button type="button" onClick={() => setOpen(true)} className="inline-flex min-h-11 items-center hover:underline">Çerez tercihleri</button>
     {open || choice === null ? <section aria-label="Çerez tercihleri" data-open={open || undefined} className="consent-banner fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-2xl rounded-2xl border border-line bg-surface p-5 shadow-lg sm:inset-x-6">
-      <h2 className="font-display text-xl">Tercih senin.</h2><p className="mt-2 text-sm leading-6 text-muted">Karşılaştırma seçimin ve bu tercihin cihazında tutulur. İzin verirsen siteyi geliştirmek için anonim kullanım ölçümünü açarız. <Link href="/privacy" className="underline underline-offset-4">Gizlilik</Link></p>
+      <h2 className="font-display text-xl">Tercih senin.</h2><p className="mt-2 text-sm leading-6 text-muted">Listen, karşılaştırman, test yanıtların ve bu tercihin yalnızca cihazında tutulur. İzin verirsen siteyi geliştirmek için anonim kullanım ölçümünü açarız. <Link href="/privacy" className="underline underline-offset-4">Gizlilik</Link></p>
       <div className="mt-4 flex flex-wrap gap-3"><button type="button" onClick={() => choose('essential')} className="button-light border border-line">Yalnızca gerekli</button><button type="button" onClick={() => choose('analytics')} className="button-dark">Ölçüme izin ver</button></div>
     </section> : null}
   </>;
