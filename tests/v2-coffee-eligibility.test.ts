@@ -17,7 +17,9 @@ const excluded=[product('ying-yang','Ying Yang'),product('new-ceramic','Yeni tas
   // Coffee Sapiens and Vitus, 2026-10-05: two 100 g packs, and a box of three 75 g coffees.
   product('sapiens-set','EVOLUTION & MUTATION İKİLİ SET'),product('vitus-box','XOX Espresso Experience 3x75GR'),product('two-pack','Kenya & Ethiopia 2 x 100 g'),product('trio','Üçlü Paket Filtre'),product('sub','Aylık Kahve Aboneliği'),
   // Spada, 2026-10-05: chocolate bars named by their cacao origin.
-  product('bean-to-bar','Kolombiya Opita - Bean To Bar Çikolata 45gr')];
+  product('bean-to-bar','Kolombiya Opita - Bean To Bar Çikolata 45gr'),
+  // Coffee Friendzone, local catalog 2026-10-05: weekly subscriptions stored 'public' under the old 'abonelik'-only rule.
+  product('friendzone-sub','Kahve Aboneliği 250 Gr. Haftalık Gönderim 8&#8242; li Paket'),product('friendzone-sub-premium','Kahve Aboneliği 250 Gr. Haftalık Gönderim 6&#8242; lı Paket Premium Çekirdekler'),product('sub-k','Aylık Abonelik – Rahatlık')];
 const allowed=[product('colombia','Colombia China Alta Ibagué Washed'),{...product('fruit','Berry coffee'),rawMetadata:{description:'Seramik V60 dripper, filtre kağıdı ve fincan kullanın. Termosta içebilir, ekmek ile servis edebilirsiniz.',tastingNotes:['green tea','chocolate bar','bread']}},product('unknown-weight','Ethiopia'),
   product('cascara-process','Colombia San Adolfo Cascara'),product('decaf-water','Lala Salama Sparkling Water Kafeinsiz'),product('sugar-decaf','Colombia Sugar Cane Decaf'),
   product('sunset','Sunset Espresso'),product('one-bag','Ethiopia Guji 1x250 g')];
