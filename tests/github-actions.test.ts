@@ -57,13 +57,13 @@ describe('GitHub Actions workflows', () => {
     assert.match(readSource('.github/workflows/digest.yml'), /cron: '0 3 \* \* 1'/);
   });
 
-  it('exports a weekly read-only D1 backup kept as a private 30-day artifact', () => {
+  it('exports a weekly read-only D1 backup kept as a private 14-day artifact (two weekly copies)', () => {
     const backup = readSource('.github/workflows/d1-backup.yml');
     assert.match(backup, /contents: read/);
     assert.match(backup, /wrangler d1 export "\$D1_DATABASE_NAME" --remote --output d1-backup\.sql > \/dev\/null/);
     assert.match(backup, /D1_DATABASE_NAME: \$\{\{ vars\.D1_DATABASE_NAME \|\| 'coffeedb-v2-staging' \}\}/);
     assert.match(backup, /CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_D1_API_TOKEN \}\}/);
-    assert.match(backup, /retention-days: 30/);
+    assert.match(backup, /retention-days: 14/);
     assert.doesNotMatch(backup, /d1 execute|migrations apply/);
   });
 

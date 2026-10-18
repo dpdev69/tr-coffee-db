@@ -41,5 +41,5 @@ jobs:
         with:
           name: d1-backup-${{ github.run_id }}
           path: d1-backup.sql.gz
-          retention-days: 30
+          retention-days: 14
           if-no-files-found: error

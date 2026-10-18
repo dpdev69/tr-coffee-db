@@ -74,5 +74,5 @@ jobs:
           name: issue-preview-${{ github.run_id }}
           path: .local/v2/issue-*-preview.html
           include-hidden-files: true
-          retention-days: 30
+          retention-days: 7
           if-no-files-found: ignore
