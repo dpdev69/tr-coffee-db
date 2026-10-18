@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/site';
 import { signupsEnabled } from '@/lib/signups';
-import { CONTACT_EMAIL, DATA_CONTROLLER, LEGAL_UPDATED } from '@/lib/legal';
+import { CONTACT_EMAIL, DATA_CONTROLLER, GENERAL_EMAIL, LEGAL_UPDATED } from '@/lib/legal';
 
 // Static copy: cacheable at the edge, re-rendered at most hourly (so a deploy shows within the hour).
 export const revalidate = 3600;
@@ -13,6 +13,7 @@ export const metadata: Metadata = pageMetadata('Kullanım Şartları', `${SITE_N
 
 export default function TermsPage() {
   const mail = <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-4">{CONTACT_EMAIL}</a>;
+  const hello = <a href={`mailto:${GENERAL_EMAIL}`} className="underline underline-offset-4">{GENERAL_EMAIL}</a>;
   return (
     <div className="page-shell section-space max-w-3xl">
       <p className="eyebrow">
@@ -105,7 +106,7 @@ export default function TermsPage() {
         <TermsSection title="İletişim">
           <p>
             Katalogdaki bir hata, kırık bağlantı ya da bu şartlarla ilgili soruların için{' '}
-            {mail} adresine yazabilirsin.
+            {mail} adresine yazabilirsin. Diğer konular için {hello} adresini kullanabilirsin.
           </p>
         </TermsSection>
       </div>

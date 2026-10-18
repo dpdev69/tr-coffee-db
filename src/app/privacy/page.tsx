@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/site';
 import { signupsEnabled } from '@/lib/signups';
-import { CONTACT_EMAIL, DATA_CONTROLLER, LEGAL_UPDATED } from '@/lib/legal';
+import { CONTACT_EMAIL, DATA_CONTROLLER, GENERAL_EMAIL, LEGAL_UPDATED } from '@/lib/legal';
 
 // Static copy: cacheable at the edge, re-rendered at most hourly (so a deploy shows within the hour).
 export const revalidate = 3600;
@@ -16,6 +16,7 @@ const link = 'underline underline-offset-4';
 export default function PrivacyPage() {
   const signups = signupsEnabled();
   const mail = <a href={`mailto:${CONTACT_EMAIL}`} className={link}>{CONTACT_EMAIL}</a>;
+  const hello = <a href={`mailto:${GENERAL_EMAIL}`} className={link}>{GENERAL_EMAIL}</a>;
   return (
     <div className="page-shell section-space max-w-3xl">
       <p className="eyebrow">
@@ -33,7 +34,7 @@ export default function PrivacyPage() {
           <p>
             Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu’nun (KVKK) 10. maddesi uyarınca
             aydınlatma amacıyla hazırlanmıştır. {SITE_NAME}, {DATA_CONTROLLER} tarafından yayımlanır.
-            Veri sorumlusu: <strong>{DATA_CONTROLLER}</strong>. İletişim: <strong>{mail}</strong>.
+            Veri sorumlusu: <strong>{DATA_CONTROLLER}</strong>. İletişim: <strong>{mail}</strong> (destek ve veri talepleri), genel konular için <strong>{hello}</strong>.
           </p>
         </PolicySection>
 
