@@ -243,6 +243,8 @@ export const lotCoffee: RoasterConfig = {
 
 export const sezy: RoasterConfig = {
   slug: 'sezy',
+  // Refuses GitHub's network and the relay (HTTP 403 nightly since 2026-10-04); off until the roaster allows the crawler (owner, 2026-10-17).
+  active: false,
   runsFrom: 'relay',
   name: 'Sezy Coffee',
   websiteUrl: 'https://sezycoffee.com',
@@ -530,6 +532,8 @@ export const kafeinKultur: RoasterConfig = {
 
 export const coffeerem: RoasterConfig = {
   slug: 'coffeerem',
+  // Refuses GitHub's network and the relay (HTTP 403 nightly since 2026-10-04); off until the roaster allows the crawler (owner, 2026-10-17).
+  active: false,
   runsFrom: 'relay',
   name: 'Coffeerem Roastery',
   websiteUrl: 'https://coffeerem.com',

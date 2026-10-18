@@ -44,12 +44,14 @@ test('production crawler Worker: disabled, no cron, own queues, DLQ variable mat
 });
 
 test('the guard refuses placeholders and a missing or staging site address, and passes once everything is filled', () => {
+  const folder = mkdtempSync(join(tmpdir(), 'guard-'));
   for (const file of ['wrangler.production.jsonc', 'wrangler.crawler.production.jsonc']) {
-    const refused = guard([file]);
+    const path = join(folder, `placeholder-${file}`);
+    writeFileSync(path, text(file).replace(/("database_id":\s*)"[^"]*"/, '$1"REPLACE_WITH_PRODUCTION_D1_DATABASE_ID"'));
+    const refused = guard([path]);
     assert.equal(refused.status, 1, file);
     assert.match(refused.stderr, /REPLACE_WITH_PRODUCTION_D1_DATABASE_ID is still a placeholder/);
   }
-  const folder = mkdtempSync(join(tmpdir(), 'guard-'));
   const filled = (file: string) => { const path = join(folder, file); writeFileSync(path, text(file).replace(/REPLACE_[A-Z0-9_]+/g, 'filled-in')); return path; };
   const web = filled('wrangler.production.jsonc'), crawler = filled('wrangler.crawler.production.jsonc');
   assert.equal(guard([web, crawler]).status, 0);
