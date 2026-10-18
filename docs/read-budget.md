@@ -154,6 +154,9 @@ A **full crawl of every indexable address** (478 coffees, 42 roasters, 28 landin
 - `/go/[offerId]` and `/go/kavurucu/[slug]` need the database to find the destination. Their redirects are now stored at the edge with `max-age=0, stale-if-error=86400`: every click still runs the Worker (and is counted), but when the Worker answers 503 the edge sends the visitor on with the last redirect it saw for that address.
 - The newsletter signup (`/api/subscribe`) never reads D1 and keeps working.
 - The nightly refresh runs after the reset and stops itself at 750,000 rows.
+- Every catalog statement has 6 seconds to answer (`D1_DEADLINE_MS`, `withDeadline` in `shared/v2/last-good.ts`). After the first timeout or daily-limit error in a request, the rest of that request's reads fail at once, so a page shows its fallback in seconds instead of hanging. On 18 October `/kahveler` hung for 20 seconds.
+- Last-good copies in KV (`LAST_GOOD`; KV has its own free allowance of 100,000 reads and 1,000 writes a day). Every derived result and each page of the unfiltered newest listing is copied after it is computed, at most once per 12 hours per key. When D1 fails, they are served instead: `/kahveler` shows the copy under a "Veriler dünkü" notice, and `/api/catalog` (unfiltered) and `/api/since` add `copy.writtenAt`. Landing lists, counts, origins and roasters come from the derived copies. A response built from a copy is never edge-cached. Filtered listings, coffee pages and the quiz have no copy and still show their notice. Bump `LAST_GOOD_SCHEMA` when a stored shape changes.
+- D1's free allowance is per account, so Kaç Papel and Göçmeden lose their reads at the same moment as KahveDrop.
 
 ## Rollout
 

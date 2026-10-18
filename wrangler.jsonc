@@ -19,6 +19,13 @@
     "binding": "CF_VERSION_METADATA"
   },
   "account_id": "4c1a4493b8584296f35c3eddc8279112",
+  // Last-good copies of catalog reads, served when D1 fails (shared/v2/last-good.ts). KV has its own free allowance.
+  // No id: wrangler creates the namespace on the first deploy and reuses it after.
+  "kv_namespaces": [
+    {
+      "binding": "LAST_GOOD"
+    }
+  ],
   "d1_databases": [
     {
       "binding": "DB",

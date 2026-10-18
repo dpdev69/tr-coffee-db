@@ -88,6 +88,17 @@ export async function listCatalog(db:CatalogDatabase,filters:CatalogFilters={},n
   return {coffees:await hydrate(db,rows,now),total,page,perPage,totalPages:Math.ceil(total/perPage)};
 }
 
+/** The unfiltered newest listing is kept as a last-good copy, one entry per page (src/lib/v2-runtime.ts, catalogLastGood);
+ * any filter, search or other sort has none. The name is that entry's, or null. */
+export function lastGoodListingName(filters:CatalogFilters):string|null{
+  const lists=[filters.origin,filters.process,filters.taste,filters.roaster,filters.roast,filters.brewMethod];
+  const texts=[filters.search,filters.farm,filters.producer,filters.variety,filters.altitude];
+  if(lists.some(list=>list?.length)||texts.some(text=>text?.trim())||filters.priceMin!==undefined||filters.priceMax!==undefined||filters.traceability||filters.event||(filters.sort&&filters.sort!=='newest'))return null;
+  const page=Number.isFinite(filters.page)?Math.max(1,Math.floor(filters.page!)):1;
+  const perPage=Number.isFinite(filters.perPage)?Math.min(100,Math.max(1,Math.floor(filters.perPage!))):24;
+  return `listing:newest:${perPage}:${page}`;
+}
+
 export async function countCatalog(db:CatalogDatabase,filters:CatalogFilters):Promise<number> {
   const {where,values}=buildFilters(filters);
   return (await db.prepare(`SELECT count(*) AS count FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id WHERE ${where}`).bind(...values).first<{count:number}>())?.count??0;

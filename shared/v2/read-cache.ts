@@ -1,4 +1,5 @@
 import type { CatalogDatabase, SqlValue, Statement } from './database';
+import { withLastGood, type LastGood } from './last-good';
 
 /** The catalog changes once a night, so a page or JSON response is the same for every visitor until the next refresh.
  * Workers Cache (tiered, shared by every location) keeps it for 6 hours and the nightly job purges it once corrections
@@ -47,8 +48,9 @@ type DerivedRow = { now: string; value_json: string | null; created_at: string |
  * After a purge or a deploy many first readers arrive together: in one isolate they share one computation, and across
  * isolates the first to claim `lease:<key>` computes while the others re-read the row (2 rows each) until it appears,
  * for up to WAIT_MS, then compute themselves. A value that cannot be stored is logged with its size.
- * Any failure (including a database without migration 0008) falls through to the live query. */
-export function withDerivedCache(db:CatalogDatabase,namespace:string,ttlSeconds=86400):CatalogDatabase {
+ * Any failure (including a database without migration 0008) falls through to the live query. When that fails too (the
+ * daily D1 allowance is spent), the last value kept in KV is served instead (`lastGood`, shared/v2/last-good.ts). */
+export function withDerivedCache(db:CatalogDatabase,namespace:string,ttlSeconds=86400,lastGood?:LastGood):CatalogDatabase {
   const read=(key:string)=>db.prepare(`SELECT strftime('%Y-%m-%dT%H:%M:%fZ','now') AS now,d.value_json,d.created_at,(SELECT created_at FROM derived_cache WHERE key='${INVALIDATED}') AS invalidated_at
         FROM (SELECT 1) LEFT JOIN derived_cache d ON d.key=?`).bind(key).first<DerivedRow>();
   const fresh=(row:DerivedRow|null):row is DerivedRow&{value_json:string}=>Boolean(row?.value_json&&row.created_at&&(!row.invalidated_at||row.created_at>row.invalidated_at)&&Date.parse(row.now)-Date.parse(row.created_at)<ttlSeconds*1000);
@@ -81,7 +83,8 @@ export function withDerivedCache(db:CatalogDatabase,namespace:string,ttlSeconds=
   }
   return {prepare:sql=>db.prepare(sql),batch:statements=>db.batch(statements),derive<T>(name:string,compute:()=>Promise<T>):Promise<T>{
     const key=`${namespace}:${name}`;
-    if(!computing.has(key))computing.set(key,derive(key,compute).finally(()=>computing.delete(key)));
+    // The KV copy is keyed by name alone: a deploy changes the namespace, and an outage right after one still needs it.
+    if(!computing.has(key))computing.set(key,withLastGood(lastGood,`derived:${name}`,()=>derive(key,compute)).finally(()=>computing.delete(key)));
     return computing.get(key) as Promise<T>;
   }};
 }
