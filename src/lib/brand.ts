@@ -38,6 +38,7 @@ export const studio = {
     { label: 'Upright, ücretsiz fare uygulaması (Mac)', url: 'https://upright.hellobasalt.dev/' },
     { label: 'Lull, yakında', url: 'https://lull.hellobasalt.dev/' },
     { label: 'Cosmic Post, uzay fotoğrafı hatıraları', url: 'https://cosmicpost.lol/' },
+    { label: 'ByeWall, arşivlenmiş sayfaları bul', url: 'https://byewall.hellobasalt.dev/' },
   ],
 } as const;
 
