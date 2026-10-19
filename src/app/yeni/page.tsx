@@ -8,7 +8,7 @@ import { getFirstSearchParamValue } from '@/lib/filter-contract';
 import { ARRIVAL_DAYS } from '../../../shared/v2/events';
 import { dropTrackingParams } from '@/lib/v2-runtime';
 export async function generateMetadata({ searchParams }: { searchParams: Promise<DiscoverySearchParams> }): Promise<Metadata> {
-  return listingMetadata('Yeni gelen kahveler', `Kavurucuların son ${ARRIVAL_DAYS} günde satışa çıkardığı nitelikli kahveler, en yenisi önce: köken, işlem, tadım notları ve paket fiyatları. Yeniden satışa girenler ayrı listede.`, '/yeni', await searchParams);
+  return listingMetadata('Yeni gelen kahveler', `Kavurucuların son ${ARRIVAL_DAYS} günde satışa çıkardığı nitelikli kahveler, en yenisi önce: köken, işlem, tadım notları ve paket fiyatları.`, '/yeni', await searchParams);
 }
 /** Default view: genuine arrivals (GENUINE_NEW in shared/v2/catalog.ts). ?event=RESTOCKED: packages back in stock, a separate list. */
 export default async function NewPage({ searchParams }: { searchParams: Promise<DiscoverySearchParams> }) {

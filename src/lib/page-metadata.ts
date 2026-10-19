@@ -15,13 +15,23 @@ type SocialImage = { url: string; alt: string; width?: number; height?: number }
 export const SITE_CARD: SocialImage = { url: absoluteUrl(brand.social.image), alt: brand.title, width: 1200, height: 630 };
 /** Past this, search results cut the title; the brand suffix goes first. */
 const TITLE_LIMIT = 60;
+/** Past this, search results cut the description. */
+const DESCRIPTION_LIMIT = 160;
+
+/** Cuts at the last word boundary that fits and marks the cut, so a result never ends mid-word. */
+export function clampText(text: string, limit: number): string {
+  if (text.length <= limit) return text;
+  const cut = text.slice(0, limit - 1);
+  const space = cut.lastIndexOf(' ');
+  return `${(space > limit / 2 ? cut.slice(0, space) : cut).replace(/[\s,;:·.-]+$/, '')}…`;
+}
 
 /** Keep search and social previews specific to the page being shared. */
 export function pageMetadata(title: string, description: string, path: string, { type = 'website', image = SITE_CARD }: { type?: 'website' | 'article' | 'product'; image?: SocialImage } = {}): Metadata {
   const socialTitle = `${title} | ${brand.name}`;
   return {
     title: socialTitle.length > TITLE_LIMIT ? { absolute: title } : title,
-    description,
+    description: clampText(description, DESCRIPTION_LIMIT),
     alternates: { canonical: path },
     // Open Graph defines `product`; Next's types list only the generic kinds.
     openGraph: { title: socialTitle, description, url: path, siteName: brand.name, locale: 'tr_TR', type: type as 'website', images: [image] },
@@ -70,16 +80,21 @@ export function coffeeMetadata(coffee: CatalogCoffee) {
   const offer = preferredOffer(coffee);
   const price = offer?.priceMinor != null && offer.priceMinor > 0 && offer.currency
     ? `${offer.weightG ? `${formatPackageWeight(offer.weightG)} paketi` : 'Paket fiyatı'} ${formatMoney(offer.priceMinor / 100, offer.currency)}${offer.inStock === false ? '; şu an tükendi' : ''}.` : null;
-  const description = [
+  // Fewer notes first, then no notes, then no traits, until the sentence fits a search result; the price always stays.
+  const describe = (noteCount: number, withTraits: boolean) => [
     `${coffee.roaster.name} kavurucusundan ${coffee.name}.`,
-    traits.length ? `${capitalize(list(traits))}.` : null,
-    notes.length ? `Tadım notları: ${list(notes.slice(0, 3))}.` : families.length ? `Tat profili: ${list(families)}.` : null,
+    withTraits && traits.length ? `${capitalize(list(traits))}.` : null,
+    notes.length && noteCount ? `Tadım notları: ${list(notes.slice(0, noteCount))}.` : families.length && noteCount ? `Tat profili: ${list(families)}.` : null,
     price,
   ].filter(Boolean).join(' ');
+  const attempts = [[3, true], [2, true], [1, true], [0, true], [0, false]] as const;
+  const description = attempts.map(([count, withTraits]) => describe(count, withTraits)).find(text => text.length <= DESCRIPTION_LIMIT) ?? describe(0, false);
   // The origin joins the title when the name does not already say it and the title still fits.
   const named = (value: string) => (normalizeCityFilterValue(coffee.name) ?? '').includes(normalizeCityFilterValue(value) ?? '\u0000');
   const withOrigin = origin && isKnownCountry(origin) && !named(origin) && !named(canonicalCountry(origin)) ? `${coffee.name} · ${origin} · ${coffee.roaster.name}` : null;
-  const title = withOrigin && `${withOrigin} | ${brand.name}`.length <= TITLE_LIMIT ? withOrigin : `${coffee.name} · ${coffee.roaster.name}`;
+  const withRoaster = `${coffee.name} · ${coffee.roaster.name}`;
+  // A long name keeps itself and drops the roaster (still in the description) before it is cut.
+  const title = withOrigin && `${withOrigin} | ${brand.name}`.length <= TITLE_LIMIT ? withOrigin : withRoaster.length <= TITLE_LIMIT ? withRoaster : clampText(coffee.name, TITLE_LIMIT);
   const imageUrl = raw.imageUrl ? trustedCoffeeImageUrl(raw.imageUrl)?.href : undefined;
   return { title, description: price || traits.length || notes.length || families.length ? description : `${description} Paketlerini incele, siparişini doğrudan kavurucudan ver.`,
     image: imageUrl ? { url: imageUrl, alt: `${coffee.name} · ${coffee.roaster.name}` } : SITE_CARD };
