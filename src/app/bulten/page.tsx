@@ -2,6 +2,7 @@ import { pageMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
+import { JsonLd, breadcrumbList, webPage } from '@/components/layout/json-ld';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { signupsEnabled } from '@/lib/signups';
 import { monthLabel } from './issue';
@@ -10,14 +11,18 @@ import { issues } from './issues.generated';
 // Issues change only with a deploy; cacheable at the edge like the guide.
 export const revalidate = 3600;
 
-export const metadata: Metadata = pageMetadata(`${brand.monthlyName}: aylık kahve bülteni`, 'Ayın favori kahveleri ve Türkiye kahve sahnesinden haberler, ayda bir. Tüm sayılar.', '/bulten');
+const intro = 'Ayın favori kahveleri ve Türkiye kahve sahnesinden haberler, ayda bir.';
+
+export const metadata: Metadata = pageMetadata(`${brand.monthlyName}: aylık kahve bülteni`, `${intro} Tüm sayılar.`, '/bulten');
 
 export default function IssueIndexPage() {
   return <div className="page-shell section-space">
+    <JsonLd data={webPage(brand.monthlyName, intro, '/bulten')} />
+    <JsonLd data={breadcrumbList([[brand.name, '/'], ['Bülten', '/bulten']])} />
     <div className="mx-auto max-w-[760px]">
       <p className="eyebrow">Aylık bülten</p>
       <h1 className="mt-3 font-display text-title leading-[1.08]">{brand.monthlyName}</h1>
-      <p className="mt-4 text-lg leading-relaxed text-muted">Ayın favori kahveleri ve Türkiye kahve sahnesinden haberler, ayda bir.</p>
+      <p className="mt-4 text-lg leading-relaxed text-muted">{intro}</p>
       {issues.length ? <ol className="mt-10 border-t border-line">
         {issues.map(issue => <li key={issue.month} className="border-b border-line py-6">
           <p className="text-sm font-semibold text-warm">{monthLabel(issue.month)}{issue.published ? '' : ' · Taslak (yalnızca yerel önizleme)'}</p>
