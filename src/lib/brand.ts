@@ -23,7 +23,7 @@ export const brand = {
 } as const;
 
 /**
- * The studio that makes KahveDrop. The footer's "Basalt'tan diğerleri" column and the home page's parentOrganization use it.
+ * The studio that makes KahveDrop. The footer's "Basalt'tan diğerleri" column uses it; structured data uses studioOrganization below.
  * Follows the shared Basalt footer spec: live products only, Turkish products first, never this product, X and YouTube last.
  */
 export const studio = {
@@ -39,7 +39,21 @@ export const studio = {
     { label: 'Lull, yakında', url: 'https://lull.hellobasalt.dev/' },
     { label: 'Cosmic Post, uzay fotoğrafı hatıraları', url: 'https://cosmicpost.lol/' },
     { label: 'ByeWall, arşivlenmiş sayfaları bul', url: 'https://byewall.hellobasalt.dev/' },
+    { label: 'Outcrop, yazılım üreticileri için SEO', url: 'https://outcrop.hellobasalt.dev/' },
   ],
+} as const;
+
+/**
+ * The shared Basalt Studio node, identical on every Basalt site, so search engines and AI assistants
+ * join the products to one parent company. KahveDrop's own Organization points at it as parentOrganization.
+ */
+export const studioOrganization = {
+  '@type': 'Organization',
+  '@id': 'https://hellobasalt.dev/#org',
+  name: 'Basalt Studio',
+  alternateName: 'Basalt',
+  url: 'https://hellobasalt.dev/',
+  sameAs: ['https://x.com/hellobasalt', 'https://www.youtube.com/@hellobasalt'],
 } as const;
 
 /** Wording shown beside the checkbox and the version stored in Kit with the signup. Change the text only together with the version. */

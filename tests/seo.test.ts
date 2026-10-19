@@ -3,7 +3,8 @@ import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { coffeeMetadata, listingMetadata, catalogLanding, pageMetadata, roasterDescription, SITE_CARD } from '../src/lib/page-metadata';
-import { JsonLd, productJsonLd } from '../src/components/layout/json-ld';
+import { JsonLd, breadcrumbList, productJsonLd, webPage } from '../src/components/layout/json-ld';
+import { studioOrganization } from '../src/lib/brand';
 import { findLanding, listLandings, originLanding, processLanding } from '../src/lib/catalog-landing';
 import { catalogSitemap } from '../src/lib/sitemap-entries';
 import { absoluteUrl } from '../src/lib/site';
@@ -131,4 +132,37 @@ test('landing facts and roaster copy come from the same catalog counts the pages
   assert.equal(roasterDescription({ name: 'Parsa', city: 'İstanbul', coffeeCount: 0 }, []), 'Parsa (İstanbul) kavurucusunun şu an satışta doğrulanmış bir kahvesi yok. Yeniden satışa çıkan kahveleri bu sayfada gösteriyoruz.');
   const shown = [coffee(), coffee({ id: 'b' }), coffee({ id: 'k', rawMetadata: { country: 'Kenya' } }), coffee({ id: 'x', rawMetadata: {} })];
   assert.equal(roasterDescription({ name: 'Parsa', city: null, coffeeCount: 12 }, shown), 'Parsa kavurucusunun satıştaki 12 kahvesi; kökenler arasında Etiyopya ve Kenya var. Paketlerini ve fiyatlarını incele, siparişini doğrudan kavurucudan ver.');
+});
+
+test('a long coffee name still fits a search result: notes and traits give way first, the price stays', () => {
+  const name = '24/25 RUANDA EMMANUEL RUSATİRA/NATURAL ANAEROBİK';
+  const meta = coffeeMetadata(coffee({ name, roaster: { ...coffee().roaster, name: 'Milestones Coffee' } }));
+  assert.ok(meta.title.length <= 60, meta.title);
+  assert.equal(meta.title, name, 'the roaster drops out of the title before the name is cut');
+  assert.ok(meta.description.length <= 160, meta.description);
+  assert.match(meta.description, /250 g paketi 950 TL\.$/);
+  const huge = coffeeMetadata(coffee({ name: 'Çok Uzun Bir Kahve Adı '.repeat(4).trim() }));
+  assert.ok(huge.title.length <= 60 && huge.title.endsWith('…'), huge.title);
+  assert.doesNotMatch(huge.title, /\s…$/, 'cut at a word boundary');
+});
+
+test('every page description is held to 160 characters at a word boundary', () => {
+  const meta = pageMetadata('Başlık', 'kelime '.repeat(40).trim(), '/x');
+  assert.ok(String(meta.description).length <= 160);
+  assert.match(String(meta.description), /kelime…$/);
+  assert.equal(pageMetadata('Başlık', 'Kısa.', '/x').description, 'Kısa.');
+});
+
+test('fixed-copy pages describe themselves as a WebPage of the site with a breadcrumb from home', () => {
+  const page = webPage('Damak tadına göre kahve bul', 'Kısa açıklama.', '/quiz');
+  assert.deepEqual({ type: page['@type'], url: page.url, lang: page.inLanguage, site: page.isPartOf.url }, { type: 'WebPage', url: absoluteUrl('/quiz'), lang: 'tr-TR', site: absoluteUrl('/') });
+  const crumbs = breadcrumbList([['KahveDrop', '/'], ['Bülten', '/bulten']]).itemListElement;
+  assert.deepEqual(crumbs.map(item => [item.position, item.item]), [[1, absoluteUrl('/')], [2, absoluteUrl('/bulten')]]);
+});
+
+test('the parent company is the shared Basalt Studio node, exactly as on every Basalt site', () => {
+  assert.deepEqual(studioOrganization, {
+    '@type': 'Organization', '@id': 'https://hellobasalt.dev/#org', name: 'Basalt Studio', alternateName: 'Basalt', url: 'https://hellobasalt.dev/',
+    sameAs: ['https://x.com/hellobasalt', 'https://www.youtube.com/@hellobasalt'],
+  });
 });

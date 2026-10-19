@@ -1,0 +1,25 @@
+# KahveDrop
+
+> KahveDrop, Türkiye'deki bağımsız nitelikli kahve kavurucularının çekirdeklerini tek katalogda toplar. Her kahvenin kökenini, işlemini, kavrum derecesini, tadım notlarını ve kavurucunun kendi sitesindeki paket fiyatını gösterir. Katalog her gece kavurucuların sitelerinden yenilenir; satın alma kavurucunun kendi sitesinde yapılır, KahveDrop satış yapmaz.
+
+Sayfalar Türkçedir. Fiyatlar Türk lirasıdır ve kavurucunun sitesinde son görülen fiyattır; stok ve fiyat kavurucuda değişebilir.
+
+## Katalog
+
+- [Tüm kahveler](https://kahve.hellobasalt.dev/kahveler): köken, işlem, tat ve kavurucuya göre süzülebilen katalog.
+- [Yeni gelenler](https://kahve.hellobasalt.dev/yeni): son 30 günde satışa çıkan kahveler.
+- [Fırsatlar](https://kahve.hellobasalt.dev/firsatlar): son 7 günde fiyatı düşen kahveler.
+- [Kavurucular](https://kahve.hellobasalt.dev/kavurucular): katalogdaki kavurucular ve satıştaki kahveleri.
+
+## Rehber
+
+- [Kahve testi](https://kahve.hellobasalt.dev/quiz): birkaç soruyla damak tadına uygun kahve önerisi.
+- [Rehber](https://kahve.hellobasalt.dev/guide): kahve rehberi ve demleme hesaplayıcı.
+- [KahveDrop Mektup](https://kahve.hellobasalt.dev/bulten): ayın favori kahveleri ve kahve sahnesinden haberler, tüm sayılar.
+
+## Optional
+
+- [Site haritası](https://kahve.hellobasalt.dev/sitemap.xml): her kahve ve kavurucu sayfasının adresi.
+- [Gizlilik](https://kahve.hellobasalt.dev/privacy)
+- [Koşullar](https://kahve.hellobasalt.dev/terms)
+- [Basalt](https://hellobasalt.dev/): KahveDrop'u yapan stüdyo.

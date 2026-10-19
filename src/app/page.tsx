@@ -6,7 +6,7 @@ import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { signupsEnabled } from '@/lib/signups';
 import { DiscoveryEmpty, DiscoveryGrid } from '@/components/v2/discovery-card';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
-import { brand, studio } from '@/lib/brand';
+import { brand, studioOrganization } from '@/lib/brand';
 import { JsonLd } from '@/components/layout/json-ld';
 import { absoluteUrl } from '@/lib/site';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
@@ -71,7 +71,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
     data = { counts, catalog: catalog.coffees, drops: drops.coffees, restocked: restocked.coffees, roasters, day };
   } catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); }
   return <div className="page-shell studio-home">
-    <JsonLd data={{ '@type': 'Organization', name: brand.name, url: absoluteUrl('/'), logo: absoluteUrl(brand.logoPath), description: brand.description, parentOrganization: { '@type': 'Organization', name: studio.name, url: studio.url, sameAs: [studio.x, studio.youtube] } }} />
+    <JsonLd data={{ '@type': 'Organization', name: brand.name, url: absoluteUrl('/'), logo: absoluteUrl(brand.logoPath), description: brand.description, parentOrganization: studioOrganization }} />
     {/* The catalog search reads `search` (parseDiscoveryFilters). */}
     <JsonLd data={{ '@type': 'WebSite', name: brand.name, url: absoluteUrl('/'), inLanguage: 'tr-TR', potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${absoluteUrl('/kahveler')}?search={search_term_string}` }, 'query-input': 'required name=search_term_string' } }} />
     <section className="studio-hero">
