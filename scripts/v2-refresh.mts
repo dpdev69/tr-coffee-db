@@ -46,7 +46,7 @@ export async function refreshCatalog(db: CatalogDatabase, options: { slugs?: str
       const mode = await db.prepare("SELECT id FROM crawl_runs WHERE roaster_id=? AND status='success' AND mode<>'import' LIMIT 1").bind(roaster.id).first() ? 'live' : 'baseline';
       const id = await stableId('run',jobKey,startedAt);
       await beginCrawl(db,{id,jobKey,roasterId:roaster.id,startedAt,mode,parserVersion:PARSER_VERSION});
-      let status = 'failed', products = 0, offers = 0, diagnostics: unknown[] = [];
+      let status = 'failed', products = 0, offers = 0, restored = 0, diagnostics: unknown[] = [];
       try {
         // Shops that refuse this network are fetched through our relay Worker when one is configured.
         const crawl = await crawlRoaster(config,config.runsFrom==='relay'&&options.relay?{...options.source,fetch:options.relay}:options.source);
@@ -57,7 +57,7 @@ export async function refreshCatalog(db: CatalogDatabase, options: { slugs?: str
         status = crawl.complete ? 'success' : crawl.products.length ? 'partial' : 'failed';
         diagnostics = crawl.diagnostics;
         const result = await ingestCrawl(db,{id,jobKey,roasterId:roaster.id,startedAt,completedAt:now(),mode,parserVersion:PARSER_VERSION,status:status as 'success'|'partial'|'failed',products:crawl.products,diagnostics:crawl.diagnostics});
-        products = result.coffees; offers = result.offers;
+        products = result.coffees; offers = result.offers; restored = result.restored;
       } catch(error) {
         // A response can be lost after a successful atomic commit. Read before marking failure.
         const committed = await db.prepare('SELECT status,products_seen,offers_seen FROM crawl_runs WHERE id=?').bind(id).first<{status:string;products_seen:number;offers_seen:number}>();
@@ -68,13 +68,40 @@ export async function refreshCatalog(db: CatalogDatabase, options: { slugs?: str
           if (committed?.status==='running') await ingestCrawl(db,{id,jobKey,roasterId:roaster.id,startedAt,completedAt:now(),mode,parserVersion:PARSER_VERSION,status:'failed',products:[],diagnostics:[{stage:'reconcile',code:'ingestion_failed',message}]});
         }
       }
-      const result={slug:roaster.slug,status,mode,products,offers,diagnostics,elapsedMs:Math.round(performance.now()-started)};results.push(result);await options.report?.(result);
+      const result={slug:roaster.slug,status,mode,products,offers,restored,diagnostics,elapsedMs:Math.round(performance.now()-started)};results.push(result);await options.report?.(result);
     }
   }));
   // Finish all in-flight work before the caller writes the final report.
   const failure = workers.find(worker => worker.status === 'rejected');
   if (failure?.status === 'rejected') throw failure.reason;
   return results;
+}
+export interface Freshness { listed: number; fresh: number; stale: number; rowsRead: number | null }
+/** The one catalog-wide read of the night's report: listed coffees (public_catalog_coffees, the site's own rule) split into
+ * fresh (confirmed by a crawl since `since`, the run's day) and stale (still listed on an earlier crawl, dropped after 7 days
+ * unconfirmed). About 4,500 rows on today's catalog (docs/read-budget.md: one scan of the view); the summary prints the real count. */
+export async function catalogFreshness(db: CatalogDatabase & { rowsRead?: number }, since: string): Promise<Freshness> {
+  const before = db.rowsRead;
+  const row = await db.prepare('SELECT count(*) AS listed, coalesce(sum(datetime(last_seen_at)<datetime(?)),0) AS stale FROM public_catalog_coffees').bind(since).first<{ listed: number; stale: number }>();
+  const listed = Number(row?.listed ?? 0), stale = Number(row?.stale ?? 0);
+  return { listed, fresh: listed - stale, stale, rowsRead: before === undefined || db.rowsRead === undefined ? null : db.rowsRead - before };
+}
+const SUCCEEDED = new Set(['success', 'already_completed']);
+/** Source tallies from this run's own results; no database read. */
+export function sourceCounts(results: Record<string, unknown>[]) {
+  return { attempted: results.length, succeeded: results.filter(r => SUCCEEDED.has(String(r.status))).length,
+    partial: results.filter(r => r.status === 'partial').length, failed: results.filter(r => r.status === 'failed').length,
+    restored: results.reduce((sum, r) => sum + (Number(r.restored) || 0), 0) };
+}
+/** The job summary's data section: whether data was written, freshness, and one row per source. */
+export function refreshSummaryMarkdown(input: { results: Record<string, unknown>[]; failure: string | null; rowsRead: number; rowsWritten: number; freshness: Freshness | { error: string } | null }) {
+  const counts = sourceCounts(input.results), f = input.freshness;
+  const freshness = !f ? '' : 'error' in f ? `**Catalog freshness:** not counted (${f.error}).\n\n`
+    : `**Catalog freshness** after this run: ${f.listed} coffees listed: **${f.fresh} fresh** (confirmed today), **${f.stale} stale** (listed from an earlier crawl; dropped after 7 days unconfirmed), **${counts.restored} restored** (confirmed again after dropping out).${f.rowsRead === null ? '' : ` Counted with one query, ${f.rowsRead} rows read.`}\n\n`;
+  return `## Catalog data\n\n${input.failure ? `**Refresh stopped:** ${input.failure}\n\n` : ''}`
+    + `**Sources:** ${counts.attempted} attempted, ${counts.succeeded} succeeded, ${counts.partial} partial, ${counts.failed} failed. D1 rows read ${input.rowsRead}; written ${input.rowsWritten}.\n\n`
+    + freshness
+    + `| Source | Status | Products | Offers | Restored |\n|---|---|---:|---:|---:|\n${input.results.map(r => `| ${r.slug} | ${r.status} | ${r.products ?? 0} | ${r.offers ?? 0} | ${r.restored ?? 0} |`).join('\n')}\n`;
 }
 async function main() {
   const started=performance.now();
@@ -90,9 +117,11 @@ async function main() {
   } catch(error) { failure=safeDiagnostic(error instanceof Error?error.message:String(error));console.error(failure);process.exitCode=1; }
   // Also run alone (workflow_dispatch for a few roasters): shared results are recomputed from the new data. Corrections invalidate again.
   await db.batch(invalidateDerived(db)).catch(error=>console.error(safeDiagnostic(error instanceof Error?error.message:String(error))));
-  const summary={scheduledAt,results,failure,elapsedMs:Math.round(performance.now()-started),rowsRead:db.rowsRead,rowsWritten:db.rowsWritten};
+  // Skipped when the run stopped: if the database refused (allowance spent, budget cap) this query would fail the same way.
+  const freshness=failure?null:await catalogFreshness(db,scheduledAt).catch(error=>({error:safeDiagnostic(error instanceof Error?error.message:String(error))}));
+  const summary={scheduledAt,results,failure,sources:sourceCounts(results),freshness,elapsedMs:Math.round(performance.now()-started),rowsRead:db.rowsRead,rowsWritten:db.rowsWritten};
   await writeFile(resolve(directory,'summary.json'),JSON.stringify(summary,null,2));
-  if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,`${failure?`**Refresh stopped:** ${failure}\n\n`:''}Catalog refresh: ${results.filter(r=>r.status==='success'||r.status==='already_completed').length}/${results.length} successful. D1 rows read ${db.rowsRead}; written ${db.rowsWritten}.\n\n| Source | Status | Products | Offers |\n|---|---|---:|---:|\n${results.map(r=>`| ${r.slug} | ${r.status} | ${r.products??0} | ${r.offers??0} |`).join('\n')}\n`);
+  if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,refreshSummaryMarkdown({results,failure,rowsRead:db.rowsRead,rowsWritten:db.rowsWritten,freshness}));
   const attention=failure?[]:await attentionNeeded(db,results,new Date().toISOString());
   for(const reason of attention)console.error(`::error::${reason}`);
   if(process.env.GITHUB_STEP_SUMMARY&&attention.length)await appendFile(process.env.GITHUB_STEP_SUMMARY,`\n**Needs attention:**\n${attention.map(reason=>`- ${reason}`).join('\n')}\n`);

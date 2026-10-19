@@ -43,13 +43,20 @@ jobs:
           cache-dependency-path: scrapers/package-lock.json
       - name: Install crawler dependencies
         run: npm ci --prefix scrapers
+      # Before anything is crawled: each secret's shape (never printed) and a live check of the D1 token with Cloudflare.
+      # A bad D1 token stops the job here and names the secret to re-paste; a malformed purge or relay token is reported
+      # and fails the purge later, without holding back tonight's data (scripts/check-refresh-secrets.mts).
+      - name: Check secrets
+        id: secrets
+        env:
+          CACHE_PURGE_TOKEN: ${{ secrets.CACHE_PURGE_TOKEN }}
+        run: scrapers/node_modules/.bin/tsx scripts/check-refresh-secrets.mts
       - name: Refresh all active roasters
         id: refresh
         env:
           ROASTERS: ${{ inputs.roasters }}
         shell: bash
         run: |
-          test -n "$CLOUDFLARE_D1_API_TOKEN" || { echo '::error::CLOUDFLARE_D1_API_TOKEN is missing'; exit 1; }
           read -ra slugs <<< "$ROASTERS"
           scrapers/node_modules/.bin/tsx scripts/v2-refresh.mts "${slugs[@]}"
       - name: Keep the refresh report
@@ -64,27 +71,29 @@ jobs:
       # Reviewed corrections and size-twin links; runs even when a source needs attention.
       - name: Apply manual corrections
         id: corrections
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.secrets.outcome == 'success' }}
         run: scrapers/node_modules/.bin/tsx scripts/v2-apply-corrections.mts
       # Pages and JSON are kept at the edge for 6 hours (shared/v2/read-cache.ts); dropping them now shows tonight's
       # catalog at once. Needs the Worker secret and the repository secret CACHE_PURGE_TOKEN (same value), vars.SITE_URL and
       # the relay token; the request goes through SITE_VIA.
       # Only after a step that wrote tonight's data: when the database refuses reads (daily allowance spent), both fail,
       # and purging then would replace every good edge copy with outage notices until the next day.
+      # continue-on-error so the warm-up and the outcome step still run; the outcome step turns the job red when the purge
+      # failed and says the data was written (scripts/refresh-outcome.mts).
       - name: Purge the edge cache
         id: purge
         if: ${{ !cancelled() && (steps.refresh.outcome == 'success' || steps.corrections.outcome == 'success') }}
+        continue-on-error: true
         env:
           CACHE_PURGE_TOKEN: ${{ secrets.CACHE_PURGE_TOKEN }}
           SITE_URL: ${{ vars.SITE_URL }}
-        run: |
-          if [ -z "$CACHE_PURGE_TOKEN" ] || [ -z "$SITE_URL" ] || [ -z "$CRAWL_RELAY_TOKEN" ]; then echo '::notice::Edge purge not configured; pages refresh within 6 hours.'; exit 0; fi
-          curl -fsS --max-time 30 -X POST -H "Authorization: Bearer $CRAWL_RELAY_TOKEN" -H "X-Cache-Purge-Token: $CACHE_PURGE_TOKEN" "${SITE_VIA%/}/api/cache"
+        run: scrapers/node_modules/.bin/tsx scripts/purge-cache.mts
       # Right after the purge, one request at a time: the catalog-wide results (landing facts, sitemap, similarity and quiz
       # candidates) are computed once here instead of by the first visitors together, and the commonest pages are stored at
       # the edge. It also lists the stored results and their sizes, and flags one that was not stored (docs/read-budget.md).
       - name: Warm the edge cache
-        if: ${{ !cancelled() && steps.purge.outcome == 'success' }}
+        id: warm
+        if: ${{ !cancelled() && steps.purge.outcome == 'success' && steps.purge.outputs.result == 'purged' }}
         continue-on-error: true
         env:
           CACHE_PURGE_TOKEN: ${{ secrets.CACHE_PURGE_TOKEN }}
@@ -92,3 +101,15 @@ jobs:
         run: |
           if [ -z "$CACHE_PURGE_TOKEN" ] || [ -z "$SITE_URL" ]; then echo '::notice::Edge purge not configured; nothing to warm.'; exit 0; fi
           scrapers/node_modules/.bin/tsx scripts/warm-cache.mts
+      # Data and edge reported apart: "was tonight's data written" and "was the edge purged and warmed" are separate rows,
+      # and the job's colour is decided here (red when a person is needed; a warm-up failure is only a warning).
+      - name: Report the outcome
+        if: always()
+        env:
+          SECRETS_OUTCOME: ${{ steps.secrets.outcome }}
+          REFRESH_OUTCOME: ${{ steps.refresh.outcome }}
+          CORRECTIONS_OUTCOME: ${{ steps.corrections.outcome }}
+          PURGE_OUTCOME: ${{ steps.purge.outcome }}
+          PURGE_RESULT: ${{ steps.purge.outputs.result }}
+          WARM_OUTCOME: ${{ steps.warm.outcome }}
+        run: scrapers/node_modules/.bin/tsx scripts/refresh-outcome.mts

@@ -24,9 +24,29 @@ describe('GitHub Actions workflows', () => {
     assert.match(purge, /if: \$\{\{ !cancelled\(\) && \(steps\.refresh\.outcome == 'success' \|\| steps\.corrections\.outcome == 'success'\) \}\}/);
     assert.match(purge, /secrets\.CACHE_PURGE_TOKEN/);
     // Bot Fight Mode answers GitHub's runners 403 on the site, so the purge goes through the crawler Worker's /site route.
-    assert.match(purge, /"\$\{SITE_VIA%\/\}\/api\/cache"/);
-    assert.doesNotMatch(purge, /\$\{SITE_URL%\/\}\/api\/cache/);
+    assert.match(purge, /run: scrapers\/node_modules\/\.bin\/tsx scripts\/purge-cache\.mts/);
+    const script = readSource('scripts/purge-cache.mts');
+    assert.match(script, /const via = env\.SITE_VIA/);
+    assert.match(script, /`\$\{via\}\/api\/cache`/);
+    assert.doesNotMatch(script, /SITE_URL[^']*\/api\/cache/);
     assert.match(source, /SITE_VIA: \$\{\{ vars\.SITE_VIA \|\| 'https:\/\/coffeedb-v2-crawler-staging\.hellobasalt\.workers\.dev\/site' \}\}/);
+  });
+
+  it('checks secrets before crawling and reports data and edge apart', () => {
+    const source = readSource('.github/workflows/scrape.yml');
+    const step = (name: string) => { const start = source.indexOf(`- name: ${name}`); assert.ok(start > 0, name); return source.slice(start, source.indexOf('- name:', start + 1) >>> 0 || undefined); };
+    // The secrets check runs first; a bad D1 token stops the job before any crawl or write.
+    assert.ok(source.indexOf('- name: Check secrets') < source.indexOf('- name: Refresh all active roasters'));
+    assert.match(step('Check secrets'), /id: secrets\n/);
+    assert.match(step('Check secrets'), /scripts\/check-refresh-secrets\.mts/);
+    assert.match(step('Apply manual corrections'), /if: \$\{\{ !cancelled\(\) && steps\.secrets\.outcome == 'success' \}\}/);
+    // A purge failure does not stop the warm-up or the report; the report decides the colour and says whether data was written.
+    assert.match(step('Purge the edge cache'), /continue-on-error: true/);
+    assert.match(step('Warm the edge cache'), /steps\.purge\.outputs\.result == 'purged'/);
+    const report = source.slice(source.indexOf('- name: Report the outcome'));
+    assert.match(report, /if: always\(\)/);
+    for (const name of ['secrets', 'refresh', 'corrections', 'purge', 'warm']) assert.match(report, new RegExp(`steps\\.${name}\\.outcome`), name);
+    assert.match(report, /scripts\/refresh-outcome\.mts/);
   });
 
   it('keeps CI and scraper workflows aligned to the checked-in Node version', () => {

@@ -4,18 +4,6 @@
 
 ## Infrastructure
 
-### Extend the Actions scrape summary with catalog freshness counts
-
-**What:** Add fresh, stale, and restored catalog counts to the scheduled run summary that now reports per-roaster success, failure, and skip outcomes.
-
-**Why:** Freshness is now the product promise. A green GitHub Action is not enough if users are seeing stale or partial catalog data.
-
-**Context:** The 2026-05-21 catalog freshness checkpoint found 71 restored stale active coffees and seven zero-product WooCommerce adapters. The workflow now writes a GitHub Actions summary for every broad run and applies a 90% catalog-health gate. The remaining gap is querying the post-run database state so that summary also shows fresh, stale, and restored inventory counts before a full dashboard is justified.
-
-**Effort:** M
-**Priority:** P1
-**Depends on:** Existing scrape log writes
-
 ### Tune metadata audit before making it a release gate
 
 **What:** Reduce false positives in `npm run audit:metadata` and then decide whether high-confidence issues should fail CI.
@@ -119,3 +107,7 @@
 **Depends on:** Proven buyer wedge and clearer monetization signal
 
 ## Completed
+
+### Extend the Actions scrape summary with catalog freshness counts (done 2026-10-20)
+
+The nightly job summary (`scrape.yml`) now shows sources attempted, succeeded, partial and failed, and the listed catalog split into fresh (confirmed today), stale (listed from an earlier crawl, dropped after 7 days unconfirmed) and restored (confirmed again after dropping out). Restored is counted during ingestion from rows the crawl already reads; fresh and stale cost one aggregate query on `public_catalog_coffees` per run (about 4,500 rows on today's catalog, docs/read-budget.md; the summary prints the measured count). The same change added a secrets check before crawling and an outcome step that reports "data written" and "edge purged/warmed" apart.

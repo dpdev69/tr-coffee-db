@@ -5,7 +5,7 @@ import { canonicalizeUrl, offerIdentity, productIdentity, stableId, stableSlug, 
 import { deriveNewEvent, deriveOfferEvents } from './events';
 
 interface RoasterRow { id: string; revision: number; last_success_at: string | null; trusted_hosts_json: string }
-interface CoffeeRow { id: string; source_product_id: string | null; identity_key: string; slug: string }
+interface CoffeeRow { id: string; source_product_id: string | null; identity_key: string; slug: string; last_seen_at: string }
 interface AliasRow { alias_type: string; alias: string; coffee_id: string }
 interface OfferRow { id: string; coffee_id: string; identity_key: string; current_price_minor: number | null; currency: string | null; weight_g: number | null }
 interface FeatureRow { coffee_id: string; feature: string; value_json: string; source_type: string; confidence: number | null; version: string; source_reference: string | null }
@@ -77,7 +77,7 @@ export async function beginCrawl(db: CatalogDatabase, input: CrawlStart): Promis
 }
 
 /** One complete roaster result is one atomic batch. Call through a primary D1 session when read replication is enabled. */
-export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promise<{ replayed: boolean; coffees: number; offers: number; events: number; status: string }> {
+export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promise<{ replayed: boolean; coffees: number; offers: number; events: number; restored: number; status: string }> {
   const startedAt = canonicalTime(input.startedAt);
   const completedAt = canonicalTime(input.completedAt);
   if (completedAt < startedAt) throw new Error('Crawl completed before it started');
@@ -86,7 +86,7 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
   const replay = await db.prepare('SELECT input_hash,products_seen,offers_seen,status,roaster_id,started_at,parser_version,mode,job_key FROM crawl_runs WHERE id=?').bind(input.id).first<{input_hash:string|null;products_seen:number;offers_seen:number;status:string;roaster_id:string;started_at:string;parser_version:string;mode:string;job_key:string|null}>();
   if (replay && replay.status !== 'running') {
     if (replay.input_hash !== inputHash) throw new Error('Crawl ID reused with different input');
-    return { replayed: true, coffees: replay.products_seen, offers: replay.offers_seen, events: 0, status: replay.status };
+    return { replayed: true, coffees: replay.products_seen, offers: replay.offers_seen, events: 0, restored: 0, status: replay.status };
   }
   if(replay && (replay.roaster_id!==input.roasterId || replay.started_at!==startedAt || replay.parser_version!==input.parserVersion || replay.mode!==(input.mode??'live') || replay.job_key!==(input.jobKey??null))) throw new Error('Crawl completion does not match started run');
   const roaster = await db.prepare('SELECT id,revision,last_success_at,trusted_hosts_json FROM roasters WHERE id=?').bind(input.roasterId).first<RoasterRow>();
@@ -104,9 +104,13 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
     db.prepare('INSERT INTO ingestion_guards(run_id,valid) VALUES(?,COALESCE((SELECT revision=? FROM roasters WHERE id=?),0))').bind(input.id,roaster.revision,input.roasterId),
   ];
   let eventCount = 0;
+  // Coffees that had aged out of the catalog (unconfirmed for 7 days before the roaster's last success, the rule of
+  // public_catalog_coffees) and are confirmed again now. Counted from rows this crawl already reads; reported nightly.
+  let restored = 0;
+  const agedOutBefore = roaster.last_success_at ? Date.parse(roaster.last_success_at) - 7 * 86_400_000 : null;
   if (input.status === 'success') {
     const hosts = JSON.parse(roaster.trusted_hosts_json) as string[];
-    const coffeeRows = (await db.prepare('SELECT id,source_product_id,identity_key,slug FROM coffees WHERE roaster_id=?').bind(input.roasterId).all<CoffeeRow>()).results;
+    const coffeeRows = (await db.prepare('SELECT id,source_product_id,identity_key,slug,last_seen_at FROM coffees WHERE roaster_id=?').bind(input.roasterId).all<CoffeeRow>()).results;
     const aliases = (await db.prepare('SELECT alias_type,alias,coffee_id FROM coffee_aliases WHERE roaster_id=?').bind(input.roasterId).all<AliasRow>()).results;
     const offerRows = (await db.prepare('SELECT o.id,o.coffee_id,o.identity_key,o.current_price_minor,o.currency,o.weight_g FROM offers o JOIN coffees c ON c.id=o.coffee_id WHERE c.roaster_id=?').bind(input.roasterId).all<OfferRow>()).results;
     // Index seek per offer reads two rows, rather than ranking its entire growing history.
@@ -159,6 +163,7 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
         if (!importedIdentity) throw new Error('Suspicious source identity change requires reconciliation');
       }
       const coffeeId = existing?.id ?? await stableId('coffee', input.roasterId, identity);
+      if (existing && !excluded && agedOutBefore !== null && Date.parse(existing.last_seen_at) < agedOutBefore) restored++;
       if (seenCoffees.has(coffeeId)) throw new Error('Duplicate product identity in crawl');
       seenCoffees.add(coffeeId);
       const slug = existing?.slug ?? stableSlug(product.name, coffeeId);
@@ -234,7 +239,7 @@ export async function ingestCrawl(db: CatalogDatabase, input: CrawlInput): Promi
   ...await Promise.all(diagnostics.map(async (error, index) => insert(db, 'crawl_errors', { id: await stableId('error',input.id,String(index)), crawl_run_id: input.id, roaster_id: input.roasterId,
     stage: error.stage, code: error.code, message: error.message, context_json: null, created_at: completedAt }))));
   await db.batch(statements);
-  return { replayed: false,coffees: input.status === 'success' ? input.products.length : 0,offers: input.status === 'success' ? offersSeen : 0,events: eventCount,status: input.status };
+  return { replayed: false,coffees: input.status === 'success' ? input.products.length : 0,offers: input.status === 'success' ? offersSeen : 0,events: eventCount,restored,status: input.status };
 }
 
 function validateProduct(product: SourceCoffee): void {
