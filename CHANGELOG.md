@@ -6,6 +6,7 @@ All notable changes to TR CoffeeDB are documented here.
 
 ### Added
 
+- Ten written comparison pages at `/karsilastir` (Etiyopya mı Kolombiya mı, espresso mu filtre mi, Kronotrop mu Petra mı and more), built from one derived result per refresh, listed in the sitemap with breadcrumb and item-list structured data, and linked from roaster, origin and process pages.
 - Weekly “Haftalık Drop” digest that creates a Kit draft from verified price drops, new arrivals and restocks.
 - KVKK privacy notice and explicit newsletter consent.
 - Weekly D1 backup workflow.

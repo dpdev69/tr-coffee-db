@@ -12,6 +12,7 @@ import { getRoasterDetail } from '../../../../shared/v2/catalog';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { signupsEnabled } from '@/lib/signups';
 import { roasterSiteUrl } from '../../../../shared/v2/outbound';
+import { ComparisonLinks } from '@/components/v2/comparison-links';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
 export const revalidate = 21600;
@@ -48,6 +49,7 @@ export default async function RoasterPage({ params, searchParams }: { params: Pr
     <h2 className="sr-only">{roaster.name} kahveleri</h2>
     {catalog.coffees.length ? <DiscoveryGrid coffees={catalog.coffees} /> : <DiscoveryEmpty title="Şu an satışta doğrulanmış bir kahve yok.">Kavurucunun sayfasını koruyoruz. Yeniden satışa çıkan kahveler burada yer alacak.</DiscoveryEmpty>}
     {catalog.total > catalog.coffees.length ? <div className="mt-8 text-center"><Link className="button-dark" prefetch={false} href={`/kahveler?roaster=${encodeURIComponent(roaster.slug)}`}>Tüm {catalog.total} kahveyi gör →</Link></div> : null}
+    <ComparisonLinks side={{ roaster: roaster.slug }} />
     {signupsEnabled() && <NewsletterForm source="roaster" variant="card" className="mt-12" title="Bu kavurucudan yeni kahve gelince" description="Haftalık özet ve aylık bültende haber veririz." />}
   </div>;
 }

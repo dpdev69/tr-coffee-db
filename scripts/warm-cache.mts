@@ -39,6 +39,7 @@ async function warm(path: string, headers: Record<string, string>) {
 const sitemap = await warm('/sitemap.xml', {});
 for (const path of ['/', '/kahveler', '/yeni', '/firsatlar']) { await warm(path, html); await warm(`${path}?_rsc`, rsc); }
 await warm('/kavurucular', html);
+await warm('/karsilastir', html); // comparison facts (the sitemap already filled them; this stores the page)
 const coffee = /<loc>[^<]*?(\/kahve\/[^<]+)<\/loc>/.exec(sitemap)?.[1];
 if (coffee) await warm(coffee, html); // similarity candidates
 await warm('/api/quiz/match', {}); // quiz candidates
@@ -52,7 +53,7 @@ if (account && database && token) {
   // Half of D1's 2 MB row limit is the point to act; past MAX_DERIVED_BYTES (1.9 MB) a value is no longer stored.
   for (const row of rows.filter(row => row.bytes > 1_000_000)) report(`::warning::Derived result ${name(row.key)} is ${row.bytes} bytes; D1 refuses rows over 2 MB (shared/v2/read-cache.ts)`);
   const stored = new Set(rows.map(row => name(row.key)));
-  for (const expected of ['counts', 'roasters', 'origins', 'facts', 'sitemap-coffees', 'day-order', 'similar-candidates', 'quiz-candidates'].filter(item => !stored.has(item))) {
+  for (const expected of ['counts', 'roasters', 'origins', 'facts', 'sitemap-coffees', 'day-order', 'similar-candidates', 'quiz-candidates', 'comparisons'].filter(item => !stored.has(item))) {
     failed++; report(`::error::Derived result ${expected} was not stored; every request that needs it recomputes it. Look for "Derived result not stored" in the Worker logs.`);
   }
 }

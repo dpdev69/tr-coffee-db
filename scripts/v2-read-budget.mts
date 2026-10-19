@@ -24,6 +24,7 @@ import { beginCrawl, expireCrawls, ingestCrawl, registerRoaster } from '../share
 import { stableId } from '../shared/v2/identity';
 import { listLandings, findLanding, landingFacts } from '../src/lib/catalog-landing';
 import { catalogSitemap } from '../src/lib/sitemap-entries';
+import { comparisonFacts } from '../src/lib/comparisons';
 import { parseDiscoveryFilters } from '../src/components/v2/discovery-catalog';
 import { parseQuizAnswers } from '../src/lib/quiz-filters';
 import type { SourceCoffee } from '../shared/v2/types';
@@ -89,6 +90,7 @@ export function pageScenarios(sample: { coffee: string; roaster: string; offer: 
     'GET /kahve/[slug]': async (db: CatalogDatabase) => { const coffee = await getCoffeeDetail(db, sample.coffee, now); if (coffee) await getSimilarCoffees(db, coffee); },
     'GET /kavurucu/[slug]': async (db: CatalogDatabase) => { await Promise.all([getRoasterDetail(db, sample.roaster), roasterSiteUrl(db, sample.roaster)]); },
     'GET /kavurucular': async (db: CatalogDatabase) => { await listRoasters(db); },
+    'GET /karsilastir/[pair]': async (db: CatalogDatabase) => { await comparisonFacts(db); },
     'GET /quiz/sonuc?taste=fruity&brew=filter': async (db: CatalogDatabase) => { await rankQuizMatches(db, parseQuizAnswers({ taste: 'fruity', brew: 'filter' }), 8); },
     'GET /sitemap.xml': async (db: CatalogDatabase) => { await catalogSitemap(db); },
     'GET /api/catalog': async (db: CatalogDatabase) => { await Promise.all([getCatalogCounts(db), listCatalog(db, { page: 1, perPage: 24, origin: [], process: [], taste: [], roaster: [] })]); },
@@ -229,7 +231,7 @@ async function main() {
       const { db } = counting(proxy.env.DB); await db.batch(invalidateDerived(db));
       console.log('Derived results, computed once per refresh (first miss after the nightly invalidation):');
       const fills: Record<string, (db: CatalogDatabase) => Promise<unknown>> = { counts: getCatalogCounts, roasters: listRoasters, origins: listOrigins, 'landing facts': listLandings,
-        'similar candidates': async db => getSimilarCoffees(db, (await getCoffeeDetail(db, sample.coffee))!, 0), 'quiz candidates': db => rankQuizMatches(db, parseQuizAnswers({}), 1), 'coffee of the day order': db => getCoffeeOfTheDay(db), sitemap: catalogSitemap };
+        'similar candidates': async db => getSimilarCoffees(db, (await getCoffeeDetail(db, sample.coffee))!, 0), 'quiz candidates': db => rankQuizMatches(db, parseQuizAnswers({}), 1), 'coffee of the day order': db => getCoffeeOfTheDay(db), comparisons: comparisonFacts, sitemap: catalogSitemap };
       let total = 0;
       for (const [name, run] of Object.entries(fills)) { const { db, tally } = counting(proxy.env.DB); await run(wrap(db)); total += tally.rowsRead; print(`  ${name}`, tally, 0); }
       console.log(`  total ${total} rows read\n`);
