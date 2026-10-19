@@ -17,7 +17,7 @@ test('production web Worker: own names and bindings, signups and sponsorships of
   assert.equal(production.vars.SIGNUPS_ENABLED, 'false');
   assert.equal(production.vars.NEXT_PUBLIC_SPONSORSHIPS_ENABLED, undefined);
   assert.equal(production.vars.NEXT_PUBLIC_SITE_URL, undefined, 'the deploy script supplies the site address');
-  assert.equal(staging.vars.SIGNUPS_ENABLED, 'true');
+  assert.equal(staging.vars.SIGNUPS_ENABLED, 'false');
   assert.doesNotMatch(text('wrangler.production.jsonc'), /staging|5090f52d|008e6a1f|\b100[12]\b/i);
   const stagingNamespaces = staging.ratelimits.map((limiter: { namespace_id: string }) => limiter.namespace_id);
   for (const limiter of production.ratelimits) assert.ok(!stagingNamespaces.includes(limiter.namespace_id));
