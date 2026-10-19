@@ -3,7 +3,8 @@ import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { coffeeMetadata, listingMetadata, catalogLanding, pageMetadata, roasterDescription, SITE_CARD } from '../src/lib/page-metadata';
-import { JsonLd, productJsonLd } from '../src/components/layout/json-ld';
+import { JsonLd, breadcrumbList, productJsonLd, webPage } from '../src/components/layout/json-ld';
+import { studioOrganization } from '../src/lib/brand';
 import { findLanding, listLandings, originLanding, processLanding } from '../src/lib/catalog-landing';
 import { catalogSitemap } from '../src/lib/sitemap-entries';
 import { absoluteUrl } from '../src/lib/site';
@@ -150,4 +151,18 @@ test('every page description is held to 160 characters at a word boundary', () =
   assert.ok(String(meta.description).length <= 160);
   assert.match(String(meta.description), /kelime…$/);
   assert.equal(pageMetadata('Başlık', 'Kısa.', '/x').description, 'Kısa.');
+});
+
+test('fixed-copy pages describe themselves as a WebPage of the site with a breadcrumb from home', () => {
+  const page = webPage('Damak tadına göre kahve bul', 'Kısa açıklama.', '/quiz');
+  assert.deepEqual({ type: page['@type'], url: page.url, lang: page.inLanguage, site: page.isPartOf.url }, { type: 'WebPage', url: absoluteUrl('/quiz'), lang: 'tr-TR', site: absoluteUrl('/') });
+  const crumbs = breadcrumbList([['KahveDrop', '/'], ['Bülten', '/bulten']]).itemListElement;
+  assert.deepEqual(crumbs.map(item => [item.position, item.item]), [[1, absoluteUrl('/')], [2, absoluteUrl('/bulten')]]);
+});
+
+test('the parent company is the shared Basalt Studio node, exactly as on every Basalt site', () => {
+  assert.deepEqual(studioOrganization, {
+    '@type': 'Organization', '@id': 'https://hellobasalt.dev/#org', name: 'Basalt Studio', alternateName: 'Basalt', url: 'https://hellobasalt.dev/',
+    sameAs: ['https://x.com/hellobasalt', 'https://www.youtube.com/@hellobasalt'],
+  });
 });

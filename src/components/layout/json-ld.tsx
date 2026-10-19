@@ -1,4 +1,5 @@
 import { absoluteUrl } from '@/lib/site';
+import { brand } from '@/lib/brand';
 import { publicOfferLabel } from '@/components/v2/discovery-card';
 import { trustedCoffeeImageUrl } from '@/lib/coffee-image';
 import type { CatalogCoffee } from '../../../shared/v2/catalog';
@@ -6,6 +7,11 @@ import type { CatalogCoffee } from '../../../shared/v2/catalog';
 /** Structured data as a plain script tag (Next json-ld guide); `<` is escaped so catalog text cannot close the tag. */
 export function JsonLd({ data }: { data: Record<string, unknown> }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', ...data }).replace(/</g, '\\u003c') }} />;
+}
+
+/** A page of fixed copy: its own heading and description, in Turkish, as part of the site. */
+export function webPage(name: string, description: string, path: string) {
+  return { '@type': 'WebPage', name, description, url: absoluteUrl(path), inLanguage: 'tr-TR', isPartOf: { '@type': 'WebSite', name: brand.name, url: absoluteUrl('/') } };
 }
 
 export function breadcrumbList(items: [name: string, path: string][]) {
