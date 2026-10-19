@@ -6,8 +6,10 @@ import { issues } from '../app/bulten/issues.generated';
 import { listLandings } from './catalog-landing';
 import { COMPARISONS, listedInSitemap } from './comparisons';
 import { absoluteUrl } from './site';
+import { GUIDE_UPDATED } from './content-dates';
 
-const CATALOG_ROUTES = new Set(['/', '/yeni', '/firsatlar', '/kahveler', '/kavurucular']);
+/** Pages whose content is the catalog itself (lists, counts, comparisons, the numbers page): they change when it does. */
+const CATALOG_ROUTES = new Set(['/', '/yeni', '/firsatlar', '/kahveler', '/kavurucular', '/karsilastir', '/veri']);
 /**
  * lastModified is when the content really changed: first seen, a recorded event, or a price change.
  * Per-crawl "seen" and "touched" stamps move on every crawl and would claim daily edits, so they are not used.
@@ -19,8 +21,8 @@ type SitemapCoffees = { results: Array<{ slug: string; roaster_id: string; chang
 const date = (iso: string | undefined) => (iso ? new Date(iso) : undefined);
 
 export function staticSitemap(latest?: string): MetadataRoute.Sitemap {
-  const paths = ['/', '/yeni', '/firsatlar', '/kahveler', '/kavurucular', '/quiz', '/guide', '/karsilastir', '/privacy', '/terms', '/bulten', ...issues.filter(issue => issue.published).map(issue => `/bulten/${issue.month}`)];
-  return paths.map(path => ({ url: absoluteUrl(path), lastModified: CATALOG_ROUTES.has(path) ? date(latest) : undefined, changeFrequency: 'weekly', priority: path === '/' ? 1 : 0.7 }));
+  const paths = ['/', '/yeni', '/firsatlar', '/kahveler', '/kavurucular', '/quiz', '/guide', '/karsilastir', '/veri', '/privacy', '/terms', '/bulten', ...issues.filter(issue => issue.published).map(issue => `/bulten/${issue.month}`)];
+  return paths.map(path => ({ url: absoluteUrl(path), lastModified: CATALOG_ROUTES.has(path) ? date(latest) : path === '/guide' ? date(GUIDE_UPDATED) : undefined, changeFrequency: 'weekly', priority: path === '/' ? 1 : 0.7 }));
 }
 
 /**
@@ -40,8 +42,9 @@ export async function catalogSitemap(db: CatalogDatabase): Promise<MetadataRoute
   const latest = [...roasterChanged.values()].sort().at(-1);
   return [
     ...staticSitemap(latest),
-    ...landings.map(landing => ({ url: absoluteUrl(landing.path) })),
-    ...COMPARISONS.filter(item => listedInSitemap(item, landings, roasters)).map(item => ({ url: absoluteUrl(`/karsilastir/${item.slug}`) })),
+    // Landing and comparison pages show counts and prices across the catalog, so they change with its latest change.
+    ...landings.map(landing => ({ url: absoluteUrl(landing.path), lastModified: date(latest) })),
+    ...COMPARISONS.filter(item => listedInSitemap(item, landings, roasters)).map(item => ({ url: absoluteUrl(`/karsilastir/${item.slug}`), lastModified: date(latest) })),
     ...coffees.results.map(c => ({ url: absoluteUrl(`/kahve/${encodeURIComponent(c.slug)}`), lastModified: date(c.changed) })),
     ...roasters.map(r => ({ url: absoluteUrl(`/kavurucu/${encodeURIComponent(r.slug)}`), lastModified: date(roasterChanged.get(r.id)) })),
   ];

@@ -58,7 +58,7 @@ function listingQuery(path: string, params: Params): string {
 
 const LISTING = /^\/(?:kahveler|yeni|firsatlar|kahveler\/(?:koken|islem)\/[^/]+)$/;
 /** Pages and endpoints whose answer does not depend on the query at all. */
-const BARE = /^\/(?:|kahve\/[^/]+|kavurucu\/[^/]+|kavurucular|bulten\/[^/]+|karsilastir|karsilastir\/[^/]+|api\/since|sitemap\.xml)$/;
+const BARE = /^\/(?:|kahve\/[^/]+|kavurucu\/[^/]+|kavurucular|bulten\/[^/]+|karsilastir|karsilastir\/[^/]+|veri|veri\/v1\/ozet\.json|api\/since|sitemap\.xml)$/;
 
 /** The canonical query (without `?`) for a catalog address, or null for a path this does not govern. */
 export function canonicalQuery(pathname: string, params: Params): string | null {

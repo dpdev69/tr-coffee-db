@@ -10,6 +10,12 @@ Sayfalar Türkçedir. Fiyatlar Türk lirasıdır ve kavurucunun sitesinde son g�
 - [Yeni gelenler](https://kahve.hellobasalt.dev/yeni): son 30 günde satışa çıkan kahveler.
 - [Fırsatlar](https://kahve.hellobasalt.dev/firsatlar): son 7 günde fiyatı düşen kahveler.
 - [Kavurucular](https://kahve.hellobasalt.dev/kavurucular): katalogdaki kavurucular ve satıştaki kahveleri.
+- [Karşılaştırmalar](https://kahve.hellobasalt.dev/karsilastir): "Etiyopya mı Kolombiya mı?", "Natürel mi yıkanmış mı?", "Espresso mu filtre mi?" gibi sorulara satıştaki çekirdeklerle yazılı cevaplar: 250 g paket fiyatları, köken, işlem ve tat notları yan yana. Her sayfa `/karsilastir/<a>-vs-<b>` adresinde.
+
+## Veri
+
+- [Kahve kataloğu rakamları](https://kahve.hellobasalt.dev/veri): satıştaki kahve, kavurucu ve paket sayısı, köken ve işlem dağılımı, son 30 günde yeni gelenler, son 7 günde fiyatı düşenler, gramaja göre paket fiyatları (en düşük, ortanca, en yüksek). Her rakam tarihli bir cümleyle verilir. Lisans CC BY 4.0; kaynak olarak "KahveDrop" ve bu sayfanın adresi gösterilmeli.
+- [Rakamların JSON kopyası](https://kahve.hellobasalt.dev/veri/v1/ozet.json): aynı rakamlar, sabit alan adlarıyla, her gece yenilenir. Fiyatlar paket fiyatıdır (TL, kargo hariç); birim (100 g) fiyatı verilmez.
 
 ## Rehber
 

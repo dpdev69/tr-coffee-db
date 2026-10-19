@@ -2,12 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { cache } from 'react';
 import { notFound, unstable_rethrow } from 'next/navigation';
-import { JsonLd, breadcrumbList, itemList } from '@/components/layout/json-ld';
+import { JsonLd, breadcrumbList, itemList, webPage } from '@/components/layout/json-ld';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { DiscoveryEmpty, DiscoveryGrid } from '@/components/v2/discovery-card';
 import { formatMoney } from '@/lib/coffee-display';
 import type { CatalogCoffee } from '../../../../shared/v2/catalog';
-import { COMPARISONS, GROUP_LABELS, comparisonCards, comparisonFacts, comparisonQuestion, comparisonTitle, findComparison, indexable, sideHref, sideKey, sideLabel, type Comparison, type ComparisonData, type Share, type SideFacts, type SideRef } from '@/lib/comparisons';
+import { COMPARISONS, GROUP_LABELS, comparisonCards, comparisonDescription, comparisonFacts, comparisonQuestion, comparisonTitle, findComparison, indexable, sideHref, sideKey, sideLabel, type Comparison, type ComparisonData, type Share, type SideFacts, type SideRef } from '@/lib/comparisons';
 import { pageMetadata } from '@/lib/page-metadata';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
 
@@ -34,12 +34,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // notFound() here would answer 200 on vinext; the page throws it and gets the 404 status.
   if (!item) return { title: 'Sayfa bulunamadı', robots: { index: false } };
   const data = await loadFacts();
-  const [a, b] = [sideLabel(item.a), sideLabel(item.b)];
-  const counts = data ? [data.sides[sideKey(item.a)]?.coffees ?? 0, data.sides[sideKey(item.b)]?.coffees ?? 0] : null;
-  const description = counts
-    ? `${a} ve ${b} yan yana: satıştaki ${counts[0]} ve ${counts[1]} çekirdeğin 250 g fiyatı, kökeni, işlemi ve tat notları. Her gece güncellenir.`
-    : `${a} ve ${b} yan yana: satıştaki çekirdeklerin 250 g fiyatı, kökeni, işlemi ve tat notları. Her gece güncellenir.`;
-  const metadata = pageMetadata(comparisonTitle(item), description, `/karsilastir/${item.slug}`, { type: 'article' });
+  const counts: [number, number] | null = data ? [data.sides[sideKey(item.a)]?.coffees ?? 0, data.sides[sideKey(item.b)]?.coffees ?? 0] : null;
+  const metadata = pageMetadata(comparisonTitle(item), comparisonDescription(item, counts), `/karsilastir/${item.slug}`, { type: 'article' });
   // Too few coffees on a side for the numbers to mean anything: the page stays for links but leaves the index.
   return data && !indexable(data, item) ? { ...metadata, robots: { index: false, follow: true } } : metadata;
 }
@@ -161,13 +157,15 @@ export default async function ComparisonPage({ params, searchParams }: Props) {
   const others = COMPARISONS.filter(other => other.slug !== item.slug).sort((x, y) => Number(y.group === item.group) - Number(x.group === item.group));
   return <div className="page-shell section-space pt-4">
     {crumbs}
+    {/* Published by KahveDrop (parent: the shared Basalt node); modified when the facts were last built from the catalog. */}
+    <JsonLd data={webPage(comparisonTitle(item), comparisonDescription(item, [a.coffees, b.coffees]), path, { dateModified: data.at })} />
     {shown.length ? <JsonLd data={{ ...itemList(shown.map(coffee => [coffee.name, `/kahve/${coffee.slug}`])), name: comparisonQuestion(item) }} /> : null}
     {nav}
     <header className="max-w-3xl">
       <p className="eyebrow">{GROUP_LABELS[item.group]} karşılaştırması</p>
       <h1 className="mt-3 font-display text-title">{comparisonQuestion(item)}</h1>
       <p className="mt-5 text-[17px] leading-8 text-muted">{item.intro}</p>
-      <p className="mt-3 text-sm text-muted">Veriler {asOf(data.at)} tarihli KahveDrop kataloğundan. Katalog her gece kavurucuların kendi sitelerinden güncellenir; satış kavurucunun sitesinde yapılır.</p>
+      <p className="mt-3 text-sm text-muted">Son güncelleme: <time dateTime={data.at}>{asOf(data.at)}</time>. Veriler KahveDrop kataloğundan; katalog her gece kavurucuların kendi sitelerinden güncellenir, satış kavurucunun sitesinde yapılır. Kataloğun tamamı rakamlarla: <Link href="/veri" prefetch={false} className="text-accent hover:underline">Veri özeti</Link>.</p>
     </header>
     {!indexable(data, item) ? <div className="mt-8"><DataSourceNotice title="Bu karşılaştırmada şu an az çekirdek var." message="Taraflardan birinde satışta 3’ten az çekirdek olduğu için rakamlar yön göstermeyebilir." /></div> : null}
     <section className="mt-10 max-w-3xl" aria-labelledby="kisaca"><h2 id="kisaca" className="mb-3 font-display text-heading">Kısaca</h2>

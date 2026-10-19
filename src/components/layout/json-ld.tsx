@@ -1,5 +1,5 @@
 import { absoluteUrl } from '@/lib/site';
-import { brand } from '@/lib/brand';
+import { brand, studioOrganization } from '@/lib/brand';
 import { publicOfferLabel } from '@/components/v2/discovery-card';
 import { trustedCoffeeImageUrl } from '@/lib/coffee-image';
 import type { CatalogCoffee } from '../../../shared/v2/catalog';
@@ -9,9 +9,16 @@ export function JsonLd({ data }: { data: Record<string, unknown> }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', ...data }).replace(/</g, '\\u003c') }} />;
 }
 
-/** A page of fixed copy: its own heading and description, in Turkish, as part of the site. */
-export function webPage(name: string, description: string, path: string) {
-  return { '@type': 'WebPage', name, description, url: absoluteUrl(path), inLanguage: 'tr-TR', isPartOf: { '@type': 'WebSite', name: brand.name, url: absoluteUrl('/') } };
+/** KahveDrop as publisher or author, joined to the shared Basalt Studio node (src/lib/brand.ts) as its parent. */
+export function siteOrganization() {
+  return { '@type': 'Organization', name: brand.name, url: absoluteUrl('/'), parentOrganization: studioOrganization };
+}
+
+/** A page of the site: its own heading and description, in Turkish, published by KahveDrop. `dateModified` is when its
+ * content last changed (for catalog pages: the catalog's last refresh), left out when unknown. */
+export function webPage(name: string, description: string, path: string, { type = 'WebPage', dateModified }: { type?: 'WebPage' | 'CollectionPage'; dateModified?: string | null } = {}) {
+  return { '@type': type, name, description, url: absoluteUrl(path), inLanguage: 'tr-TR', isPartOf: { '@type': 'WebSite', name: brand.name, url: absoluteUrl('/') },
+    publisher: siteOrganization(), ...(dateModified ? { dateModified } : {}) };
 }
 
 export function breadcrumbList(items: [name: string, path: string][]) {
