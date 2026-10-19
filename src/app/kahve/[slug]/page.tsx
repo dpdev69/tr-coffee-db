@@ -11,6 +11,7 @@ import { getCoffeeDetail, getSimilarCoffees } from '../../../../shared/v2/catalo
 import { JsonLd, breadcrumbList, productJsonLd } from '@/components/layout/json-ld';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { signupsEnabled } from '@/lib/signups';
+import { ComparisonLinks, coffeeSides } from '@/components/v2/comparison-links';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
 export const revalidate = 21600;
@@ -41,6 +42,7 @@ export default async function CoffeePage({ params, searchParams }: { params: Pro
     <JsonLd data={breadcrumbList([['Kahveler', '/kahveler'], [coffee.roaster.name, `/kavurucu/${coffee.roaster.slug}`], [coffee.name, `/kahve/${coffee.slug}`]])} />
     <DiscoveryDetail coffee={coffee} />
     {similar.length > 0 ? <section className="mt-14"><p className="eyebrow">Keşfe devam</p><h2 className="mt-2 font-display text-subtitle">Benzer çekirdekler.</h2><p className="mb-6 mt-3 text-sm text-muted">Paylaşılan köken, işlem veya tat bilgilerine göre seçildi.</p><DiscoveryGrid coffees={similar} source="similar" /></section> : null}
+    <ComparisonLinks side={coffeeSides(coffee)} className="mt-14" />
     {signupsEnabled() && <NewsletterForm source="detail" variant="card" className="mt-14" title="Bu kahvenin fiyatı düşerse" description="Haftalık fiyat özetinde ve aylık bültende haber veririz." />}
   </div>;
 }

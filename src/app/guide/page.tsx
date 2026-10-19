@@ -2,20 +2,24 @@ import { pageMetadata } from '@/lib/page-metadata';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BrewCalculator } from '@/components/guide/brew-calculator';
-import { JsonLd } from '@/components/layout/json-ld';
+import { JsonLd, siteOrganization } from '@/components/layout/json-ld';
 import { absoluteUrl } from '@/lib/site';
-import { brand } from '@/lib/brand';
+import { GUIDE_UPDATED } from '@/lib/content-dates';
+import { findComparison, comparisonQuestion } from '@/lib/comparisons';
 
 // Static copy: cacheable at the edge, re-rendered at most hourly (so a deploy shows within the hour).
 export const revalidate = 3600;
 
+const COMPARISON_LINKS = ['espresso-vs-filtre', 'etiyopya-vs-kolombiya', 'kolombiya-vs-brezilya'];
+const comparison = (slug: string) => { const item = findComparison(slug); return item ? comparisonQuestion(item) : slug; };
+const updated = new Date(GUIDE_UPDATED).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Istanbul' });
 const description = "Kahve seçimi, tadım notları ve işleme yöntemleri için kısa bir rehber. Filtre, espresso, French press ve AeroPress için demleme oranını hesapla.";
 export const metadata: Metadata = pageMetadata("Kahve rehberi ve demleme hesaplayıcı", description, "/guide", { type: 'article' });
 export default function GuidePage() {
   return (
     <div className="page-shell section-space">
       <JsonLd data={{ '@type': 'Article', headline: 'Kahveni biraz daha yakından tanı.', description, inLanguage: 'tr-TR', url: absoluteUrl('/guide'), mainEntityOfPage: absoluteUrl('/guide'),
-        author: { '@type': 'Organization', name: brand.name, url: absoluteUrl('/') }, publisher: { '@type': 'Organization', name: brand.name, url: absoluteUrl('/') } }} />
+        author: siteOrganization(), publisher: siteOrganization(), dateModified: GUIDE_UPDATED }} />
       <div className="mb-10 max-w-3xl">
         <p className="eyebrow">Daha iyi bir fincan için</p>
         <h1 className="mt-4 font-display text-title">
@@ -27,6 +31,7 @@ export default function GuidePage() {
           Seçmek için uzman olman gerekmiyor. Pakette neye bakacağını bil,
           ölçerek demle ve sevdiğin tadı bulana kadar küçük değişiklikler yap.
         </p>
+        <p className="mt-3 text-sm text-muted">Son güncelleme: <time dateTime={GUIDE_UPDATED}>{updated}</time></p>
         <div className="mt-4 flex flex-wrap gap-6">
           <a href="#calculator" className="text-link">
             Demleme oranını hesapla ↓
@@ -69,7 +74,11 @@ export default function GuidePage() {
             </p>
             <p>
               İşleme, tat hakkında bir ipucu olabilir; tek başına belirli bir
-              aromayı garanti etmez.
+              aromayı garanti etmez. Satıştaki çekirdeklerde farkın nasıl
+              göründüğüne bak:{' '}
+              <Link href="/karsilastir/naturel-vs-yikanmis" prefetch={false} className="text-accent underline underline-offset-4">
+                {comparison('naturel-vs-yikanmis')}
+              </Link>
             </p>
           </details>
           <details>
@@ -89,6 +98,20 @@ export default function GuidePage() {
               bir etiketi kalite puanı gibi okuma.
             </p>
           </details>
+          <h2>İki çekirdek arasında kaldıysan</h2>
+          <p>
+            Sık sorulan “hangisi?” sorularını satıştaki çekirdeklerle yan yana
+            koyduk: 250 g paket fiyatları, köken, işlem ve tat notları.
+          </p>
+          <ul className="my-4 flex flex-wrap gap-2">
+            {COMPARISON_LINKS.map(slug => <li key={slug}><Link href={`/karsilastir/${slug}`} prefetch={false} className="filter-option">{comparison(slug)}</Link></li>)}
+            <li><Link href="/karsilastir" className="filter-option">Tüm karşılaştırmalar</Link></li>
+          </ul>
+          <p>
+            Kataloğun genel resmi, yani hangi kökenden kaç kahve olduğu ve
+            gramaja göre paket fiyatları,{' '}
+            <Link href="/veri" prefetch={false} className="text-accent underline underline-offset-4">veri özetinde</Link>.
+          </p>
           <h2>İlk deneme tam olmadıysa…</h2>
           <p>
             Bir sonraki demlemede yalnızca tek şeyi değiştir: öğütüm, oran veya

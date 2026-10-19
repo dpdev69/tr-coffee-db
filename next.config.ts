@@ -62,7 +62,7 @@ const nextConfig: NextConfig = {
       // Catalog pages are the same for every visitor (personal state lives in the browser) and change once a night, so the
       // edge keeps each address, query string included, for EDGE_CACHE_CONTROL. This also covers query-string pages, which
       // vinext would otherwise send as no-store. A render that failed to read the catalog opts out (keepOutOfEdgeCache).
-      ...["/", "/kahveler", "/kahveler/:facet/:slug", "/yeni", "/firsatlar", "/quiz/sonuc", "/kahve/:slug", "/kavurucu/:slug", "/kavurucular", "/bulten/:month", "/karsilastir", "/karsilastir/:pair"]
+      ...["/", "/kahveler", "/kahveler/:facet/:slug", "/yeni", "/firsatlar", "/quiz/sonuc", "/kahve/:slug", "/kavurucu/:slug", "/kavurucular", "/bulten/:month", "/karsilastir", "/karsilastir/:pair", "/veri"]
         .map((source) => ({ source, headers: [{ key: "CDN-Cache-Control", value: EDGE_CACHE_CONTROL }] })),
     ];
   },

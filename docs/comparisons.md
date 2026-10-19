@@ -35,3 +35,7 @@ A page is `noindex, follow` while either side has fewer than 3 listed coffees (`
 ## Adding a pair
 
 Add an entry to `COMPARISONS` with the search evidence in this file. Sides can be an origin from the country table, a process key, `espresso` or `filter`, or a roaster slug with its display name. The candidate lists hold the 5,000 newest listed coffees; past that, sides would undercount. Keep the list short and fixed: each pair is a page, never a query.
+
+## Links and structured data
+
+Each pair is linked from the index, from every other pair page, from its sides' own pages (origin and process landings, roaster pages) and from every coffee page whose stated origin, process or roaster is a side (`coffeeSides` in `src/components/v2/comparison-links.tsx`, with the same precedence the coffee page shows). The home page body, the guide and `/veri` link a few pairs and the index. The index is a `CollectionPage` and each pair a `WebPage`, both published by KahveDrop with the shared Basalt node as `parentOrganization`, and `dateModified` set to when the facts were built; the sitemap gives them the catalog's latest change as `lastModified`.

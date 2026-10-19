@@ -16,6 +16,7 @@ import { ARRIVAL_DAYS } from '../../shared/v2/events';
 import { CoffeeImage } from '@/components/v2/coffee-image';
 import { SAVED_KEY } from '@/lib/device-keys';
 import { SavedPanel, SinceLastVisit, TasteArrivals } from '@/components/v2/home-personal';
+import { COMPARISONS, comparisonQuestion } from '@/lib/comparisons';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
 export const revalidate = 21600;
@@ -108,6 +109,12 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         <ul className="grid-quad">{[...data.roasters].sort((a, b) => b.coffeeCount - a.coffeeCount).slice(0, 8).map(roaster => <li key={roaster.id}><Link href={`/kavurucu/${roaster.slug}`} className="flex h-full min-h-11 items-center gap-3.5 rounded-[14px] border border-line bg-surface px-[18px] py-4 hover:border-accent"><RoasterInitial name={roaster.name} size="sm" /><span><span className="block font-display text-lg">{roaster.name}</span><span className="text-[13px] text-muted">{roaster.city || 'Bağımsız kavurucu'}</span></span></Link></li>)}</ul>
       </section> : null}
     </> : <section className="section-space"><DataSourceNotice title="Kahveler şu an yüklenemiyor." message="Katalog bağlantısına ulaşamadık. Yeniden deneyebilir veya damak tadını keşfetmek için testi çözebilirsin." actionHref="/kahveler" actionLabel="Kataloğu yeniden aç" /></section>}
+    {/* Fixed links, no catalog read: the written comparisons and the numbers page. */}
+    <section className="section-space border-t border-line" aria-labelledby="compare-and-numbers">
+      <div className="section-heading"><h2 id="compare-and-numbers">Karşılaştır, rakamlara bak.</h2><Link href="/karsilastir" className="text-link">Tüm karşılaştırmalar →</Link></div>
+      <ul className="flex flex-wrap gap-2">{COMPARISONS.slice(0, 5).map(item => <li key={item.slug}><Link href={`/karsilastir/${item.slug}`} prefetch={false} className="filter-option">{comparisonQuestion(item)}</Link></li>)}</ul>
+      <p className="mt-6 max-w-2xl text-[15px] leading-relaxed text-muted">Kataloğun bu ayki rakamları (köken ve işlem dağılımı, yeni gelenler, gramaja göre paket fiyatları) kaynak göstererek kullanabileceğin açık veri olarak: <Link href="/veri" prefetch={false} className="text-accent hover:underline">Veri özeti</Link>.</p>
+    </section>
     <section className="studio-journal grid-pair"><div><p className="eyebrow">Kahve molası</p><h2>Güzel kahve,<br /><em>küçük bir ritüel.</em></h2><p>Çekirdeğini seçtin. Şimdi doğru oranı bul, suyunu hazırla ve kendi fincanını demle.</p><Link href="/guide#calculator" className="text-link">Demleme rehberine git ↗</Link></div>{signupsEnabled() && <NewsletterForm source="home-bottom" />}</section>
   </div>;
 }

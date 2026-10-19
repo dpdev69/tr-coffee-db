@@ -82,10 +82,21 @@ export function comparisonTitle(item: Comparison): string {
   return `${a} ${questionParticle(a)} ${second} ${questionParticle(b)}? ${TITLE_SUFFIX[item.group]}`;
 }
 export function findComparison(slug: string): Comparison | null { return COMPARISONS.find(item => item.slug === slug) ?? null; }
-/** The comparisons a roaster, origin or process page links to. */
-export function comparisonsFor(side: Partial<{ roaster: string; origin: string; process: string }>): Comparison[] {
-  const matches = (ref: SideRef) => (ref.kind === 'roaster' && ref.slug === side.roaster) || (ref.kind === 'origin' && side.origin !== undefined && ref.value === canonicalCountry(side.origin)) || (ref.kind === 'process' && ref.value === side.process);
+/** The comparisons a roaster, origin or process page links to; a coffee page passes its roaster and every origin and
+ * process it states (any spelling the landing pages accept: `Etiyopya`, `Ethiopia`, `natural`, `Natürel`). */
+export function comparisonsFor(side: Partial<{ roaster: string; origin: string | string[]; process: string | string[] }>): Comparison[] {
+  const list = (value: string | string[] | undefined) => (Array.isArray(value) ? value : value === undefined ? [] : [value]);
+  const origins = new Set(list(side.origin).filter(isKnownCountry).map(canonicalCountry));
+  const processes = new Set(list(side.process).flatMap(value => processLanding(value)?.value ?? []));
+  const matches = (ref: SideRef) => (ref.kind === 'roaster' && ref.slug === side.roaster) || (ref.kind === 'origin' && origins.has(ref.value)) || (ref.kind === 'process' && processes.has(ref.value));
   return COMPARISONS.filter(item => matches(item.a) || matches(item.b));
+}
+/** The search-result description: both sides and their counts when the facts are in, held to 155 characters. */
+export function comparisonDescription(item: Comparison, counts: [number, number] | null): string {
+  const [a, b] = [sideLabel(item.a), sideLabel(item.b)];
+  return counts
+    ? `${a} ve ${b} yan yana: satıştaki ${counts[0]} ve ${counts[1]} çekirdeğin 250 g fiyatı, kökeni, işlemi ve tat notları. Her gece güncellenir.`
+    : `${a} ve ${b} yan yana: satıştaki çekirdeklerin 250 g fiyatı, kökeni, işlemi ve tat notları. Her gece güncellenir.`;
 }
 
 export interface Share { key: string; label: string; count: number }
