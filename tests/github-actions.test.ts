@@ -23,6 +23,10 @@ describe('GitHub Actions workflows', () => {
     // With the database out of its allowance both writers fail; a purge then would swap every good page for an outage notice.
     assert.match(purge, /if: \$\{\{ !cancelled\(\) && \(steps\.refresh\.outcome == 'success' \|\| steps\.corrections\.outcome == 'success'\) \}\}/);
     assert.match(purge, /secrets\.CACHE_PURGE_TOKEN/);
+    // Bot Fight Mode answers GitHub's runners 403 on the site, so the purge goes through the crawler Worker's /site route.
+    assert.match(purge, /"\$\{SITE_VIA%\/\}\/api\/cache"/);
+    assert.doesNotMatch(purge, /\$\{SITE_URL%\/\}\/api\/cache/);
+    assert.match(source, /SITE_VIA: \$\{\{ vars\.SITE_VIA \|\| 'https:\/\/coffeedb-v2-crawler-staging\.hellobasalt\.workers\.dev\/site' \}\}/);
   });
 
   it('keeps CI and scraper workflows aligned to the checked-in Node version', () => {

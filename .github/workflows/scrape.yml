@@ -31,6 +31,9 @@ jobs:
       # Repository variable CRAWL_RELAY_URL points at the crawler Worker that matches the database; unset keeps staging.
       CRAWL_RELAY_URL: ${{ vars.CRAWL_RELAY_URL || 'https://coffeedb-v2-crawler-staging.hellobasalt.workers.dev/relay' }}
       CRAWL_RELAY_TOKEN: ${{ secrets.CRAWL_RELAY_TOKEN }}
+      # Bot Fight Mode on the site's zone answers GitHub's runners 403, so the purge and warm-up go through the crawler Worker's
+      # /site route (same token as the relay), which hands them to the web Worker over a service binding (docs/crawl-relay.md).
+      SITE_VIA: ${{ vars.SITE_VIA || 'https://coffeedb-v2-crawler-staging.hellobasalt.workers.dev/site' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -64,7 +67,8 @@ jobs:
         if: ${{ !cancelled() }}
         run: scrapers/node_modules/.bin/tsx scripts/v2-apply-corrections.mts
       # Pages and JSON are kept at the edge for 6 hours (shared/v2/read-cache.ts); dropping them now shows tonight's
-      # catalog at once. Needs the Worker secret and the repository secret CACHE_PURGE_TOKEN (same value) and vars.SITE_URL.
+      # catalog at once. Needs the Worker secret and the repository secret CACHE_PURGE_TOKEN (same value), vars.SITE_URL and
+      # the relay token; the request goes through SITE_VIA.
       # Only after a step that wrote tonight's data: when the database refuses reads (daily allowance spent), both fail,
       # and purging then would replace every good edge copy with outage notices until the next day.
       - name: Purge the edge cache
@@ -74,8 +78,8 @@ jobs:
           CACHE_PURGE_TOKEN: ${{ secrets.CACHE_PURGE_TOKEN }}
           SITE_URL: ${{ vars.SITE_URL }}
         run: |
-          if [ -z "$CACHE_PURGE_TOKEN" ] || [ -z "$SITE_URL" ]; then echo '::notice::Edge purge not configured; pages refresh within 6 hours.'; exit 0; fi
-          curl -fsS --max-time 30 -X POST -H "Authorization: Bearer $CACHE_PURGE_TOKEN" "${SITE_URL%/}/api/cache"
+          if [ -z "$CACHE_PURGE_TOKEN" ] || [ -z "$SITE_URL" ] || [ -z "$CRAWL_RELAY_TOKEN" ]; then echo '::notice::Edge purge not configured; pages refresh within 6 hours.'; exit 0; fi
+          curl -fsS --max-time 30 -X POST -H "Authorization: Bearer $CRAWL_RELAY_TOKEN" -H "X-Cache-Purge-Token: $CACHE_PURGE_TOKEN" "${SITE_VIA%/}/api/cache"
       # Right after the purge, one request at a time: the catalog-wide results (landing facts, sitemap, similarity and quiz
       # candidates) are computed once here instead of by the first visitors together, and the commonest pages are stored at
       # the edge. It also lists the stored results and their sizes, and flags one that was not stored (docs/read-budget.md).
