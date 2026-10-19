@@ -601,7 +601,6 @@
     font-weight: 500;
   }
   .versus-table tbody th {
-    width: 28%;
     font-weight: 500;
     color: var(--color-muted);
   }
@@ -609,6 +608,14 @@
     background: var(--color-ground);
   }
   @media (max-width: 639px) {
+    .versus-table,
+    .versus-table thead,
+    .versus-table tbody {
+      display: block;
+    }
+    .versus-table colgroup {
+      display: none;
+    }
     .versus-table tr {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -618,7 +625,6 @@
     }
     .versus-table tbody th {
       grid-column: 1 / -1;
-      width: auto;
       padding-bottom: 0;
       border-bottom: 0;
     }

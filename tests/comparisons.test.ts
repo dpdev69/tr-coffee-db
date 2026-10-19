@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { COMPARISONS, comparisonFacts, comparisonQuestion, comparisonTitle, comparisonsFor, findComparison, indexable, questionParticle, SHOWN, sideHref, sideKey } from '../src/lib/comparisons';
+import { COMPARISONS, comparisonCards, comparisonFacts, comparisonQuestion, comparisonTitle, comparisonsFor, findComparison, indexable, questionParticle, SHOWN, sideHref, sideKey } from '../src/lib/comparisons';
 import { canonicalQuery } from '../src/lib/canonical-address';
 import { catalogSitemap } from '../src/lib/sitemap-entries';
 import { absoluteUrl } from '../src/lib/site';
@@ -63,7 +63,8 @@ async function catalogDb() {
 }
 
 test('comparison facts count the catalog the cards show, and price only in-stock 250 g packages', async () => {
-  const data = await comparisonFacts(await catalogDb());
+  const db = await catalogDb();
+  const data = await comparisonFacts(db);
   const k = data.sides['roaster:kronotrop'], p = data.sides['roaster:petra'];
   assert.equal(k.coffees, 3);
   assert.equal(k.city, 'İstanbul');
@@ -78,13 +79,16 @@ test('comparison facts count the catalog the cards show, and price only in-stock
   assert.equal(colombia.roasters, 2);
   assert.equal(data.sides['process:natural'].coffees, 3);
   assert.ok(p.shown.length <= SHOWN);
-  assert.equal(p.shown[0].rawMetadata.description, undefined, 'the stored cards drop the long fields');
+  const cards = await comparisonCards(db, findComparison('kronotrop-vs-petra')!, data);
+  assert.deepEqual(Object.keys(cards).sort(), [...new Set([...k.shown, ...p.shown, k.cheapest250!.id, p.cheapest250!.id])].sort(), 'only the shown and cheapest coffees are hydrated');
+  assert.equal(cards[p.cheapest250!.id].name, 'Kahve p2');
+  assert.equal(cards[p.shown[0]].rawMetadata.description, undefined, 'the stored cards drop the long fields');
   assert.ok(indexable(data, findComparison('kronotrop-vs-petra')!));
   assert.ok(!indexable(data, findComparison('kronotrop-vs-montag')!), 'Montag has no coffees here');
   assert.ok(!indexable(data, findComparison('kenya-vs-etiyopya')!), 'one Kenya coffee is too few');
 });
 
-test('the sitemap lists the comparison index and only the comparisons with enough coffees on both sides', async () => {
+test('the sitemap lists the comparison index and only the comparisons with enough coffees on both sides, without building their facts', async () => {
   const urls = (await catalogSitemap(await catalogDb())).map(entry => entry.url.replace(absoluteUrl('/'), '/'));
-  assert.deepEqual(urls.filter(url => url.startsWith('/karsilastir')).sort(), ['/karsilastir', '/karsilastir/kronotrop-vs-petra', '/karsilastir/naturel-vs-yikanmis'], 'two Ethiopian coffees are too few for etiyopya-vs-kolombiya');
+  assert.deepEqual(urls.filter(url => url.startsWith('/karsilastir')).sort(), ['/karsilastir', '/karsilastir/espresso-vs-filtre', '/karsilastir/kronotrop-vs-petra', '/karsilastir/naturel-vs-yikanmis'], 'two Ethiopian coffees are too few for etiyopya-vs-kolombiya; brew sides have no landing count and are listed');
 });

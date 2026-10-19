@@ -39,7 +39,7 @@ async function warm(path: string, headers: Record<string, string>) {
 const sitemap = await warm('/sitemap.xml', {});
 for (const path of ['/', '/kahveler', '/yeni', '/firsatlar']) { await warm(path, html); await warm(`${path}?_rsc`, rsc); }
 await warm('/kavurucular', html);
-await warm('/karsilastir', html); // comparison facts (the sitemap already filled them; this stores the page)
+await warm('/karsilastir', html); // comparison facts (each pair's cards are built on its own first visit)
 const coffee = /<loc>[^<]*?(\/kahve\/[^<]+)<\/loc>/.exec(sitemap)?.[1];
 if (coffee) await warm(coffee, html); // similarity candidates
 await warm('/api/quiz/match', {}); // quiz candidates

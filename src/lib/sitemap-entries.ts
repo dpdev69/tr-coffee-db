@@ -4,7 +4,7 @@ import { listRoasters } from '../../shared/v2/catalog';
 import type { CatalogDatabase } from '../../shared/v2/database';
 import { issues } from '../app/bulten/issues.generated';
 import { listLandings } from './catalog-landing';
-import { COMPARISONS, comparisonFacts, indexable } from './comparisons';
+import { COMPARISONS, listedInSitemap } from './comparisons';
 import { absoluteUrl } from './site';
 
 const CATALOG_ROUTES = new Set(['/', '/yeni', '/firsatlar', '/kahveler', '/kavurucular']);
@@ -30,11 +30,10 @@ export function staticSitemap(latest?: string): MetadataRoute.Sitemap {
  * process with listed coffees. Comparison pages: the fixed list, each while both sides have enough coffees.
  */
 export async function catalogSitemap(db: CatalogDatabase): Promise<MetadataRoute.Sitemap> {
-  const [coffees, roasters, landings, comparisons] = await Promise.all([
+  const [coffees, roasters, landings] = await Promise.all([
     // Same for every request until the next refresh; vinext never edge-caches the sitemap, so it is shared as a derived result.
     (db.derive ?? ((_: string, compute: () => Promise<SitemapCoffees>) => compute()))('sitemap-coffees', () => db.prepare(`SELECT c.slug, c.roaster_id, ${CHANGED_SQL} AS changed FROM public_catalog_coffees c WHERE ${coffeeOnlySql()}`).all<{ slug: string; roaster_id: string; changed: string }>()),
-    // A failure here costs the comparison entries only, not the whole catalog sitemap.
-    listRoasters(db), listLandings(db), comparisonFacts(db).catch((error: unknown) => { console.error('Sitemap comparisons skipped', error instanceof Error ? error.message : String(error)); return null; }),
+    listRoasters(db), listLandings(db),
   ]);
   const roasterChanged = new Map<string, string>();
   for (const c of coffees.results) if (c.changed > (roasterChanged.get(c.roaster_id) ?? '')) roasterChanged.set(c.roaster_id, c.changed);
@@ -42,7 +41,7 @@ export async function catalogSitemap(db: CatalogDatabase): Promise<MetadataRoute
   return [
     ...staticSitemap(latest),
     ...landings.map(landing => ({ url: absoluteUrl(landing.path) })),
-    ...(comparisons ? COMPARISONS.filter(item => indexable(comparisons, item)) : []).map(item => ({ url: absoluteUrl(`/karsilastir/${item.slug}`) })),
+    ...COMPARISONS.filter(item => listedInSitemap(item, landings, roasters)).map(item => ({ url: absoluteUrl(`/karsilastir/${item.slug}`) })),
     ...coffees.results.map(c => ({ url: absoluteUrl(`/kahve/${encodeURIComponent(c.slug)}`), lastModified: date(c.changed) })),
     ...roasters.map(r => ({ url: absoluteUrl(`/kavurucu/${encodeURIComponent(r.slug)}`), lastModified: date(roasterChanged.get(r.id)) })),
   ];

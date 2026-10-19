@@ -23,7 +23,8 @@ type Waiter = { waitUntil(promise: Promise<unknown>): void };
 
 /** 10,000 to 27,000 rows per miss (a list, a landing, a feed, the home page); 5,400 for a roaster. */
 const CATALOG = /^\/(?:|kahveler|kahveler\/(?:koken|islem)\/[^/]+|yeni|firsatlar|kavurucu\/[^/]+|api\/catalog|api\/since|sitemap\.xml)$/;
-/** Under about 1,100 rows per miss: one coffee, a quiz result, saved coffees, the newsletter archive, a written comparison. */
+/** Under about 1,100 rows per miss: one coffee, a quiz result, saved coffees, the newsletter archive, a written comparison (2 to 4
+ * rows once its derived results exist; the first miss after a purge builds them, as a coffee page builds similarity candidates). */
 const PAGE = /^\/(?:kahve\/[^/]+|kavurucular|bulten\/[^/]+|karsilastir|karsilastir\/[^/]+|quiz\/sonuc|compare|api\/quiz\/match|api\/saved)$/;
 /** The free plan's 5,000,000 rows a day, less a reserve that covers the nightly refresh at its own hard cap (750,000),
  * the derived results and warm-up it triggers (about 300,000) and the brake's own lag (see BRAKE_POLL_MS). */
