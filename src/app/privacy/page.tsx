@@ -51,7 +51,13 @@ export default function PrivacyPage() {
           <p>
             <strong className="text-ink">Tercih çerezi.</strong> Ölçüm tercihin, birinci taraf{' '}
             <code>kahvedrop_consent</code> çerezinde, seçimine göre <code>essential</code> ya da{' '}
-            <code>analytics</code> değeriyle bir yıl boyunca tutulur. Sitede başka çerez kullanılmaz.
+            <code>analytics</code> değeriyle bir yıl boyunca tutulur. Sitenin kendisi başka çerez kullanmaz.
+          </p>
+          <p>
+            <strong className="text-ink">Cloudflare doğrulama çerezi.</strong> Cloudflare’ın bot koruması bir
+            doğrulama (challenge) sunarsa ve bunu geçersen, Cloudflare tarayıcına <code>cf_clearance</code> çerezini
+            yerleştirir; böylece doğrulamayı her sayfada yeniden yapmazsın. Bu çerezi {SITE_NAME} değil Cloudflare
+            ayarlar, yalnızca güvenlik amacıyla kullanılır ve ölçüm tercihinden bağımsızdır.
           </p>
           <p>
             <strong className="text-ink">Yalnızca cihazında kalan bilgiler.</strong> Şu özellikler, verilerini
