@@ -8,7 +8,7 @@ Status on 2026-10-20: **signups stay off.** This is a plan, not a switch. Nothin
 
 - **Switch.** `src/lib/signups.ts:5` returns true only for the exact string `"true"`. `wrangler.production.jsonc:55` is `"false"`. `.env.example:12` is `false`. Every form is wrapped in `signupsEnabled()` (home, footer, catalog, deals, new, quiz result, saved list, roaster, coffee, issue pages).
 - **Endpoint refuses when off.** `src/lib/v2-subscribe.ts:156-160` answers "kayıtlar kapalı" before any validation, rate limit or Kit call.
-- **Staging is different.** `wrangler.jsonc:51` has `SIGNUPS_ENABLED: "true"` and a live Kit key. The staging form works for anyone who finds it (`noindex`, but public) and Kit then emails a confirmation. See item C8.
+- **Staging was different.** Until 2026-10-20 `wrangler.jsonc` had `SIGNUPS_ENABLED: "true"` with a live Kit key, so the staging form worked for anyone who found it (`noindex`, but public). It is now `"false"` (item C8).
 - **Signup is not a broadcast.** The signup path creates a Kit subscriber as `inactive` (`v2-subscribe.ts:133`) and attaches it to form 9918321 (`:146`). Kit's own confirmation email goes out at that moment. That is the one email the code can cause, and only when signups are on.
 
 ## Code (Claude)
@@ -33,7 +33,7 @@ Status on 2026-10-20: **signups stay off.** This is a plan, not a switch. Nothin
 
 **C7. Second-order checks once on.** The success event `newsletter_signup_success` (`v2-subscribe.ts:202`) carries no email. Confirm that stays true. Verify: `tests/v2-analytics.test.ts` and the Worker logs show no address.
 
-**C8. Staging.** Until registration, set staging `SIGNUPS_ENABLED` to `"false"` in `wrangler.jsonc` (owner approves, since it changes a deployed environment) so no stranger's address reaches Kit. Re-enable only for the owner's own test addresses.
+**C8. Staging.** Done 2026-10-20: staging `SIGNUPS_ENABLED` is `"false"` in `wrangler.jsonc` and on the deployed staging Worker, so no stranger's address reaches Kit. `tests/production-config.test.ts` pins it. Turn it on only for the owner's own end-to-end test (O5), then off again.
 
 **C9. Flip the switch last.** One PR changes `wrangler.production.jsonc:55` to `"true"`, referencing this checklist with every box ticked; the owner merges and deploys (`launch-day.md`, Part B). Not before.
 
