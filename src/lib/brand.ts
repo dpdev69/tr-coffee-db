@@ -39,6 +39,7 @@ export const studio = {
     { label: 'Lull, yakında', url: 'https://lull.hellobasalt.dev/' },
     { label: 'Cosmic Post, uzay fotoğrafı hatıraları', url: 'https://cosmicpost.lol/' },
     { label: 'ByeWall, arşivlenmiş sayfaları bul', url: 'https://byewall.hellobasalt.dev/' },
+    { label: 'Outcrop, yazılım üreticileri için SEO', url: 'https://outcrop.hellobasalt.dev/' },
   ],
 } as const;
 
