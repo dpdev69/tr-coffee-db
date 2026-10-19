@@ -30,9 +30,17 @@ export function Header() {
   return (
     <header className="site-header sticky top-0 z-50 border-b border-line bg-ground/95 backdrop-blur-md">
       <div className="page-shell flex h-16 items-center gap-[clamp(16px,2vw,40px)] lg:h-[72px]">
-        <Link href="/" aria-label={`${brand.name} ana sayfa`} className="inline-flex min-h-11 shrink-0 items-center">
-          {wordmark}
-        </Link>
+        <div className="flex shrink-0 items-center gap-2.5">
+          <Link href="/" aria-label={`${brand.name} ana sayfa`} className="inline-flex min-h-11 shrink-0 items-center">
+            {wordmark}
+          </Link>
+          <a
+            href="https://hellobasalt.dev/"
+            className="pt-1 font-mono text-xs leading-none tracking-[0.04em] text-muted hover:text-ink hover:underline"
+          >
+            by Basalt
+          </a>
+        </div>
         <nav aria-label="Ana menü" className="hidden items-center gap-[clamp(14px,1.6vw,32px)] lg:flex">
           {links.map((link) => (
             <Link
