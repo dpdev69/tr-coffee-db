@@ -26,7 +26,16 @@
       "head_sampling_rate": 0.01
     }
   },
+  // /site/<path> (docs/crawl-relay.md): the nightly purge and warm-up reach the web Worker here, past Bot Fight Mode.
+  // This crawler is the relay the production refresh uses (vars.CRAWL_RELAY_URL), so it is bound to the production site.
+  "services": [
+    {
+      "binding": "SITE",
+      "service": "coffeedb-v2-web"
+    }
+  ],
   "vars": {
+    "SITE_ORIGIN": "https://kahve.hellobasalt.dev",
     "CRAWLS_ENABLED": "false",
     "CRAWL_MODE": "live",
     // Must equal the main consumer's dead_letter_queue; the handler only closes jobs there.

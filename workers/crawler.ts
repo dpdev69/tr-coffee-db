@@ -1,7 +1,7 @@
 import { beginCrawl, expireCrawls, ingestCrawl, safeDiagnostic } from '../shared/v2/ingestion';
 import { stableId } from '../shared/v2/identity';
 import { crawlRoaster, CRAWLER_HEADERS, PARSER_VERSION, type CrawlOptions } from '../scrapers/src/v2/crawl';
-import { relayRequest } from '../shared/v2/relay';
+import { relayRequest, siteRequest } from '../shared/v2/relay';
 import { isQualifiedSource } from '../shared/v2/qualified-sources';
 import { ALL_ROASTER_CONFIGS } from '../scrapers/src/roasters/configs';
 
@@ -92,9 +92,12 @@ export function createCrawlerWorker(sourceOptions:CrawlOptions={},now=()=>new Da
       }
     },
     async fetch(request,env){
-      if(new URL(request.url).pathname!=='/relay')return Response.json({service:'catalog-crawler',status:'ok'});
+      const path=new URL(request.url).pathname;
       // RELAY_TOKEN is a Worker secret, so it is absent from the generated env type.
-      return relayRequest(request,(env as unknown as {RELAY_TOKEN?:string}).RELAY_TOKEN,RELAY_HOSTS,CRAWLER_HEADERS);
+      const token=(env as unknown as {RELAY_TOKEN?:string}).RELAY_TOKEN;
+      if(path.startsWith('/site/'))return siteRequest(request,token,env.SITE,env.SITE_ORIGIN);
+      if(path!=='/relay')return Response.json({service:'catalog-crawler',status:'ok'});
+      return relayRequest(request,token,RELAY_HOSTS,CRAWLER_HEADERS);
     },
   } satisfies ExportedHandler<CrawlerEnv,CrawlJob>;
 }

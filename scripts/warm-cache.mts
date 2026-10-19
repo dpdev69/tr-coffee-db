@@ -3,6 +3,10 @@
  *
  *   tsx scripts/warm-cache.mts <site-url>            (or SITE_URL)
  *
+ * With SITE_VIA and CRAWL_RELAY_TOKEN set (the nightly job), every request goes through the crawler Worker's /site route
+ * instead, because Bot Fight Mode answers GitHub's runners 403 on the site itself (docs/crawl-relay.md). Workers Cache is
+ * keyed by path, not host, so what is stored that way is what visitors on the site get.
+ *
  * The list stays under the miss limits of workers/miss-guard.ts (20 list-sized and 60 single-coffee misses a minute).
  * With CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_D1_DATABASE_ID and CLOUDFLARE_D1_API_TOKEN set (the nightly job), it then lists
  * the stored derived results and their sizes (one row each), and reports a missing or oversized one as a workflow error. */
@@ -11,6 +15,8 @@ import { D1RestDatabase } from './v2-d1-rest';
 
 const site = (process.argv[2] ?? process.env.SITE_URL ?? '').replace(/\/$/, '');
 if (!/^https?:\/\//.test(site)) { console.error('Usage: tsx scripts/warm-cache.mts <site-url>'); process.exit(1); }
+const via = process.env.SITE_VIA?.replace(/\/$/, ''), relayToken = process.env.CRAWL_RELAY_TOKEN;
+const base = via && relayToken ? via : site, auth: Record<string, string> = via && relayToken ? { Authorization: `Bearer ${relayToken}` } : {};
 const html = { Accept: 'text/html' };
 /** What every visitor's browser prefetches from the header (the router's form of the page), and the page itself. */
 const rsc = { Accept: 'text/x-component', RSC: '1' };
@@ -21,7 +27,7 @@ let failed = 0;
 async function warm(path: string, headers: Record<string, string>) {
   const started = Date.now();
   try {
-    const response = await fetch(`${site}${path}`, { headers, redirect: 'manual', signal: AbortSignal.timeout(60_000) });
+    const response = await fetch(`${base}${path}`, { headers: { ...headers, ...auth }, redirect: 'manual', signal: AbortSignal.timeout(60_000) });
     const body = await response.text();
     if (!response.ok) failed++;
     report(`${response.status} ${response.headers.get('cf-cache-status') ?? '-'} ${String(Date.now() - started).padStart(6)} ms ${path}${headers.RSC ? ' (router)' : ''}`);

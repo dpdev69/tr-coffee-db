@@ -6,7 +6,7 @@ import {registerRoaster} from '../shared/v2/ingestion';
 import {attentionNeeded,refreshCatalog,syncRoasters} from '../scripts/v2-refresh.mts';
 import {crawlRoaster} from '../scrapers/src/v2/crawl';
 import {D1RestDatabase} from '../scripts/v2-d1-rest';
-import {relayFetch,relayRequest} from '../shared/v2/relay';
+import {relayFetch,relayRequest,siteRequest} from '../shared/v2/relay';
 import {ALL_ROASTER_CONFIGS} from '../scrapers/src/roasters/configs';
 
 test('refresh overlaps at most three storefronts and retains every snapshot and daily deduplication',async()=>{
@@ -121,6 +121,27 @@ test('the relay refuses callers without the token, other hosts and non-GET reque
   assert.equal(ok.status,200);assert.equal(ok.headers.get('content-type'),'application/json');assert.equal(ok.headers.get('set-cookie'),null);
   const seen:string[]=[];const viaRelay=relayFetch('https://relay.test/relay','secret',async(input,init)=>{seen.push(String(input),new Headers(init?.headers).get('authorization')??'');return new Response('ok');});
   await viaRelay('https://sezycoffee.com/a?b=1');assert.deepEqual(seen,['https://relay.test/relay?url=https%3A%2F%2Fsezycoffee.com%2Fa%3Fb%3D1','Bearer secret']);
+});
+
+test('the site route needs the relay token, sends GETs bare and only the purge as POST, on the real host',async()=>{
+  const seen:{url:string;method:string;headers:Record<string,string>}[]=[];
+  const site={fetch:(async(input:RequestInfo|URL,init?:RequestInit)=>{seen.push({url:String(input),method:init?.method??'GET',headers:Object.fromEntries(new Headers(init?.headers))});
+    return new Response('page',{status:200,headers:{'content-type':'text/html','cf-cache-status':'MISS','set-cookie':'a=b'}});})as typeof fetch};
+  const call=(path:string,init:RequestInit={})=>siteRequest(new Request(`https://crawler.test${path}`,init),'secret',site,'https://kahve.test');
+  const auth={Authorization:'Bearer secret'};
+  assert.equal((await call('/site/kahveler')).status,401);
+  assert.equal((await call('/site/kahveler',{headers:{Authorization:'Bearer wrong!'}})).status,401);
+  assert.equal((await siteRequest(new Request('https://crawler.test/site/kahveler',{headers:auth}),undefined,site,'https://kahve.test')).status,503);
+  assert.equal((await siteRequest(new Request('https://crawler.test/site/',{headers:auth}),'secret',undefined,'https://kahve.test')).status,503);
+  assert.equal((await call('/site/api/subscribe',{method:'POST',headers:auth})).status,405);
+  assert.equal((await call('/site/kahveler',{method:'DELETE',headers:auth})).status,405);
+  assert.equal(seen.length,0);
+  const page=await call('/site/kahveler?_rsc',{headers:{...auth,Accept:'text/x-component',RSC:'1',Cookie:'c=d'}});
+  assert.equal(page.status,200);assert.equal(page.headers.get('cf-cache-status'),'MISS');assert.equal(page.headers.get('set-cookie'),null);assert.equal(await page.text(),'page');
+  assert.deepEqual(seen.pop(),{url:'https://kahve.test/kahveler?_rsc',method:'GET',headers:{accept:'text/x-component',rsc:'1'}});
+  await call('/site/',{headers:auth});assert.equal(seen.pop()?.url,'https://kahve.test/');
+  await call('/site/api/cache',{method:'POST',headers:{...auth,'X-Cache-Purge-Token':'purge'}});
+  assert.deepEqual(seen.pop(),{url:'https://kahve.test/api/cache',method:'POST',headers:{authorization:'Bearer purge'}});
 });
 
 test('a source awaiting qualification never succeeds by design, so it does not turn the nightly run red',async()=>{
