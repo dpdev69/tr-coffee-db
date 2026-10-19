@@ -211,7 +211,8 @@ function createFetcher(config: RoasterConfig, options: CrawlOptions, retryAfter:
   const sleep = options.sleep ?? (ms => new Promise(resolve => setTimeout(resolve, ms)));
   const maxRequests = bounded(options.maxRequests ?? (config.slug==='cho-coffee'?600:250), 1, 1000);
   const timeoutMs = bounded(options.timeoutMs ?? 20_000, 1, 30_000);
-  const delay = bounded(options.requestDelayMs ?? 300, 0, 60_000);
+  // A shop's robots.txt Crawl-delay is a floor under the pacing; a test or caller can slow it down, never speed it up.
+  const delay = Math.max(bounded(options.requestDelayMs ?? 300, 0, 60_000), bounded(config.crawlDelayMs ?? 0, 0, 60_000));
   let requests = 0;
   const cookies=new Map<string,Map<string,string>>(); // Anonymous storefront CSRF session only; never user browser cookies.
   return async (input: string, init?: RequestInit): Promise<{ body: string; headers: Headers }> => {
