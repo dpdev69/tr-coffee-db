@@ -4,7 +4,7 @@ import { canonicalizeUrl } from './identity';
 import { allowAnalyticsRequest, ANALYTICS_FEED_TYPES, ANALYTICS_SOURCES, emitProductEvent, isAnalyticsNoise, isOfferAnalyticsId, type AnalyticsEnvironment, type AnalyticsFeedType, type AnalyticsPage, type AnalyticsSource } from './analytics';
 
 interface Destination { offer_id: string; coffee_id: string; roaster_id: string; purchase_url: string; trusted_hosts_json: string }
-const SOURCE_PAGE: Partial<Record<AnalyticsSource, AnalyticsPage>> = { home: 'home', 'home-hero': 'home', 'home-bottom': 'home', catalog: 'catalog', detail: 'coffee', similar: 'coffee', roaster: 'roaster', compare: 'compare', quiz: 'quiz', guide: 'guide' };
+const SOURCE_PAGE: Partial<Record<AnalyticsSource, AnalyticsPage>> = { home: 'home', 'home-hero': 'home', 'home-bottom': 'home', catalog: 'catalog', detail: 'coffee', similar: 'coffee', roaster: 'roaster', compare: 'compare', karsilastir: 'compare', quiz: 'quiz', guide: 'guide' };
 const HEADERS = { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow', 'Referrer-Policy': 'no-referrer' };
 function empty(status: number): Response { return new Response(null, { status, headers: { ...HEADERS, ...(status === 405 ? { Allow: 'GET, HEAD' } : {}) } }); }
 function feedPage(request: Request, type: AnalyticsFeedType | undefined): AnalyticsPage {

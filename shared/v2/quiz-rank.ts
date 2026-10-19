@@ -137,12 +137,17 @@ export type QuizMatch = CatalogCoffee & { quizReasons: QuizReason[]; quizExact: 
 /** One candidate query on the public view, scoring in TypeScript, hydration of the winners only (as getSimilarCoffees).
  * The scored candidates are the same for every answer set, so they are built once per refresh (derived cache). */
 export async function rankQuizMatches(db: CatalogDatabase, answers: QuizAnswers, limit = 8): Promise<{ coffees: QuizMatch[]; exact: boolean; total: number }> {
-  const candidates = await (db.derive ? db.derive('quiz-candidates', () => quizCandidates(db)) : quizCandidates(db));
+  const candidates = await scoredCandidates(db);
   const ranked = rankCandidates(answers, candidates, Math.min(12, Math.max(1, Math.floor(limit) || 8)));
   const rows = await listedRows(db, ranked.map(entry => entry.id));
   const hydrated = await hydrate(db, rows, Date.now());
   const coffees = hydrated.map(coffee => { const entry = ranked.find(item => item.id === coffee.id)!; return { ...coffee, quizReasons: entry.reasons, quizExact: entry.exact }; });
   return { coffees, exact: coffees.some(coffee => coffee.quizExact), total: candidates.length };
+}
+/** Every listed coffee with its evidence per dimension, newest first; built once per refresh (derived cache). Comparison pages
+ * read their roast, process, taste and brew facts from it too. */
+export function scoredCandidates(db: CatalogDatabase): Promise<QuizScored[]> {
+  return db.derive ? db.derive('quiz-candidates', () => quizCandidates(db)) : quizCandidates(db);
 }
 async function quizCandidates(db: CatalogDatabase): Promise<QuizScored[]> {
   // Whole fact groups, not only the features scored: a MANUAL row on any member (say flavor_notes_normalized) must silence the rest.
