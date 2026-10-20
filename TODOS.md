@@ -18,18 +18,6 @@
 
 ## Scrapers
 
-### Fix zero-product WooCommerce adapters
-
-**What:** Repair the latest WooCommerce adapters that returned zero products and confirm whether their restored stale products are still purchasable.
-
-**Why:** Restored stale coffees should become genuinely fresh or correctly unavailable. Keeping them active indefinitely weakens trust.
-
-**Context:** Latest failed zero-product roasters from the freshness checkpoint: `baristocrat`, `coffeemamma`, `daphne`, `old-java`, `ordinarius`, `poka`, and `williams`. Start with the highest active-product count or strongest buyer value.
-
-**Effort:** M
-**Priority:** P1
-**Depends on:** Catalog freshness audit data
-
 ### Add missing active-roaster scraper coverage
 
 **What:** Add scraper configs or adapters for active roasters that do not currently have scrape logs.
@@ -111,3 +99,7 @@
 ### Extend the Actions scrape summary with catalog freshness counts (done 2026-10-20)
 
 The nightly job summary (`scrape.yml`) now shows sources attempted, succeeded, partial and failed, and the listed catalog split into fresh (confirmed today), stale (listed from an earlier crawl, dropped after 7 days unconfirmed) and restored (confirmed again after dropping out). Restored is counted during ingestion from rows the crawl already reads; fresh and stale cost one aggregate query on `public_catalog_coffees` per run (about 4,500 rows on today's catalog, docs/read-budget.md; the summary prints the measured count). The same change added a secrets check before crawling and an outcome step that reports "data written" and "edge purged/warmed" apart.
+
+### Fix zero-product WooCommerce adapters (rechecked 2026-10-20)
+
+The 2026-05-21 list came from the legacy adapter, replaced by the v2 crawler on 2026-09-27. On 2026-10-20 Baristocrat, Coffeemamma, Daphne, Old Java, Poka and Williams all answered the Store API to the crawler's own User-Agent and parsed completely, as they did in the 2026-10-19 nightly run; fixtures in `tests/v2-woo-recheck.test.ts`. Williams now keeps its robots.txt Crawl-delay of 3 seconds (`crawlDelayMs`). Ordinarius, now on IdeaSoft, is off (`active: false`): its robots.txt asks for a 30-second delay and a complete crawl needs about 180 requests; it answered HTTP 429 at the usual pace. Ask the roaster.

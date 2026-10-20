@@ -1,0 +1,3620 @@
+{
+"coffeemamma": {
+"products": [
+{
+"id": 5948,
+"name": "Colombia Armenia Quindio",
+"slug": "colombia-armenia-quindio",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://coffeemamma.com.tr/urunler/kahveler/filtre-kahveler/colombia-armenia-quindio/",
+"sku": "colombia-armenia-quindio",
+"short_description": "<p>250g</p>",
+"description": "<p>Bu parti için yalnızca en olgun kahve kirazları hasat edilmiştir. Kirazlar, tazeliklerini korumak amacıyla &#8220;GrainPro&#8221; çuvallar veya özel tanklar içinde La Pradera işleme merkezimize nakledilir. La Pradera&#8217;ya ulaşan kirazlar, düşük yoğunluklu çekirdekleri veya yabancı maddeleri ayırmak için su tanklarına alınır. Bu aşamada kullanılan su, sonraki partilerde yeniden kullanılmak üzere geri kazanılır; kullanım ömrünü tamamladığında ise özel tanklardan oluşan bir sistemde filtrele",
+"prices": {
+"price": "1100",
+"regular_price": "1100",
+"sale_price": "1100",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2026/10/WhatsApp-Image-2026-10-13-at-11.39.46.jpeg",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 65,
+"name": "Filtre Kahveler",
+"slug": "filtre-kahveler",
+"link": "https://coffeemamma.com.tr/urun-kategori/kahveler/filtre-kahveler/"
+},
+{
+"id": 55,
+"name": "Kahveler",
+"slug": "kahveler",
+"link": "https://coffeemamma.com.tr/urun-kategori/kahveler/"
+}
+],
+"tags": [],
+"attributes": [
+{
+"id": 4,
+"name": "Öğütme Derecesi",
+"taxonomy": "pa_ogutme-derecesi",
+"has_variations": true,
+"terms": [
+{
+"id": 72,
+"name": "Çekirdek",
+"slug": "cekirdek",
+"default": true
+},
+{
+"id": 79,
+"name": "Chemex",
+"slug": "chemex",
+"default": false
+},
+{
+"id": 75,
+"name": "French Press",
+"slug": "french-press",
+"default": false
+},
+{
+"id": 76,
+"name": "Kağıt Filtre",
+"slug": "kagit-filtre",
+"default": false
+},
+{
+"id": 77,
+"name": "Metal Filtre",
+"slug": "metal-filtre",
+"default": false
+},
+{
+"id": 74,
+"name": "Moka Pot",
+"slug": "moka-pot",
+"default": false
+},
+{
+"id": 78,
+"name": "V60",
+"slug": "v60",
+"default": false
+}
+]
+}
+],
+"variations": [
+{
+"id": 5949,
+"attributes": [
+{
+"name": "Öğütme Derecesi",
+"value": "cekirdek"
+}
+]
+},
+{
+"id": 5950,
+"attributes": [
+{
+"name": "Öğütme Derecesi",
+"value": "chemex"
+}
+]
+},
+{
+"id": 5951,
+"attributes": [
+{
+"name": "Öğütme Derecesi",
+"value": "french-press"
+}
+]
+},
+{
+"id": 5952,
+"attributes": [
+{
+"name": "Öğütme Derecesi",
+"value": "kagit-filtre"
+}
+]
+},
+{
+"id": 5953,
+"attributes": [
+{
+"name": "Öğütme Derecesi",
+"value": "metal-filtre"
+}
+]
+},
+{
+"id": 5954,
+"attributes": [
+{
+"name": "Öğütme Derecesi",
+"value": "moka-pot"
+}
+]
+},
+{
+"id": 5955,
+"attributes": [
+{
+"name": "Öğütme Derecesi",
+"value": "v60"
+}
+]
+}
+],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 2386,
+"name": "Espresso Napolitan Blend",
+"slug": "espresso-napolitan",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://coffeemamma.com.tr/urunler/kahveler/espressolar/espresso-napolitan/",
+"sku": "espresso-napolitan",
+"short_description": "<p>%85 Arabica/%15 Robusta</p>",
+"description": "<p>Brezilya yellow bourbon baz üzerine kurulmuş harman kahvemiz, yumuşak içimli, dolgun gövdeli ve güçlü altın rengi kremasıyla sizi mutlu edecektir.<br />\nTadım notları: Badem ve bitter çikolata notaları</p>\n<p>Kahve Türü: Harman (%85 Arabica/%15 Robusta)</p>\n<p>&nbsp;</p>",
+"prices": {
+"price": "425",
+"regular_price": "425",
+"sale_price": "425",
+"price_range": {
+"min_amount": "425",
+"max_amount": "1650"
+},
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2024/01/napolitanCoffee-Package-Mockup.jpg",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 64,
+"name": "Espressolar",
+"slug": "espressolar",
+"link": "https://coffeemamma.com.tr/urun-kategori/kahveler/espressolar/"
+},
+{
+"id": 55,
+"name": "Kahveler",
+"slug": "kahveler",
+"link": "https://coffeemamma.com.tr/urun-kategori/kahveler/"
+}
+],
+"tags": [],
+"attributes": [
+{
+"id": 3,
+"name": "Ağırlık",
+"taxonomy": "pa_agirlik",
+"has_variations": true,
+"terms": [
+{
+"id": 71,
+"name": "1000g",
+"slug": "1000g"
+},
+{
+"id": 70,
+"name": "250g",
+"slug": "250g"
+}
+]
+},
+{
+"id": 4,
+"name": "Öğütme Derecesi",
+"taxonomy": "pa_ogutme-derecesi",
+"has_variations": true,
+"terms": [
+{
+"id": 72,
+"name": "Çekirdek",
+"slug": "cekirdek"
+},
+{
+"id": 73,
+"name": "Espresso",
+"slug": "espresso"
+},
+{
+"id": 74,
+"name": "Moka Pot",
+"slug": "moka-pot"
+}
+]
+}
+],
+"variations": [
+{
+"id": 2387,
+"attributes": [
+{
+"name": "Ağırlık",
+"value": "250g"
+},
+{
+"name": "Öğütme Derecesi",
+"value": null
+}
+]
+},
+{
+"id": 2388,
+"attributes": [
+{
+"name": "Ağırlık",
+"value": "1000g"
+},
+{
+"name": "Öğütme Derecesi",
+"value": null
+}
+]
+}
+],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 5976,
+"name": "EUREKA MIGNON CRONO BEYAZ 15 BL",
+"slug": "eureka-mignon-crono-beyaz-15-bl",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://coffeemamma.com.tr/urunler/kahve-ogutuculeri/eureka-mignon-crono-beyaz-15-bl/",
+"sku": "eureka-mignon-crono-beyaz-15-bl",
+"short_description": "",
+"description": "<p>Eureka Mignon Crono Kahve Değirmeni, filtre kahve demleme yöntemleri için yüksek hassasiyetli öğütme sunan kompakt ve güçlü bir kahve öğütücüdür.</p>\n<p>Öne Çıkan Özellikler</p>\n<p>Patentli kademesiz öğütme ayar sistemi<br />\nACE System ile topaklanmayı önleyen öğütme<br />\n5–60 saniye ayarlanabilir zamanlayıcı<br />\nHızlı temizlik ve bakım sistemi<br />\nŞeffaf öğütülmüş kahve haznesi<br />\nDayanıklı metal gövde<br />\nKompakt ve şık tasarım<br />\nTeknik Özellikler</p>\n<p>Marka: Eureka<br />\nM",
+"prices": {
+"price": "15000",
+"regular_price": "15000",
+"sale_price": "15000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2026/10/eureka-degirmen.png",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 56,
+"name": "Kahve Öğütücüleri",
+"slug": "kahve-ogutuculeri",
+"link": "https://coffeemamma.com.tr/urun-kategori/kahve-ogutuculeri/"
+}
+],
+"tags": [],
+"attributes": [],
+"variations": [
+{
+"id": 5977,
+"attributes": []
+},
+{
+"id": 5978,
+"attributes": []
+},
+{
+"id": 5979,
+"attributes": []
+},
+{
+"id": 5980,
+"attributes": []
+},
+{
+"id": 5981,
+"attributes": []
+}
+],
+"is_purchasable": true,
+"is_in_stock": true
+}
+],
+"variations": [
+{
+"id": 5955,
+"name": "Colombia Armenia Quindio",
+"slug": "colombia-excelso-ep-narino-v60-27",
+"parent": 5948,
+"type": "variation",
+"variation": "Öğütme Derecesi: V60",
+"permalink": "https://coffeemamma.com.tr/urunler/kahveler/filtre-kahveler/colombia-armenia-quindio/?attribute_pa_ogutme-derecesi=v60",
+"sku": "colombia-armenia-quindio-v60",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1100",
+"regular_price": "1100",
+"sale_price": "1100",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2026/10/WhatsApp-Image-2026-10-13-at-11.39.46.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 5954,
+"name": "Colombia Armenia Quindio",
+"slug": "colombia-excelso-ep-narino-moka-pot-27",
+"parent": 5948,
+"type": "variation",
+"variation": "Öğütme Derecesi: Moka Pot",
+"permalink": "https://coffeemamma.com.tr/urunler/kahveler/filtre-kahveler/colombia-armenia-quindio/?attribute_pa_ogutme-derecesi=moka-pot",
+"sku": "colombia-armenia-quindio-moka-pot",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1100",
+"regular_price": "1100",
+"sale_price": "1100",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2026/10/WhatsApp-Image-2026-10-13-at-11.39.46.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 5953,
+"name": "Colombia Armenia Quindio",
+"slug": "colombia-excelso-ep-narino-metal-filtre-27",
+"parent": 5948,
+"type": "variation",
+"variation": "Öğütme Derecesi: Metal Filtre",
+"permalink": "https://coffeemamma.com.tr/urunler/kahveler/filtre-kahveler/colombia-armenia-quindio/?attribute_pa_ogutme-derecesi=metal-filtre",
+"sku": "colombia-armenia-quindio-metal-filtre",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1100",
+"regular_price": "1100",
+"sale_price": "1100",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2026/10/WhatsApp-Image-2026-10-13-at-11.39.46.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 5952,
+"name": "Colombia Armenia Quindio",
+"slug": "colombia-excelso-ep-narino-kagit-filtre-27",
+"parent": 5948,
+"type": "variation",
+"variation": "Öğütme Derecesi: Kağıt Filtre",
+"permalink": "https://coffeemamma.com.tr/urunler/kahveler/filtre-kahveler/colombia-armenia-quindio/?attribute_pa_ogutme-derecesi=kagit-filtre",
+"sku": "colombia-armenia-quindio-kagit-filtre",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1100",
+"regular_price": "1100",
+"sale_price": "1100",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2026/10/WhatsApp-Image-2026-10-13-at-11.39.46.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 5951,
+"name": "Colombia Armenia Quindio",
+"slug": "colombia-excelso-ep-narino-french-press-27",
+"parent": 5948,
+"type": "variation",
+"variation": "Öğütme Derecesi: French Press",
+"permalink": "https://coffeemamma.com.tr/urunler/kahveler/filtre-kahveler/colombia-armenia-quindio/?attribute_pa_ogutme-derecesi=french-press",
+"sku": "colombia-armenia-quindio-french-press",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1100",
+"regular_price": "1100",
+"sale_price": "1100",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2026/10/WhatsApp-Image-2026-10-13-at-11.39.46.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 5950,
+"name": "Colombia Armenia Quindio",
+"slug": "colombia-excelso-ep-narino-chemex-27",
+"parent": 5948,
+"type": "variation",
+"variation": "Öğütme Derecesi: Chemex",
+"permalink": "https://coffeemamma.com.tr/urunler/kahveler/filtre-kahveler/colombia-armenia-quindio/?attribute_pa_ogutme-derecesi=chemex",
+"sku": "colombia-armenia-quindio-chemex",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1100",
+"regular_price": "1100",
+"sale_price": "1100",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2026/10/WhatsApp-Image-2026-10-13-at-11.39.46.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 5949,
+"name": "Colombia Armenia Quindio",
+"slug": "colombia-excelso-ep-narino-cekirdek-27",
+"parent": 5948,
+"type": "variation",
+"variation": "Öğütme Derecesi: Çekirdek",
+"permalink": "https://coffeemamma.com.tr/urunler/kahveler/filtre-kahveler/colombia-armenia-quindio/?attribute_pa_ogutme-derecesi=cekirdek",
+"sku": "colombia-armenia-quindio-cekirdek",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1100",
+"regular_price": "1100",
+"sale_price": "1100",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2026/10/WhatsApp-Image-2026-10-13-at-11.39.46.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 2388,
+"name": "Espresso Napolitan Blend",
+"slug": "espresso-honduras-single-origin-1000g-1002",
+"parent": 2386,
+"type": "variation",
+"variation": "Ağırlık: 1000g",
+"permalink": "https://coffeemamma.com.tr/urunler/kahveler/espressolar/espresso-napolitan/?attribute_pa_agirlik=1000g",
+"sku": "espresso-napolitan-1000g-",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1650",
+"regular_price": "1650",
+"sale_price": "1650",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2023/04/honduras.jpg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 2387,
+"name": "Espresso Napolitan Blend",
+"slug": "espresso-honduras-single-origin-250g-252",
+"parent": 2386,
+"type": "variation",
+"variation": "Ağırlık: 250g",
+"permalink": "https://coffeemamma.com.tr/urunler/kahveler/espressolar/espresso-napolitan/?attribute_pa_agirlik=250g",
+"sku": "espresso-napolitan-250g-",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "425",
+"regular_price": "425",
+"sale_price": "425",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://coffeemamma.com.tr/wp-content/uploads/2023/04/esphonduras250.jpg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+}
+]
+},
+"old-java": {
+"products": [
+{
+"id": 2482,
+"name": "Kenya / Nduma   ( organik )",
+"slug": "kenya-nduma",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://oldjavacoffee.com/urun/kenya-nduma/",
+"sku": "",
+"short_description": "<p>250 gram</p>\n<p><em><strong>Filtre Önerisi</strong></em></p>\n<p><strong>Tadım</strong> Bu kahve Nyeri bölgesinde, ülkenin en yüksek dağı olan Kenya Dağı&#8217;nın (5199 m) batı yamacında yer alır. Rakımı (çiftlikler 1280 &#8211; 1970 m.a.s.l.&#8217;de yer alır), verimli kırmızı volkanik toprakları ve tropikal iklimi nedeniyle, Nyeri&#8217;den gelen kahve Kenya&#8217;nın en iyilerinden biri olarak kabul edilir ve tüm bölge &#8220;Kahvenin Şampanya Bölgesi&#8221; olarak adlandırılır.   Ahududu,",
+"description": "<h3 class=\"title__heading\">NDUMA</h3>\n<div class=\"tabs__content tabs__content--active\">\n<p class=\"tabs__paragraph\">Kenya&#8217;da alınıp satılan kahvenin büyük çoğunluğu, pazarlamacıların kooperatiflerin ve çiftliklerin kahvelerine girdiği ve tüccarların teklif vermeye geldiği ulusal açık artırma sistemi aracılığıyla alınıp satılıyor.</p>\n<p class=\"tabs__paragraph\">Bu açık artırma sisteminin ana alıcıları, daha sonra lotları ithalatçılara ve kavuruculara sunan büyük çokuluslu şirketlerdir. Ne ya",
+"prices": {
+"price": "58000",
+"regular_price": "58000",
+"sale_price": "58000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://oldjavacoffee.com/wp-content/uploads/2024/12/organik-kahve-kenya-scaled.jpg",
+"alt": "organik kahve yöresel kahve online satış paket"
+}
+],
+"categories": [
+{
+"id": 46,
+"name": "Filtre Kahve",
+"slug": "filtre-kahve",
+"link": "https://oldjavacoffee.com/urun-kategori/filtre-kahve/"
+}
+],
+"tags": [],
+"attributes": [
+{
+"id": 7,
+"name": "Ağırlık",
+"taxonomy": "pa_agirlik",
+"has_variations": true,
+"terms": [
+{
+"id": 53,
+"name": "250",
+"slug": "250",
+"default": true
+}
+]
+},
+{
+"id": 8,
+"name": "Öğütme",
+"taxonomy": "pa_ogutme",
+"has_variations": true,
+"terms": [
+{
+"id": 55,
+"name": "Aeropress",
+"slug": "aeropress"
+},
+{
+"id": 61,
+"name": "Çekirdek",
+"slug": "cekirdek"
+},
+{
+"id": 50,
+"name": "Chemex",
+"slug": "chemex"
+},
+{
+"id": 66,
+"name": "EvTipi Makina(Espresso)",
+"slug": "evtipi-makinaespresso"
+},
+{
+"id": 67,
+"name": "Filtre Kahve Makina(öğütülmüş)",
+"slug": "ogutulmustum-filtre-kahve-makina-gruplari-icin"
+},
+{
+"id": 52,
+"name": "Makina",
+"slug": "makina"
+},
+{
+"id": 65,
+"name": "Mokapot",
+"slug": "mokapot"
+},
+{
+"id": 51,
+"name": "V60",
+"slug": "v60"
+}
+]
+}
+],
+"variations": [
+{
+"id": 2484,
+"attributes": [
+{
+"name": "Ağırlık",
+"value": null
+},
+{
+"name": "Öğütme",
+"value": null
+}
+]
+}
+],
+"is_purchasable": true,
+"is_in_stock": false
+},
+{
+"id": 1096,
+"name": "Cold Brew",
+"slug": "cold-brew",
+"parent": 0,
+"type": "simple",
+"variation": "",
+"permalink": "https://oldjavacoffee.com/urun/cold-brew/",
+"sku": "",
+"short_description": "<p><span style=\"vertical-align: inherit\"><span style=\"vertical-align: inherit\"><span style=\"vertical-align: inherit\">330 ml /</span></span></span><span style=\"vertical-align: inherit\"><span style=\"vertical-align: inherit\"> el yapımı</span></span></p>\n<p><em><strong><span style=\"vertical-align: inherit\"><span style=\"vertical-align: inherit\"><span style=\"vertical-align: inherit\">Soğuk bir şekilde servis yapılması önerilir.</span></span></span></strong></em></p>\n<p><strong><span style=\"vertical-ali",
+"description": "<div class=\"page\" title=\"Sayfa 1\">\n<div class=\"section\">\n<div class=\"layoutArea\">\n<div class=\"column\">\n<div class=\"page\" title=\"Sayfa 1\">\n<div class=\"section\">\n<div class=\"layoutArea\">\n<div class=\"column\">\n<p><strong><span style=\"vertical-align: inherit\"><span style=\"vertical-align: inherit\">SOĞUK DEMLEME</span></span></strong></p>\n<p><span style=\"vertical-align: inherit\"><span style=\"vertical-align: inherit\"><span style=\"vertical-align: inherit\"><span style=\"vertical-align: inherit\">Bu özel lot",
+"prices": {
+"price": "32000",
+"regular_price": "32000",
+"sale_price": "32000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://oldjavacoffee.com/wp-content/uploads/2024/10/IMG_1005.jpg",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 90,
+"name": "Cold Brew",
+"slug": "cold-brew",
+"link": "https://oldjavacoffee.com/urun-kategori/cold-brew/"
+}
+],
+"tags": [
+{
+"id": 74,
+"name": "cold brew",
+"slug": "cold-brew",
+"link": "https://oldjavacoffee.com/urun-etiketi/cold-brew/"
+},
+{
+"id": 75,
+"name": "soğuk kahve",
+"slug": "soguk-kahve",
+"link": "https://oldjavacoffee.com/urun-etiketi/soguk-kahve/"
+}
+],
+"attributes": [
+{
+"id": 0,
+"name": "330 ml",
+"taxonomy": null,
+"has_variations": false,
+"terms": [
+{
+"id": 0,
+"name": "330 ml",
+"slug": "330 ml"
+}
+]
+}
+],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 3156,
+"name": "Fellow Stagg EKG Kettle-Beyaz",
+"slug": "fellow-stagg-ekg-kettle-beyaz",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://oldjavacoffee.com/urun/fellow-stagg-ekg-kettle-beyaz/",
+"sku": "",
+"short_description": "<p><strong>Özellikler:</strong></p>\n<p><strong>LCD Ekran – </strong> Sıcaklığı görün. Sıcaklığın kendisi olun. Gizli, siyah LCD ekran, ısıtma ilerlemesini gösteren aydınlatma elemanıyla istenen “Ayarlı Sıcaklık” ve “Gerçek Zamanlı Sıcaklık”ı gösterir.</p>\n<p><strong>Bekletme Seçeneği – </strong> Arkadaki düğme HOLD moduna alındığında, Stagg EKG 60 dakika boyunca Fahrenheit veya Celsius cinsinden istediğiniz sıcaklığı koruyacaktır. Biliyorsunuz, iki mil koşma yeteneğinizi abarttığınızda. Düğme HO",
+"description": "<p class=\"p1\"><b>Mükemmel Sıcaklık Hassasiyeti <i>Stagg EKG Elektrikli Su Isıtıcısı ile Demleme Sanatının Kilidini Açın</i></b></p>\n<p class=\"p1\">Sabah rutininizde hassasiyet ve ustalık dolu bir dünyaya hoş geldiniz. Fellow Stagg EKG Elektrikli Su Isıtıcısı, çay ve kahve demleme deneyiminizi yeni zirvelere taşımak için titizlikle tasarlanmıştır. Son teknoloji sıcaklık kontrol sistemiyle her seferinde mükemmel bir fincan kahve elde etme gücüne sahipsiniz.</p>\n<p class=\"p1\"><b>Şık Tasarım Olağanüs",
+"prices": {
+"price": "1210000",
+"regular_price": "1210000",
+"sale_price": "1210000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://oldjavacoffee.com/wp-content/uploads/2025/04/feloow-kettle-ehite-beyaz-demeleme.jpeg",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 105,
+"name": "Ekipman",
+"slug": "ekipman",
+"link": "https://oldjavacoffee.com/urun-kategori/ekipman/"
+}
+],
+"tags": [],
+"attributes": [
+{
+"id": 13,
+"name": "Renk",
+"taxonomy": "pa_renk",
+"has_variations": true,
+"terms": [
+{
+"id": 101,
+"name": "Beyaz",
+"slug": "beyaz"
+}
+]
+}
+],
+"variations": [
+{
+"id": 3162,
+"attributes": [
+{
+"name": "Renk",
+"value": null
+}
+]
+}
+],
+"is_purchasable": true,
+"is_in_stock": false
+}
+],
+"variations": [
+{
+"id": 2484,
+"name": "Kenya / Nduma   ( organik )",
+"slug": "kenya-nduma",
+"parent": 2482,
+"type": "variation",
+"variation": "",
+"permalink": "https://oldjavacoffee.com/urun/kenya-nduma/",
+"sku": "",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "58000",
+"regular_price": "58000",
+"sale_price": "58000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://oldjavacoffee.com/wp-content/uploads/2024/12/organik-kahve-kenya-scaled.jpg",
+"alt": "organik kahve yöresel kahve online satış paket"
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": false
+}
+]
+},
+"poka": {
+"products": [
+{
+"id": 12423,
+"name": "YENİ &#8211; BREZİLYA FAZENDA INES ANAEROBİK",
+"slug": "yeni-brezilya-fazenda-ines-anaerobik",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://poka.coffee/urun/yeni-brezilya-fazenda-ines-anaerobik/",
+"sku": "",
+"short_description": "<h5><i>Tatsal Algılar : Gül, Olgun Muz, Böğürtlen</i></h5>\n<p><i>Meyveler &#8220;Lavador&#8221; ile işlenerek hem temizlenir hem de yoğunluğuna göre sınıflandırılır. Daha sonra anaerobik ortamda 72 saat boyunca Selvatech mayası kullanılarak fıçıda bekletilir. 25 gün boyunca kerevetlerde kurumaya alınır.<br />\nBu deneysel parti Poka Coffee&#8217;ye özeldir.</i></p>",
+"description": "<p><i>Bölge : Carmo de Minas</i></p>\n<p><i>Tür : Catuai</i><i> </i></p>\n<p><i>İşleme Tipi : Anaerobik / Levain Natural (Mayalanmış Natural)</i></p>\n<p><i>Tatsal Algılar : Gül, Olgun Muz, Böğürtlen</i></p>\n<p><i>Meyveler &#8220;Lavador&#8221; ile işlenerek hem temizlenir hem de yoğunluğuna göre sınıflandırılır. Daha sonra anaerobik ortamda 72 saat boyunca Selvatech mayası kullanılarak fıçıda bekletilir. 25 gün boyunca kerevetlerde kurumaya alınır.<br />\nBu deneysel parti Poka Coffee&#8217;ye özel",
+"prices": {
+"price": "60000",
+"regular_price": "60000",
+"sale_price": "60000",
+"price_range": {
+"min_amount": "60000",
+"max_amount": "230000"
+},
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺ ",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://poka.coffee/wp-content/uploads/2025/10/brasil-fazenda.png",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 127,
+"name": "Kahveler",
+"slug": "kahveler",
+"link": "https://poka.coffee/urun-kategori/kahveler/"
+}
+],
+"tags": [],
+"attributes": [
+{
+"id": 2,
+"name": "Miktar",
+"taxonomy": "pa_miktar",
+"has_variations": true,
+"terms": [
+{
+"id": 124,
+"name": "250 Gr",
+"slug": "250-gr",
+"default": true
+},
+{
+"id": 125,
+"name": "500 Gr",
+"slug": "500-gr",
+"default": false
+},
+{
+"id": 126,
+"name": "1000 Gr",
+"slug": "1000-gr",
+"default": false
+}
+]
+},
+{
+"id": 1,
+"name": "Öğütme Şekli",
+"taxonomy": "pa_ogutme-sekli",
+"has_variations": true,
+"terms": [
+{
+"id": 131,
+"name": "Espresso",
+"slug": "espresso",
+"default": false
+},
+{
+"id": 130,
+"name": "Metal Filtre",
+"slug": "metal-filtre",
+"default": false
+},
+{
+"id": 117,
+"name": "Öğütülmemiş",
+"slug": "ogutulmemis",
+"default": true
+},
+{
+"id": 123,
+"name": "Aeropress",
+"slug": "aeropress",
+"default": false
+},
+{
+"id": 121,
+"name": "Chemex",
+"slug": "chemex",
+"default": false
+},
+{
+"id": 122,
+"name": "French Press",
+"slug": "french-press",
+"default": false
+},
+{
+"id": 119,
+"name": "Kağıt Filtre",
+"slug": "kagit-filtre",
+"default": false
+},
+{
+"id": 118,
+"name": "Moka Pot",
+"slug": "moka-pot",
+"default": false
+},
+{
+"id": 120,
+"name": "V60 Pour Over",
+"slug": "v60-pour-over",
+"default": false
+}
+]
+}
+],
+"variations": [
+{
+"id": 12425,
+"attributes": [
+{
+"name": "Miktar",
+"value": "1000-gr"
+},
+{
+"name": "Öğütme Şekli",
+"value": null
+}
+]
+},
+{
+"id": 12426,
+"attributes": [
+{
+"name": "Miktar",
+"value": "250-gr"
+},
+{
+"name": "Öğütme Şekli",
+"value": null
+}
+]
+}
+],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 3945,
+"name": "TÜRK KAHVESİ HARMANI",
+"slug": "turk-kahvesi-harmani",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://poka.coffee/urun/turk-kahvesi-harmani/",
+"sku": "",
+"short_description": "<h5>Tatsal Algılar :Çikolata Tatları ve meyve . Düşük Asidite</h5>",
+"description": "<p>Ülkeler : Colombia , Ethiopia , Brezilya</p>\n<p>Tatsal Algılar : Çikolata Tadları ve meyve . Düşük Asidite</p>",
+"prices": {
+"price": "40000",
+"regular_price": "40000",
+"sale_price": "40000",
+"price_range": {
+"min_amount": "40000",
+"max_amount": "150000"
+},
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺ ",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://poka.coffee/wp-content/uploads/2018/11/turk-kahvesi.jpg",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 127,
+"name": "Kahveler",
+"slug": "kahveler",
+"link": "https://poka.coffee/urun-kategori/kahveler/"
+}
+],
+"tags": [],
+"attributes": [
+{
+"id": 2,
+"name": "Miktar",
+"taxonomy": "pa_miktar",
+"has_variations": true,
+"terms": [
+{
+"id": 124,
+"name": "250 Gr",
+"slug": "250-gr",
+"default": true
+},
+{
+"id": 125,
+"name": "500 Gr",
+"slug": "500-gr",
+"default": false
+},
+{
+"id": 126,
+"name": "1000 Gr",
+"slug": "1000-gr",
+"default": false
+}
+]
+},
+{
+"id": 1,
+"name": "Öğütme Şekli",
+"taxonomy": "pa_ogutme-sekli",
+"has_variations": true,
+"terms": [
+{
+"id": 129,
+"name": "Öğütülmüş",
+"slug": "ogutulmus",
+"default": true
+},
+{
+"id": 117,
+"name": "Öğütülmemiş",
+"slug": "ogutulmemis",
+"default": false
+}
+]
+}
+],
+"variations": [
+{
+"id": 3947,
+"attributes": [
+{
+"name": "Miktar",
+"value": "250-gr"
+},
+{
+"name": "Öğütme Şekli",
+"value": null
+}
+]
+},
+{
+"id": 3948,
+"attributes": [
+{
+"name": "Miktar",
+"value": "500-gr"
+},
+{
+"name": "Öğütme Şekli",
+"value": null
+}
+]
+},
+{
+"id": 3949,
+"attributes": [
+{
+"name": "Miktar",
+"value": "1000-gr"
+},
+{
+"name": "Öğütme Şekli",
+"value": null
+}
+]
+}
+],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 4956,
+"name": "Poka Cold Brew (Şişe Dahil)(İçilmeye Hazır)",
+"slug": "poka-cold-brew-sise-dahilicilmeye-hazir",
+"parent": 0,
+"type": "simple",
+"variation": "",
+"permalink": "https://poka.coffee/urun/poka-cold-brew-sise-dahilicilmeye-hazir/",
+"sku": "",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "37500",
+"regular_price": "37500",
+"sale_price": "37500",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺ ",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://poka.coffee/wp-content/uploads/2021/05/coldbrew-sise.jpg",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 127,
+"name": "Kahveler",
+"slug": "kahveler",
+"link": "https://poka.coffee/urun-kategori/kahveler/"
+}
+],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+}
+],
+"variations": [
+{
+"id": 12426,
+"name": "YENİ &#8211; BREZİLYA FAZENDA INES ANAEROBİK",
+"slug": "dr-congo-region-with-many-lakes-copy-21",
+"parent": 12423,
+"type": "variation",
+"variation": "Miktar: 250 Gr",
+"permalink": "https://poka.coffee/urun/yeni-brezilya-fazenda-ines-anaerobik/?attribute_pa_miktar=250-gr",
+"sku": "PK-anaerobic-250-1-1-1-2",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "60000",
+"regular_price": "60000",
+"sale_price": "60000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺ ",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://poka.coffee/wp-content/uploads/2025/10/brasil-fazenda.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 12425,
+"name": "YENİ &#8211; BREZİLYA FAZENDA INES ANAEROBİK",
+"slug": "dr-congo-region-with-many-lakes-copy-20",
+"parent": 12423,
+"type": "variation",
+"variation": "Miktar: 1000 Gr",
+"permalink": "https://poka.coffee/urun/yeni-brezilya-fazenda-ines-anaerobik/?attribute_pa_miktar=1000-gr",
+"sku": "PK-anaerobic-1000-1-1-1-2",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "230000",
+"regular_price": "230000",
+"sale_price": "230000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺ ",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://poka.coffee/wp-content/uploads/2025/10/brasil-fazenda.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 3949,
+"name": "TÜRK KAHVESİ HARMANI",
+"slug": "turk-kahvesi-harmani-copy-6",
+"parent": 3945,
+"type": "variation",
+"variation": "Miktar: 1000 Gr",
+"permalink": "https://poka.coffee/urun/turk-kahvesi-harmani/?attribute_pa_miktar=1000-gr",
+"sku": "PK-dr-turkkahvesi-1000",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "150000",
+"regular_price": "150000",
+"sale_price": "150000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺ ",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://poka.coffee/wp-content/uploads/2018/11/turk-kahvesi.jpg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 3948,
+"name": "TÜRK KAHVESİ HARMANI",
+"slug": "turk-kahvesi-harmani-copy-5",
+"parent": 3945,
+"type": "variation",
+"variation": "Miktar: 500 Gr",
+"permalink": "https://poka.coffee/urun/turk-kahvesi-harmani/?attribute_pa_miktar=500-gr",
+"sku": "PK-dr-turkkahvesi-500",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "80000",
+"regular_price": "80000",
+"sale_price": "80000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺ ",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://poka.coffee/wp-content/uploads/2018/11/turk-kahvesi.jpg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 3947,
+"name": "TÜRK KAHVESİ HARMANI",
+"slug": "turk-kahvesi-harmani-copy-4",
+"parent": 3945,
+"type": "variation",
+"variation": "Miktar: 250 Gr",
+"permalink": "https://poka.coffee/urun/turk-kahvesi-harmani/?attribute_pa_miktar=250-gr",
+"sku": "PK-dr-turkkahvesi-250",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "40000",
+"regular_price": "40000",
+"sale_price": "40000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "₺ ",
+"currency_suffix": ""
+},
+"images": [
+{
+"src": "https://poka.coffee/wp-content/uploads/2018/11/turk-kahvesi.jpg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+}
+]
+},
+"baristocrat": {
+"products": [
+{
+"id": 14847,
+"name": "Kenya – Kibugu",
+"slug": "kenya-kibugu",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://www.baristocrat.com/urun/kenya-kibugu/",
+"sku": "730833232-1-1-4",
+"short_description": "",
+"description": "<p>Kenya Dağı&#8217;nın eteklerinde uzanan Kirinyaga ve Embu çevresi, ülkenin en karakteristik kahve üretim alanlarından biri. Yüksek rakım, serinleyen geceler ve bölgenin verimli toprakları; kahve kirazlarının daha yavaş olgunlaşmasına, fincanda ise Kenya kahveleriyle özdeşleşen canlı ve belirgin bir karakter oluşmasına katkı sağlıyor.</p>\n<p>Kibugu, tek bir büyük çiftliğin kahvesinden ziyade bölgedeki küçük üreticilerin yetiştirdiği kirazların bir araya gelmesiyle oluşan bir lot. Bu yapı Kenya",
+"prices": {
+"price": "95000",
+"regular_price": "95000",
+"sale_price": "95000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://www.baristocrat.com/wp-content/uploads/2026/09/kenya-kibugu.jpg",
+"alt": "Baristocrat Kenya Kibugu Washed AB 250 gr filtre kahve paketi"
+}
+],
+"categories": [
+{
+"id": 64,
+"name": "Kahve",
+"slug": "kahve",
+"link": "https://www.baristocrat.com/product-category/kahve/"
+}
+],
+"tags": [],
+"attributes": [
+{
+"id": 7,
+"name": "Miktar",
+"taxonomy": "pa_miktar",
+"has_variations": true,
+"terms": [
+{
+"id": 124,
+"name": "250 Gr",
+"slug": "250-gr"
+},
+{
+"id": 125,
+"name": "1000 Gr",
+"slug": "1000-gr"
+}
+]
+},
+{
+"id": 6,
+"name": "Öğütme Seçeneği",
+"taxonomy": "pa_ogutme-secenegi",
+"has_variations": true,
+"terms": [
+{
+"id": 100,
+"name": "Öğütülmesin",
+"slug": "ogutulmesin"
+},
+{
+"id": 101,
+"name": "Aeropress",
+"slug": "aeropress"
+},
+{
+"id": 102,
+"name": "Chemex",
+"slug": "chemex"
+},
+{
+"id": 103,
+"name": "Espresso",
+"slug": "espresso"
+},
+{
+"id": 104,
+"name": "French Press",
+"slug": "french-press"
+},
+{
+"id": 105,
+"name": "Hario V60",
+"slug": "hario-v60"
+},
+{
+"id": 106,
+"name": "Kağıt Filtre",
+"slug": "kagit-filtre"
+},
+{
+"id": 107,
+"name": "Mocha Pot",
+"slug": "mocha-pot"
+},
+{
+"id": 108,
+"name": "Plastik Filtre",
+"slug": "plastik-filtre"
+}
+]
+}
+],
+"variations": [
+{
+"id": 14848,
+"attributes": [
+{
+"name": "Miktar",
+"value": "250-gr"
+},
+{
+"name": "Öğütme Seçeneği",
+"value": null
+}
+]
+}
+],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 8537,
+"name": "Baristocrat Blend &#8211; Türk Kahvesi",
+"slug": "baristocrat-blend-turk-kahvesi",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://www.baristocrat.com/urun/baristocrat-blend-turk-kahvesi/",
+"sku": "62687559",
+"short_description": "",
+"description": "<p>Bu kahve, kökleri Girit’ten Batı Ege’ye uzanan bir hikayenin lezzete dönüşmüş hali… Zeytin ağaçlarının esintisini taşıyan bu özel harman, geçmişten günümüze gelen zarif dokunuşlarla şekillendi.</p>\n<p>Girit’ten taşınan kültürel miras, Batı Ege’nin dingin havası ile buluşurken, her yudumda nostalji ve yeniliği aynı anda hissettiren bir kahve doğdu. Hafif ve dengeli içimi, çikolata, fındık ve fıstık notaları ile tatlı bir uyum sunuyor.</p>\n<p>Tıpkı zeytin ağaçlarının gölgesinde dinlenirken hiss",
+"prices": {
+"price": "27500",
+"regular_price": "27500",
+"sale_price": "27500",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://www.baristocrat.com/wp-content/uploads/2022/10/turk-kahvesi.jpg",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 64,
+"name": "Kahve",
+"slug": "kahve",
+"link": "https://www.baristocrat.com/product-category/kahve/"
+}
+],
+"tags": [],
+"attributes": [
+{
+"id": 7,
+"name": "Miktar",
+"taxonomy": "pa_miktar",
+"has_variations": true,
+"terms": [
+{
+"id": 124,
+"name": "250 Gr",
+"slug": "250-gr"
+}
+]
+},
+{
+"id": 6,
+"name": "Öğütme Seçeneği",
+"taxonomy": "pa_ogutme-secenegi",
+"has_variations": true,
+"terms": [
+{
+"id": 313,
+"name": "Öğütülsün",
+"slug": "ogutulsun"
+},
+{
+"id": 100,
+"name": "Öğütülmesin",
+"slug": "ogutulmesin"
+}
+]
+}
+],
+"variations": [
+{
+"id": 14252,
+"attributes": [
+{
+"name": "Miktar",
+"value": "250-gr"
+},
+{
+"name": "Öğütme Seçeneği",
+"value": "ogutulsun"
+}
+]
+},
+{
+"id": 14253,
+"attributes": [
+{
+"name": "Miktar",
+"value": "250-gr"
+},
+{
+"name": "Öğütme Seçeneği",
+"value": "ogutulmesin"
+}
+]
+}
+],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 13507,
+"name": "Baristocrat Kupa",
+"slug": "baristocrat-kupa",
+"parent": 0,
+"type": "simple",
+"variation": "",
+"permalink": "https://www.baristocrat.com/urun/baristocrat-kupa/",
+"sku": "",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "22500",
+"regular_price": "22500",
+"sale_price": "22500",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://www.baristocrat.com/wp-content/uploads/2024/09/baristocrat-kupa-02.jpeg",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 127,
+"name": "Aksesuarlar",
+"slug": "aksesuarlar",
+"link": "https://www.baristocrat.com/product-category/aksesuarlar/"
+}
+],
+"tags": [],
+"attributes": [
+{
+"id": 8,
+"name": "Beden",
+"taxonomy": "pa_beden",
+"has_variations": true,
+"terms": [
+{
+"id": 128,
+"name": "S",
+"slug": "s"
+},
+{
+"id": 129,
+"name": "M",
+"slug": "m"
+},
+{
+"id": 130,
+"name": "L",
+"slug": "l"
+},
+{
+"id": 131,
+"name": "XL",
+"slug": "xl"
+},
+{
+"id": 132,
+"name": "XXL",
+"slug": "xxl"
+}
+]
+}
+],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+}
+],
+"variations": [
+{
+"id": 14848,
+"name": "Kenya – Kibugu",
+"slug": "aristocrat-espresso-blend-250-gr-47",
+"parent": 14847,
+"type": "variation",
+"variation": "Miktar: 250 Gr",
+"permalink": "https://www.baristocrat.com/urun/kenya-kibugu/?attribute_pa_miktar=250-gr",
+"sku": "730833232-1-1-4",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "95000",
+"regular_price": "95000",
+"sale_price": "95000",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://www.baristocrat.com/wp-content/uploads/2026/09/kenya-kibugu.jpg",
+"alt": "Baristocrat Kenya Kibugu Washed AB 250 gr filtre kahve paketi"
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 14253,
+"name": "Baristocrat Blend &#8211; Türk Kahvesi",
+"slug": "baristocrat-blend-turk-kahvesi-2",
+"parent": 8537,
+"type": "variation",
+"variation": "Miktar: 250 Gr, Öğütme Seçeneği: Öğütülmesin",
+"permalink": "https://www.baristocrat.com/urun/baristocrat-blend-turk-kahvesi/?attribute_pa_miktar=250-gr&attribute_pa_ogutme-secenegi=ogutulmesin",
+"sku": "62687559",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "27500",
+"regular_price": "27500",
+"sale_price": "27500",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://www.baristocrat.com/wp-content/uploads/2022/10/turk-kahvesi.jpg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 14252,
+"name": "Baristocrat Blend &#8211; Türk Kahvesi",
+"slug": "baristocrat-blend-turk-kahvesi",
+"parent": 8537,
+"type": "variation",
+"variation": "Miktar: 250 Gr, Öğütme Seçeneği: Öğütülsün",
+"permalink": "https://www.baristocrat.com/urun/baristocrat-blend-turk-kahvesi/?attribute_pa_miktar=250-gr&attribute_pa_ogutme-secenegi=ogutulsun",
+"sku": "62687559",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "27500",
+"regular_price": "27500",
+"sale_price": "27500",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 2,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://www.baristocrat.com/wp-content/uploads/2022/10/turk-kahvesi.jpg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+}
+]
+},
+"daphne": {
+"products": [
+{
+"id": 6940,
+"name": "Ethiopia Yaye",
+"slug": "ethiopia-yaye",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://daphnecoffee.co/urun/ethiopia-yaye/",
+"sku": "",
+"short_description": "",
+"description": "<p>Etiyopya Yaye Grade 1 kahve, 1995–2230 metre rakımda yetişen, Natural (doğal) yöntemle işlenmiş özel bir kahvedir. Liçi, nektarin ve şeftali notalarıyla öne çıkan bu kahve; tatlı, çiçeksi ve meyve suyu benzeri duyusal karakteriyle fincanında meyvemsi aromalar arayan kahve severlere hitap eder.</p>",
+"prices": {
+"price": "410",
+"regular_price": "410",
+"sale_price": "410",
+"price_range": {
+"min_amount": "410",
+"max_amount": "975"
+},
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": "₺"
+},
+"images": [
+{
+"src": "https://daphnecoffee.co/wp-content/uploads/2026/09/WhatsApp-Image-2026-09-30-at-08.59.46-1.jpeg",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 58,
+"name": "Çok Satan",
+"slug": "cok-satan",
+"link": "https://daphnecoffee.co/urun-kategorisi/cok-satan/"
+},
+{
+"id": 33,
+"name": "Kahve",
+"slug": "kahve",
+"link": "https://daphnecoffee.co/urun-kategorisi/kahve/"
+}
+],
+"tags": [
+{
+"id": 94,
+"name": "Etiyopya çekirdek kahve",
+"slug": "etiyopya-cekirdek-kahve",
+"link": "https://daphnecoffee.co/urun-etiketi/etiyopya-cekirdek-kahve/"
+},
+{
+"id": 95,
+"name": "Etiyopya Grade 1 kahve",
+"slug": "etiyopya-grade-1-kahve",
+"link": "https://daphnecoffee.co/urun-etiketi/etiyopya-grade-1-kahve/"
+},
+{
+"id": 99,
+"name": "liçi ve şeftali notalı kahve",
+"slug": "lici-ve-seftali-notali-kahve",
+"link": "https://daphnecoffee.co/urun-etiketi/lici-ve-seftali-notali-kahve/"
+},
+{
+"id": 98,
+"name": "meyvemsi aromalı kahve",
+"slug": "meyvemsi-aromali-kahve",
+"link": "https://daphnecoffee.co/urun-etiketi/meyvemsi-aromali-kahve/"
+},
+{
+"id": 97,
+"name": "Natural işlenmiş kahve",
+"slug": "natural-islenmis-kahve",
+"link": "https://daphnecoffee.co/urun-etiketi/natural-islenmis-kahve/"
+},
+{
+"id": 100,
+"name": "nitelikli kahve çekirdeği",
+"slug": "nitelikli-kahve-cekirdegi",
+"link": "https://daphnecoffee.co/urun-etiketi/nitelikli-kahve-cekirdegi/"
+},
+{
+"id": 96,
+"name": "Yaye kahvesi",
+"slug": "yaye-kahvesi",
+"link": "https://daphnecoffee.co/urun-etiketi/yaye-kahvesi/"
+}
+],
+"attributes": [
+{
+"id": 2,
+"name": "Öğütme Seçeneği",
+"taxonomy": "pa_ogutme-secenegi",
+"has_variations": true,
+"terms": [
+{
+"id": 43,
+"name": "Aeropress",
+"slug": "aeropress"
+},
+{
+"id": 40,
+"name": "Çekirdek",
+"slug": "cekirdek"
+},
+{
+"id": 46,
+"name": "Chemex",
+"slug": "chemex"
+},
+{
+"id": 49,
+"name": "Cold Brew",
+"slug": "cold-brew"
+},
+{
+"id": 41,
+"name": "Espresso",
+"slug": "espresso"
+},
+{
+"id": 45,
+"name": "Filtre Kahve Mak.",
+"slug": "filtre-kahve-mak"
+},
+{
+"id": 47,
+"name": "French Press",
+"slug": "french-press"
+},
+{
+"id": 42,
+"name": "Mokapot",
+"slug": "mokapot"
+},
+{
+"id": 57,
+"name": "Origami",
+"slug": "origami"
+},
+{
+"id": 44,
+"name": "V60",
+"slug": "v60"
+}
+]
+},
+{
+"id": 1,
+"name": "Paket",
+"taxonomy": "pa_paket",
+"has_variations": true,
+"terms": [
+{
+"id": 56,
+"name": "100 gr",
+"slug": "100-gr"
+},
+{
+"id": 38,
+"name": "250 gr",
+"slug": "250-gr"
+}
+]
+}
+],
+"variations": [
+{
+"id": 6941,
+"attributes": [
+{
+"name": "Öğütme Seçeneği",
+"value": null
+},
+{
+"name": "Paket",
+"value": "100-gr"
+}
+]
+},
+{
+"id": 6942,
+"attributes": [
+{
+"name": "Öğütme Seçeneği",
+"value": null
+},
+{
+"name": "Paket",
+"value": "250-gr"
+}
+]
+}
+],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 6852,
+"name": "Endonezya Arjuna",
+"slug": "endonezya-arjuna",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://daphnecoffee.co/urun/endonezya-arjuna/",
+"sku": "",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "400",
+"regular_price": "400",
+"sale_price": "400",
+"price_range": {
+"min_amount": "400",
+"max_amount": "2600"
+},
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": "₺"
+},
+"images": [
+{
+"src": "https://daphnecoffee.co/wp-content/uploads/2025/12/IMG_9022.jpeg",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 58,
+"name": "Çok Satan",
+"slug": "cok-satan",
+"link": "https://daphnecoffee.co/urun-kategorisi/cok-satan/"
+},
+{
+"id": 33,
+"name": "Kahve",
+"slug": "kahve",
+"link": "https://daphnecoffee.co/urun-kategorisi/kahve/"
+}
+],
+"tags": [],
+"attributes": [
+{
+"id": 1,
+"name": "Paket",
+"taxonomy": "pa_paket",
+"has_variations": true,
+"terms": [
+{
+"id": 39,
+"name": "1 kg",
+"slug": "1-kg"
+},
+{
+"id": 56,
+"name": "100 gr",
+"slug": "100-gr"
+},
+{
+"id": 38,
+"name": "250 gr",
+"slug": "250-gr"
+}
+]
+},
+{
+"id": 2,
+"name": "Öğütme Seçeneği",
+"taxonomy": "pa_ogutme-secenegi",
+"has_variations": true,
+"terms": [
+{
+"id": 43,
+"name": "Aeropress",
+"slug": "aeropress"
+},
+{
+"id": 40,
+"name": "Çekirdek",
+"slug": "cekirdek"
+},
+{
+"id": 46,
+"name": "Chemex",
+"slug": "chemex"
+},
+{
+"id": 49,
+"name": "Cold Brew",
+"slug": "cold-brew"
+},
+{
+"id": 41,
+"name": "Espresso",
+"slug": "espresso"
+},
+{
+"id": 45,
+"name": "Filtre Kahve Mak.",
+"slug": "filtre-kahve-mak"
+},
+{
+"id": 47,
+"name": "French Press",
+"slug": "french-press"
+},
+{
+"id": 42,
+"name": "Mokapot",
+"slug": "mokapot"
+},
+{
+"id": 57,
+"name": "Origami",
+"slug": "origami"
+},
+{
+"id": 48,
+"name": "Türk Kahvesi",
+"slug": "turk-kahvesi"
+},
+{
+"id": 44,
+"name": "V60",
+"slug": "v60"
+}
+]
+}
+],
+"variations": [
+{
+"id": 6856,
+"attributes": [
+{
+"name": "Paket",
+"value": "1-kg"
+},
+{
+"name": "Öğütme Seçeneği",
+"value": null
+}
+]
+},
+{
+"id": 6855,
+"attributes": [
+{
+"name": "Paket",
+"value": "250-gr"
+},
+{
+"name": "Öğütme Seçeneği",
+"value": null
+}
+]
+},
+{
+"id": 6853,
+"attributes": [
+{
+"name": "Paket",
+"value": "100-gr"
+},
+{
+"name": "Öğütme Seçeneği",
+"value": null
+}
+]
+}
+],
+"is_purchasable": true,
+"is_in_stock": true
+}
+],
+"variations": [
+{
+"id": 6942,
+"name": "Ethiopia Yaye",
+"slug": "burundi-busin-24",
+"parent": 6940,
+"type": "variation",
+"variation": "Paket: 250 gr",
+"permalink": "https://daphnecoffee.co/urun/ethiopia-yaye/?attribute_pa_paket=250-gr",
+"sku": "",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "975",
+"regular_price": "975",
+"sale_price": "975",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": "₺"
+},
+"images": [
+{
+"src": "https://daphnecoffee.co/wp-content/uploads/2026/09/WhatsApp-Image-2026-09-30-at-08.59.46-1.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 6941,
+"name": "Ethiopia Yaye",
+"slug": "burundi-busin-23",
+"parent": 6940,
+"type": "variation",
+"variation": "Paket: 100 gr",
+"permalink": "https://daphnecoffee.co/urun/ethiopia-yaye/?attribute_pa_paket=100-gr",
+"sku": "",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "410",
+"regular_price": "410",
+"sale_price": "410",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": "₺"
+},
+"images": [
+{
+"src": "https://daphnecoffee.co/wp-content/uploads/2026/09/WhatsApp-Image-2026-09-30-at-08.59.46-1.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 6856,
+"name": "Endonezya Arjuna",
+"slug": "endonezya-arjuna-3",
+"parent": 6852,
+"type": "variation",
+"variation": "Paket: 1 kg",
+"permalink": "https://daphnecoffee.co/urun/endonezya-arjuna/?attribute_pa_paket=1-kg",
+"sku": "",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "2600",
+"regular_price": "2600",
+"sale_price": "2600",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": "₺"
+},
+"images": [
+{
+"src": "https://daphnecoffee.co/wp-content/uploads/2025/12/IMG_9022.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 6855,
+"name": "Endonezya Arjuna",
+"slug": "endonezya-arjuna-2",
+"parent": 6852,
+"type": "variation",
+"variation": "Paket: 250 gr",
+"permalink": "https://daphnecoffee.co/urun/endonezya-arjuna/?attribute_pa_paket=250-gr",
+"sku": "",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "850",
+"regular_price": "850",
+"sale_price": "850",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": "₺"
+},
+"images": [
+{
+"src": "https://daphnecoffee.co/wp-content/uploads/2025/12/IMG_9022.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 6853,
+"name": "Endonezya Arjuna",
+"slug": "endonezya-arjuna",
+"parent": 6852,
+"type": "variation",
+"variation": "Paket: 100 gr",
+"permalink": "https://daphnecoffee.co/urun/endonezya-arjuna/?attribute_pa_paket=100-gr",
+"sku": "",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "400",
+"regular_price": "400",
+"sale_price": "400",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ".",
+"currency_thousand_separator": ",",
+"currency_prefix": "",
+"currency_suffix": "₺"
+},
+"images": [
+{
+"src": "https://daphnecoffee.co/wp-content/uploads/2025/12/IMG_9022.jpeg",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+}
+]
+},
+"williams": {
+"products": [
+{
+"id": 17323,
+"name": "Colombia La Loma Sidra",
+"slug": "colombia-la-loma-sidra",
+"parent": 0,
+"type": "variable",
+"variation": "",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/",
+"sku": "",
+"short_description": "<p>Gül, Yasemin, Japon Şeftalisi, Şeker Kamışı</p>",
+"description": "",
+"prices": {
+"price": "1200",
+"regular_price": "1200",
+"sale_price": "1200",
+"price_range": {
+"min_amount": "1200",
+"max_amount": "5400"
+},
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [
+{
+"id": 76,
+"name": "Kahveler",
+"slug": "kahveler",
+"link": "https://williamsroastery.com/kahveler/"
+}
+],
+"tags": [
+{
+"id": 94,
+"name": "coffee",
+"slug": "coffee",
+"link": "https://williamsroastery.com/product-tag/coffee/"
+},
+{
+"id": 75,
+"name": "kahve",
+"slug": "kahve",
+"link": "https://williamsroastery.com/product-tag/kahve/"
+}
+],
+"attributes": [
+{
+"id": 1,
+"name": "Miktar",
+"taxonomy": "pa_miktar",
+"has_variations": true,
+"terms": [
+{
+"id": 221,
+"name": "200g",
+"slug": "200g"
+},
+{
+"id": 79,
+"name": "1kg",
+"slug": "1kg"
+}
+]
+},
+{
+"id": 2,
+"name": "Öğütme Türü",
+"taxonomy": "pa_ogutme-turu",
+"has_variations": true,
+"terms": [
+{
+"id": 86,
+"name": "Aeropress",
+"slug": "aeropress"
+},
+{
+"id": 80,
+"name": "Çekirdek",
+"slug": "cekirdek"
+},
+{
+"id": 83,
+"name": "Chemex",
+"slug": "chemex"
+},
+{
+"id": 82,
+"name": "Filtre Kahve Makinesi",
+"slug": "filtre-kahve-makinesi"
+},
+{
+"id": 81,
+"name": "French press",
+"slug": "french-press"
+},
+{
+"id": 84,
+"name": "Hario V60",
+"slug": "hario-v60"
+},
+{
+"id": 85,
+"name": "Kalita Wave",
+"slug": "kalita-wave"
+},
+{
+"id": 87,
+"name": "Moka Pot",
+"slug": "moka-pot"
+},
+{
+"id": 88,
+"name": "Türk kahvesi",
+"slug": "turk-kahvesi"
+}
+]
+},
+{
+"id": 19,
+"name": "Country",
+"taxonomy": "pa_country",
+"has_variations": false,
+"terms": [
+{
+"id": 376,
+"name": "Colombia",
+"slug": "colombia"
+}
+]
+},
+{
+"id": 12,
+"name": "Region",
+"taxonomy": "pa_region",
+"has_variations": false,
+"terms": [
+{
+"id": 278,
+"name": "Huila",
+"slug": "huila"
+}
+]
+},
+{
+"id": 13,
+"name": "Producer",
+"taxonomy": "pa_producer",
+"has_variations": false,
+"terms": [
+{
+"id": 293,
+"name": "Rodrigo Sanchez",
+"slug": "rodrigo-sanchez"
+}
+]
+},
+{
+"id": 14,
+"name": "Farm",
+"taxonomy": "pa_farm",
+"has_variations": false,
+"terms": [
+{
+"id": 309,
+"name": "La Loma",
+"slug": "la-loma"
+}
+]
+},
+{
+"id": 15,
+"name": "Variety",
+"taxonomy": "pa_variety",
+"has_variations": false,
+"terms": [
+{
+"id": 448,
+"name": "Sidra",
+"slug": "sidra"
+}
+]
+},
+{
+"id": 16,
+"name": "Process",
+"taxonomy": "pa_process",
+"has_variations": false,
+"terms": [
+{
+"id": 449,
+"name": "Cold Washed",
+"slug": "cold-washed"
+}
+]
+},
+{
+"id": 17,
+"name": "Harvest",
+"taxonomy": "pa_harvest",
+"has_variations": false,
+"terms": [
+{
+"id": 445,
+"name": "2025",
+"slug": "2025"
+}
+]
+},
+{
+"id": 18,
+"name": "Elevation",
+"taxonomy": "pa_elevation",
+"has_variations": false,
+"terms": [
+{
+"id": 363,
+"name": "1730m",
+"slug": "1730m"
+}
+]
+}
+],
+"variations": [
+{
+"id": 17324,
+"attributes": [
+{
+"name": "Miktar",
+"value": "200g"
+},
+{
+"name": "Öğütme Türü",
+"value": "aeropress"
+}
+]
+},
+{
+"id": 17325,
+"attributes": [
+{
+"name": "Miktar",
+"value": "200g"
+},
+{
+"name": "Öğütme Türü",
+"value": "cekirdek"
+}
+]
+},
+{
+"id": 17326,
+"attributes": [
+{
+"name": "Miktar",
+"value": "200g"
+},
+{
+"name": "Öğütme Türü",
+"value": "chemex"
+}
+]
+},
+{
+"id": 17327,
+"attributes": [
+{
+"name": "Miktar",
+"value": "200g"
+},
+{
+"name": "Öğütme Türü",
+"value": "filtre-kahve-makinesi"
+}
+]
+},
+{
+"id": 17328,
+"attributes": [
+{
+"name": "Miktar",
+"value": "200g"
+},
+{
+"name": "Öğütme Türü",
+"value": "french-press"
+}
+]
+},
+{
+"id": 17329,
+"attributes": [
+{
+"name": "Miktar",
+"value": "200g"
+},
+{
+"name": "Öğütme Türü",
+"value": "hario-v60"
+}
+]
+},
+{
+"id": 17330,
+"attributes": [
+{
+"name": "Miktar",
+"value": "200g"
+},
+{
+"name": "Öğütme Türü",
+"value": "kalita-wave"
+}
+]
+},
+{
+"id": 17331,
+"attributes": [
+{
+"name": "Miktar",
+"value": "200g"
+},
+{
+"name": "Öğütme Türü",
+"value": "moka-pot"
+}
+]
+},
+{
+"id": 17332,
+"attributes": [
+{
+"name": "Miktar",
+"value": "200g"
+},
+{
+"name": "Öğütme Türü",
+"value": "turk-kahvesi"
+}
+]
+},
+{
+"id": 17333,
+"attributes": [
+{
+"name": "Miktar",
+"value": "1kg"
+},
+{
+"name": "Öğütme Türü",
+"value": "aeropress"
+}
+]
+},
+{
+"id": 17334,
+"attributes": [
+{
+"name": "Miktar",
+"value": "1kg"
+},
+{
+"name": "Öğütme Türü",
+"value": "cekirdek"
+}
+]
+},
+{
+"id": 17335,
+"attributes": [
+{
+"name": "Miktar",
+"value": "1kg"
+},
+{
+"name": "Öğütme Türü",
+"value": "chemex"
+}
+]
+},
+{
+"id": 17336,
+"attributes": [
+{
+"name": "Miktar",
+"value": "1kg"
+},
+{
+"name": "Öğütme Türü",
+"value": "filtre-kahve-makinesi"
+}
+]
+},
+{
+"id": 17337,
+"attributes": [
+{
+"name": "Miktar",
+"value": "1kg"
+},
+{
+"name": "Öğütme Türü",
+"value": "french-press"
+}
+]
+},
+{
+"id": 17338,
+"attributes": [
+{
+"name": "Miktar",
+"value": "1kg"
+},
+{
+"name": "Öğütme Türü",
+"value": "hario-v60"
+}
+]
+},
+{
+"id": 17339,
+"attributes": [
+{
+"name": "Miktar",
+"value": "1kg"
+},
+{
+"name": "Öğütme Türü",
+"value": "kalita-wave"
+}
+]
+},
+{
+"id": 17340,
+"attributes": [
+{
+"name": "Miktar",
+"value": "1kg"
+},
+{
+"name": "Öğütme Türü",
+"value": "moka-pot"
+}
+]
+},
+{
+"id": 17341,
+"attributes": [
+{
+"name": "Miktar",
+"value": "1kg"
+},
+{
+"name": "Öğütme Türü",
+"value": "turk-kahvesi"
+}
+]
+}
+],
+"is_purchasable": true,
+"is_in_stock": true
+}
+],
+"variations": [
+{
+"id": 17341,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-234",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 1kg, Öğütme Türü: Türk kahvesi",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=1kg&attribute_pa_ogutme-turu=turk-kahvesi",
+"sku": "COL-1KG-LOMA-TK-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "5400",
+"regular_price": "5400",
+"sale_price": "5400",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17340,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-233",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 1kg, Öğütme Türü: Moka Pot",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=1kg&attribute_pa_ogutme-turu=moka-pot",
+"sku": "COL-1KG-LOMA-MP-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "5400",
+"regular_price": "5400",
+"sale_price": "5400",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17339,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-232",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 1kg, Öğütme Türü: Kalita Wave",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=1kg&attribute_pa_ogutme-turu=kalita-wave",
+"sku": "COL-1KG-LOMA-KW-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "5400",
+"regular_price": "5400",
+"sale_price": "5400",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17338,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-231",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 1kg, Öğütme Türü: Hario V60",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=1kg&attribute_pa_ogutme-turu=hario-v60",
+"sku": "COL-1KG-LOMA-V60-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "5400",
+"regular_price": "5400",
+"sale_price": "5400",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17337,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-230",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 1kg, Öğütme Türü: French press",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=1kg&attribute_pa_ogutme-turu=french-press",
+"sku": "COL-1KG-LOMA-FP-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "5400",
+"regular_price": "5400",
+"sale_price": "5400",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17336,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-229",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 1kg, Öğütme Türü: Filtre Kahve Makinesi",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=1kg&attribute_pa_ogutme-turu=filtre-kahve-makinesi",
+"sku": "COL-1KG-LOMA-FK-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "5400",
+"regular_price": "5400",
+"sale_price": "5400",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17335,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-228",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 1kg, Öğütme Türü: Chemex",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=1kg&attribute_pa_ogutme-turu=chemex",
+"sku": "COL-1KG-LOMA-CH-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "5400",
+"regular_price": "5400",
+"sale_price": "5400",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17334,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-227",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 1kg, Öğütme Türü: Çekirdek",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=1kg&attribute_pa_ogutme-turu=cekirdek",
+"sku": "COL-1KG-LOMA-BEAN-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "5400",
+"regular_price": "5400",
+"sale_price": "5400",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17333,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-226",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 1kg, Öğütme Türü: Aeropress",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=1kg&attribute_pa_ogutme-turu=aeropress",
+"sku": "COL-1KG-LOMA-AE-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "5400",
+"regular_price": "5400",
+"sale_price": "5400",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17332,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-225",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 200g, Öğütme Türü: Türk kahvesi",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=200g&attribute_pa_ogutme-turu=turk-kahvesi",
+"sku": "COL-200G-LOMA-TK-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1200",
+"regular_price": "1200",
+"sale_price": "1200",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17331,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-224",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 200g, Öğütme Türü: Moka Pot",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=200g&attribute_pa_ogutme-turu=moka-pot",
+"sku": "COL-200G-LOMA-MP-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1200",
+"regular_price": "1200",
+"sale_price": "1200",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17330,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-223",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 200g, Öğütme Türü: Kalita Wave",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=200g&attribute_pa_ogutme-turu=kalita-wave",
+"sku": "COL-200G-LOMA-KW-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1200",
+"regular_price": "1200",
+"sale_price": "1200",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17329,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-222",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 200g, Öğütme Türü: Hario V60",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=200g&attribute_pa_ogutme-turu=hario-v60",
+"sku": "COL-200G-LOMA-V60-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1200",
+"regular_price": "1200",
+"sale_price": "1200",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17328,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-221",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 200g, Öğütme Türü: French press",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=200g&attribute_pa_ogutme-turu=french-press",
+"sku": "COL-200G-LOMA-FP-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1200",
+"regular_price": "1200",
+"sale_price": "1200",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17327,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-220",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 200g, Öğütme Türü: Filtre Kahve Makinesi",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=200g&attribute_pa_ogutme-turu=filtre-kahve-makinesi",
+"sku": "COL-200G-LOMA-FK-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1200",
+"regular_price": "1200",
+"sale_price": "1200",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17326,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-219",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 200g, Öğütme Türü: Chemex",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=200g&attribute_pa_ogutme-turu=chemex",
+"sku": "COL-200G-LOMA-CH-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1200",
+"regular_price": "1200",
+"sale_price": "1200",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17325,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-218",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 200g, Öğütme Türü: Çekirdek",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=200g&attribute_pa_ogutme-turu=cekirdek",
+"sku": "COL-200G-LOMA-BEAN-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1200",
+"regular_price": "1200",
+"sale_price": "1200",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+},
+{
+"id": 17324,
+"name": "Colombia La Loma Sidra",
+"slug": "peru-cafe-del-futuro-217",
+"parent": 17323,
+"type": "variation",
+"variation": "Miktar: 200g, Öğütme Türü: Aeropress",
+"permalink": "https://williamsroastery.com/colombia-la-loma-sidra/?attribute_pa_miktar=200g&attribute_pa_ogutme-turu=aeropress",
+"sku": "COL-200G-LOMA-AE-1",
+"short_description": "",
+"description": "",
+"prices": {
+"price": "1200",
+"regular_price": "1200",
+"sale_price": "1200",
+"currency_code": "TRY",
+"currency_symbol": "₺",
+"currency_minor_unit": 0,
+"currency_decimal_separator": ",",
+"currency_thousand_separator": ".",
+"currency_prefix": "",
+"currency_suffix": " ₺"
+},
+"images": [
+{
+"src": "https://williamsroastery.com/wp-content/uploads/2023/04/Pop_Edition.png",
+"alt": ""
+}
+],
+"categories": [],
+"tags": [],
+"attributes": [],
+"variations": [],
+"is_purchasable": true,
+"is_in_stock": true
+}
+]
+}
+}

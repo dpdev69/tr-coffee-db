@@ -47,8 +47,8 @@
   },
   "vars": {
     "DEPLOYMENT_STAGE": "staging",
-    // Signup switch: staging collects emails. Absent or anything but "true" means off (src/lib/signups.ts).
-    "SIGNUPS_ENABLED": "true",
+    // Signup switch: off on staging too until the sole proprietorship is registered (docs/signups-readiness.md). Absent or anything but "true" means off (src/lib/signups.ts).
+    "SIGNUPS_ENABLED": "false",
     "KIT_FORM_ID": "9918321",
     "WEB_ANALYTICS_TOKEN": "008e6a1fb0184349ac3913e1d8c34100",
     // The account whose daily D1 reads the brake watches; the brake also needs the secret D1_ANALYTICS_TOKEN.
