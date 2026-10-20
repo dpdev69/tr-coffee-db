@@ -2,7 +2,7 @@ import { canonicalQuery } from '../src/lib/canonical-address';
 import { EDGE_CACHE_HEADERS } from '../shared/v2/read-cache';
 
 /**
- * Runs before the app, and only when Workers Cache has no copy of the address (a hit never reaches the Worker), so
+ * Runs before the app inside the cached App entrypoint (workers/web.ts), only when Workers Cache has no copy of the address, so
  * everything here acts on cache misses alone and never slows a visitor served from the edge. docs/read-budget.md has the
  * arithmetic behind the numbers.
  *

@@ -1,0 +1,4 @@
+# Static files served on workers.dev (staging and version previews) are kept out of search engines, like the pages the
+# Worker serves there (workers/edge-headers.ts). The custom domain is not matched and stays indexable.
+https://:worker.:account.workers.dev/*
+  X-Robots-Tag: noindex, nofollow
