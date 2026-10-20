@@ -94,6 +94,8 @@ export interface RoasterConfig {
   active?: boolean;
   /** 'relay': the shop refuses GitHub's network, so its requests go through our own Worker (shared/v2/relay.ts). See docs/crawl-relay.md. */
   runsFrom?: 'relay';
+  /** The shop's robots.txt Crawl-delay for `User-agent: *`, in milliseconds. A floor under the crawler's own pacing, never lowered. */
+  crawlDelayMs?: number;
   priceFormat: PriceFormat;
   // Shopify-specific
   collectionHandle?: string;

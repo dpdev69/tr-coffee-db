@@ -30,18 +30,6 @@
 
 ## Scrapers
 
-### Fix zero-product WooCommerce adapters
-
-**What:** Repair the latest WooCommerce adapters that returned zero products and confirm whether their restored stale products are still purchasable.
-
-**Why:** Restored stale coffees should become genuinely fresh or correctly unavailable. Keeping them active indefinitely weakens trust.
-
-**Context:** Latest failed zero-product roasters from the freshness checkpoint: `baristocrat`, `coffeemamma`, `daphne`, `old-java`, `ordinarius`, `poka`, and `williams`. Start with the highest active-product count or strongest buyer value.
-
-**Effort:** M
-**Priority:** P1
-**Depends on:** Catalog freshness audit data
-
 ### Add missing active-roaster scraper coverage
 
 **What:** Add scraper configs or adapters for active roasters that do not currently have scrape logs.
@@ -119,3 +107,7 @@
 **Depends on:** Proven buyer wedge and clearer monetization signal
 
 ## Completed
+
+### Fix zero-product WooCommerce adapters (rechecked 2026-10-20)
+
+The 2026-05-21 list came from the legacy adapter, replaced by the v2 crawler on 2026-09-27. On 2026-10-20 Baristocrat, Coffeemamma, Daphne, Old Java, Poka and Williams all answered the Store API to the crawler's own User-Agent and parsed completely, as they did in the 2026-10-19 nightly run; fixtures in `tests/v2-woo-recheck.test.ts`. Williams now keeps its robots.txt Crawl-delay of 3 seconds (`crawlDelayMs`). Ordinarius, now on IdeaSoft, is off (`active: false`): its robots.txt asks for a 30-second delay and a complete crawl needs about 180 requests; it answered HTTP 429 at the usual pace. Ask the roaster.

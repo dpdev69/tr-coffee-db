@@ -197,6 +197,10 @@ export const oldJava: RoasterConfig = {
 
 export const ordinarius: RoasterConfig = {
   slug: 'ordinarius',
+  // robots.txt asks every crawler for Crawl-delay: 30, and a complete crawl needs about 180 requests (every size and grind is
+  // its own page): about 90 minutes, far over the nightly job. At our usual pace the shop answered HTTP 429 (2026-10-20).
+  // Off until the roaster allows a faster pace or offers a feed; the IdeaSoft adapter below stays ready.
+  active: false,
   name: 'Ordinarius Coffee Roastery',
   websiteUrl: 'https://ordinariuscoffee.com',
   shopUrl: 'https://www.ordinariuscoffee.com/kategori/kahve',
@@ -270,6 +274,7 @@ export const williams: RoasterConfig = {
   websiteUrl: 'https://williamsroastery.com',
   shopUrl: 'https://williamsroastery.com',
   platform: 'woocommerce',
+  crawlDelayMs: 3000, // robots.txt: Crawl-delay: 3 (2026-10-20)
   city: 'İstanbul',
   priceFormat: 'tl', // 1200 = 1200 TL
 };
