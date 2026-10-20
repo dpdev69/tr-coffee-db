@@ -15,7 +15,7 @@ import { roasterSiteUrl } from '../../../../shared/v2/outbound';
 import { ComparisonLinks } from '@/components/v2/comparison-links';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
-export const revalidate = 21600;
+export const revalidate = 172800;
 const loadRoaster = cache(async (slug: string) => {
   try {
     const db = await getCatalogDatabase();

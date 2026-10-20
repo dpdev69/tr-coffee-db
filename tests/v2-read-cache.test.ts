@@ -111,5 +111,5 @@ test('the edge purge uses the first handle that can purge and never throws', asy
 test('/api/since is never served past Istanbul midnight, not even stale', () => {
   // 23:00 Istanbul (20:00 UTC): one hour left, and no stale window that would carry yesterday's 30 days into today.
   assert.equal(untilIstanbulMidnight(Date.parse('2026-10-05T20:00:00Z')), 'public, max-age=3600, stale-if-error=86400');
-  assert.equal(untilIstanbulMidnight(Date.parse('2026-10-05T03:00:00Z')), 'public, max-age=21600, stale-if-error=86400');
+  assert.equal(untilIstanbulMidnight(Date.parse('2026-10-05T03:00:00Z')), 'public, max-age=64800, stale-if-error=86400');
 });

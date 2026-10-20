@@ -2,11 +2,13 @@ import type { CatalogDatabase, SqlValue, Statement } from './database';
 import { withLastGood, type LastGood } from './last-good';
 
 /** The catalog changes once a night, so a page or JSON response is the same for every visitor until the next refresh.
- * Workers Cache (tiered, shared by every location) keeps it for 6 hours and the nightly job purges it once corrections
- * are applied (src/app/api/cache/route.ts); 6 hours bounds the lag if a purge is missed. A render that could not read
+ * Workers Cache (tiered, shared by every location) keeps it for 48 hours and the nightly job purges it once corrections
+ * are applied (src/app/api/cache/route.ts), so a copy normally lives until the next night. 48 hours (was 6) means a crawler
+ * that walks the site again the same day reads nothing from D1, and still bounds the lag to one missed night if a purge
+ * fails (the nightly job then turns red, scripts/refresh-outcome.mts). A render that could not read
  * the catalog is never stored (keepOutOfEdgeCache), so the edge keeps serving the last good copy for a day.
  * Browsers always revalidate with the edge. docs/read-budget.md has the arithmetic. */
-export const EDGE_CACHE_CONTROL = 'public, max-age=21600, stale-while-revalidate=86400, stale-if-error=86400';
+export const EDGE_CACHE_CONTROL = 'public, max-age=172800, stale-while-revalidate=86400, stale-if-error=86400';
 /** Route handlers set both headers: the edge reads CDN-Cache-Control, browsers Cache-Control. */
 export const EDGE_CACHE_HEADERS = { 'Cache-Control': 'public, max-age=0, must-revalidate', 'CDN-Cache-Control': EDGE_CACHE_CONTROL };
 /** For redirects that count a click: the edge stores each one but never answers from it while the Worker can (max-age=0, so

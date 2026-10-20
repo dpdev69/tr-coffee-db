@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import type {CatalogDatabase,SqlValue,Statement} from '../shared/v2/database';
 import {ingestCrawl,registerRoaster} from '../shared/v2/ingestion';
-import {getCatalogCounts,getCoffeeDetail,getRoasterDetail,getSavedCoffees,getSimilarCoffees,listCatalog,listEvents,listRoasters} from '../shared/v2/catalog';
+import {getCatalogCounts,getCoffeeDetail,getPriceHistory,getRoasterDetail,getSavedCoffees,getSimilarCoffees,listCatalog,listEvents,listRoasters} from '../shared/v2/catalog';
 import {rankQuizMatches} from '../shared/v2/quiz-rank';
 import type {CrawlInput,SourceCoffee} from '../shared/v2/types';
 import {applyD1Limits,applyMigrations} from './helpers/v2-sqlite';
@@ -35,7 +35,7 @@ test('canonical current counts agree across catalog, roasters and detail with un
   assert.equal(list.coffees[0].offers[0].unitPriceTry,40);
   a.offers[0].inStock=false;await ingestCrawl(db,run(2,[a,b,hidden]));
   assert.equal((await listCatalog(db)).total,0);
-  const detail=await getCoffeeDetail(db,list.coffees[0].slug);assert.equal(detail?.offers[0].inStock,false);assert.equal(detail?.priceHistory.length,2);
+  const detail=await getCoffeeDetail(db,list.coffees[0].slug);assert.equal(detail?.offers[0].inStock,false);assert.equal((await getPriceHistory(db,detail!.id)).length,2);assert.equal('priceHistory' in detail!,false,'the coffee page reads no price history');
   assert.equal(detail?.latestEvents[0].type,'OUT_OF_STOCK');
   assert.equal(await getCoffeeDetail(db,'hidden'),null);
   assert.equal((await listEvents(db,'OUT_OF_STOCK')).length,1);
@@ -290,7 +290,7 @@ test('an offer skipped nightly stops reading as current after 7 days in every re
   assert.equal((await listRoasters(db))[0].offerCount,2);
   assert.equal((await rankQuizMatches(db,{brew:[],taste:[],roast:[],process:[]})).total,1);
   assert.deepEqual((await getSavedCoffees(db,[a.slug,b.slug])).map(item=>item.availability),['listed','sold_out']);
-  assert.equal(a.priceHistory.length+b.priceHistory.length,before.length,'price history keeps every observation of stale offers');
+  assert.equal((await getPriceHistory(db,a.id)).length+(await getPriceHistory(db,b.id)).length,before.length,'price history keeps every observation of stale offers');
   assert.equal(db.db.prepare("SELECT count(*) n FROM offers WHERE retired_at IS NOT NULL").get()?.n,0,'nothing is retired');
   // A roaster whose crawls stop succeeding is measured against its own last success: nothing more goes stale.
   await ingestCrawl(db,at(20,[],'failed'));await ingestCrawl(db,at(25,[],'failed'));

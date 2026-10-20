@@ -50,6 +50,7 @@ const GROUP_OFFERS='JOIN coffee_group_members g ON g.group_id=c.id JOIN current_
 const IN_GROUP='IN (SELECT g.coffee_id FROM coffee_group_members g WHERE g.group_id=c.id)';
 // The package a card shows (in stock, closest to 250 g, then cheapest) is the one price sort and price filters use.
 const PREFERRED_PRICE=`(SELECT o.current_price_minor FROM current_offers o WHERE o.coffee_id ${IN_GROUP} AND o.in_stock=1 AND o.currency='TRY' AND o.current_price_minor IS NOT NULL ORDER BY o.weight_g IS NULL,abs(coalesce(o.weight_g,250)-250),o.current_price_minor,o.id LIMIT 1)`;
+const UNIT_PRICE=`(SELECT min(1.0*o.current_price_minor/o.weight_g) FROM current_offers o WHERE o.coffee_id ${IN_GROUP} AND o.in_stock=1 AND o.currency='TRY' AND o.weight_g>0)`;
 // Common spelling pairs in roaster copy; a search for one finds the other.
 const SEARCH_SYNONYMS=[['geisha','gesha'],['etiyopya','ethiopia'],['kolombiya','colombia'],['brezilya','brazil'],['kenya','kenia'],['natural','dogal'],['washed','yikanmis']];
 const placeholders=(length:number)=>Array.from({length},()=>'?').join(',');
@@ -66,18 +67,27 @@ export async function getCatalogCounts(db:CatalogDatabase):Promise<{coffees:numb
   });
 }
 
-/** Every current-list count and row query starts from the same canonical view. */
+/** Every current-list count and row query starts from the same canonical view.
+ * With a derived cache (the Worker), a list without free text or traceability is answered from the list index, computed once
+ * per refresh: the page's ids come from the index and only those coffees are read by id (about 190 rows for 24, instead of
+ * 7,000 to 20,000 for the query below), then hydrated. Tests and scripts, which have no derived cache, and every other list
+ * run the query below. docs/read-budget.md has the numbers. */
 export async function listCatalog(db:CatalogDatabase,filters:CatalogFilters={},now=Date.now()):Promise<{coffees:CatalogCoffee[];total:number;page:number;perPage:number;totalPages:number}> {
-  const {where,values}=buildFilters(filters);
   const page=Number.isFinite(filters.page)?Math.max(1,Math.floor(filters.page!)):1;
   const perPage=Number.isFinite(filters.perPage)?Math.min(100,Math.max(1,Math.floor(filters.perPage!))):24;
+  if(db.derive&&indexable(filters)){
+    const matches=indexMatches(await listIndex(db),filters);
+    const rows=await listedRows(db,matches.slice((page-1)*perPage,page*perPage).map(coffee=>coffee[0]));
+    return {coffees:await hydrate(db,rows,now),total:matches.length,page,perPage,totalPages:Math.ceil(matches.length/perPage)};
+  }
+  const {where,values}=buildFilters(filters);
   const from='FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id';
   const sorts:Record<string,string>={
     // Genuine arrivals first, newest first; coffees whose arrival is unknown follow in the order they entered the catalog.
     newest:'a.arrived_at DESC NULLS LAST,c.first_seen_at DESC,c.id',
     price_asc:`${PREFERRED_PRICE} ASC NULLS LAST,c.id`,
     price_desc:`${PREFERRED_PRICE} DESC NULLS LAST,c.id`,
-    unit_price_asc:`(SELECT min(1.0*o.current_price_minor/o.weight_g) FROM current_offers o WHERE o.coffee_id ${IN_GROUP} AND o.in_stock=1 AND o.currency='TRY' AND o.weight_g>0) ASC NULLS LAST,c.id`,
+    unit_price_asc:`${UNIT_PRICE} ASC NULLS LAST,c.id`,
   };
   // One pass: the total rides on each row (the ORDER BY already visits every match), instead of a second scan to count.
   const order=sorts[filters.sort??'newest']??sorts.newest;
@@ -86,6 +96,82 @@ export async function listCatalog(db:CatalogDatabase,filters:CatalogFilters={},n
   // Only a page past the end comes back empty while matches exist; then the count is asked for separately.
   const total=rows.length?rows[0].total_count:page>1?(await db.prepare(`SELECT count(*) AS count ${from} WHERE ${where}`).bind(...values).first<{count:number}>())?.count??0:0;
   return {coffees:await hydrate(db,rows,now),total,page,perPage,totalPages:Math.ceil(total/perPage)};
+}
+
+/** The list filters the index answers by itself: the closed facets, roasters, price and the event feeds (each listed coffee's
+ * newest still-valid event of each type is in the index; a feed's window, which moves with the clock, is applied per request).
+ * Free text (search, farm, producer, variety, altitude) and traceability (no page offers it; its evidence query reads about
+ * 450,000 rows over the whole catalog) read live. */
+const INDEXED_FACETS=[['origin','country'],['process','process'],['roast','roast'],['taste','tastingNotes'],['brewMethod','brewMethods']] as const;
+const LIST_SORTS=['newest','price_asc','price_desc','unit_price_asc'] as const;
+type ListSort=typeof LIST_SORTS[number];
+/** Every listed coffee as the list query sees it: [id, roaster slug, preferred price, then per INDEXED_FACETS field the text values its filter can match, as positions in `values`]. `order` holds each sort's order. */
+export type ListIndexCoffee=[id:string,roaster:string,price:number|null,...facets:number[][]];
+export interface ListIndex {values:string[];coffees:ListIndexCoffee[];order:Record<ListSort,number[]>;
+  /** Per event type: [coffee position, time of its newest event of that type that still counts (eventValidity)]. */
+  events:Record<string,Array<[at:number,createdAt:string]>>}
+function indexable(filters:CatalogFilters):boolean{
+  return ![filters.search,filters.farm,filters.producer,filters.variety,filters.altitude].some(text=>text?.trim())&&filters.traceability!=='available'&&filters.traceability!=='missing';
+}
+/** The text values a facet filter can match on coffee c, exactly as buildFilters' metadata() matches them: with a reviewed
+ * MANUAL fact only the MANUAL values, otherwise the raw field (the value itself and its elements) and every feature value
+ * (itself and its elements). The filter binds a JSON array of strings, so only text can ever be equal. */
+function facetValuesSql(field:string):string{
+  const features=FACT_FEATURES[field].map(feature=>`'${feature}'`).join(',');
+  const manual=`EXISTS(SELECT 1 FROM coffee_feature_values m WHERE m.coffee_id=c.id AND m.source_type='MANUAL' AND m.feature IN (${features}))`;
+  const own=`coffee_feature_values f WHERE f.coffee_id=c.id AND f.feature IN (${features}) AND (f.source_type='MANUAL' OR NOT ${manual})`;
+  return `(SELECT json_group_array(v) FROM (SELECT DISTINCT v||'' AS v FROM (SELECT json_extract(c.raw_metadata_json,'$.${field}') AS v WHERE NOT ${manual}
+    UNION ALL SELECT j.value FROM json_each(c.raw_metadata_json,'$.${field}') j WHERE NOT ${manual}
+    UNION ALL SELECT json_extract(f.value_json,'$') FROM ${own}
+    UNION ALL SELECT j.value FROM ${own.replace('coffee_feature_values f','coffee_feature_values f,json_each(f.value_json) j')}) WHERE typeof(v)='text' ORDER BY 1))`;
+}
+/** Binary order, as SQLite compares text (ids and ISO times are ASCII). */
+const binary=(a:string,b:string)=>a<b?-1:a>b?1:0;
+const nullsLast=(a:number|null,b:number|null,direction:1|-1)=>a===null?(b===null?0:1):b===null?-1:(a-b)*direction;
+/** The list index, once per refresh (derived 'list-index'): about 250 bytes a coffee, 89,000 rows to build for 490 coffees. */
+export function listIndex(db:CatalogDatabase):Promise<ListIndex>{
+  return derived(db,'list-index',async()=>{
+    const rows=(await db.prepare(`SELECT c.id,r.slug AS roaster,c.first_seen_at,a.arrived_at,${PREFERRED_PRICE} AS price,${UNIT_PRICE} AS unit,${INDEXED_FACETS.map(([,field])=>`${facetValuesSql(field)} AS f_${field}`).join(',')}
+      FROM public_catalog_coffees c JOIN roasters r ON r.id=c.roaster_id ${ARRIVALS_JOIN} WHERE ${coffeeOnlySql()}`)
+      .all<{id:string;roaster:string;first_seen_at:string;arrived_at:string|null;price:number|null;unit:number|null}&Record<string,string>>()).results;
+    const values:string[]=[],positions=new Map<string,number>();
+    const position=(value:string)=>{let at=positions.get(value);if(at===undefined){at=values.length;values.push(value);positions.set(value,at);}return at;};
+    const coffees=rows.map((row):ListIndexCoffee=>[row.id,row.roaster,row.price,...INDEXED_FACETS.map(([,field])=>parseJson<string[]>(row[`f_${field}`],[]).map(position))]);
+    const ordered=(compare:(a:typeof rows[number],b:typeof rows[number])=>number)=>rows.map((_,index)=>index).sort((a,b)=>compare(rows[a],rows[b])||binary(rows[a].id,rows[b].id));
+    // A feed lists the coffees with a valid event of its type since its start: the newest such event per coffee decides.
+    const positionOf=new Map(rows.map((row,at)=>[row.id,at]));
+    const events:ListIndex['events']={};
+    for(const type of EVENT_TYPES){
+      const valid=(await db.prepare(`SELECT g.group_id,max(e.created_at) AS created_at FROM coffee_events e JOIN coffee_group_members g ON g.coffee_id=e.coffee_id WHERE e.type=?${eventValidity(type)} GROUP BY g.group_id`).bind(type).all<{group_id:string;created_at:string}>()).results;
+      events[type]=valid.flatMap(row=>positionOf.has(row.group_id)?[[positionOf.get(row.group_id)!,row.created_at] as [number,string]]:[]);
+    }
+    return {values,coffees,events,order:{
+      // listCatalog's ORDER BY: arrival DESC NULLS LAST, first seen DESC, id; price ASC or DESC NULLS LAST, id; unit price ASC NULLS LAST, id.
+      newest:ordered((a,b)=>(a.arrived_at===null?(b.arrived_at===null?0:1):b.arrived_at===null?-1:binary(b.arrived_at,a.arrived_at))||binary(b.first_seen_at,a.first_seen_at)),
+      price_asc:ordered((a,b)=>nullsLast(a.price,b.price,1)),price_desc:ordered((a,b)=>nullsLast(a.price,b.price,-1)),unit_price_asc:ordered((a,b)=>nullsLast(a.unit,b.unit,1)),
+    }};
+  });
+}
+/** The index's answer to buildFilters' WHERE and listCatalog's ORDER BY: the matching coffees in order. */
+function indexMatches(index:ListIndex,filters:CatalogFilters):ListIndexCoffee[]{
+  const tests:Array<(coffee:ListIndexCoffee)=>boolean>=[];
+  INDEXED_FACETS.forEach(([key],facet)=>{
+    const selected=(filters[key] as string[]|undefined)?.map(value=>value.trim()).filter(Boolean).slice(0,20);
+    if(!selected?.length)return;
+    const wanted=new Set((key==='origin'?countryFilterAliases(selected):selected).flatMap(value=>{const at=index.values.indexOf(value);return at<0?[]:[at];}));
+    tests.push(coffee=>(coffee[3+facet] as number[]).some(at=>wanted.has(at)));
+  });
+  if(filters.roaster?.length){const wanted=new Set(filters.roaster.slice(0,20));tests.push(coffee=>wanted.has(coffee[1]));}
+  if(Number.isFinite(filters.priceMin)){const min=Math.round(Math.max(0,filters.priceMin!)*100);tests.push(coffee=>coffee[2]!==null&&coffee[2]>=min);}
+  if(Number.isFinite(filters.priceMax)){const max=Math.round(Math.max(0,filters.priceMax!)*100);tests.push(coffee=>coffee[2]!==null&&coffee[2]<=max);}
+  if(filters.event&&EVENT_TYPES.has(filters.event)){
+    // buildFilters: an event of this type, valid, created at or after `since` when it is a date.
+    const since=filters.since&&Number.isFinite(Date.parse(filters.since))?new Date(filters.since).toISOString():null;
+    const newest=new Map((index.events[filters.event]??[]).map(([at,createdAt])=>[index.coffees[at][0],createdAt]));
+    tests.push(coffee=>{const createdAt=newest.get(coffee[0]);return createdAt!==undefined&&(since===null||binary(createdAt,since)>=0);});
+  }
+  const sort:ListSort=(LIST_SORTS as readonly string[]).includes(filters.sort??'newest')?(filters.sort??'newest') as ListSort:'newest';
+  return index.order[sort].map(at=>index.coffees[at]).filter(coffee=>tests.every(test=>test(coffee)));
 }
 
 /** The unfiltered newest listing is kept as a last-good copy, one entry per page (src/lib/v2-runtime.ts, catalogLastGood);
@@ -112,6 +198,11 @@ export async function catalogFacts(db:CatalogDatabase,filters:CatalogFilters):Pr
  * Callers pass a bounded set (the landing pages), since each distinct set is one derived-cache entry. */
 export async function catalogFactsMany(db:CatalogDatabase,list:CatalogFilters[]):Promise<Array<{coffees:number;roasters:number}>> {
   return derived(db,`facts:${JSON.stringify(list)}`,async()=>{
+    // Through the list index when there is one (the landing facts: one more pass over 28 filters was about 150,000 rows).
+    if(db.derive&&list.every(indexable)){
+      const index=await listIndex(db);
+      return list.map(filters=>{const matches=indexMatches(index,filters);return {coffees:matches.length,roasters:new Set(matches.map(coffee=>coffee[1])).size};});
+    }
     const built=list.map(filters=>buildFilters(filters));
     const facts:Array<{coffees:number;roasters:number}>=[];
     for(let start=0;start<built.length;){
@@ -292,13 +383,18 @@ function buildFilters(filters:CatalogFilters):{where:string;values:SqlValue[];co
   return {where:conditions.join(' AND '),values,conditions};
 }
 
-/** Details are durable even after stock loss/discontinuation; hidden/unclassified coffees stay private. */
-export async function getCoffeeDetail(db:CatalogDatabase,slugOrId:string,now=Date.now()):Promise<(CatalogCoffee&{priceHistory:PriceObservation[]})|null> {
+/** Details are durable even after stock loss/discontinuation; hidden/unclassified coffees stay private.
+ * No page shows a price history, so the coffee page no longer reads one (it was every observation of the coffee's offers,
+ * about 640 rows a view, sorted to keep 200); getPriceHistory reads it for whatever needs it. */
+export async function getCoffeeDetail(db:CatalogDatabase,slugOrId:string,now=Date.now()):Promise<CatalogCoffee|null> {
   const row=await db.prepare(`SELECT ${COFFEE_COLUMNS} FROM coffees c JOIN roasters r ON r.id=c.roaster_id WHERE c.visibility='public' AND ${coffeeOnlySql()} AND c.id IN (SELECT coalesce(x.canonical_coffee_id,x.id) FROM coffees x WHERE x.id IN (SELECT id FROM coffees WHERE slug=? UNION SELECT id FROM coffees WHERE id=? UNION SELECT coffee_id FROM coffee_aliases WHERE alias_type='slug' AND alias=?)) LIMIT 1`).bind(slugOrId,slugOrId,slugOrId).first<CoffeeRow>();
   if(!row)return null;
-  const [coffee]=await hydrate(db,[row],now);
-  const history=await db.prepare(`SELECT p.* FROM price_observations p JOIN offers o ON o.id=p.offer_id JOIN coffee_group_members g ON g.coffee_id=o.coffee_id WHERE g.group_id=? ORDER BY p.observed_at DESC,p.id DESC LIMIT 200`).bind(row.id).all<{id:string;offer_id:string;crawl_run_id:string;observed_at:string;price_minor:number|null;compare_at_minor:number|null;weight_g:number|null;currency:string|null;in_stock:number|null;source:'crawl'|'import'}>();
-  return {...coffee,priceHistory:history.results.map(p=>({id:p.id,offerId:p.offer_id,crawlRunId:p.crawl_run_id,observedAt:p.observed_at,priceMinor:p.price_minor,compareAtMinor:p.compare_at_minor,weightG:p.weight_g,currency:p.currency,inStock:p.in_stock===null?null:p.in_stock===1,source:p.source}))};
+  return (await hydrate(db,[row],now))[0];
+}
+/** The newest observations of a listed coffee's offers and its size twins' (the id getCoffeeDetail returns), newest first. */
+export async function getPriceHistory(db:CatalogDatabase,coffeeId:string,limit=200):Promise<PriceObservation[]> {
+  const history=await db.prepare(`SELECT p.* FROM price_observations p JOIN offers o ON o.id=p.offer_id JOIN coffee_group_members g ON g.coffee_id=o.coffee_id WHERE g.group_id=? ORDER BY p.observed_at DESC,p.id DESC LIMIT ?`).bind(coffeeId,Math.min(1000,Math.max(1,Math.floor(limit)))).all<{id:string;offer_id:string;crawl_run_id:string;observed_at:string;price_minor:number|null;compare_at_minor:number|null;weight_g:number|null;currency:string|null;in_stock:number|null;source:'crawl'|'import'}>();
+  return history.results.map(p=>({id:p.id,offerId:p.offer_id,crawlRunId:p.crawl_run_id,observedAt:p.observed_at,priceMinor:p.price_minor,compareAtMinor:p.compare_at_minor,weightG:p.weight_g,currency:p.currency,inStock:p.in_stock===null?null:p.in_stock===1,source:p.source}));
 }
 
 function trustedSourceUrl(row:CoffeeRow):string|null {
@@ -362,8 +458,11 @@ export async function getRoasterDetail(db:CatalogDatabase,slug:string):Promise<{
     .first<{id:string;slug:string;name:string;website_url:string;city:string|null;adapter:string;last_attempt_at:string|null;last_success_at:string|null;crawl_health:string}>();
   if(!row)return null;
   const catalog=await listCatalog(db,{roaster:[slug]});
-  const offerCount=await db.prepare(`SELECT count(DISTINCT ${PACKAGE_KEY}) AS count FROM public_catalog_coffees c ${GROUP_OFFERS} WHERE c.roaster_id=? AND o.in_stock=1 AND ${coffeeOnlySql()}`).bind(row.id).first<{count:number}>();
-  return {roaster:{id:row.id,slug:row.slug,name:row.name,websiteUrl:row.website_url,city:row.city,adapter:row.adapter,coffeeCount:catalog.total,offerCount:offerCount?.count??0,lastAttemptAt:row.last_attempt_at,lastSuccessAt:row.last_success_at,crawlHealth:row.crawl_health},catalog};
+  // The roaster list (derived once per refresh) already counts every roaster's packages with this query's rules; a roaster
+  // missing from it has no package in stock. Without a derived cache (tests, scripts) the count is read here.
+  const offerCount=db.derive?(await listRoasters(db)).find(roaster=>roaster.id===row.id)?.offerCount??0
+    :(await db.prepare(`SELECT count(DISTINCT ${PACKAGE_KEY}) AS count FROM public_catalog_coffees c ${GROUP_OFFERS} WHERE c.roaster_id=? AND o.in_stock=1 AND ${coffeeOnlySql()}`).bind(row.id).first<{count:number}>())?.count??0;
+  return {roaster:{id:row.id,slug:row.slug,name:row.name,websiteUrl:row.website_url,city:row.city,adapter:row.adapter,coffeeCount:catalog.total,offerCount,lastAttemptAt:row.last_attempt_at,lastSuccessAt:row.last_success_at,crawlHealth:row.crawl_health},catalog};
 }
 
 export async function listEvents(db:CatalogDatabase,type?:CoffeeEvent['type'],limit=30):Promise<CoffeeEvent[]> {

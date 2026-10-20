@@ -3,9 +3,12 @@ import vinext from "vinext";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { imagesOptimizer } from "@vinext/cloudflare/images/images-optimizer";
 import { cdnAdapter } from "@vinext/cloudflare/cache/cdn-adapter";
+import { streamedIconKeyWithoutPath } from "./vite-streamed-icons";
 
 export default defineConfig({
   plugins: [
+    // Icon markers must not look like page addresses to crawlers (vite-streamed-icons.ts).
+    streamedIconKeyWithoutPath(),
     vinext({
       cache: { cdn: cdnAdapter() },
       images: { optimizer: imagesOptimizer() },

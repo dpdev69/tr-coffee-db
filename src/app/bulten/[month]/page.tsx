@@ -18,7 +18,7 @@ import { campaignUrl, monthLabel, monthWindow, PICK_STATUS, resolvePicks, type I
 import { issues } from '../issues.generated';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
-export const revalidate = 21600;
+export const revalidate = 172800;
 const MAX_ITEMS = 8;
 
 /** Only bundled issues exist here; a production build bundles only `published: true` files (scripts/bulten-bundle.mts). */

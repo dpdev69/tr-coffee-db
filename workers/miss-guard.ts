@@ -6,7 +6,11 @@ import { EDGE_CACHE_HEADERS } from '../shared/v2/read-cache';
  * everything here acts on cache misses alone and never slows a visitor served from the edge. docs/read-budget.md has the
  * arithmetic behind the numbers.
  *
- * 1. Canonical address: anything but the one spelling of a catalog address is redirected to it, without a database read.
+ * 0. No page address contains a colon (src/lib/robots-rules.ts). Crawlers took such paths from the framework's icon markup
+ *    ("/kahveler/islem/naturel:1ur9nj5:0") and each one was a full render of a 404, a coffee lookup on /kahve/*: they are
+ *    answered 404 here, stored at the edge like a redirect, without the app or a database read.
+ * 1. Canonical address: anything but the one spelling of a catalog address (query, or a trailing slash) is redirected to it,
+ *    without a database read.
  * 2. Global brake: when the account has read BRAKE_ROWS today, uncached catalog renders stop until midnight UTC, so the
  *    rest of the day's allowance stays with the nightly refresh. Needs D1_ANALYTICS_TOKEN; without it this step is off.
  * 3. Per-client limit on misses: CATALOG_LIMITER for list-sized renders, PAGE_LIMITER for single-coffee-sized ones.
@@ -21,7 +25,8 @@ export interface GuardEnv {
 }
 type Waiter = { waitUntil(promise: Promise<unknown>): void };
 
-/** 10,000 to 27,000 rows per miss (a list, a landing, a feed, the home page); 5,400 for a roaster. */
+/** A list, a landing, a feed, the home page, a roaster: 700 to 3,000 rows per miss through the list index, about 11,000 for a
+ * search (docs/read-budget.md, 20 October 2026); more on the first miss after a purge, which builds the derived results. */
 const CATALOG = /^\/(?:|kahveler|kahveler\/(?:koken|islem)\/[^/]+|yeni|firsatlar|kavurucu\/[^/]+|api\/catalog|api\/since|sitemap\.xml)$/;
 /** Under about 1,100 rows per miss: one coffee, a quiz result, saved coffees, the newsletter archive, a written comparison or
  * the numbers page and its JSON copy (2 to 4 rows once their derived results exist; the first miss after a purge builds them,
@@ -45,13 +50,19 @@ export function clientKey(request: Request): string {
   return groups.slice(0, 4).map(group => group.replace(/^0+(?=.)/, '').toLowerCase()).join(':') + '::/64';
 }
 
-function refusal(status: 429 | 503, retryAfter: number, api: boolean, title: string, text: string): Response {
-  const headers = { 'Retry-After': String(retryAfter), 'Cache-Control': 'no-store', 'CDN-Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' };
+function plainPage(status: number, headers: Record<string, string>, api: boolean, title: string, text: string): Response {
   if (api) return Response.json({ error: `${title} ${text}` }, { status, headers });
   const page = `<!doctype html><html lang="tr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>`
     + `<body style="font-family:system-ui,sans-serif;max-width:36rem;margin:4rem auto;padding:0 16px;line-height:1.6;color:#171a2b;background:#f7f8f6">`
     + `<h1 style="font-size:1.5rem">${title}</h1><p>${text}</p><p><a href="/" style="color:#2340c7">Ana sayfaya dön</a></p></body></html>`;
   return new Response(page, { status, headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8' } });
+}
+function refusal(status: 429 | 503, retryAfter: number, api: boolean, title: string, text: string): Response {
+  return plainPage(status, { 'Retry-After': String(retryAfter), 'Cache-Control': 'no-store', 'CDN-Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' }, api, title, text);
+}
+/** True for a path with a colon, written or percent-encoded: never a page here. */
+export function colonPath(pathname: string): boolean {
+  return /:|%3a/i.test(pathname);
 }
 
 let usage: { day: string; rows: number } | null = null;
@@ -84,8 +95,11 @@ export function setUsage(value: typeof usage, at = 0) { usage = value; checkedAt
 export async function guard(request: Request, env: GuardEnv, ctx: Waiter): Promise<Response | Request> {
   if (request.method !== 'GET' && request.method !== 'HEAD') return request;
   const url = new URL(request.url);
-  const rscSuffix = url.pathname.endsWith('.rsc');
-  const path = rscSuffix ? url.pathname.slice(0, -4) : url.pathname;
+  if (colonPath(url.pathname)) return plainPage(404, { ...EDGE_CACHE_HEADERS, 'X-Robots-Tag': 'noindex' }, url.pathname.startsWith('/api/'), 'Sayfa bulunamadı.', 'Bu adreste bir sayfa yok. Kahvelere ana sayfadan ulaşabilirsin.');
+  // A trailing slash is another spelling of the same page (another cache entry and render): it is redirected below.
+  const pathname = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, '') || '/' : url.pathname;
+  const rscSuffix = pathname.endsWith('.rsc');
+  const path = rscSuffix ? pathname.slice(0, -4) : pathname;
   const kind = CATALOG.test(path) ? 'catalog' : PAGE.test(path) ? 'page' : null;
   if (!kind) return request;
   // JSON endpoints: the /api routes and the open data copy (/veri/v1/ozet.json) answer refusals in JSON and keep their Accept.
@@ -99,9 +113,9 @@ export async function guard(request: Request, env: GuardEnv, ctx: Waiter): Promi
   const params = new URLSearchParams(query);
   params.delete('_rsc');
   const canonical = canonicalQuery(path, params);
-  if (canonical !== null && canonical !== query) {
-    const search = [canonical, rscPair].filter(Boolean).join('&');
-    return new Response(null, { status: 308, headers: { Location: `${url.pathname}${search ? `?${search}` : ''}`, ...EDGE_CACHE_HEADERS } });
+  if ((canonical !== null && canonical !== query) || pathname !== url.pathname) {
+    const search = [canonical ?? query, rscPair].filter(Boolean).join('&');
+    return new Response(null, { status: 308, headers: { Location: `${pathname}${search ? `?${search}` : ''}`, ...EDGE_CACHE_HEADERS } });
   }
 
   if (overBudget(env, ctx)) {

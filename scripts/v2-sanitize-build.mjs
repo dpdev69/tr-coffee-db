@@ -23,3 +23,20 @@ if (deployed.cache?.enabled !== true || deployed.exports?.default?.cache?.enable
   console.error('dist/server/wrangler.json must keep "cache" on with caching off for the default (gateway) export and on for App.');
   process.exit(1);
 }
+
+// Streamed icon markers must not carry the page path (vite-streamed-icons.ts): crawlers fetched "/<path>:<hash>:0" as pages.
+let marked = 0;
+function checkIconKeys(directory) {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) checkIconKeys(path);
+    else if (entry.isFile() && /\.m?js$/.test(entry.name)) {
+      const code = readFileSync(path, 'utf8');
+      if (!code.includes('data-vinext-streamed-icon')) continue;
+      if (/return\s*`\$\{\w+\}:\$\{\(\w+\s*>>>\s*0\)\.toString\(36\)\}`/.test(code)) { console.error(`${path} still builds streamed icon keys from the page path.`); process.exit(1); }
+      if (code.includes('vinext-icon-')) marked++;
+    }
+  }
+}
+checkIconKeys(join(output, 'server'));
+if (!marked) { console.error('No pathless streamed icon key found in dist/server: vite-streamed-icons.ts did not apply.'); process.exit(1); }
