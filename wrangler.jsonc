@@ -15,6 +15,12 @@
   "cache": {
     "enabled": true
   },
+  // The default export is the gateway (workers/web.ts): uncached, it runs on every request and stamps a fresh CSP nonce
+  // on HTML. Workers Cache sits in front of App, the miss guard and the vinext app.
+  "exports": {
+    "default": { "type": "worker", "cache": { "enabled": false } },
+    "App": { "type": "worker", "cache": { "enabled": true } }
+  },
   "version_metadata": {
     "binding": "CF_VERSION_METADATA"
   },

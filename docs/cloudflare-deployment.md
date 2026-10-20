@@ -47,6 +47,7 @@ Production configuration now exists as `wrangler.production.jsonc` and `wrangler
 - Web vars: `DEPLOYMENT_STAGE=production` (also namespaces the catalog read cache), `NEXT_PUBLIC_SITE_URL` at build and as a runtime var (the web Worker throws at startup without it), Web Analytics token/host, `KIT_FORM_ID`.
 - Secrets: `KIT_API_KEY`, `CACHE_PURGE_TOKEN` (32+ random characters; the same value as the repository secret the nightly purge sends, see [read-budget.md](read-budget.md)). Analytics Engine dataset; rate-limit namespace IDs.
 - `cache.enabled` stays on: catalog pages and JSON are served from Workers Cache (`EDGE_CACHE_CONTROL` in `shared/v2/read-cache.ts`).
+- `exports` keeps caching off for the default export (the gateway in `workers/web.ts`, which stamps a fresh CSP nonce on every HTML response) and on for `App`. `scripts/v2-sanitize-build.mjs` fails the build if the generated `dist/server/wrangler.json` loses either setting. After a deploy, check on the real domain that the `script-src` nonce changes on every request, that Cloudflare's injected `/cdn-cgi/challenge-platform/` script carries it, and that the console is clean.
 - Crawler vars: `CRAWLS_ENABLED`, `CRAWL_MODE`; worker names without the `-staging` suffix.
 
 ## Deployed staging evidence — 2026-09-15 Istanbul

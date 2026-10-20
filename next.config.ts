@@ -1,24 +1,12 @@
 import { imageHosts } from './shared/v2/image-hosts';
+import { contentSecurityPolicy as buildContentSecurityPolicy } from './shared/v2/content-security-policy';
 import { EDGE_CACHE_CONTROL } from './shared/v2/read-cache';
 import type { NextConfig } from "next";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
-
-
-const contentSecurityPolicy = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""} https://static.cloudflareinsights.com`,
-  "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${imageHosts.map((hostname) => `https://${hostname}`).join(" ")}`,
-  "font-src 'self' data:",
-  "connect-src 'self' https://cloudflareinsights.com",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  ...(isDevelopment ? [] : ["upgrade-insecure-requests"]),
-].join("; ");
+// HTML responses get this policy with a fresh nonce from the Worker gateway (workers/edge-headers.ts).
+const contentSecurityPolicy = buildContentSecurityPolicy({ development: isDevelopment });
 
 const securityHeaders = [
   {
