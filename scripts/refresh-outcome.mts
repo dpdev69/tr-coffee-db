@@ -4,7 +4,7 @@
  * The policy: the job is red whenever something needs a person, and the summary always says whether the data was written.
  *   - secrets check failed, or the refresh stopped before writing: red, "not written" (those steps already fail on their own);
  *   - data written but the edge purge failed: red, with an annotation that says the data WAS written, because visitors keep
- *     the previous catalog from the edge (6 hours, a quiet page up to 30 with stale-while-revalidate) until it is fixed;
+ *     the previous catalog from the edge (48 hours, a quiet page up to 72 with stale-while-revalidate) until it is fixed;
  *   - the warm-up failed: a warning only; visitors get correct pages, the first ones are slower and cost D1 rows;
  *   - the purge is not configured: a notice, as before.
  * Inputs are the steps' outcomes (env) and .local/v2/refresh/summary.json, which scripts/v2-refresh.mts writes. */
@@ -31,9 +31,9 @@ export function refreshOutcome(input: OutcomeInput) {
   const f = input.summary?.freshness;
   const freshness = f && !f.error ? `${f.fresh} fresh, ${f.stale} stale, ${input.summary?.sources?.restored ?? 0} restored of ${f.listed} listed` : 'not counted';
   const purge = input.purge === 'skipped' || !input.purge ? (written ? 'not run' : 'not run: nothing was written, so the edge keeps its good copies')
-    : input.purgeResult === 'skipped' ? 'not configured; pages refresh within 6 hours'
+    : input.purgeResult === 'skipped' ? 'not configured; pages refresh within 48 hours'
     : input.purge === 'success' ? 'purged'
-    : 'FAILED: visitors see the previous catalog until the edge copies expire (6 hours; a quiet page up to 30)';
+    : 'FAILED: visitors see the previous catalog until the edge copies expire (48 hours; a quiet page up to 72)';
   const warm = input.warm === 'success' ? 'done' : input.warm === 'failure' ? 'incomplete: the first visitors compute what was not stored' : 'not run';
   const purgeFailed = input.purge === 'failure' || (input.purge === 'success' && input.purgeResult === 'failed');
   if (written) annotations.push(`::notice title=Catalog data written::${succeeded}/${total} sources succeeded; ${freshness}.`);

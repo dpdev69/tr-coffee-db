@@ -73,7 +73,7 @@ jobs:
         id: corrections
         if: ${{ !cancelled() && steps.secrets.outcome == 'success' }}
         run: scrapers/node_modules/.bin/tsx scripts/v2-apply-corrections.mts
-      # Pages and JSON are kept at the edge for 6 hours (shared/v2/read-cache.ts); dropping them now shows tonight's
+      # Pages and JSON are kept at the edge for 48 hours (shared/v2/read-cache.ts); dropping them now shows tonight's
       # catalog at once. Needs the Worker secret and the repository secret CACHE_PURGE_TOKEN (same value), vars.SITE_URL and
       # the relay token; the request goes through SITE_VIA.
       # Only after a step that wrote tonight's data: when the database refuses reads (daily allowance spent), both fail,

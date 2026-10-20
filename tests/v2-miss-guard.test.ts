@@ -76,9 +76,38 @@ test('a non-canonical address is redirected before any limit, keeping the router
   const answer = await guard(request('/kahveler?page=2&utm_source=x&_rsc=abc', { rsc: '1' }), env, waiter) as Response;
   assert.equal(answer.status, 308);
   assert.equal(answer.headers.get('location'), '/kahveler?page=2&_rsc=abc');
-  assert.match(answer.headers.get('cdn-cache-control')!, /max-age=21600/, 'a redirect costs no rows and may be stored');
+  assert.match(answer.headers.get('cdn-cache-control')!, /max-age=172800/, 'a redirect costs no rows and may be stored');
   assert.equal(keys.length, 0);
   assert.equal(((await guard(request('/kahveler.rsc?x=1&_rsc'), env, waiter)) as Response).headers.get('location'), '/kahveler.rsc?_rsc');
+});
+
+test('a trailing slash is redirected to the one cached spelling, query canonicalised in the same step', async () => {
+  const keys: string[] = [];
+  const env: GuardEnv = { CATALOG_LIMITER: limiter(false, keys), PAGE_LIMITER: limiter(false, keys) };
+  const location = async (address: string) => { const answer = await guard(request(address), env, waiter) as Response; assert.equal(answer.status, 308, address); return answer.headers.get('location'); };
+  assert.equal(await location('/kahveler/'), '/kahveler');
+  assert.equal(await location('/kahveler//?page=2&utm_source=x'), '/kahveler?page=2');
+  assert.equal(await location('/kahveler/koken/etiyopya/?page=1'), '/kahveler/koken/etiyopya');
+  assert.equal(await location('/kahve/guji-abc123/'), '/kahve/guji-abc123');
+  assert.equal(keys.length, 0, 'no limiter, no app');
+  assert.equal(await guard(request('/guide/'), env, waiter) instanceof Request, true, 'paths the guard does not govern are left to the app');
+});
+
+test('a path with a colon is a cheap, stored 404 without the app: crawlers read them from icon markup', async () => {
+  const keys: string[] = [];
+  const env: GuardEnv = { CATALOG_LIMITER: limiter(true, keys), PAGE_LIMITER: limiter(true, keys) };
+  for (const address of ['/kahveler/islem/naturel:1ur9nj5', '/kahve/guji-abc123:1ur9nj5:0', '/kahveler/islem/naturel%3A1ur9nj5:0', '/:x', '/api/catalog:1']) {
+    const answer = await guard(request(address), env, waiter);
+    assert.ok(answer instanceof Response, address);
+    assert.equal(answer.status, 404, address);
+    assert.match(answer.headers.get('cdn-cache-control')!, /max-age=/, address);
+    assert.equal(answer.headers.get('x-robots-tag'), 'noindex', address);
+  }
+  assert.match((await guard(request('/kahve/x:1'), env, waiter) as Response).headers.get('content-type')!, /text\/html/);
+  assert.match((await guard(request('/api/catalog:1'), env, waiter) as Response).headers.get('content-type')!, /json/);
+  assert.equal(keys.length, 0);
+  // A colon in the query is not part of the path: the search is canonicalised as usual.
+  assert.equal(((await guard(request('/kahveler?search=a:b'), env, waiter)) as Response).headers.get('location'), '/kahveler?search=a+b');
 });
 
 test('a client over its limit gets a cheap, unstored, plain-Turkish 429; each route class has its own limiter', async () => {

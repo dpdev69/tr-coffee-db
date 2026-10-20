@@ -29,7 +29,7 @@ const printable = (text: string) => text.replace(/[^\x20-\x7e]/g, ' ').slice(0, 
 export async function purge(env: NodeJS.ProcessEnv, request: typeof fetch = fetch): Promise<{ result: 'purged' | 'skipped' | 'failed'; message: string }> {
   const via = env.SITE_VIA?.replace(/\/$/, '');
   const missing = ['CACHE_PURGE_TOKEN', 'SITE_URL', 'CRAWL_RELAY_TOKEN', 'SITE_VIA'].filter(name => !env[name]);
-  if (missing.length) return { result: 'skipped', message: `Edge purge not configured (${missing.join(', ')} not set); pages refresh within 6 hours.` };
+  if (missing.length) return { result: 'skipped', message: `Edge purge not configured (${missing.join(', ')} not set); pages refresh within 48 hours.` };
   for (const spec of REFRESH_SECRETS.filter(spec => spec.name !== 'CLOUDFLARE_D1_API_TOKEN')) {
     const problem = secretProblem(env[spec.name], { ...spec, required: true });
     if (problem) return { result: 'failed', message: rePaste(spec, problem, env) };

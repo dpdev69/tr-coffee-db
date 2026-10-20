@@ -188,11 +188,15 @@ async function equivalence(d1: D1Like, oldRoot: string) {
   const roaster = String((await d1.prepare('SELECT r.slug FROM roasters r JOIN public_catalog_coffees c ON c.roaster_id=r.id GROUP BY r.id ORDER BY count(*) DESC LIMIT 1').bind().all()).results[0].slug);
   const lists: CatalogFilters[] = [{}, { origin: ['Ethiopia'] }, { origin: ['Etiyopya', 'Kenya'] }, { process: ['washed'] }, { process: ['natural'], taste: ['fruity'] }, { taste: ['chocolate'], roast: ['dark'] },
     { roaster: [roaster] }, { search: 'etiyopya' }, { search: 'gesha' }, { priceMin: 300 }, { priceMax: 600 }, { priceMin: 400, priceMax: 900 }, { brewMethod: ['espresso'] }, { variety: 'Bourbon' }, { altitude: '1800' },
-    { traceability: 'available' }, { traceability: 'missing' }, { event: 'NEW', since: since(30, now) }, { event: 'PRICE_DROP', since: since(7, now) }, { event: 'RESTOCKED', since: since(7, now) }, { event: 'DEAL', since: since(7, now) }];
+    { traceability: 'available' }, { traceability: 'missing' }, { taste: ['fruity'], roast: ['light'] }, { taste: ['Fruity', 'Chocolate'] }, { brewMethod: ['filter'], process: ['washed'] },
+    { roast: ['medium_dark'] }, { origin: ['Colombia', 'Brazil'], priceMax: 900 }, { roaster: [roaster], sort: 'price_desc' }, { process: ['honey', ' natural '] }, { origin: ['["Colombia"]'] }, { origin: ['Atlantis'] },
+    { event: 'NEW', since: since(30, now) }, { event: 'PRICE_DROP', since: since(7, now) }, { event: 'RESTOCKED', since: since(7, now) }, { event: 'DEAL', since: since(7, now) }];
   for (const filters of lists) for (const sort of ['newest', 'price_asc', 'price_desc', 'unit_price_asc'] as const) for (const page of [1, 2, 5, 999]) {
     const query = { ...filters, sort, page };
     await same(`listCatalog ${JSON.stringify(query)}`, () => oldCatalog.listCatalog(plain, query, now), db => listCatalog(db, query, now));
   }
+  for (const { slug } of (await d1.prepare('SELECT slug FROM roasters ORDER BY slug').bind().all()).results as Array<{ slug: string }>)
+    await same(`getRoasterDetail ${slug}`, () => oldCatalog.getRoasterDetail(plain, slug), db => getRoasterDetail(db, slug));
   const listed = (await d1.prepare('SELECT slug FROM public_catalog_coffees ORDER BY id').bind().all()).results.map(row => String(row.slug));
   for (const slug of listed) {
     const coffee = await getCoffeeDetail(plain, slug, now);

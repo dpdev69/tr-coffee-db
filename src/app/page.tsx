@@ -19,7 +19,7 @@ import { SavedPanel, SinceLastVisit, TasteArrivals } from '@/components/v2/home-
 import { COMPARISONS, comparisonQuestion } from '@/lib/comparisons';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
-export const revalidate = 21600;
+export const revalidate = 172800;
 export const metadata: Metadata = { title: { absolute: brand.title }, description: brand.description, alternates: { canonical: '/' } };
 
 const HOW_IT_WORKS = [

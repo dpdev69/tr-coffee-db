@@ -9,7 +9,7 @@ import { listRoasters } from '../../../shared/v2/catalog';
 import { JsonLd, itemList } from '@/components/layout/json-ld';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
-export const revalidate = 21600;
+export const revalidate = 172800;
 export const metadata: Metadata = pageMetadata("Kavurucular", "Türkiye’deki bağımsız kahve kavurucuları ve satıştaki çekirdekleri: her kavurucunun şehri, kahve ve paket sayısı. Siparişini doğrudan kavurucudan ver.", "/kavurucular");
 export default async function RoastersPage({ searchParams }: { searchParams?: Promise<Record<string, string | string[] | undefined>> } = {}) {
   dropTrackingParams('/kavurucular', await searchParams);

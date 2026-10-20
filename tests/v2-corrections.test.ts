@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {TestCatalogDatabase} from './helpers/v2-sqlite';
 import {ingestCrawl,registerRoaster} from '../shared/v2/ingestion';
-import {getCatalogCounts,getCoffeeDetail,listCatalog} from '../shared/v2/catalog';
+import {getCatalogCounts,getCoffeeDetail,getPriceHistory,listCatalog} from '../shared/v2/catalog';
 import {applyCorrections,sizeKey} from '../scripts/v2-apply-corrections.mts';
 import type {CrawlInput,SourceCoffee} from '../shared/v2/types';
 
@@ -33,7 +33,7 @@ test('corrections link size twins, override visibility and MANUAL facts across c
   assert.deepEqual(list.coffees[0].offers.map(o=>o.weightG).sort(),[250,2500]);
   assert.deepEqual({...await getCatalogCounts(db)},{coffees:1,roasters:1,offers:2});
   assert.equal((await getCoffeeDetail(db,slug('big')))?.id,list.coffees[0].id,'a twin URL resolves to its parent');
-  assert.equal((await getCoffeeDetail(db,slug('koyu')))?.priceHistory.length,5,'the group history covers both bags');
+  assert.equal((await getPriceHistory(db,(await getCoffeeDetail(db,slug('koyu')))!.id)).length,5,'the group history covers both bags');
   // MANUAL wins on display and in filters; raw/inferred Ethiopia no longer matches.
   assert.equal(list.coffees[0].rawMetadata.country,undefined);
   assert.deepEqual(list.coffees[0].features.filter(f=>f.feature.includes('origin')).map(f=>[f.feature,f.value,f.sourceType]),[['origin_country','Kenya','MANUAL']]);

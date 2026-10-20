@@ -9,7 +9,7 @@ import { pageMetadata } from '@/lib/page-metadata';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
-export const revalidate = 21600;
+export const revalidate = 172800;
 
 /** One derived result (catalog-stats), built once per refresh by the nightly warm-up; a miss reads it (2 rows), a hit reads nothing. */
 const loadStats = cache(async () => {

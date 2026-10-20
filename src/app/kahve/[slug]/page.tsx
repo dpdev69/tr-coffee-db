@@ -14,7 +14,7 @@ import { signupsEnabled } from '@/lib/signups';
 import { ComparisonLinks, coffeeSides } from '@/components/v2/comparison-links';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
-export const revalidate = 21600;
+export const revalidate = 172800;
 const loadCoffee = cache(async (slug: string) => {
   try { return { coffee: await getCoffeeDetail(await getCatalogDatabase(), slug), unavailable: false }; }
   catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); return { coffee: null, unavailable: true }; }

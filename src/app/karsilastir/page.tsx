@@ -7,7 +7,7 @@ import { pageMetadata } from '@/lib/page-metadata';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
-export const revalidate = 21600;
+export const revalidate = 172800;
 const description = 'Etiyopya mı Kolombiya mı, natürel mi yıkanmış mı, espresso mu filtre mi? Satıştaki çekirdeklerin fiyatı, kökeni, işlemi ve tat notları yan yana.';
 export const metadata: Metadata = pageMetadata('Kahve karşılaştırmaları', description, '/karsilastir');
 const asOf = (iso: string) => new Date(iso).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Istanbul' });
