@@ -31,8 +31,6 @@ export interface SubscribeResult {
   outcome: SubscribeOutcome;
   /** Set only for form-encoded posts: where to send the browser (303). */
   location?: string;
-  /** Kit rejected the consent custom fields (not created in the dashboard yet); the signup went through without them. */
-  consentFieldsSkipped?: boolean;
   diagnostic?: { stage: 'create_subscriber' | 'attach_form'; status: number | null; errorClass: 'http' | 'network' | 'timeout' | 'invalid_json' | 'invalid_subscriber' };
 }
 class KitFailure extends Error {
@@ -106,7 +104,7 @@ export function sanitizeSubscribeReferrer(input: unknown, requestUrl: string, so
  * https://developers.kit.com/api-reference/subscribers/create-a-subscriber
  * https://developers.kit.com/api-reference/forms/add-subscriber-to-form
  */
-async function subscribeWithKit(email: string, referrer: string, key: string, form: string, dependencies: SubscribeDependencies): Promise<{ outcome: 'accepted' | 'suppressed'; fieldsSkipped: boolean }> {
+async function subscribeWithKit(email: string, referrer: string, key: string, form: string, dependencies: SubscribeDependencies): Promise<'accepted' | 'suppressed'> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), dependencies.timeoutMs ?? PROVIDER_TIMEOUT_MS);
   const fetcher = dependencies.fetch ?? fetch;
@@ -128,24 +126,18 @@ async function subscribeWithKit(email: string, referrer: string, key: string, fo
   };
   try {
     // Consent evidence rides on the subscriber as custom fields (Kit dashboard: create "consent_at" and "consent_version").
-    // Kit rejects unknown fields with 4xx, so retry once without them rather than lose the signup.
-    let fieldsSkipped = false;
-    const create = { email_address: email, state: 'inactive' };
+    // A signup without that proof is not acceptable (docs/launch-day.md), so a rejection of the fields fails the signup.
     const fields = { consent_at: new Date().toISOString(), consent_version: newsletterConsent.version };
-    const response = await post('subscribers', { ...create, fields }, 'create_subscriber').catch(async (error: unknown) => {
-      if (!(error instanceof KitFailure) || error.diagnostic.errorClass !== 'http' || ![400, 422].includes(error.diagnostic.status ?? 0)) throw error;
-      fieldsSkipped = true;
-      return post('subscribers', create, 'create_subscriber');
-    });
+    const response = await post('subscribers', { email_address: email, state: 'inactive', fields }, 'create_subscriber');
     let parsed: unknown;
     try { parsed = await boundedJson(response, 65536); }
     catch { throw new KitFailure({ stage: 'create_subscriber', status: response.status, errorClass: controller.signal.aborted ? 'timeout' : 'invalid_json' }); }
     const subscriber = record(record(parsed)?.subscriber);
     if (!subscriber || !Number.isSafeInteger(subscriber.id) || Number(subscriber.id) <= 0 || typeof subscriber.state !== 'string' || !STATES.has(subscriber.state)) throw new KitFailure({ stage: 'create_subscriber', status: response.status, errorClass: 'invalid_subscriber' });
-    if (['cancelled', 'bounced', 'complained'].includes(subscriber.state)) return { outcome: 'suppressed', fieldsSkipped };
+    if (['cancelled', 'bounced', 'complained'].includes(subscriber.state)) return 'suppressed';
     const attached = await post(`forms/${form}/subscribers/${subscriber.id}`, { referrer }, 'attach_form');
     try { await attached.body?.cancel(); } catch { /* A confirmed association remains successful if body disposal fails. */ }
-    return { outcome: 'accepted', fieldsSkipped };
+    return 'accepted';
   } finally { clearTimeout(timer); }
 }
 
@@ -194,7 +186,7 @@ async function subscribe(request: Request, env: SubscribeEnvironment, dependenci
   if (body.consent !== true && body.consent !== 'on') return noConsent();
   const referrer = sanitizeSubscribeReferrer(body.referrer, request.url, body.source);
   try {
-    const { outcome, fieldsSkipped } = await subscribeWithKit(email, referrer, env.KIT_API_KEY, env.KIT_FORM_ID, dependencies);
+    const outcome = await subscribeWithKit(email, referrer, env.KIT_API_KEY, env.KIT_FORM_ID, dependencies);
     if (outcome === 'accepted') {
       const source = knownSource(body.source) ? body.source : 'unknown';
       const page = knownSource(body.source) ? SUBSCRIBE_SOURCES[body.source] : 'other';
@@ -202,7 +194,7 @@ async function subscribe(request: Request, env: SubscribeEnvironment, dependenci
       try { emitProductEvent(env, { event: 'newsletter_signup_success', page, source: analyticsSource(source) }); }
       catch { /* A telemetry failure cannot undo a successful form association. */ }
     }
-    return { ...accepted(outcome), ...(fieldsSkipped ? { consentFieldsSkipped: true } : {}) };
+    return accepted(outcome);
   }
   catch (error) {
     const result = failure(502, 'Abonelik şu anda tamamlanamadı. Lütfen biraz sonra yeniden dene.', 'provider_error');

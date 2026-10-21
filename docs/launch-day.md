@@ -116,7 +116,7 @@ Re-run step 12 on the real domain, view the site on a phone, and watch the dashb
 Do not start until **all** are true:
 
 1. **Legal identity** is set in `src/lib/legal.ts` (done 2026-10-18: Basalt, support@hellobasalt.dev; update `LEGAL_UPDATED` when the wording changes). The open KVKK/İYS/transfer questions in `docs/kit-setup.md` are answered by the owner and their advisers. This file is the owner's to edit.
-2. **Two consent fields exist in the Kit account**: `consent_at` and `consent_version` (Kit dashboard > Subscribers > custom fields). Without them, the site still accepts the signup but stores no proof of consent (it logs `subscribe_consent_fields_missing`), which is not acceptable for launch.
+2. **Two consent fields exist in the Kit account**: `consent_at` and `consent_version` (Kit dashboard > Subscribers > custom fields). Without them, every signup fails with the form's error message and the Worker logs `subscribe_provider_failure` (stage `create_subscriber`, status 400 or 422): the site never accepts a signup without proof of consent.
 3. **Branded sender**: a verified sender address and sending domain in Kit (add Kit's DNS records in Cloudflare), and the confirmation email text uses the final brand. Not yet decided: the brand name and sender address.
 4. **Secret on the web Worker**: **Command** `npx wrangler secret put KIT_API_KEY --config wrangler.production.jsonc` (prompts for the value; the form ID is already in the file).
 5. **Privacy page reviewed** for the "on" wording (it then shows the "Bülten aboneliği" section).

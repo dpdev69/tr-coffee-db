@@ -13,10 +13,9 @@ Status on 2026-10-20: **signups stay off.** This is a plan, not a switch. Nothin
 
 ## Code (Claude)
 
-**C1. Consent fields are written, but fail open.** The create call sends `consent_at` (server time, ISO) and `consent_version` (`'2026-10-v1'`, `src/lib/brand.ts:61`) at `v2-subscribe.ts:130-134`. If Kit answers 400 or 422 (fields not created), the code retries without them and the signup still succeeds (`:135-139`); the route only logs `subscribe_consent_fields_missing` (`src/app/api/subscribe/route.ts:10`). A test locks that behaviour in (`tests/v2-subscribe.test.ts:215-226`). `docs/launch-day.md:119` calls a signup without proof "not acceptable", so the code and the docs disagree.
-- Change needed (not done here): in `v2-subscribe.ts:135-139` drop the retry-without-fields branch so a 400/422 returns `subscribeUnavailable()` (fail closed), and change the test at `tests/v2-subscribe.test.ts:215` to expect that. Remove `consentFieldsSkipped` (`:35`, `:205`) and the warning at `route.ts:10`.
+**C1. Consent fields are written, and a rejection fails the signup.** Done 2026-10-21. The create call sends `consent_at` (server time, ISO) and `consent_version` (`'2026-10-v1'`, `src/lib/brand.ts:61`) in `subscribeWithKit` (`src/lib/v2-subscribe.ts`). If Kit answers 400 or 422 (fields not created), the signup fails with the form's error message (502, `provider_error`) and the route logs `subscribe_provider_failure` with the stage and status; Kit is not asked again without the fields. Before this, the code retried without them and accepted the signup with no proof of consent. `tests/v2-subscribe.test.ts` pins the new behaviour for both statuses.
 - Also decide: Kit's create call is an upsert. Check on a test address whether resubmitting overwrites `consent_at` of an already-active subscriber. If it does, send the fields only when the subscriber is new, or store the first consent time.
-- Verify: `npm test` passes with the changed test; with the owner's O1 done, a test signup shows both fields filled in Kit (see O1).
+- Verify: with the owner's O1 done, a test signup shows both fields filled in Kit (see O1).
 
 **C2. Consent wording matches what is stored.** The checkbox text is `newsletterConsent.text` (`brand.ts:62`), rendered at `src/components/v2/newsletter-form.tsx:36,80`; the stored version is `newsletterConsent.version`. Nothing forces the two to change together (comment at `brand.ts:59` is the only guard).
 - Change needed: add a test that pins the text to its version (hash or literal), so edits to the sentence fail until the version is bumped.
@@ -39,7 +38,7 @@ Status on 2026-10-20: **signups stay off.** This is a plan, not a switch. Nothin
 
 ## Owner (Boss)
 
-**O1. Kit custom fields.** In Kit: Subscribers, custom fields, create `consent_at` and `consent_version` (exact names). Verify: after C1, one signup with the owner's own address shows both fields filled on that subscriber; `subscribe_consent_fields_missing` does not appear in the Worker logs.
+**O1. Kit custom fields.** In Kit: Subscribers, custom fields, create `consent_at` and `consent_version` (exact names). Verify: after C1, one signup with the owner's own address shows both fields filled on that subscriber; `subscribe_provider_failure` with stage `create_subscriber` does not appear in the Worker logs.
 
 **O2. Branded sender and DNS.** Findings from `dig` on 2026-10-20:
 - `hellobasalt.dev` TXT: `v=spf1 include:_spf.mx.cloudflare.net ~all` (Cloudflare Email Routing only, no Kit) and a Google site verification record.

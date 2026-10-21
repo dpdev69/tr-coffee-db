@@ -212,14 +212,17 @@ test('form posts keep honeypot, limit, byte cap and cross-site protections', asy
   assert.equal((await handleSubscribe(formPost(formFields), environment(false), { fetch: kit.fetcher })).status, 429);
   assert.equal(kit.calls.length, 0);
 });
-test('signup still succeeds, without consent fields, when Kit has no such custom fields yet', async () => {
-  const calls: Array<Record<string, unknown>> = [];
-  const fetcher: typeof fetch = async (url, init) => {
-    const body = JSON.parse(String(init!.body)); calls.push(body);
-    if (String(url).endsWith('/subscribers') && body.fields) return new Response('{}', { status: 422 });
-    return Response.json({ subscriber: { id: 735, state: 'inactive' } }, { status: 200 });
-  };
-  const result = await handleSubscribe(request(), environment(), { fetch: fetcher });
-  assert.equal(result.status, 200); assert.equal(result.consentFieldsSkipped, true);
-  assert.deepEqual(calls[1], { email_address: email, state: 'inactive' });
+test('signup fails, and Kit is not asked again without them, when Kit rejects the consent fields', async () => {
+  for (const status of [400, 422]) {
+    const calls: Array<Record<string, unknown>> = [];
+    const fetcher: typeof fetch = async (url, init) => {
+      const body = JSON.parse(String(init!.body)); calls.push(body);
+      if (String(url).endsWith('/subscribers') && body.fields) return new Response('{}', { status });
+      return Response.json({ subscriber: { id: 735, state: 'inactive' } }, { status: 200 });
+    };
+    const result = await handleSubscribe(request(), environment(), { fetch: fetcher });
+    assert.equal(result.status, 502); assert.equal(result.body.ok, false); assert.equal(result.outcome, 'provider_error');
+    assert.deepEqual(result.diagnostic, { stage: 'create_subscriber', status, errorClass: 'http' });
+    assert.equal(calls.length, 1); assert.ok(calls[0].fields);
+  }
 });
