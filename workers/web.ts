@@ -2,6 +2,7 @@ import { WorkerEntrypoint } from 'cloudflare:workers';
 import app from 'vinext/server/fetch-handler';
 import { guard } from './miss-guard';
 import { forwardedRequest, secureResponse } from './edge-headers';
+import { junkRedirect } from './junk-suffix';
 
 /** The miss guard (workers/miss-guard.ts), then the vinext app. */
 async function serve(request: Request, env: CloudflareEnv, ctx: ExecutionContext): Promise<Response> {
@@ -22,13 +23,14 @@ export class App extends WorkerEntrypoint<CloudflareEnv> {
 
 /**
  * The gateway (caching off): runs on every request, asks the cached app, then adds what must be fresh per response
- * (workers/edge-headers.ts: the CSP nonce on HTML, X-Robots-Tag on workers.dev). No database, no KV.
+ * (workers/edge-headers.ts: the CSP nonce on HTML, X-Robots-Tag on workers.dev). No database, no KV. A 404 for a link
+ * with Markdown junk on the end ("/**") leaves as a 301 to the clean path (workers/junk-suffix.ts).
  */
 const web = {
   async fetch(request: Request, env: CloudflareEnv, ctx: ExecutionContext): Promise<Response> {
     const cached = (ctx.exports as { App?: Fetcher } | undefined)?.App;
     const response = cached ? await cached.fetch(forwardedRequest(request)) : await serve(request, env, ctx);
-    return secureResponse(request, response);
+    return secureResponse(request, junkRedirect(new URL(request.url), response.status) ?? response);
   },
 };
 export default web;
