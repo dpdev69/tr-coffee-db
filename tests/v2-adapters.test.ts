@@ -324,6 +324,11 @@ describe('complete storefront variants',()=>{
     assert.deepEqual(parseProbadorCatalog(html,config)[0].offers.map(o=>[o.sourceVariantId,o.price,o.inStock]),[['11',500,false],['12',1800,true]]);
     assert.throws(()=>parseProbadorCatalog(html.replace('variantprice12','missing'),config),/price missing/);
   });
+  it('folds Turkish upper case in Probador names so sets are skipped and İ-spelled origins are kept',()=>{
+    const card=(name:string,variants:boolean)=>`<div class="list"><a class="image" href="/x"></a><div class="name">${name}</div>${variants?'<select id="variant7"><option value="71">250gr</option></select>':''}<div class="variantprice" id="variantprice71" data-stock="1"><span class="price">745</span></div></div>`;
+    const html=`<div class="products-lists">${card('PERU GEISHA SETİ',false)}${card('KOSTARİKA İŞLEM/TÜR ÖRNEKLEM SETİ',false)}${card('YIKANMIŞ KAHVELER 1',false)}${card('CHELCHELE DOĞAL, ETİYOPYA',true)}</div>`;
+    assert.deepEqual(parseProbadorCatalog(html,config).map(p=>p.name),['CHELCHELE DOĞAL, ETİYOPYA']);
+  });
   it('uses Ticimax tax-inclusive variant prices and explicit option mappings',()=>{
     const model={productId:1,productName:'Ethiopia Coffee',products:[{id:10,satisFiyati:500,satisKDV:50,indirimliFiyati:0,stokAdedi:2,paraBirimiKodu:'TRY'}],productVariantData:[{urunID:10,tanim:'250 g'}],productImages:[]};
     const parse=()=>parseTicimaxProduct(`<script>var productDetailModel = ${JSON.stringify(model)};</script>`,config,'https://example.test/coffee');
