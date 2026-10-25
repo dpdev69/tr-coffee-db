@@ -284,8 +284,10 @@ export function parseProbadorCatalog(html: string, config: RoasterConfig): Sourc
   $('.products-lists .list').each((_,element)=>{
     const card=$(element),name=card.find('.name').first().text().trim();
     const description=card.find('.note').text().trim();
-    if(!isLikelyCatalogCoffeeProduct([name])||/tamper|puly|temizleme|tablet|gear|allfaktor|seti|kaşık|kase|fincan|harita|map|cup|kapak|tabak|değirmen|press/i.test(name))return;
-    if(!/etiyopya|ethiopia|kolombiya|colombia|brezilya|brazil|kenya|kostarika|costa rica|kosta rika|guatemala|ruanda|honduras|peru|panama|el salvador|espresso|decaf|finca|yıkanmış|washed|honey/i.test(name))return;
+    // Names are upper case; /i alone does not fold "İ", so "ETİYOPYA" and "SETİ" also need the Turkish lower case.
+    const folded=`${name} ${name.toLocaleLowerCase('tr')}`;
+    if(!isLikelyCatalogCoffeeProduct([name])||/tamper|puly|temizleme|tablet|gear|allfaktor|seti|kahveler|örneklem|kaşık|kase|fincan|harita|map|cup|kapak|tabak|değirmen|press/i.test(folded))return;
+    if(!/etiyopya|ethiopia|kolombiya|colombia|brezilya|brazil|kenya|kostarika|costa rica|kosta rika|guatemala|ruanda|honduras|peru|panama|el salvador|espresso|decaf|finca|yıkanmış|washed|honey/i.test(folded))return;
     const url=canonicalUrl(card.find('a.image').attr('href'),config,config.websiteUrl);
     const select=card.find('select[id^="variant"]');
     const productId=select.attr('id')?.match(/^variant(\d+)$/)?.[1];
