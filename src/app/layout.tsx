@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { brand } from "@/lib/brand";
 import { SITE_CARD } from "@/lib/page-metadata";
 import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
@@ -26,6 +26,11 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+// Phone status bar in the page ground colour (--color-ground), so it runs into the sticky header.
+export const viewport: Viewport = {
+  themeColor: '#f7f8f6',
+};
 
 export const metadata: Metadata = {
   metadataBase: SITE_URL,

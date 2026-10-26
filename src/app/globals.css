@@ -48,6 +48,15 @@
 }
 
 @layer base {
+  /* Phones: no grey tap flash. Pressed controls show their hover colour (owner rule: colour changes only, no motion). */
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  .button,
+  .filter-chip {
+    touch-action: manipulation; /* no double-tap zoom delay on taps */
+  }
   html:has(dialog[open]) {
     overflow: hidden;
   }
@@ -174,16 +183,27 @@
     background: var(--color-accent);
     color: var(--color-on-accent);
   }
-  .button-dark:hover {
+  .button-dark:active {
     background: var(--color-accent-deep);
     border-color: var(--color-accent-deep);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .button-dark:hover {
+      background: var(--color-accent-deep);
+      border-color: var(--color-accent-deep);
+    }
   }
   .button-light {
     background: transparent;
     color: var(--color-accent);
   }
-  .button-light:hover {
+  .button-light:active {
     background: var(--color-tint);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .button-light:hover {
+      background: var(--color-tint);
+    }
   }
   .text-link {
     display: inline-flex;
@@ -194,9 +214,11 @@
     color: var(--color-accent);
     gap: 0.3em; /* flex drops the space before an arrow span */
   }
-  .text-link:hover {
-    text-decoration: underline;
-    text-underline-offset: 5px;
+  @media (hover: hover) and (pointer: fine) {
+    .text-link:hover {
+      text-decoration: underline;
+      text-underline-offset: 5px;
+    }
   }
 
   /* Header and mobile menu. Animation hooks: .site-header, .mobile-menu[open], .mobile-menu::backdrop */
@@ -333,8 +355,13 @@
     border-radius: 14px;
     background: var(--color-surface);
   }
-  .studio-paths a:hover {
+  .studio-paths a:active {
     border-color: var(--color-accent);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .studio-paths a:hover {
+      border-color: var(--color-accent);
+    }
   }
   .studio-paths strong {
     display: block;
@@ -414,8 +441,13 @@
     background: var(--color-surface);
     transition: border-color 0.2s;
   }
-  .coffee-card:hover {
+  .coffee-card:active {
     border-color: var(--color-accent);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .coffee-card:hover {
+      border-color: var(--color-accent);
+    }
   }
   /* White behind the photo: most packshots are shot on white, so they sit in the card instead of in a second frame. */
   .coffee-card-image {
@@ -484,8 +516,13 @@
     border: 1px solid var(--color-line);
     border-radius: 999px;
   }
-  .compare-toggle:hover {
+  .compare-toggle:active {
     background: var(--color-tint);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .compare-toggle:hover {
+      background: var(--color-tint);
+    }
   }
   .compare-toggle[aria-pressed='true'] {
     background: var(--color-chip);
@@ -684,8 +721,13 @@
     font-size: 14px;
     font-weight: 500;
   }
-  .filter-chip:hover {
+  .filter-chip:active {
     background: var(--color-tint);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .filter-chip:hover {
+      background: var(--color-tint);
+    }
   }
 
   /* Guide */
@@ -821,8 +863,13 @@
     background: var(--color-surface);
     color: var(--color-accent);
   }
-  .save-toggle:hover {
+  .save-toggle:active {
     border-color: var(--color-accent);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .save-toggle:hover {
+      border-color: var(--color-accent);
+    }
   }
   .save-toggle[aria-pressed='true'] {
     background: var(--color-chip);
