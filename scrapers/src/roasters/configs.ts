@@ -580,6 +580,8 @@ export const coffeeDepartment: RoasterConfig = {
 
 export const milestones: RoasterConfig = {
   slug: 'milestones',
+  // HTTPS stopped answering GitHub's network (timeouts, connection resets) on 2026-10-26; port 80 still redirects.
+  runsFrom: 'relay',
   name: 'Milestones Coffee',
   websiteUrl: 'https://milestonescoffee.com',
   shopUrl: 'https://milestonescoffee.com/kategori/kahveler-57/',
