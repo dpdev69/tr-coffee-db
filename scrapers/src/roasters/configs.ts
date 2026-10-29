@@ -580,7 +580,9 @@ export const coffeeDepartment: RoasterConfig = {
 
 export const milestones: RoasterConfig = {
   slug: 'milestones',
-  // HTTPS stopped answering GitHub's network (timeouts, connection resets; seen 2026-10-29); port 80 still redirects.
+  // Refuses GitHub's network (HTTPS timeouts and resets) and the relay (HTTP 403) since 2026-10-27; off until the
+  // roaster allows the crawler (2026-10-29).
+  active: false,
   runsFrom: 'relay',
   name: 'Milestones Coffee',
   websiteUrl: 'https://milestonescoffee.com',
