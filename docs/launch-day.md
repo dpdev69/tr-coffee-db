@@ -65,6 +65,7 @@ Follow `docs/cutover-runbook.md`: **never replay anything into a database alread
 ### 10. Deploy the web Worker
 - **Command**: `NEXT_PUBLIC_SITE_URL=https://kahve.hellobasalt.dev npm run deploy:production`. It checks for placeholders and the address, builds with the production file, checks the built output again, then deploys with the address as both a build-time and a runtime setting. Success: deploy output names `coffeedb-v2-web`; it shows the `workers.dev` address. If it prints "Production deploy refused", read the list it prints and fix those values; nothing was deployed.
 - Undo: `npx wrangler rollback --config wrangler.production.jsonc` for a bad version; or delete the Worker.
+- After launch, every merge to `main` deploys by itself: Workers Builds on `coffeedb-v2-web` runs `npm run ci:build` then `npm run ci:deploy` (the same guard, build, deploy and warm-up, with `NEXT_PUBLIC_SITE_URL` set as a build variable). A failed warm-up only prints a line; the deploy stands. Check a merge went live with `npx wrangler deployments list --name coffeedb-v2-web` or the build log in Workers & Pages > `coffeedb-v2-web` > Deployments. The hand command above still works for a redeploy without a merge.
 
 ### 11. Secrets
 Never type or paste a secret value into this document, a ticket, a chat or a command argument. Each command below prompts for the value.
