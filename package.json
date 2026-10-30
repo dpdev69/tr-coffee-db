@@ -39,6 +39,8 @@
     "db:migrate:production": "node scripts/production-guard.mjs wrangler.production.jsonc && wrangler d1 migrations apply coffeedb-v2 --remote --config wrangler.production.jsonc",
     "build:production": "WRANGLER_CONFIG=wrangler.production.jsonc npm run build:cloudflare",
     "deploy:production": "node scripts/production-guard.mjs --site-url wrangler.production.jsonc && npm run build:production && node scripts/production-guard.mjs --site-url dist/server/wrangler.json && wrangler deploy --config dist/server/wrangler.json --var NEXT_PUBLIC_SITE_URL:$NEXT_PUBLIC_SITE_URL --domain kahve.hellobasalt.dev && tsx scripts/warm-cache.mts $NEXT_PUBLIC_SITE_URL",
+    "ci:build": "node scripts/production-guard.mjs --site-url wrangler.production.jsonc && npm run build:production && node scripts/production-guard.mjs --site-url dist/server/wrangler.json",
+    "ci:deploy": "node scripts/production-guard.mjs --site-url dist/server/wrangler.json && wrangler deploy --config dist/server/wrangler.json --var NEXT_PUBLIC_SITE_URL:$NEXT_PUBLIC_SITE_URL --domain kahve.hellobasalt.dev && (tsx scripts/warm-cache.mts $NEXT_PUBLIC_SITE_URL || echo 'Warm-up failed after a good deploy: the first visitors compute the derived results.')",
     "build:crawler:production": "wrangler deploy --config wrangler.crawler.production.jsonc --dry-run --outdir .local/crawler-build-production",
     "deploy:crawler:production": "node scripts/production-guard.mjs wrangler.crawler.production.jsonc && wrangler deploy --config wrangler.crawler.production.jsonc",
     "v2:export": "tsx scripts/v2-export.ts",

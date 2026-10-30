@@ -64,7 +64,7 @@ test('the guard refuses placeholders and a missing or staging site address, and 
 
 test('every production deploy and migrate script runs the guard first', () => {
   const scripts = JSON.parse(text('package.json')).scripts as Record<string, string>;
-  for (const name of ['db:migrate:production', 'deploy:production', 'deploy:crawler:production']) assert.match(scripts[name], /^node scripts\/production-guard\.mjs /, name);
-  assert.match(scripts['deploy:production'], /production-guard\.mjs --site-url dist\/server\/wrangler\.json && wrangler deploy/);
+  for (const name of ['db:migrate:production', 'deploy:production', 'deploy:crawler:production', 'ci:build', 'ci:deploy']) assert.match(scripts[name], /^node scripts\/production-guard\.mjs /, name);
+  for (const name of ['deploy:production', 'ci:deploy']) assert.match(scripts[name], /production-guard\.mjs --site-url dist\/server\/wrangler\.json && wrangler deploy/, name);
   assert.equal(scripts['db:migrate:staging'], 'wrangler d1 migrations apply coffeedb-v2-staging --remote');
 });
