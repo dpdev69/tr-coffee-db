@@ -39,3 +39,7 @@ Add an entry to `COMPARISONS` with the search evidence in this file. Sides can b
 ## Links and structured data
 
 Each pair is linked from the index, from every other pair page, from its sides' own pages (origin and process landings, roaster pages) and from every coffee page whose stated origin, process or roaster is a side (`coffeeSides` in `src/components/v2/comparison-links.tsx`, with the same precedence the coffee page shows). The home page body, the guide and `/veri` link a few pairs and the index. The index is a `CollectionPage` and each pair a `WebPage`, both published by KahveDrop with the shared Basalt node as `parentOrganization`, and `dateModified` set to when the facts were built; the sitemap gives them the catalog's latest change as `lastModified`.
+
+## Reused by the /rehber guides
+
+`/rehber/filtre-kahve-nasil-yapilir` and `/rehber/filtre-kahve-cekirdegi` (`src/lib/rehber.ts`) read the same `comparisons` result (the `brew:filter` side and the five origin sides) and the `comparison-cards:espresso-vs-filtre` cards; the bean guide also reads the landing facts. They add no catalog query: a miss reads 2 to 3 derived rows (1 row each measured locally with `scripts/v2-read-budget.mts sql`), and a share is printed only when at least 10 coffees state the fact.

@@ -6,6 +6,7 @@ All notable changes to TR CoffeeDB are documented here.
 
 ### Added
 
+- Two written guides: `/rehber/filtre-kahve-nasil-yapilir` (ratio, grind, water temperature and times for V60, Chemex, French press, filter machine and cold brew, with HowTo and FAQ structured data) and `/rehber/filtre-kahve-cekirdegi` (choosing filter beans by taste, origin and roast, with no brand ranking), both built from derived results the comparison pages already keep.
 - Ten written comparison pages at `/karsilastir` (Etiyopya mı Kolombiya mı, espresso mu filtre mi, Kronotrop mu Petra mı and more), built from one derived result per refresh, listed in the sitemap with breadcrumb and item-list structured data, and linked from roaster, origin and process pages.
 - Weekly “Haftalık Drop” digest that creates a Kit draft from verified price drops, new arrivals and restocks.
 - KVKK privacy notice and explicit newsletter consent.

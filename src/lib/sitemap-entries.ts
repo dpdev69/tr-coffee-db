@@ -6,7 +6,8 @@ import { issues } from '../app/bulten/issues.generated';
 import { listLandings } from './catalog-landing';
 import { COMPARISONS, listedInSitemap } from './comparisons';
 import { absoluteUrl } from './site';
-import { GUIDE_UPDATED } from './content-dates';
+import { BEAN_GUIDE_UPDATED, BREW_GUIDE_UPDATED, GUIDE_UPDATED } from './content-dates';
+import { BEAN_GUIDE_PATH, BREW_GUIDE_PATH } from './rehber';
 
 /** Pages whose content is the catalog itself (lists, counts, comparisons, the numbers page): they change when it does. */
 const CATALOG_ROUTES = new Set(['/', '/yeni', '/firsatlar', '/kahveler', '/kavurucular', '/karsilastir', '/veri']);
@@ -19,10 +20,12 @@ const CHANGED_SQL = `max(c.first_seen_at,
   coalesce((SELECT max(o.last_price_change_at) FROM offers o WHERE o.coffee_id=c.id),''))`;
 type SitemapCoffees = { results: Array<{ slug: string; roaster_id: string; changed: string }> };
 const date = (iso: string | undefined) => (iso ? new Date(iso) : undefined);
+/** Fixed-copy pages: when their text last changed. */
+const COPY_DATES: Record<string, string> = { '/guide': GUIDE_UPDATED, [BREW_GUIDE_PATH]: BREW_GUIDE_UPDATED, [BEAN_GUIDE_PATH]: BEAN_GUIDE_UPDATED };
 
 export function staticSitemap(latest?: string): MetadataRoute.Sitemap {
-  const paths = ['/', '/yeni', '/firsatlar', '/kahveler', '/kavurucular', '/quiz', '/guide', '/karsilastir', '/veri', '/privacy', '/terms', '/bulten', ...issues.filter(issue => issue.published).map(issue => `/bulten/${issue.month}`)];
-  return paths.map(path => ({ url: absoluteUrl(path), lastModified: CATALOG_ROUTES.has(path) ? date(latest) : path === '/guide' ? date(GUIDE_UPDATED) : undefined, changeFrequency: 'weekly', priority: path === '/' ? 1 : 0.7 }));
+  const paths = ['/', '/yeni', '/firsatlar', '/kahveler', '/kavurucular', '/quiz', '/guide', BREW_GUIDE_PATH, BEAN_GUIDE_PATH, '/karsilastir', '/veri', '/privacy', '/terms', '/bulten', ...issues.filter(issue => issue.published).map(issue => `/bulten/${issue.month}`)];
+  return paths.map(path => ({ url: absoluteUrl(path), lastModified: CATALOG_ROUTES.has(path) ? date(latest) : date(COPY_DATES[path]), changeFrequency: 'weekly', priority: path === '/' ? 1 : 0.7 }));
 }
 
 /**
