@@ -32,6 +32,8 @@ export function Footer() {
             <FooterLink href="/firsatlar">Doğrulanan fırsatlar</FooterLink>
             <FooterLink href="/quiz">Damak tadına göre bul</FooterLink>
             <FooterLink href="/guide">Kahve rehberi</FooterLink>
+            <FooterLink href="/rehber/filtre-kahve-nasil-yapilir">Filtre kahve nasıl yapılır?</FooterLink>
+            <FooterLink href="/rehber/filtre-kahve-cekirdegi">Filtre kahve çekirdeği seçimi</FooterLink>
           </nav>
           <nav aria-labelledby="footer-basalt">
             <p id="footer-basalt" className="eyebrow mb-2">Basalt’tan diğerleri</p>

@@ -21,6 +21,8 @@ Sayfalar Türkçedir. Fiyatlar Türk lirasıdır ve kavurucunun sitesinde son g�
 
 - [Kahve testi](https://kahve.hellobasalt.dev/quiz): birkaç soruyla damak tadına uygun kahve önerisi.
 - [Rehber](https://kahve.hellobasalt.dev/guide): kahve rehberi ve demleme hesaplayıcı.
+- [Filtre kahve nasıl yapılır?](https://kahve.hellobasalt.dev/rehber/filtre-kahve-nasil-yapilir): oran (1:15–1:17), öğütüm, 92–96 °C su; V60, Chemex, French press, filtre kahve makinesi ve soğuk demleme için adım adım tarif ve süreler.
+- [Filtre kahve çekirdeği seçimi](https://kahve.hellobasalt.dev/rehber/filtre-kahve-cekirdegi): "en iyi filtre kahve" sorusuna marka sıralaması olmadan cevap; çekirdekleri tada (meyvemsi, çiçeksi, çikolata), kökene (Etiyopya, Kenya, Kolombiya, Brezilya, Guatemala) ve kavruma göre seçme, satıştaki çekirdeklerden rakamlarla.
 - [KahveDrop Mektup](https://kahve.hellobasalt.dev/bulten): ayın favori kahveleri ve kahve sahnesinden haberler, tüm sayılar.
 
 ## Optional

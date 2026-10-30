@@ -31,7 +31,7 @@ const CATALOG = /^\/(?:|kahveler|kahveler\/(?:koken|islem)\/[^/]+|yeni|firsatlar
 /** Under about 1,100 rows per miss: one coffee, a quiz result, saved coffees, the newsletter archive, a written comparison or
  * the numbers page and its JSON copy (2 to 4 rows once their derived results exist; the first miss after a purge builds them,
  * as a coffee page builds similarity candidates, and the nightly warm-up makes that first miss). */
-const PAGE = /^\/(?:kahve\/[^/]+|kavurucular|bulten\/[^/]+|karsilastir|karsilastir\/[^/]+|veri|veri\/v1\/ozet\.json|quiz\/sonuc|compare|api\/quiz\/match|api\/saved)$/;
+const PAGE = /^\/(?:kahve\/[^/]+|kavurucular|bulten\/[^/]+|karsilastir|karsilastir\/[^/]+|rehber\/[^/]+|veri|veri\/v1\/ozet\.json|quiz\/sonuc|compare|api\/quiz\/match|api\/saved)$/;
 /** The free plan's 5,000,000 rows a day, less a reserve that covers the nightly refresh at its own hard cap (750,000),
  * the derived results and warm-up it triggers (about 300,000) and the brake's own lag (see BRAKE_POLL_MS). */
 export const BRAKE_ROWS = 3_500_000;

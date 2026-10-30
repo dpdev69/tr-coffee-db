@@ -159,7 +159,7 @@ test('the nightly warm-up builds the numbers, the edge keeps the page, and the s
   const at = (path: string) => entries.find(entry => entry.url === absoluteUrl(path))?.lastModified;
   assert.ok(at('/veri') instanceof Date, 'the numbers page changes with the catalog');
   assert.ok(at('/kahveler/koken/kolombiya') instanceof Date, 'so do landing pages');
-  assert.deepEqual(at('/guide'), new Date('2026-10-19'), 'the guide carries the date its copy changed');
+  assert.deepEqual(at('/guide'), new Date('2026-10-30'), 'the guide carries the date its copy changed');
   db.sqlite.close();
 });
 

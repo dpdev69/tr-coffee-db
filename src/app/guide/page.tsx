@@ -62,6 +62,15 @@ export default function GuidePage() {
             Kavurucunun sunduğu gramajı, paket fiyatını ve ne kadar kahve
             tükettiğini birlikte değerlendir. Kargo ücretini ayrıca hesaba kat.
           </p>
+          <h2>Filtre kahve için iki rehber</h2>
+          <p>
+            Oran, öğütüm, su sıcaklığı ve V60, Chemex, French press, makine
+            ve soğuk demleme için süreler:{' '}
+            <Link href="/rehber/filtre-kahve-nasil-yapilir" className="text-accent underline underline-offset-4">Filtre kahve nasıl yapılır?</Link>{' '}
+            Hangi çekirdeği alacağını tadına, kökenine ve kavrumuna göre seçmek
+            için:{' '}
+            <Link href="/rehber/filtre-kahve-cekirdegi" className="text-accent underline underline-offset-4">Filtre kahve çekirdeği seçimi</Link>.
+          </p>
           <h2>Kahve sözlüğü, kısa hali.</h2>
           <details open>
             <summary>Yıkanmış, natürel, honey ne demek?</summary>
