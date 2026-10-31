@@ -75,3 +75,19 @@ test('the page, the badge, the home counts, the newest sort and the digest agree
   assert.equal(currentBadges(page[0],later).length,1);
   db.sqlite.close();
 });
+
+test('a coffee shows "Yeni" or "Geri geldi", never both: a genuine arrival that restocked is new, an older coffee that came back is back',async()=>{
+  const db=await setup();
+  await ingestCrawl(db,run(1,[product('old')],{mode:'baseline'}));
+  await ingestCrawl(db,run(2,[product('old'),product('fresh')]));
+  await ingestCrawl(db,run(9,[product('old',undefined,false),product('fresh',undefined,false)]));
+  await ingestCrawl(db,run(11,[product('old'),product('fresh')]));
+  const badges=new Map((await listCatalog(db,{},now)).coffees.map(c=>[c.sourceProductId,currentBadges(c,now).map(e=>e.type)]));
+  assert.deepEqual(badges.get('fresh'),['NEW'],'first seen inside the window, then restocked: Yeni only');
+  assert.deepEqual(badges.get('old'),['RESTOCKED'],'listed before the window and came back: Geri geldi only');
+  // An arrival older than the window no longer counts as new, so a recent restock of it reads as Geri geldi.
+  const fresh=(await listCatalog(db,{},now)).coffees.find(c=>c.sourceProductId==='fresh')!;
+  const aged=fresh.latestEvents.map(e=>e.type==='NEW'?{...e,createdAt:new Date(now-(ARRIVAL_DAYS+1)*86400000).toISOString()}:e);
+  assert.deepEqual(currentBadges({...fresh,latestEvents:aged},now).map(e=>e.type),['RESTOCKED']);
+  db.sqlite.close();
+});
