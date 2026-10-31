@@ -19,10 +19,15 @@ const excluded=[product('ying-yang','Ying Yang'),product('new-ceramic','Yeni tas
   // Spada, 2026-10-05: chocolate bars named by their cacao origin.
   product('bean-to-bar','Kolombiya Opita - Bean To Bar Çikolata 45gr'),
   // Coffee Friendzone, local catalog 2026-10-05: weekly subscriptions stored 'public' under the old 'abonelik'-only rule.
-  product('friendzone-sub','Kahve Aboneliği 250 Gr. Haftalık Gönderim 8&#8242; li Paket'),product('friendzone-sub-premium','Kahve Aboneliği 250 Gr. Haftalık Gönderim 6&#8242; lı Paket Premium Çekirdekler'),product('sub-k','Aylık Abonelik – Rahatlık')];
+  product('friendzone-sub','Kahve Aboneliği 250 Gr. Haftalık Gönderim 8&#8242; li Paket'),product('friendzone-sub-premium','Kahve Aboneliği 250 Gr. Haftalık Gönderim 6&#8242; lı Paket Premium Çekirdekler'),product('sub-k','Aylık Abonelik – Rahatlık'),
+  // Owner decision 2026-10-31: no blends and no Turkish coffee, by name ("HARMANI" folds too) or by the shop's blend taxonomy.
+  product('blend','Coach Coffee Espresso | Harmony Blend'),product('harmani','ZERO - FILTRE HARMANI'),product('blend-tag','ACME',['Blend Kahveler']),
+  product('turk','Kronotrop Türk Kahvesi'),product('turk-upper','TÜRK KAHVESİ'),product('turk-origin','Brazil High Mogiana Türk Kahvesi'),product('turkish','Turkish Coffee Classic'),product('dibek','Dibek Kahvesi 250 g')];
 const allowed=[product('colombia','Colombia China Alta Ibagué Washed'),{...product('fruit','Berry coffee'),rawMetadata:{description:'Seramik V60 dripper, filtre kağıdı ve fincan kullanın. Termosta içebilir, ekmek ile servis edebilirsiniz.',tastingNotes:['green tea','chocolate bar','bread']}},product('unknown-weight','Ethiopia'),
   product('cascara-process','Colombia San Adolfo Cascara'),product('decaf-water','Lala Salama Sparkling Water Kafeinsiz'),product('sugar-decaf','Colombia Sugar Cane Decaf'),
-  product('sunset','Sunset Espresso'),product('one-bag','Ethiopia Guji 1x250 g')];
+  product('sunset','Sunset Espresso'),product('one-bag','Ethiopia Guji 1x250 g'),
+  // A single origin that names a brew method, or that its shop tags as suitable for Turkish coffee, stays.
+  product('origin-espresso','Peru Huabal Washed (Espresso)'),product('origin-filter','Etiyopya Korcha Natural (Filtre)'),product('turkish-tag','COLOMBIA STRAWBERRY',['turkish coffee'])];
 
 test('one coffee-only policy rejects non-coffee identity/taxonomy in JS and SQL without parsing tasting notes or brew instructions',async()=>{
   const db=new TestCatalogDatabase();await registerRoaster(db,{id:'r',slug:'molecule',name:'Molecule',websiteUrl:'https://coffeemolecule.com',adapter:'test'});

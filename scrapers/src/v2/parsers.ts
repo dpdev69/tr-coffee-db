@@ -91,7 +91,9 @@ export function parseShopifyPage(payload: unknown, config: RoasterConfig): Sourc
 }
 
 export function isWooCoffee(raw: Record<string, unknown>, config: RoasterConfig): boolean {
-  if (config.excludedProductSlugs?.includes(text(raw.slug)) || coffeeExclusionReason({name:requiredText(raw.name),canonicalUrl:text(raw.permalink),rawMetadata:{sourceData:json(raw)}})) return false;
+  // Blends and Turkish coffee are coffee: crawled and stored hidden, like every other shop's, not skipped.
+  const excluded = coffeeExclusionReason({name:requiredText(raw.name),canonicalUrl:text(raw.permalink),rawMetadata:{sourceData:json(raw)}});
+  if (config.excludedProductSlugs?.includes(text(raw.slug)) || (excluded && excluded !== 'blend_or_turkish_coffee')) return false;
   const categories = names(raw.categories).map(category => category.toLocaleLowerCase('tr'));
   const parts = [requiredText(raw.name), ...categories, ...names(raw.tags)];
   const haystack = parts.join(' ').toLocaleLowerCase('tr');

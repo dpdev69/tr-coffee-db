@@ -9,6 +9,11 @@ const NON_COFFEE_NAMES = ['matcha', 'chasen', 'chawan', 'paper chocolate', 'mixe
 // GLOB on the folded name, so SQL and JS agree; [^a-z0-9] is the word edge.
 const SET_GLOBS = ['set', 'set[^a-z0-9]*', '*[^a-z0-9]set', '*[^a-z0-9]set[^a-z0-9]*', '*[2-9]x[0-9]*', '*[2-9] x[0-9]*', '*[2-9]x [0-9]*', '*[2-9] x [0-9]*'];
 const SET_NAME = /(?:^|[^a-z0-9])set(?:$|[^a-z0-9])|[2-9] ?x ?[0-9]/;
+// Owner decision 2026-10-31: blends and Turkish coffee are never listed, whatever the roaster or origin.
+// Blend by name or by the shop's own taxonomy ("Blend Kahveler", tag "blend"); Turkish coffee by name only,
+// since shops tag single origins "turkish coffee" for the grind they offer.
+const BLEND_TERMS = ['blend', 'harman'];
+const TURKISH_COFFEE_NAMES = ['turk kahve', 'turkish coffee', 'dibek'];
 // Source capture 2026-09-14: all ten URLs belong to Molecule's “Türk Kahvesi Setleri”.
 // The legacy import omitted taxonomy, so these exact identities also need protection before repair.
 const MOLECULE_CERAMICS = ['aktris', 'oxide', 'khaki-splash', 'baby-blue-splash', 'cobalt-splash', 'pink-splash', 'ying-yang', 'paloma', 'ocean', 'citrus'];
@@ -23,6 +28,7 @@ export function coffeeExclusionReason(product: { name: string; canonicalUrl: str
   const name=fold(product.name); const identity=fold(`${product.name} ${taxonomy(product.rawMetadata)}`);
   if (EQUIPMENT.some(term=>identity.includes(term))) return 'non_coffee_equipment_or_service';
   if (NON_COFFEE_NAMES.some(term=>name.includes(term)) || SET_NAME.test(name)) return 'non_coffee_product';
+  if (BLEND_TERMS.some(term=>identity.includes(term)) || TURKISH_COFFEE_NAMES.some(term=>name.includes(term))) return 'blend_or_turkish_coffee';
   try {
     const url=new URL(product.canonicalUrl);
     if (['coffeemolecule.com','www.coffeemolecule.com'].includes(url.hostname.toLowerCase()) && MOLECULE_CERAMICS.includes(url.pathname.replace(/^\/+|\/+$/g,''))) return 'source_verified_ceramic';
@@ -44,6 +50,7 @@ export function coffeeOnlySql(alias='c'):string {
   const identity=foldSql(`${alias}.name||' '||coalesce(json_extract(${raw},'$.sourceData.product_type'),'')||' '||coalesce(json_extract(${raw},'$.sourceData.categories'),'')||' '||coalesce(json_extract(${raw},'$.sourceData.tags'),'')||' '||coalesce(json_extract(${raw},'$.sourceData.category'),'')`);
   const name=foldSql(`${alias}.name`);
   const paths=MOLECULE_CERAMICS.flatMap(path=>['coffeemolecule.com','www.coffeemolecule.com'].map(host=>`https://${host}/${path}`));
-  return `NOT EXISTS(SELECT 1 FROM (SELECT ${identity} AS identity,${name} AS name) excluded WHERE ${anySql([...EQUIPMENT.map(term=>`instr(excluded.identity,${literal(term)})>0`),...NON_COFFEE_NAMES.map(term=>`instr(excluded.name,${literal(term)})>0`),...SET_GLOBS.map(glob=>`excluded.name GLOB ${literal(glob)}`)])})
+  return `NOT EXISTS(SELECT 1 FROM (SELECT ${identity} AS identity,${name} AS name) excluded WHERE ${anySql([...EQUIPMENT.map(term=>`instr(excluded.identity,${literal(term)})>0`),...NON_COFFEE_NAMES.map(term=>`instr(excluded.name,${literal(term)})>0`),
+    ...BLEND_TERMS.map(term=>`instr(excluded.identity,${literal(term)})>0`),...TURKISH_COFFEE_NAMES.map(term=>`instr(excluded.name,${literal(term)})>0`),...SET_GLOBS.map(glob=>`excluded.name GLOB ${literal(glob)}`)])})
     AND rtrim(lower(${alias}.canonical_url),'/') NOT IN (${paths.map(literal).join(',')})`;
 }

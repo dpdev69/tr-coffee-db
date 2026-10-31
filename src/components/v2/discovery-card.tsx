@@ -24,9 +24,11 @@ export function preferredOffer(coffee:CatalogCoffee):CatalogOffer|undefined {
     Number(a.weightG===null)-Number(b.weightG===null)||Math.abs((a.weightG??250)-250)-Math.abs((b.weightG??250)-250)||(a.priceMinor??Infinity)-(b.priceMinor??Infinity)||a.id.localeCompare(b.id))[0];
 }
 /** A historical event is not an active badge once its current state or window has ended: ARRIVAL_DAYS for a genuine
- * arrival (hydrate keeps only those NEW events, so the badge agrees with /yeni), seven days for the rest. */
+ * arrival (hydrate keeps only those NEW events, so the badge agrees with /yeni), seven days for the rest.
+ * "Yeni" and "Geri geldi" never show together: a genuine arrival still in its window that also restocked is "Yeni";
+ * a coffee that came back without one (it was listed before the window) is "Geri geldi". */
 export function currentBadges(coffee:CatalogCoffee,now=Date.now()):CoffeeEvent[]{
-  return coffee.latestEvents.filter(event=>{
+  const active=coffee.latestEvents.filter(event=>{
     const age=now-Date.parse(event.createdAt);
     if(!Number.isFinite(age)||age<0||age>(event.type==='NEW'?ARRIVAL_DAYS:7)*86400000)return false;
     const offer=coffee.offers.find(value=>value.variantOfferIds.includes(event.offerId??''));
@@ -35,7 +37,9 @@ export function currentBadges(coffee:CatalogCoffee,now=Date.now()):CoffeeEvent[]
     if(event.type==='OUT_OF_STOCK')return offer?.inStock===false;
     const after=event.after&&typeof event.after==='object'&&!Array.isArray(event.after)?event.after:null;
     return offer?.inStock===true&&after?.priceMinor===offer.priceMinor&&after?.currency===offer.currency&&after?.weightG===offer.weightG;
-  }).sort((a,b)=>Number(b.type==='DEAL')-Number(a.type==='DEAL')).slice(0,2);
+  });
+  const arrived=active.some(event=>event.type==='NEW');
+  return active.filter(event=>!(arrived&&event.type==='RESTOCKED')).sort((a,b)=>Number(b.type==='DEAL')-Number(a.type==='DEAL')).slice(0,2);
 }
 export function publicOfferLabel(offer:CatalogOffer|undefined){
   return offer?.label&&!/^(legacy package\b|default title$)/i.test(offer.label)?displayPackageLabel(offer.label,offer.weightG):offer?.weightG?formatPackageWeight(offer.weightG):'Paket ağırlığı belirtilmemiş';
