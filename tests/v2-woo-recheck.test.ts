@@ -51,6 +51,8 @@ describe('WooCommerce shops once listed as zero-product are read completely', ()
       ['BREZİLYA FAZENDA INES ANAEROBİK', [[1000, 2300, true], [250, 600, true]]],
       ['TÜRK KAHVESİ HARMANI', [[250, 400, true], [500, 800, true], [1000, 1500, true]]],
     ]);
+    // A blend of Turkish coffee is still read, and stored hidden (owner decision 2026-10-31).
+    assert.deepEqual(result.products.map(p => p.visibility), ['public', 'hidden']);
   });
 
   it('Baristocrat: prices in kuruş, the mug skipped', async () => {
