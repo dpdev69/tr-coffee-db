@@ -11,7 +11,7 @@ import { JsonLd } from '@/components/layout/json-ld';
 import { absoluteUrl } from '@/lib/site';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
 import { RoasterInitial } from '@/components/v2/discovery-detail';
-import { getCatalogCounts, getCoffeeOfTheDay, listCatalog, listRoasters, type CatalogCoffee, type CatalogRoaster } from '../../shared/v2/catalog';
+import { getCoffeeOfTheDay, listCatalog, listRoasters, type CatalogCoffee, type CatalogRoaster } from '../../shared/v2/catalog';
 import { ARRIVAL_DAYS } from '../../shared/v2/events';
 import { CoffeeImage } from '@/components/v2/coffee-image';
 import { SAVED_KEY } from '@/lib/device-keys';
@@ -56,20 +56,20 @@ function DayCard({ coffee, now }: { coffee: CatalogCoffee; now: number }) {
 
 export default async function HomePage({ searchParams }: { searchParams?: Promise<Record<string, string | string[] | undefined>> } = {}) {
   dropTrackingParams('/', await searchParams);
-  let data: { counts: Awaited<ReturnType<typeof getCatalogCounts>>; catalog: CatalogCoffee[]; drops: CatalogCoffee[]; restocked: CatalogCoffee[]; roasters: CatalogRoaster[]; day: CatalogCoffee | null } | null = null;
+  let data: { catalog: CatalogCoffee[]; drops: CatalogCoffee[]; restocked: CatalogCoffee[]; roasters: CatalogRoaster[]; day: CatalogCoffee | null } | null = null;
   // Server request time picks the day's coffee and the verified-event window.
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   try {
     const db = await getCatalogDatabase();
     const since = new Date(Math.floor(now / 300000) * 300000 - 7 * 86400000).toISOString();
-    const [counts, catalog, drops, restocked, roasters, day] = await Promise.all([
-      getCatalogCounts(db), listCatalog(db, { event: 'NEW', since: new Date(Math.floor(now / 300000) * 300000 - ARRIVAL_DAYS * 86400000).toISOString(), perPage: 4 }),
+    const [catalog, drops, restocked, roasters, day] = await Promise.all([
+      listCatalog(db, { event: 'NEW', since: new Date(Math.floor(now / 300000) * 300000 - ARRIVAL_DAYS * 86400000).toISOString(), perPage: 4 }),
       listCatalog(db, { event: 'PRICE_DROP', since, perPage: 4 }),
       listCatalog(db, { event: 'RESTOCKED', since, perPage: 4 }),
       listRoasters(db), getCoffeeOfTheDay(db, now),
     ]);
-    data = { counts, catalog: catalog.coffees, drops: drops.coffees, restocked: restocked.coffees, roasters, day };
+    data = { catalog: catalog.coffees, drops: drops.coffees, restocked: restocked.coffees, roasters, day };
   } catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); }
   return <div className="page-shell studio-home">
     <JsonLd data={{ '@type': 'Organization', name: brand.name, url: absoluteUrl('/'), logo: absoluteUrl(brand.logoPath), description: brand.description, parentOrganization: studioOrganization }} />
@@ -77,7 +77,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
     <JsonLd data={{ '@type': 'WebSite', name: brand.name, url: absoluteUrl('/'), inLanguage: 'tr-TR', potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${absoluteUrl('/kahveler')}?search={search_term_string}` }, 'query-input': 'required name=search_term_string' } }} />
     <section className="studio-hero">
       <div className="studio-hero-copy">
-        <p className="eyebrow">{data ? `${data.counts.coffees.toLocaleString('tr-TR')} kahve · ${data.counts.roasters} kavurucu · her gün güncel` : 'Türkiye’nin bağımsız kahve rehberi'}</p>
+        <p className="eyebrow">Türkiye’nin bağımsız kahve rehberi</p>
         <h1>İyi bir kahve.<br /><em>Senin damak tadın.</em></h1>
         <p className="studio-intro">Her çekirdeğin bir hikâyesi, her fincanın bir karakteri var. Sana uygun kahveyi keşfet, doğrudan kavurucusundan al.</p>
         <div className="studio-actions"><Link href="/quiz" className="button-dark button-lg">Kahvemi bul</Link><Link href="/kahveler" className="button-light button-lg">Kataloğu keşfet</Link></div>

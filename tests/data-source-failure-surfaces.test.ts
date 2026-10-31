@@ -22,6 +22,12 @@ describe('data-source failure surfaces', () => {
     assert.match(html, /role="alert"/); assert.match(html, /Kahveler şu an yüklenemiyor/);
     assert.doesNotMatch(html, /satıştaki kahve|satıştaki paket|Henüz doğrulanmış bir değişiklik yok|100\+/);
   });
+  it('the home hero carries the tagline, never live counts, and spends no read on them', async () => {
+    // Owner decision 2026-10-31.
+    const hero = renderToStaticMarkup(await HomePage()).match(/<section class="studio-hero">[\s\S]*?<\/section>/)?.[0] ?? '';
+    assert.match(hero, /<p class="eyebrow">Türkiye’nin bağımsız kahve rehberi<\/p>/);
+    assert.doesNotMatch(readFileSync('src/app/page.tsx', 'utf8'), /getCatalogCounts|counts\./);
+  });
   it('renders coffee and roaster detail outages rather than throwing a fake 404', async () => {
     const coffee = renderToStaticMarkup(await CoffeePage({ params: Promise.resolve({ slug: 'unavailable' }) }));
     const roaster = renderToStaticMarkup(await RoasterPage({ params: Promise.resolve({ slug: 'unavailable' }) }));
