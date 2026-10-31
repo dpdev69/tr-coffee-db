@@ -43,6 +43,28 @@ describe('V2 pure adapter contracts', () => {
     const products = parseIkasProducts([ikas('peru', 'Peru Finca Churupampa Limited Edition'), ikas('ETIOPYA', 'ETİYOPYA GUJI'), ikas('bar', 'Kolombiya Opita - Bean To Bar Çikolata 45gr'), ikas('shirt', 'Calibre Design T-Shirt')], { ...config, platform: 'ikas' });
     assert.deepEqual(products.map(p => [p.name, p.visibility]), [['Peru Finca Churupampa Limited Edition', 'public'], ['ETİYOPYA GUJI', 'public'], ['Kolombiya Opita - Bean To Bar Çikolata 45gr', 'hidden']]);
   });
+  it('hides house coffees, blends and Turkish coffee alike; a single origin naming its brew method stays', () => {
+    // Kronotrop, staging 2026-10-17: "DARK Espresso" was hidden and "DARK Filtre" shown. Neither names an origin
+    // anywhere in the source; the coffee() builder is shared, so one parser stands for all.
+    const ikas = (id: string, name: string, description: string, categories: string[] = []) => ({ id, name, description, metaData: { slug: id }, categories: categories.map(name => ({ name })), tags: [], variants: [{ id: `${id}-v`, prices: [{ sellPrice: 1150 }], stocks: [{ stockCount: 3 }] }] });
+    const products = parseIkasProducts([
+      ikas('dark-espresso', 'Kronotrop DARK Espresso', 'Otomatik espresso makineleri için tasarlanan kakaolu kek, kavrulmuş fındık ve baharat notalı Kronotrop Dark Espresso 250 g kahve çekirdeği.', ['Kahveler']),
+      ikas('dark-filtre', 'Kronotrop DARK Filtre', 'Nektarin, çilekli yoğurt ve kakaolu puding notalarına sahip nitelikli Kronotrop Dark Filtre 250 g kahve çekirdeği.', ['Kahveler']),
+      ikas('turk', 'Kronotrop Türk Kahvesi', 'Fıstık, siyah çay, nane ve pekmez notalarına sahip nitelikli Kronotrop Türk Kahvesi 250 g kahve çekirdeği.', ['Kahveler']),
+      ikas('turk-origin', 'Brazil High Mogiana Türk Kahvesi', 'Brezilya, natural.', ['Kahveler']),
+      ikas('harmani', 'TÜRK KAHVESİ HARMANI', 'Güney Amerika ve Afrika kahvelerinin harmanı.', ['Kahveler']),
+      ikas('peru-espresso', 'Peru Huabal Washed (Espresso)', 'Fıstık, siyah çay, nane ve pekmez notalarına sahip nitelikli Peru Huabal Washed 250 g kahve çekirdeği.', ['Kahveler']),
+    ], { ...config, platform: 'ikas' });
+    assert.deepEqual(products.map(p => [p.name, p.visibility]), [['Kronotrop DARK Espresso', 'hidden'], ['Kronotrop DARK Filtre', 'hidden'], ['Kronotrop Türk Kahvesi', 'hidden'],
+      ['Brazil High Mogiana Türk Kahvesi', 'hidden'], ['TÜRK KAHVESİ HARMANI', 'hidden'], ['Peru Huabal Washed (Espresso)', 'public']]);
+  });
+  it('keeps a single origin filed under a trial-set category; real sets there stay out', () => {
+    // Gourme, 2026-10-31: the one coffee "Honduras El Jardin (100GR)" sits in the shop's "Deneme Seti" category.
+    const ikas = (id: string, name: string, categories: string[]) => ({ id, name, metaData: { slug: id }, categories: categories.map(name => ({ name })), tags: [], variants: [{ id: `${id}-v`, prices: [{ sellPrice: 450 }], stocks: [{ stockCount: 3 }] }] });
+    const products = parseIkasProducts([ikas('el-jardin', 'Honduras El Jardin (100GR)', ['Deneme Seti']), ikas('duo', 'Kenya & Etiyopya (2x100GR)', ['Deneme Seti']),
+      ikas('trio', 'Afrika Üçlüsü', ['Deneme Seti']), ikas('panama', 'Best of Panama Seti', ['Deneme Seti']), ikas('named', 'Kolombiya Deneme Seti', ['Kahveler'])], { ...config, platform: 'ikas', coffeeProductKeywords: ['afrika'] });
+    assert.deepEqual(products.map(p => [p.name, p.visibility]), [['Honduras El Jardin (100GR)', 'public']]);
+  });
   it('keeps Parsa raw origin/producer and every package with stable source option keys', async () => {
     const product = parseParsaProduct(await json('parsa.json'), config);
     assert.equal(product.sourceProductId, '101');

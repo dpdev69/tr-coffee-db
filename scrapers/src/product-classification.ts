@@ -68,19 +68,9 @@ const EXCLUDED_ANYWHERE_PATTERNS = [
   /\bgroup-buy\b/i,
   /\bhediye\s*seti\b/i,
   /\bkahve\s*seti\b/i,
-  /\btadım\s*paketi\b/i,
-  /\btadim\s*paketi\b/i,
-  /\bdeneme\s*paketi\b/i,
-  /\bsample\s*box\b/i,
-  /\bsample\s*pack\b/i,
-  /\bdeneme\s*seti\b/i,
   /\bkahve\s*paketi\b/i,
   /\bpaket\s*kahve\b/i,
-  /\bkeşif\s*seti\b/i,
-  /\bkesif\s*seti\b/i,
   /\bkahve\s*kutusu\b/i,
-  /\btanışma\s*seti\b/i,
-  /\btanisma\s*seti\b/i,
   /\bkahveleri\s*seti\b/i,
   /\bkoleksiyonu\b/i,
   /\bbardak\s*altl/i,
@@ -111,6 +101,22 @@ const EXCLUDED_ANYWHERE_PATTERNS = [
   /cig\s*yesil\s*(?:kahve\s*)?cekirdek/i,
 ];
 
+// Trial and sample sets. In the product name they always exclude; in a shop category only when the name is not a
+// single origin: Gourme files the one coffee "Honduras El Jardin (100GR)" under "Deneme Seti".
+const SAMPLE_SET_PATTERNS = [/\btad[ıi]m\s*paketi\b/i, /\bdeneme\s*(?:paketi|seti)\b/i, /\bsample\s*(?:box|pack)\b/i, /\bke[şs]if\s*seti\b/i, /\btan[ıi][şs]ma\s*seti\b/i];
+
+export const STRUCTURED_ORIGIN_TITLE_COUNTRY_PATTERN =
+  /\b(?:etiyopya|ethiopia|ethiopian|kolombiya|colombia|colombian|brezilya|brazil|brazilian|brasil|kenya|kenyan|guatemala|guatemalan|kosta\s*rika|kostarika|costa\s*rica|panama|panamanian|peru|peruvian|honduras|honduran|el\s*salvador|salvadoran|meksika|mexico|mexican|endonezya|indonesia|indonesian|sumatra|rwanda|ruanda|rwandan|burundi|burundian|tanzanya|tanzania|tanzanian|uganda|ugandan|nikaragua|nicaragua|bolivya|bolivia|ekvador|ecuador|hindistan|india|indian|yemen|yemeni|kongo|congo|drc|dominik|dominican|küba|cuba|papua|png|çin|china|yunnan|myanmar|burma|vietnam)\b/i;
+
+const ORIGIN_COUNTRIES = new RegExp(STRUCTURED_ORIGIN_TITLE_COUNTRY_PATTERN.source, 'gi');
+
+/** One origin country and no pack wording: "Honduras El Jardin (100GR)", not "Kenya & Ethiopia" or "Panama Seti". */
+function isSingleOriginName(name: string) {
+  const lower = name.toLocaleLowerCase('tr');
+  return new Set((lower.match(ORIGIN_COUNTRIES) ?? []).map((origin) => origin.replace(/\s+/g, ''))).size === 1 &&
+    !/\bset(?:i|leri)?\b|paket|kutu|\bbox\b|[2-9]\s*x\s*\d|\s[&+]\s/i.test(lower);
+}
+
 const EXCLUDED_PRODUCT_NAME_PATTERNS = [
   // Paper files chocolate bars under Kahve; its Mixed Fruit Box is four 50 g coffee samples.
   // Both belong outside single-coffee comparisons, while chocolate/fruit tasting notes stay valid.
@@ -132,7 +138,11 @@ export function isLikelyCatalogCoffeeProduct(parts: Array<string | null | undefi
   const productName = normalizedParts[0] ?? '';
   const haystack = normalizedParts.join(' ');
 
+  const sampleSet = SAMPLE_SET_PATTERNS.some((pattern) => pattern.test(productName)) ||
+    (SAMPLE_SET_PATTERNS.some((pattern) => pattern.test(haystack)) && !isSingleOriginName(parts.find(Boolean) ?? ''));
+
   return (
+    !sampleSet &&
     !EXCLUDED_ANYWHERE_PATTERNS.some((pattern) => pattern.test(haystack)) &&
     !EXCLUDED_PRODUCT_NAME_PATTERNS.some((pattern) => pattern.test(productName))
   );

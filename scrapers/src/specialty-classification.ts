@@ -1,5 +1,7 @@
-import { isLikelyCatalogCoffeeProduct } from './product-classification.js';
+import { isLikelyCatalogCoffeeProduct, STRUCTURED_ORIGIN_TITLE_COUNTRY_PATTERN } from './product-classification.js';
 import type { NormalizedCoffee, RawProduct } from './types.js';
+
+export { STRUCTURED_ORIGIN_TITLE_COUNTRY_PATTERN };
 
 export type SpecialtyStatus = 'specialty' | 'not_specialty' | 'unclassified';
 export type SpecialtyOverrideAction = 'force_include' | 'force_exclude';
@@ -30,7 +32,7 @@ const CATALOG_COFFEE_SIGNAL = 'catalog_coffee';
 
 const GENERIC_BLEND_PATTERNS = [
   /\bblend\b/i,
-  /\bharman\b/i,
+  /\bharman/i,
   /\bespresso\s+(?:blend|harman[ıi]?)\b/i,
   /\bhouse\s+blend\b/i,
   /\bdaily\s+coffee\b/i,
@@ -38,9 +40,11 @@ const GENERIC_BLEND_PATTERNS = [
   /\bofis\s+kahvesi\b/i,
 ];
 
+// A title that names only a brew method and no origin is a house coffee: "DARK Espresso" and "DARK Filtre" alike.
 const BROAD_CATALOG_PATTERNS = [
   /\bt[üu]rk\s+kahvesi\b/i,
-  /\bfiltre\s+kahve\b/i,
+  /\bfiltre\b/i,
+  /\bfilter\b/i,
   /\bespresso\b/i,
   /\bcoffee\s+beans?\b/i,
   /\bçekirdek\s+kahve\b/i,
@@ -55,9 +59,6 @@ const TRACEABILITY_PATTERNS = [
   /\bmicrolot\b/i,
   /\bnano\s*lot\b/i,
 ];
-
-export const STRUCTURED_ORIGIN_TITLE_COUNTRY_PATTERN =
-  /\b(?:etiyopya|ethiopia|ethiopian|kolombiya|colombia|colombian|brezilya|brazil|brazilian|brasil|kenya|kenyan|guatemala|guatemalan|kosta\s*rika|kostarika|costa\s*rica|panama|panamanian|peru|peruvian|honduras|honduran|el\s*salvador|salvadoran|meksika|mexico|mexican|endonezya|indonesia|indonesian|sumatra|rwanda|ruanda|rwandan|burundi|burundian|tanzanya|tanzania|tanzanian|uganda|ugandan|nikaragua|nicaragua|bolivya|bolivia|ekvador|ecuador|hindistan|india|indian|yemen|yemeni|kongo|congo|drc|dominik|dominican|küba|cuba|papua|png|çin|china|yunnan|myanmar|burma|vietnam)\b/i;
 
 const STRUCTURED_ORIGIN_TITLE_PROCESS_PATTERN =
   /\b(?:anaerobic|anaerobik|karbonik|carbonic|experimental|deneysel|semi[\s-]*washed|wet[\s-]*hulled|honey|pulped\s*natural|washed|yikanmis|natural|natürel|naturel|dogal)\b/i;
