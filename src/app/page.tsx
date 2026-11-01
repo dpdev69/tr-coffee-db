@@ -40,7 +40,7 @@ const dayLabel = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long
 /** Same card for every visitor on a given day; caches with the page. */
 function DayCard({ coffee, now }: { coffee: CatalogCoffee; now: number }) {
   const notes = displayNotes(coffee.rawMetadata.tastingNotes ?? []).slice(0, 3).join(', ');
-  return <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="group relative flex min-h-[300px] gap-6 overflow-hidden rounded-[28px] bg-accent p-7 text-on-accent sm:p-9">
+  return <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="group relative flex min-h-[300px] gap-6 overflow-hidden rounded-[20px] bg-accent p-7 text-on-accent sm:p-9">
     <span className="flex min-w-0 flex-1 flex-col gap-3">
       <span className="text-[13px] font-semibold tracking-[0.04em] text-chip">GÜNÜN KAHVESİ · {dayLabel.format(now).toLocaleUpperCase('tr-TR')}</span>
       <span className="font-display text-[clamp(28px,3.4vw,38px)] font-medium leading-[1.08]">{displayCoffeeName(coffee.name)}</span>
@@ -90,7 +90,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       {data?.day ? <DayCard coffee={data.day} now={now} /> : null}
       <div className="saved-panel-slot"><SavedPanel /></div>
     </div>
-    <section className="mt-10 rounded-[18px] border border-line bg-surface p-[clamp(24px,3.5%,48px)]" aria-labelledby="how-it-works">
+    <section className="mt-10 rounded-[20px] border border-line bg-surface p-[clamp(24px,3.5%,48px)]" aria-labelledby="how-it-works">
       <h2 id="how-it-works" className="mb-6 font-display text-heading">Nasıl çalışır</h2>
       <ol className="grid-trio">{HOW_IT_WORKS.map(([title, body], index) => <li key={title} className="flex flex-col gap-2"><span className="font-display text-[40px] leading-none text-warm">{index + 1}</span><span className="font-display text-[23px]">{title}</span><span className="text-[15px] leading-relaxed text-muted">{body}</span></li>)}</ol>
     </section>

@@ -75,7 +75,7 @@ export function SavedPanel() {
   const ready = items && items !== 'error' ? items : null;
   const ranked = ready ? [...saved].sort((a, b) => Number(savedStatus(b, ready.get(b.slug)).kind === 'drop') - Number(savedStatus(a, ready.get(a.slug)).kind === 'drop')) : saved;
   const drops = ready ? saved.filter(entry => savedStatus(entry, ready.get(entry.slug)).kind === 'drop').length : 0;
-  return <section className="flex h-full flex-col gap-1.5 rounded-[28px] border border-line bg-surface p-6 sm:p-8" aria-labelledby="saved-panel-title">
+  return <section className="flex h-full flex-col gap-1.5 rounded-[20px] border border-line bg-surface p-6 sm:p-8" aria-labelledby="saved-panel-title">
     <div className="flex items-baseline justify-between gap-3"><h2 id="saved-panel-title" className="font-display text-[26px]">Listem</h2><Link href="/listem" className="text-link inline-flex min-h-11 items-center text-sm">Tümü ({saved.length}) →</Link></div>
     {drops ? <p className="mb-1.5 rounded-xl bg-chip px-3.5 py-2.5 text-[15px] text-accent-deep">Listendeki {drops} kahvenin fiyatı düştü.</p> : null}
     {items === 'error' ? <p className="text-sm text-muted">Güncel fiyatları şu an alamadık.</p> : ranked.slice(0, 3).map(entry => ready ? <SavedRow key={entry.slug} saved={entry} item={ready.get(entry.slug)} compact /> : <div key={entry.slug} className="h-[68px] border-b border-line" />)}

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { brand } from "@/lib/brand";
 import { SITE_CARD } from "@/lib/page-metadata";
-import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_URL } from "@/lib/site";
@@ -10,21 +10,10 @@ import { WebAnalytics } from "@/components/v2/web-analytics";
 import { CONSENT_COOKIE } from "../../shared/v2/consent";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin", "latin-ext"],
-});
-
-// Display face (SIL OFL) with Turkish glyphs (ı İ ş ğ) in latin-ext: 500 for headings, 600 for the wordmark.
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
-  subsets: ["latin", "latin-ext"],
-  weight: ["500", "600"],
-});
-
+// Text and headings use the system font (Basalt design language); Geist Mono is the only web font, with latin-ext for ç ğ ı İ ö ş ü.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
 });
 
 // Phone status bar in the page ground colour (--color-ground), so it runs into the sticky header.
@@ -89,7 +78,7 @@ export default function RootLayout({
     <html
       lang="tr"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} h-full antialiased`}
+      className={`${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-ground font-sans text-ink">
         <script dangerouslySetInnerHTML={{ __html: consentScript }} />

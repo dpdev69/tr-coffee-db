@@ -87,7 +87,7 @@ export function QuizContainer() {
 
   return (
     <div className="quiz-layout">
-      <div ref={cardRef} className="scroll-mt-28 rounded-[18px] border border-line bg-surface p-5 sm:p-6">
+      <div ref={cardRef} className="scroll-mt-28 rounded-[20px] border border-line bg-surface p-5 sm:p-6">
         <div className="mb-7">
           <div className="flex items-center justify-between gap-4 text-sm text-muted">
             <span>Adım {stepIndex + 1} / {QUIZ_STEPS.length}</span>
