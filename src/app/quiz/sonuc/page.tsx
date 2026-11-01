@@ -62,15 +62,16 @@ export default async function QuizResultPage({ searchParams }: { searchParams: P
                   <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-1.5">
                     <h2 className="font-display text-2xl leading-tight text-ink"><Link href={`/kahve/${coffee.slug}`} prefetch={false} className="hover:underline">{displayCoffeeName(coffee.name)}</Link></h2>
                     <p className="text-sm text-muted"><Link href={`/kavurucu/${coffee.roaster.slug}`} className="hover:text-accent hover:underline">{coffee.roaster.name}</Link>{coffee.roaster.city ? ` · ${coffee.roaster.city}` : ''}</p>
-                    {coffee.quizReasons.length ? (
+                    {/* Known facts only: no "bilgi yok" rows and no note on where a fact came from (owner, 1 Nov). */}
+                    {coffee.quizReasons.some((reason) => reason.kind !== 'missing') ? (
                       <ul className="mt-2 flex flex-col gap-1.5" aria-label="Neden bu kahve">
-                        {coffee.quizReasons.map((reason) => {
+                        {coffee.quizReasons.filter((reason) => reason.kind !== 'missing').map((reason) => {
                           const line = formatQuizReason(reason);
                           const good = line.kind === 'match' || line.kind === 'near';
                           return (
                             <li key={line.dimension} className={`flex items-baseline gap-2 text-[15px] ${good ? 'text-ink' : 'text-muted'}`}>
                               <span aria-hidden="true" className={`w-3.5 shrink-0 ${good ? 'text-accent' : 'text-muted'}`}>{good ? '✓' : '–'}</span>
-                              <span>{line.text}{line.source ? <span className="text-[13px] text-muted"> ({line.source})</span> : null}</span>
+                              <span>{line.text}</span>
                             </li>
                           );
                         })}

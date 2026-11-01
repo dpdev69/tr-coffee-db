@@ -25,7 +25,7 @@ export function ConsentControls() {
     {open || choice === null ? <section aria-label="Çerez tercihleri" data-open={open || undefined} className="consent-banner fixed inset-x-0 bottom-0 z-[70] border-t border-line bg-surface px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] shadow-lg">
       <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
         <p className="text-[13px] leading-5 text-muted sm:flex-1"><strong className="font-semibold text-ink">Tercih senin. </strong>Listen, karşılaştırman, test yanıtların ve bu tercihin yalnızca cihazında tutulur. İzin verirsen siteyi geliştirmek için anonim kullanım ölçümünü açarız. <Link href="/privacy" className="hit underline underline-offset-4">Gizlilik</Link></p>
-        <div className="flex flex-none gap-2"><button type="button" onClick={() => choose('essential')} className="button-light flex-1 border border-line sm:flex-none">Yalnızca gerekli</button><button type="button" onClick={() => choose('analytics')} className="button-dark flex-1 sm:flex-none">Ölçüme izin ver</button></div>
+        <div className="flex flex-none gap-2"><button type="button" onClick={() => choose('essential')} className="button-light flex-1 whitespace-nowrap border border-line px-3 text-sm min-[360px]:text-[15px] sm:flex-none sm:px-5">Yalnızca gerekli</button><button type="button" onClick={() => choose('analytics')} className="button-dark flex-1 whitespace-nowrap px-3 text-sm min-[360px]:text-[15px] sm:flex-none sm:px-5">Ölçüme izin ver</button></div>
       </div>
     </section> : null}
   </>;

@@ -78,7 +78,8 @@ test('public coffee renders omit internal maintenance dates while preserving roa
   }
   assert.match(detailHtml, /2026-08-14/);
   assert.match(detailHtml, /2025/);
-  assert.match(detailHtml, /SCA · kavurucu beyanı/);
+  assert.match(detailHtml, /SCA puanı/);
+  assert.doesNotMatch(detailHtml, /kavurucu belirtiyor|açıklamadan çıkarıldı|belirtmemiş|beyanı/);
   assert.match(detailHtml, /87,5/);
 });
 
@@ -86,11 +87,11 @@ test('public coffee renders omit internal maintenance dates while preserving roa
 test('legacy migration package placeholders stay out of public price labels', () => {
   const html = renderToStaticMarkup(createElement(OfferPrice, { offer: { ...offer, weightG: null, label: 'Legacy package — SKU unverified' } }));
   assert.doesNotMatch(html, /Legacy|SKU|unverified/);
-  assert.match(html, /Paket ağırlığı belirtilmemiş/);
+  assert.doesNotMatch(html, /belirtilmemiş/);
 });
 
 test('a Shopify placeholder label is never shown as a package name', () => {
   const html = renderToStaticMarkup(createElement(OfferPrice, { offer: { ...offer, weightG: null, label: 'Default Title' } }));
   assert.doesNotMatch(html, /Default Title/);
-  assert.match(html, /Paket ağırlığı belirtilmemiş/);
+  assert.doesNotMatch(html, /belirtilmemiş/);
 });

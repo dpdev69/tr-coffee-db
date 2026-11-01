@@ -80,7 +80,8 @@ function FooterLink({
   rel?: string;
   children: React.ReactNode;
 }) {
-  const className = 'flex min-h-11 items-center text-sm text-muted hover:text-accent hover:underline hover:underline-offset-4';
+  // Even padding, not a min-height: a two-line label keeps the same gap to its neighbours as a one-line one.
+  const className = 'block py-3 text-sm leading-5 text-muted hover:text-accent hover:underline hover:underline-offset-4';
   // Site pages go through the router; other Basalt sites, social profiles and mail open as plain links.
   if (href.startsWith('/')) return <Link href={href} className={className}>{children}</Link>;
   return <a href={href} rel={rel ?? 'noopener'} className={className}>{children}</a>;

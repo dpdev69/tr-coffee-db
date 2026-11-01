@@ -19,8 +19,8 @@ import type { CoffeeWithRoaster } from '@/lib/types/database';
 import type { LegacyCatalogCoffee } from '@/lib/v2-legacy';
 type ComparisonCoffee = CoffeeWithRoaster & Partial<Pick<LegacyCatalogCoffee, 'stock_status' | 'decaf_status'>>;
 
-/** The site-wide wording for a fact the roaster did not publish. */
-const UNSTATED = 'Kavurucu belirtmemiş';
+/** An empty table cell: a dash, never a note about what the roaster did or did not publish (owner, 1 Nov). */
+const UNSTATED = '—';
 export const metadata: Metadata = {
   ...pageMetadata('Kahveleri Karşılaştır', 'Kahvelerin paket fiyatını, gramajını, kökenini ve tat notlarını yan yana karşılaştır.', '/compare'),
   robots: { index: false, follow: true },
