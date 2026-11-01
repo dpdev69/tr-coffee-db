@@ -28,13 +28,18 @@ const geistMono = Geist_Mono({
 });
 
 // Phone status bar in the page ground colour (--color-ground), so it runs into the sticky header.
+// viewport-fit=cover: the page owns the status-bar strip, and the header, menu and bottom bars pad by env(safe-area-inset-*),
+// so on iPhone a sticky header never slides under the status bar where a tap scrolls to the top instead.
 export const viewport: Viewport = {
   themeColor: '#f7f8f6',
+  viewportFit: 'cover',
 };
 
 export const metadata: Metadata = {
   metadataBase: SITE_URL,
   applicationName: SITE_NAME,
+  // iPhone Safari must not turn prices, sizes or dates into tel:/mail links: the rewritten markup breaks hydration.
+  formatDetection: { telephone: false, address: false, email: false },
   title: {
     default: brand.title,
     template: `%s | ${brand.name}`,

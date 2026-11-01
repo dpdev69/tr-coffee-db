@@ -42,11 +42,11 @@ export function currentBadges(coffee:CatalogCoffee,now=Date.now()):CoffeeEvent[]
   return active.filter(event=>!(arrived&&event.type==='RESTOCKED')).sort((a,b)=>Number(b.type==='DEAL')-Number(a.type==='DEAL')).slice(0,2);
 }
 export function publicOfferLabel(offer:CatalogOffer|undefined){
-  return offer?.label&&!/^(legacy package\b|default title$)/i.test(offer.label)?displayPackageLabel(offer.label,offer.weightG):offer?.weightG?formatPackageWeight(offer.weightG):'Paket ağırlığı belirtilmemiş';
+  return offer?.label&&!/^(legacy package\b|default title$)/i.test(offer.label)?displayPackageLabel(offer.label,offer.weightG):offer?.weightG?formatPackageWeight(offer.weightG):'Paket';
 }
 export function OfferPrice({offer}:{offer:CatalogOffer|undefined}){
   return <div className="tabular-nums"><p className="flex flex-wrap items-baseline gap-x-1.5"><strong className="text-[19px] font-semibold">{offer?.priceMinor!=null&&offer.priceMinor>0?formatMoney(offer.priceMinor/100,offer.currency??'(para birimi belirtilmemiş)'): 'Fiyat paylaşılmamış'}</strong>{offer?.weightG?<span className="text-[13px] text-muted">/ {formatPackageWeight(offer.weightG)}</span>:null}</p>
-    {offer?.weightG==null?<p className="mt-1 text-xs text-muted">{publicOfferLabel(offer)}</p>:null}</div>;
+    {offer?.weightG==null&&publicOfferLabel(offer)!=='Paket'?<p className="mt-1 text-xs text-muted">{publicOfferLabel(offer)}</p>:null}</div>;
 }
 /** What the save button remembers: the package this card or page shows. */
 export function savedPackage(offer:CatalogOffer|undefined){return {priceMinor:offer?.priceMinor??null,weightG:offer?.weightG??null,currency:offer?.currency??null,inStock:offer?.inStock??null};}
@@ -62,8 +62,8 @@ export function DiscoveryCard({coffee,source='catalog'}:{coffee:CatalogCoffee;so
     <div className="coffee-card-body">
       <p className="text-[13px] text-muted"><Link href={`/kavurucu/${coffee.roaster.slug}`} className="hit py-1 hover:text-accent hover:underline">{coffee.roaster.name}</Link>{coffee.roaster.city?` · ${coffee.roaster.city}`:''}</p>
       <h3><Link href={`/kahve/${coffee.slug}`} prefetch={false} className="line-clamp-2 hover:underline">{name}</Link></h3>
-      <p className="line-clamp-2 text-sm">{[coffeeOrigin(coffee),coffeeProcess(coffee)].filter(Boolean).join(' · ')||<span className="italic text-muted">Köken ve işlem bilgisi bekleniyor</span>}</p>
-      {notes.length?<ul className="hidden flex-wrap gap-1.5 min-[600px]:flex" aria-label="Tadım notları">{notes.map(note=><li key={note} className="coffee-card-note">{note}</li>)}</ul>:<p className="hidden text-xs italic text-muted min-[600px]:block">Tat profili henüz belirtilmemiş</p>}
+      <p className="line-clamp-2 text-sm">{[coffeeOrigin(coffee),coffeeProcess(coffee)].filter(Boolean).join(' · ')}</p>
+      {notes.length?<ul className="hidden flex-wrap gap-1.5 min-[600px]:flex" aria-label="Tadım notları">{notes.map(note=><li key={note} className="coffee-card-note">{note}</li>)}</ul>:null}
       <div className="coffee-card-price"><OfferPrice offer={offer}/></div>
     </div>
     <div className="coffee-card-footer">{offer?.purchaseUrl?<a href={`/go/${offer.id}?source=${encodeURIComponent(source)}`} className="text-link" rel="nofollow">Kavurucuda gör <span aria-hidden="true">↗</span></a>:<Link href={`/kahve/${coffee.slug}`} className="text-link">Paketleri incele →</Link>}<CompareToggle slug={coffee.slug} name={coffee.name}/></div>

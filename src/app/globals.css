@@ -102,6 +102,9 @@
     max-width: var(--page-max);
     margin-inline: auto;
     padding-inline: var(--gutter);
+    /* viewport-fit=cover: keep text clear of the notch in landscape. */
+    padding-left: max(var(--gutter), env(safe-area-inset-left));
+    padding-right: max(var(--gutter), env(safe-area-inset-right));
     container-type: inline-size;
   }
   /* Open-ended lists: as many columns as fit at --card-min, empty tracks kept so one or two results never stretch. */
@@ -235,8 +238,11 @@
     margin: 0 0 0 auto;
     width: min(calc(100% - 40px), 400px);
     max-width: none;
+    height: 100vh;
     height: 100dvh;
     max-height: none;
+    inset: 0 0 0 auto;
+    overscroll-behavior: contain;
     padding: 0;
     border: 0;
     background: var(--color-ground);
@@ -469,7 +475,9 @@
     padding: 0 18px 12px;
   }
   /* Phones: a compact row, photo on the left and details on the right, so about four coffees fit on a screen instead of
-     one and a half. Tasting notes wait for the coffee page (hidden in discovery-card.tsx). */
+     one and a half. Tasting notes wait for the coffee page (hidden in discovery-card.tsx). The action row runs the full
+     card width under both, so "Kavurucuda gör" and "Karşılaştır" stay on one line even at 320 px. Only the roaster line
+     and the title keep clear of the save button in the top-right corner. */
   @media (max-width: 599.98px) {
     .coffee-card {
       display: grid;
@@ -477,28 +485,40 @@
       grid-template-rows: 1fr auto;
     }
     .coffee-card-image {
-      grid-row: 1 / span 2;
       aspect-ratio: auto;
+      min-height: 7rem;
       border-bottom: 0;
       border-right: 1px solid var(--color-line);
     }
     .coffee-card-body {
-      padding: 12px 52px 2px 14px;
+      padding: 12px 14px 12px;
       gap: 6px;
+    }
+    .coffee-card-body > p:first-child,
+    .coffee-card h3 {
+      padding-right: 40px;
     }
     .coffee-card h3 {
       font-size: 18px;
     }
     .coffee-card-price {
-      padding-top: 4px;
+      padding-top: 2px;
       border-top: 0;
     }
     .coffee-card-footer {
-      padding: 0 12px 4px 14px;
+      grid-column: 1 / -1;
+      flex-wrap: nowrap;
+      padding: 0 12px 0 14px;
+      border-top: 1px solid var(--color-line);
     }
     .coffee-card-badge {
       padding: 3px 8px;
       font-size: 11px;
+    }
+  }
+  @media (max-width: 379.98px) {
+    .coffee-card {
+      grid-template-columns: 5.5rem minmax(0, 1fr);
     }
   }
 
@@ -532,7 +552,7 @@
   }
   .compare-dock {
     position: sticky;
-    bottom: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
     z-index: 40;
     width: calc(100% - 32px);
     max-width: 760px;

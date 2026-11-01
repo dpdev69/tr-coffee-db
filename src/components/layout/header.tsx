@@ -19,16 +19,37 @@ const iconButton = 'grid h-11 w-11 shrink-0 place-items-center rounded-xl border
 /**
  * Phones get a native modal <dialog> (focus containment, Escape and an inert page come from the browser;
  * globals.css locks scroll). Animation hooks: .site-header, .mobile-menu[open], .mobile-menu::backdrop.
+ * The dialog sits beside the header, not inside it: the sticky header is its own layer, and iPhone Safari
+ * must never have to lift the menu out of it. The header pads under the status bar (viewport-fit=cover).
  */
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDialogElement>(null);
   const pathname = usePathname();
-  const closeMenu = () => menuRef.current?.close();
+  const openMenu = () => {
+    const menu = menuRef.current;
+    if (!menu) return;
+    // Browsers without <dialog> (iOS before 15.4) still get the panel, without the inert page.
+    if (typeof menu.showModal === 'function') menu.showModal();
+    else menu.setAttribute('open', '');
+    setMobileMenuOpen(true);
+    // Start focus on the panel, so no link wears a focus ring the moment the menu opens.
+    menu.querySelector<HTMLElement>('[data-menu-panel]')?.focus();
+  };
+  const closeMenu = () => {
+    const menu = menuRef.current;
+    if (!menu) return;
+    if (typeof menu.close === 'function') menu.close();
+    else {
+      menu.removeAttribute('open');
+      setMobileMenuOpen(false);
+    }
+  };
   const current = (href: string) => (pathname.startsWith(href) ? 'page' : undefined);
   const wordmark = <span className="font-display text-[clamp(22px,1rem+0.6vw,28px)] font-semibold text-accent">{brand.name}</span>;
   return (
-    <header className="site-header sticky top-0 z-50 border-b border-line bg-ground/95 backdrop-blur-md">
+    <>
+    <header className="site-header sticky top-0 z-50 border-b border-line bg-ground pt-[env(safe-area-inset-top)]">
       <div className="page-shell flex h-16 items-center gap-[clamp(16px,2vw,40px)] lg:h-[72px]">
         <div className="flex shrink-0 items-center gap-2.5">
           <Link href="/" aria-label={`${brand.name} ana sayfa`} className="inline-flex min-h-11 shrink-0 items-center">
@@ -64,10 +85,7 @@ export function Header() {
           </Link>
           <button
             type="button"
-            onClick={() => {
-              menuRef.current?.showModal();
-              setMobileMenuOpen(true);
-            }}
+            onClick={openMenu}
             aria-label="Menüyü aç"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-menu"
@@ -79,6 +97,7 @@ export function Header() {
           </button>
         </div>
       </div>
+    </header>
       <dialog
         id="mobile-menu"
         ref={menuRef}
@@ -88,7 +107,7 @@ export function Header() {
         // A click on the ::backdrop targets the dialog itself; the panel fills the dialog, so inside clicks never do.
         onClick={(event) => event.target === event.currentTarget && closeMenu()}
       >
-        <div className="flex min-h-full flex-col gap-[18px] px-5 pb-6 pt-3.5">
+        <div data-menu-panel tabIndex={-1} className="flex min-h-full flex-col gap-[18px] px-5 pt-[max(14px,env(safe-area-inset-top))] pb-[max(24px,env(safe-area-inset-bottom))] outline-none">
           <div className="flex items-center justify-between">
             <Link href="/" onClick={closeMenu} className="inline-flex min-h-11 items-center">{wordmark}</Link>
             <button type="button" onClick={closeMenu} aria-label="Menüyü kapat" className={iconButton}>
@@ -118,6 +137,6 @@ export function Header() {
           </Link>
         </div>
       </dialog>
-    </header>
+    </>
   );
 }

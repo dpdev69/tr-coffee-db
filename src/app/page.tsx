@@ -24,7 +24,7 @@ export const metadata: Metadata = { title: { absolute: brand.title }, descriptio
 
 const HOW_IT_WORKS = [
   ['Her gün tararız', 'Kavurucuların mağazalarını her gün okuruz. Satıştan kalkan kahve listeden düşer.'],
-  ['Olduğu gibi yazarız', 'Köken, işlem, varyete ve kavrum kavurucunun sayfasından gelir; çıkarım yaptıysak belirtiriz. Bilmediğimizi boş bırakırız.'],
+  ['Olduğu gibi yazarız', 'Köken, işlem, varyete ve kavrum kavurucunun sayfasından gelir. Bilmediğimizi yazmayız.'],
   ['Kavurucuya göndeririz', 'Burada satış yok. Beğendiğin kahveyi kavurucunun kendi sitesinden alırsın.'],
 ] as const;
 
