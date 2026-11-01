@@ -77,12 +77,14 @@ export async function DiscoveryCatalog({params:query,path='/kahveler',event,pres
   const {chips,clearHref}=filterChips(params,path,(key,value)=>labels[key]?.(value)??value);
   // Only what the visitor chose opens the panel: a landing page's preset is not theirs to see unfolded.
   const advancedOpen=['altitude','farm','producer','variety','process','roast','brewMethod'].some(key=>first(params[key]));
+  // Filters apply as they are ticked, which reloads the page: keep the phone's folded panel open while the visitor is using it.
+  const filtersOpen=advancedOpen||['taste','origin','roaster','priceMin','priceMax'].some(key=>first(params[key]));
   return <>
     <TrackedFilterForm key={JSON.stringify([path,params,event])} action={preset?'/kahveler':path} page={path==='/yeni'?'new':path==='/firsatlar'?'deals':'catalog'} className="discovery-filters mb-5 rounded-[14px] border border-line bg-surface p-4 sm:p-5">
       {event ? <input type="hidden" name="event" value={event} /> : null}
       <label className="flex flex-col gap-2 text-[13px] font-medium text-muted">Kahve veya kavurucu ara<input type="search" name="search" defaultValue={first(params.search)} placeholder="Bir isimle başla…" className="min-h-12 rounded-[10px] border border-line bg-surface px-4 text-base font-normal text-ink"/></label>
       {/* Phones fold the filters behind one summary (the chips below say what is applied); from lg up globals.css shows .filter-more inline. */}
-      <details className="filter-more mt-4">
+      <details className="filter-more mt-4" open={filtersOpen}>
         <summary className="inline-flex min-h-11 items-center text-sm font-semibold text-accent lg:hidden">Tat, köken, kavurucu ve fiyat</summary>
         <div className="mt-2 lg:mt-0"><Options legend="Tat" name="taste" labels={FLAVOR_CATEGORY_LABELS} selected={filters.taste}/></div>
         <div className="mt-4 grid grid-cols-2 gap-3 @2xl:grid-cols-4">
@@ -94,7 +96,7 @@ export async function DiscoveryCatalog({params:query,path='/kahveler',event,pres
           <div className="mt-2 grid gap-4"><Options legend="İşlem" name="process" labels={PROCESS_LABELS} selected={filters.process}/><Options legend="Kavrum" name="roast" labels={ROAST_LABELS} selected={filters.roast}/><Options legend="Demleme" name="brewMethod" labels={BREW_METHOD_LABELS} selected={filters.brewMethod}/></div>
           <div className="mt-4 grid grid-cols-2 gap-3 @2xl:grid-cols-4"><Field label="Çiftlik" name="farm" defaultValue={filters.farm}/><Field label="Üretici" name="producer" defaultValue={filters.producer}/><Field label="Varyete" name="variety" defaultValue={filters.variety}/><Field label="Kaynaktaki rakım (örn. 1800)" name="altitude" defaultValue={filters.altitude}/></div><p className="mt-3 text-xs leading-6">Rakım filtresi kaynak metninde arar; sayısal aralık veya birim dönüşümü yapmaz.</p></details>
       </details>
-      <div className="mt-4 flex flex-wrap items-center gap-3"><button type="submit" className="button-dark">Kahveleri göster →</button><label className="ml-auto flex items-center text-sm">Sırala <select name="sort" defaultValue={filters.sort} className="ml-2 min-h-11 rounded-[10px] border border-line bg-surface px-3"><option value="newest">En yeni</option><option value="price_asc">Paket fiyatı: artan</option><option value="price_desc">Paket fiyatı: azalan</option></select></label></div>
+      <div className="mt-4 flex items-center gap-3"><button type="submit" className="button-dark flex-none whitespace-nowrap">Kahveleri göster →</button><label className="ml-auto flex min-w-0 flex-1 items-center justify-end text-sm"><span className="sr-only sm:not-sr-only">Sırala</span> <select aria-label="Sırala" name="sort" defaultValue={filters.sort} className="min-h-11 w-full min-w-0 max-w-56 rounded-[10px] border border-line bg-surface px-3 sm:ml-2 sm:w-auto"><option value="newest">En yeni</option><option value="price_asc">Paket fiyatı: artan</option><option value="price_desc">Paket fiyatı: azalan</option></select></label></div>
     </TrackedFilterForm>
     <div className="mb-7"><ul aria-label="Sonuçlar ve uygulanan filtreler" className="flex flex-wrap items-center gap-2.5"><li className="mr-1.5 text-[15px] font-semibold"><span className="tabular-nums">{result.total.toLocaleString('tr-TR')}</span> kahve{event?` · Son ${days} gün`:''}</li>{chips.map(chip=><li key={chip.href}><Link href={chip.href} prefetch={false} className="filter-chip" aria-label={`Filtreyi kaldır: ${chip.label}`}>{chip.label}<span aria-hidden="true">×</span></Link></li>)}{chips.length?<li><Link href={clearHref} prefetch={false} className="ml-1.5 inline-flex min-h-11 items-center text-sm text-accent hover:underline">Filtreleri temizle</Link></li>:null}</ul>
       <p className="mt-1 text-sm text-muted">Sipariş kavurucunun kendi sitesinde tamamlanır.</p></div>

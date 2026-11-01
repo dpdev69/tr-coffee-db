@@ -94,7 +94,7 @@
 @layer components {
   .font-display {
     font-weight: 500;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
   }
   /* Also a size container, so grids inside it can count columns from the column's width (.card-grid, .grid-trio). */
   .page-shell {
@@ -154,6 +154,15 @@
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--color-warm);
+  }
+  /* A 44px tap area around a small inline link, without changing how it looks or moving the text around it. */
+  .hit {
+    position: relative;
+  }
+  .hit::after {
+    content: '';
+    position: absolute;
+    inset: -10px -4px;
   }
 
   /* Buttons and links */
@@ -307,7 +316,7 @@
     font-family: var(--font-display);
     font-size: var(--text-display);
     line-height: 1.06;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     font-weight: 500;
   }
   .studio-hero h1 em,
@@ -344,49 +353,6 @@
     margin-top: 14px;
   }
 
-  /* Number above the title, arrow on the right: the design's path card. */
-  .studio-paths a {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-content: start;
-    gap: 8px 16px;
-    padding: 24px;
-    border: 1px solid var(--color-line);
-    border-radius: 14px;
-    background: var(--color-surface);
-  }
-  .studio-paths a:active {
-    border-color: var(--color-accent);
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .studio-paths a:hover {
-      border-color: var(--color-accent);
-    }
-  }
-  .studio-paths strong {
-    display: block;
-    font-family: var(--font-display);
-    font-size: 24px;
-    font-weight: 500;
-    line-height: 1.2;
-  }
-  .studio-paths p {
-    font-size: 15px;
-    color: var(--color-muted);
-    margin-top: 6px;
-  }
-  .studio-paths a > span:last-child {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    align-self: center;
-    color: var(--color-accent);
-  }
-  .studio-path-number {
-    grid-column: 1;
-    color: var(--color-warm);
-    font-size: 13px;
-    font-weight: 600;
-  }
   .studio-latest {
     padding-top: 54px;
   }
@@ -501,6 +467,39 @@
     justify-content: space-between;
     gap: 8px;
     padding: 0 18px 12px;
+  }
+  /* Phones: a compact row, photo on the left and details on the right, so about four coffees fit on a screen instead of
+     one and a half. Tasting notes wait for the coffee page (hidden in discovery-card.tsx). */
+  @media (max-width: 599.98px) {
+    .coffee-card {
+      display: grid;
+      grid-template-columns: 6.5rem minmax(0, 1fr);
+      grid-template-rows: 1fr auto;
+    }
+    .coffee-card-image {
+      grid-row: 1 / span 2;
+      aspect-ratio: auto;
+      border-bottom: 0;
+      border-right: 1px solid var(--color-line);
+    }
+    .coffee-card-body {
+      padding: 12px 52px 2px 14px;
+      gap: 6px;
+    }
+    .coffee-card h3 {
+      font-size: 18px;
+    }
+    .coffee-card-price {
+      padding-top: 4px;
+      border-top: 0;
+    }
+    .coffee-card-footer {
+      padding: 0 12px 4px 14px;
+    }
+    .coffee-card-badge {
+      padding: 3px 8px;
+      font-size: 11px;
+    }
   }
 
   /* Compare */

@@ -16,7 +16,12 @@ export function DetailViewTracker({ coffeeId }: { coffeeId: string }) {
 
 const FILTER_KEYS = new Set(['origin', 'process', 'taste', 'roaster', 'priceMin', 'priceMax', 'search', 'farm', 'producer', 'variety', 'altitude', 'traceability', 'roast', 'brewMethod', 'sort']);
 export function TrackedFilterForm({ action, children, className, page }: { action: string; children: ReactNode; className: string; page: AnalyticsPage }) {
-  return <form action={action} className={className} onSubmit={event => {
+  // A tick box, dropdown or sort choice applies at once (the button stays for typed search and prices); requestSubmit
+  // runs onSubmit, so the change is tracked like a button press.
+  return <form action={action} className={className} onChange={event => {
+    const target = event.target;
+    if ((target instanceof HTMLInputElement && target.type === 'checkbox') || target instanceof HTMLSelectElement) event.currentTarget.requestSubmit();
+  }} onSubmit={event => {
     const data = new FormData(event.currentTarget);
     const keys = [...new Set([...data.entries()].filter(([key, value]) => FILTER_KEYS.has(key) && typeof value === 'string' && value.trim() !== '').map(([key]) => key))];
     trackProductEvent({ event: 'feed_filter_change', page, source: page === 'catalog' ? 'catalog' : 'feed', filterKeys: keys as ClientProductEvent['filterKeys'] });
