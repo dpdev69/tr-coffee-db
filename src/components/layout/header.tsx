@@ -36,7 +36,7 @@ export function Header() {
           </Link>
           <a
             href="https://hellobasalt.dev/"
-            className="pt-1 font-mono text-xs leading-none tracking-[0.04em] text-muted hover:text-ink hover:underline"
+            className="hit pt-1 font-mono text-xs leading-none tracking-[0.04em] text-muted hover:text-ink hover:underline"
           >
             by Basalt
           </a>

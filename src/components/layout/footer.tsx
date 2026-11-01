@@ -57,7 +57,7 @@ export function Footer() {
         <div className="mt-8 grid gap-2 border-t border-line pt-5 text-xs text-muted">
           <p>
             © 2026{' '}
-            <a href={studio.url} rel="noopener" className="hover:text-accent hover:underline">
+            <a href={studio.url} rel="noopener" className="hit hover:text-accent hover:underline">
               {studio.name}
             </a>
             . {brand.name} bir Basalt ürünüdür.
