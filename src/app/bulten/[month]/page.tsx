@@ -47,15 +47,16 @@ const loadCatalog = cache(async (issue: Issue) => {
     // listCatalog has a start but no end; keep coffees whose event fell inside the window.
     // ponytail: newest 100 since the window began, then filtered; a past month with >100 later arrivals loses its oldest ones. Add an `until` filter to listCatalog if that happens.
     const inWindow = (coffee: CatalogCoffee, ...types: CoffeeEvent['type'][]) => coffee.latestEvents.find(event => types.includes(event.type) && event.createdAt >= since && event.createdAt < until);
-    const seen = new Set<string>();
-    const arrivals = lists[0].coffees.filter(coffee => inWindow(coffee, 'NEW'));
+    // The owner's picks already have their cards at the top; the automatic lists skip them.
+    const seen = new Set<string>(picks.flatMap(pick => pick.coffee ? [pick.coffee.id] : []));
+    const arrivals = lists[0].coffees.filter(coffee => inWindow(coffee, 'NEW') && !seen.has(coffee.id));
     const spotlight = originSpotlight(arrivals);
     // The spotlight shows its own cards; the arrivals list skips them so no coffee appears twice.
     const fresh = arrivals.filter(coffee => !spotlight?.coffees.includes(coffee)).slice(0, MAX_ITEMS);
     const drops = [...lists[1].coffees, ...lists[2].coffees].filter(coffee => !seen.has(coffee.id) && seen.add(coffee.id))
       .flatMap(coffee => { const drop = inWindow(coffee, 'DEAL') ?? inWindow(coffee, 'PRICE_DROP'); return drop ? [{ coffee, line: itemLines({ coffee, drop }) }] : []; })
       .filter(({ line }) => line.drop).slice(0, MAX_ITEMS);
-    const restocked = lists[3].coffees.filter(coffee => inWindow(coffee, 'RESTOCKED') && !arrivals.some(arrival => arrival.id === coffee.id)).slice(0, MAX_CARDS);
+    const restocked = lists[3].coffees.filter(coffee => inWindow(coffee, 'RESTOCKED') && !seen.has(coffee.id) && !arrivals.some(arrival => arrival.id === coffee.id)).slice(0, MAX_CARDS);
     return { picks, fresh, drops, restocked, spotlight, stats, recent: since !== month.since };
   } catch (error) {
     unstable_rethrow(error);
