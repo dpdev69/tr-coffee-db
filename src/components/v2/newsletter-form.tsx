@@ -54,7 +54,7 @@ export function NewsletterForm({ source = 'home-bottom', variant = 'band', compa
     finally { setPending(false); }
   }
 
-  return <section id={source.startsWith('home') ? 'haftalik-drop' : undefined} data-newsletter={source} className={`flex flex-wrap items-center gap-6 rounded-[18px] ${compact ? 'p-5 sm:p-6' : 'p-6 sm:p-9 lg:gap-x-12'} ${skin.box} ${className}`}>
+  return <section id={source.startsWith('home') ? 'haftalik-drop' : undefined} data-newsletter={source} className={`flex flex-wrap items-center gap-6 rounded-[20px] ${compact ? 'p-5 sm:p-6' : 'p-6 sm:p-9 lg:gap-x-12'} ${skin.box} ${className}`}>
     <div className={compact ? 'basis-full' : 'min-w-0 flex-[1_1_300px]'}>
       <h2 className={`font-display ${compact ? 'text-xl' : 'text-2xl sm:text-3xl'} leading-tight ${skin.title}`}>{title.split(/(e-posta\S*)/).map((part, index) => index % 2 ? <span key={index} className="whitespace-nowrap">{part}</span> : part)}</h2>
       <p className={`mt-2 text-base leading-relaxed ${skin.text}`}>{description}</p>

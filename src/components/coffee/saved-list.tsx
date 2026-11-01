@@ -116,7 +116,7 @@ export function SavedRow({ saved, item, compact = false }: { saved: SavedCoffee;
       {price ? <span className="text-base font-semibold text-ink">{price}</span> : null}
     </span>
   </>;
-  const className = compact ? 'flex min-h-11 flex-wrap items-center gap-x-4 gap-y-1 border-b border-line py-3' : 'flex items-center gap-3.5 rounded-[18px] border border-line bg-surface p-3.5 hover:border-accent';
+  const className = compact ? 'flex min-h-11 flex-wrap items-center gap-x-4 gap-y-1 border-b border-line py-3' : 'flex items-center gap-3.5 rounded-[20px] border border-line bg-surface p-3.5 hover:border-accent';
   return coffee
     ? <Link href={`/kahve/${coffee.slug}`} prefetch={false} className={className}>{body}</Link>
     : <div className={className}>{body}</div>;
@@ -132,7 +132,7 @@ export function SavedListView() {
   const saved = useSaved();
   const items = useSavedItems(saved);
   if (!hydrated) return <div className="min-h-64" aria-busy="true" />;
-  if (!saved.length) return <div className="rounded-[18px] border border-line bg-surface p-6">
+  if (!saved.length) return <div className="rounded-[20px] border border-line bg-surface p-6">
     <p className="text-[15px]">Listen boş. Bir kahvenin kartındaki işaretle onu buraya ekleyebilirsin; fiyatı düşerse burada görürsün.</p>
     <Link href="/kahveler" className="text-link mt-3 inline-flex min-h-11 items-center">Kahvelere göz at →</Link>
     <p className="mt-2 text-[13px] text-muted">{DEVICE_NOTE}</p>
@@ -144,7 +144,7 @@ export function SavedListView() {
     <p className="text-[15px] text-muted" role="status">{saved.length} kahve.{summary ? ` ${summary.charAt(0).toLocaleUpperCase('tr-TR')}${summary.slice(1)}.` : ''}</p>
     {items === 'error' ? <p className="rounded-xl bg-tint p-4 text-sm">Güncel fiyatları şu an alamadık. Biraz sonra yeniden dene; listen yerinde duruyor.</p> : null}
     <ul className="flex flex-col gap-3">{saved.map(entry => <li key={entry.slug} className="flex items-center gap-2">
-      <div className="min-w-0 flex-1">{items === null ? <div className="h-[94px] rounded-[18px] bg-tint" /> : items === 'error' ? <div className="rounded-[18px] border border-line bg-surface p-4 font-mono text-sm text-muted">{entry.slug}</div> : <SavedRow saved={entry} item={items.get(entry.slug)} />}</div>
+      <div className="min-w-0 flex-1">{items === null ? <div className="h-[94px] rounded-[20px] bg-tint" /> : items === 'error' ? <div className="rounded-[20px] border border-line bg-surface p-4 font-mono text-sm text-muted">{entry.slug}</div> : <SavedRow saved={entry} item={items.get(entry.slug)} />}</div>
       <button type="button" className="save-toggle flex-none" aria-pressed="true" aria-label={`${items && items !== 'error' ? items.get(entry.slug)?.coffee.name ?? 'Bu kahveyi' : 'Bu kahveyi'} listemden çıkar`} onClick={() => removeSaved(entry.slug)}>×</button>
     </li>)}</ul>
     <p className="text-[13px] leading-normal text-muted">{DEVICE_NOTE}</p>

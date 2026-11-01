@@ -10,7 +10,7 @@ const xml = (value: string) => value.replace(/[&<>"']/g, char => `&#${char.charC
 function unavailableImage(name: string) {
   const label = name.replace(/\s+/g, ' ').trim().slice(0, 40) || 'Kahve';
   const size = Math.min(32, Math.floor(520 / label.length));
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320"><rect width="320" height="320" fill="${FALLBACK_COLORS.background}"/><text x="160" y="160" dominant-baseline="middle" text-anchor="middle" font-family="'Bricolage Grotesque',system-ui,sans-serif" font-weight="500" font-size="${size}" fill="${FALLBACK_COLORS.text}">${xml(label)}</text></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320"><rect width="320" height="320" fill="${FALLBACK_COLORS.background}"/><text x="160" y="160" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif" font-weight="600" font-size="${size}" fill="${FALLBACK_COLORS.text}">${xml(label)}</text></svg>`;
 }
 export function trustedCoffeeImageUrl(value: string): URL | null {
   try {

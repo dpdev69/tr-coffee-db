@@ -86,7 +86,7 @@ function CatalogNumbers({ stats }: { stats: CatalogStats }) {
   const figures: Array<[string, string]> = [[stats.coffees.toLocaleString('tr-TR'), 'kahve satışta'], [stats.roasters.toLocaleString('tr-TR'), 'kavurucu'],
     [stats.newArrivals.coffees.toLocaleString('tr-TR'), `yeni kahve, son ${stats.newArrivals.days} gün`], ...(bag ? [[lira(bag.median), '250 g paketin ortanca fiyatı'] as [string, string]] : [])];
   const day = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' }).format(new Date(stats.at));
-  return <section aria-labelledby="issue-numbers" className="mt-12 rounded-[18px] bg-tint px-5 py-6 sm:px-7">
+  return <section aria-labelledby="issue-numbers" className="mt-12 rounded-[20px] bg-tint px-5 py-6 sm:px-7">
     <h2 id="issue-numbers" className="eyebrow">Rakamlarla katalog · {day}</h2>
     <dl className="mt-4 grid grid-cols-2 gap-x-5 gap-y-5 sm:grid-cols-4">
       {figures.map(([value, label]) => <div key={label}><dt className="sr-only">{label}</dt><dd><span className="block font-display text-[28px] leading-none tabular-nums">{value}</span><span className="mt-1.5 block text-[13px] leading-snug text-muted">{label}</span></dd></div>)}

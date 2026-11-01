@@ -41,10 +41,24 @@
   --card-min: 16.5rem; /* narrowest card whose footer keeps both controls on one line */
 }
 
+/*
+ * Basalt design language (shared with every Basalt site; /mnt/project-files/design-system): the system font for text and
+ * headings, Geist Mono as the only web font, a 6/10/14/20/pill radius scale. Colours above stay KahveDrop's own, and
+ * KahveDrop keeps no motion: press feedback is colour only, no scale.
+ */
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-bricolage), system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+/* Radius scale: xs 6 (tags), sm 10 (inputs, rows, small buttons), md 14 (cards), lg 20 (panels, sheets, hero media), pill. */
+@theme static {
+  --radius-sm: 6px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 10px;
+  --radius-2xl: 14px;
+  --radius-3xl: 20px;
 }
 
 @layer base {
@@ -60,15 +74,31 @@
   html:has(dialog[open]) {
     overflow: hidden;
   }
+  html {
+    color-scheme: light; /* KahveDrop is light only */
+  }
   body {
     background: var(--color-ground);
     color: var(--color-ink);
-    font-family: var(--font-sans), system-ui, sans-serif;
+    font-family: var(--font-sans);
+    font-size: 1.0625rem; /* 17px body */
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
   }
   h1,
   h2,
   h3 {
     text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  /* 16px or more in every field, so iPhone never zooms into a form. */
+  :where(input:not([type='checkbox'], [type='radio']), select, textarea) {
+    font-size: max(1rem, 1em);
+  }
+  :where(a, button, summary, label, select) {
+    touch-action: manipulation;
   }
   button,
   summary {
@@ -83,7 +113,7 @@
     color: var(--color-accent-deep);
   }
   [id] {
-    scroll-margin-top: 100px;
+    scroll-margin-top: 72px;
   }
   /* Set by the inline script in layout.tsx when a consent choice exists; avoids a banner flash before hydration. */
   html[data-consent] .consent-banner:not([data-open]) {
@@ -92,9 +122,15 @@
 }
 
 @layer components {
+  /* Headings in the system display face; tracking tightens with size (title -0.02em, smaller headings -0.01em). */
   .font-display {
-    font-weight: 500;
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  .text-display.font-display,
+  .text-title.font-display {
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
   /* Also a size container, so grids inside it can count columns from the column's width (.card-grid, .grid-trio). */
   .page-shell {
@@ -152,9 +188,10 @@
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
   }
   .eyebrow {
+    font-family: var(--font-mono);
     font-size: 12px;
-    font-weight: 650;
-    letter-spacing: 0.16em;
+    font-weight: 500;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--color-warm);
   }
@@ -233,6 +270,18 @@
     }
   }
 
+  /* The nav bar is ground at 72% with a blur; solid for visitors who ask for less transparency, hairline always with more contrast. */
+  @media (prefers-reduced-transparency: reduce) {
+    .site-header {
+      background: var(--color-ground);
+      backdrop-filter: none;
+    }
+  }
+  @media (prefers-contrast: more) {
+    .site-header {
+      border-bottom-color: var(--color-line);
+    }
+  }
   /* Header and mobile menu. Animation hooks: .site-header, .mobile-menu[open], .mobile-menu::backdrop */
   .mobile-menu {
     margin: 0 0 0 auto;
@@ -287,7 +336,7 @@
     padding: 36px;
     background: var(--color-surface);
     border: 1px dashed var(--color-line);
-    border-radius: 12px;
+    border-radius: 10px;
   }
   .empty-catalog h3 {
     font-size: 20px;
@@ -321,9 +370,9 @@
     margin-top: 24px;
     font-family: var(--font-display);
     font-size: var(--text-display);
-    line-height: 1.06;
-    letter-spacing: -0.02em;
-    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    font-weight: 700;
   }
   .studio-hero h1 em,
   .studio-journal h2 em {
@@ -596,7 +645,7 @@
   .compare-table-wrap {
     overflow-x: auto;
     border: 1px solid var(--color-line);
-    border-radius: 12px;
+    border-radius: 10px;
     background: var(--color-surface);
   }
   .compare-table {
@@ -801,7 +850,7 @@
   .calculator select {
     background: var(--color-surface);
     border: 1px solid var(--color-line);
-    border-radius: 7px;
+    border-radius: 6px;
     width: 100%;
     padding: 12px;
     min-height: 48px;

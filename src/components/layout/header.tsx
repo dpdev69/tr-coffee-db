@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { brand } from '@/lib/brand';
 import { usePathname } from 'next/navigation';
-import { Suspense, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { SearchInput } from '@/components/ui/search-input';
 
 const links = [
@@ -24,6 +24,14 @@ const iconButton = 'grid h-11 w-11 shrink-0 place-items-center rounded-xl border
  */
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // The bar is translucent; its hairline shows only once content scrolls under it.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 4);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
+  }, []);
   const menuRef = useRef<HTMLDialogElement>(null);
   const pathname = usePathname();
   const openMenu = () => {
@@ -46,11 +54,11 @@ export function Header() {
     }
   };
   const current = (href: string) => (pathname.startsWith(href) ? 'page' : undefined);
-  const wordmark = <span className="font-display text-[clamp(22px,1rem+0.6vw,28px)] font-semibold text-accent">{brand.name}</span>;
+  const wordmark = <span className="font-display text-[clamp(21px,1rem+0.5vw,24px)] font-bold tracking-[-0.02em] text-accent">{brand.name}</span>;
   return (
     <>
-    <header className="site-header sticky top-0 z-50 border-b border-line bg-ground pt-[env(safe-area-inset-top)]">
-      <div className="page-shell flex h-16 items-center gap-[clamp(16px,2vw,40px)] lg:h-[72px]">
+    <header data-scrolled={scrolled || undefined} className="site-header sticky top-0 z-50 border-b border-transparent bg-ground/72 pt-[env(safe-area-inset-top)] backdrop-blur-[20px] backdrop-saturate-[1.8] data-[scrolled]:border-line">
+      <div className="page-shell flex h-[52px] items-center gap-[clamp(16px,2vw,40px)]">
         <div className="flex shrink-0 items-center gap-2.5">
           <Link href="/" aria-label={`${brand.name} ana sayfa`} className="inline-flex min-h-11 shrink-0 items-center">
             {wordmark}
