@@ -56,9 +56,9 @@ export function DiscoveryCard({coffee,source='catalog'}:{coffee:CatalogCoffee;so
   return <article className="coffee-card relative">
     <Link href={`/kahve/${coffee.slug}`} prefetch={false} className="coffee-card-image block" aria-label={`${name} detayları`}>
       <CoffeeImage roaster={coffee.roaster.name} source={coffee.rawMetadata.imageUrl} alt={name} sizes="(max-width: 599px) 92vw, (max-width: 1199px) 46vw, 25vw" className="absolute inset-0 h-full w-full object-contain p-2 min-[600px]:p-4"/>
-      {badges.length>0?<span className="absolute left-3 top-3 flex flex-wrap gap-1">{badges.map(event=><span key={event.id} className="coffee-card-badge">{EVENT_LABELS[event.type]}</span>)}</span>:null}
+      {badges.length>0?<span className="coffee-card-badges">{badges.map(event=><span key={event.id} className="coffee-card-badge">{EVENT_LABELS[event.type]}</span>)}</span>:null}
     </Link>
-    <SaveToggle slug={coffee.slug} name={coffee.name} offer={savedPackage(offer)} className="absolute right-2.5 top-2.5"/>
+    <SaveToggle slug={coffee.slug} name={coffee.name} offer={savedPackage(offer)} className="coffee-card-save"/>
     <div className="coffee-card-body">
       <p className="text-[13px] text-muted"><Link href={`/kavurucu/${coffee.roaster.slug}`} className="hit py-1 hover:text-accent hover:underline">{coffee.roaster.name}</Link>{coffee.roaster.city?` · ${coffee.roaster.city}`:''}</p>
       <h3><Link href={`/kahve/${coffee.slug}`} prefetch={false} className="line-clamp-2 hover:underline">{name}</Link></h3>
