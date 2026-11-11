@@ -478,6 +478,14 @@
     border-bottom: 1px solid var(--color-line);
     background: var(--color-surface);
   }
+  .coffee-card-badges {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
   .coffee-card-badge {
     padding: 5px 10px;
     border-radius: 999px;
@@ -545,7 +553,7 @@
     }
     .coffee-card-body > p:first-child,
     .coffee-card h3 {
-      padding-right: 40px;
+      padding-right: 34px;
     }
     .coffee-card h3 {
       font-size: 18px;
@@ -557,8 +565,12 @@
     .coffee-card-footer {
       grid-column: 1 / -1;
       flex-wrap: nowrap;
-      padding: 0 12px 0 14px;
+      padding: 0 14px;
       border-top: 1px solid var(--color-line);
+    }
+    .coffee-card-badges {
+      left: 8px;
+      top: 8px;
     }
     .coffee-card-badge {
       padding: 3px 8px;
@@ -598,6 +610,20 @@
   .compare-toggle:disabled {
     color: var(--color-muted);
     cursor: not-allowed;
+  }
+  /* In a card's action row the toggle is a chip: 32px to look at, 44px to tap (the ::after fills the row), so it sits
+     inside the row with air above and below instead of touching the card's edge. */
+  .coffee-card-footer .compare-toggle {
+    position: relative;
+    min-height: 32px;
+    padding: 0 12px;
+    font-size: 13px;
+    gap: 6px;
+  }
+  .coffee-card-footer .compare-toggle::after {
+    content: '';
+    position: absolute;
+    inset: -6px -2px;
   }
   .compare-dock {
     position: sticky;
@@ -942,6 +968,26 @@
   .save-toggle[aria-pressed='true'] {
     background: var(--color-chip);
     color: var(--color-accent-deep);
+  }
+  /* On a card the save button sits in the top-right corner. On phones the card is a compact row, so there it is the
+     bare bookmark (still a 44px tap area) on the roaster line instead of a ringed circle crowding the text. */
+  .coffee-card-save {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+  }
+  @media (max-width: 599.98px) {
+    .coffee-card-save,
+    .coffee-card-save[aria-pressed='true'] {
+      right: 2px;
+      top: 0;
+      border-color: transparent;
+      background: transparent;
+    }
+    .coffee-card-save:active {
+      border-color: transparent;
+      background: var(--color-tint);
+    }
   }
   .save-toggle-label {
     width: auto;
