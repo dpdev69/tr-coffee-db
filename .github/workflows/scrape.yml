@@ -101,6 +101,14 @@ jobs:
         run: |
           if [ -z "$CACHE_PURGE_TOKEN" ] || [ -z "$SITE_URL" ]; then echo '::notice::Edge purge not configured; nothing to warm.'; exit 0; fi
           scrapers/node_modules/.bin/tsx scripts/warm-cache.mts
+      # Tells Bing and the other IndexNow engines which pages changed tonight (sitemap lastmod in the last 36 hours), so new
+      # coffees are recrawled the same day. Read through SITE_VIA like the warm-up; a failure is only a warning.
+      - name: Ping IndexNow
+        if: ${{ !cancelled() && steps.purge.outcome == 'success' && steps.purge.outputs.result == 'purged' }}
+        continue-on-error: true
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: scrapers/node_modules/.bin/tsx scripts/indexnow.mts
       # Data and edge reported apart: "was tonight's data written" and "was the edge purged and warmed" are separate rows,
       # and the job's colour is decided here (red when a person is needed; a warm-up failure is only a warning).
       - name: Report the outcome
