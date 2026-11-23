@@ -1,6 +1,6 @@
 import { getRequestExecutionContext } from 'vinext/shims/request-context';
 import { getV2Environment } from '@/lib/v2-runtime';
-import { purgeEverything } from '../../../../shared/v2/read-cache';
+import { purgeEverything } from '@shared/v2/read-cache';
 
 const HEADERS = { 'Cache-Control': 'no-store' };
 

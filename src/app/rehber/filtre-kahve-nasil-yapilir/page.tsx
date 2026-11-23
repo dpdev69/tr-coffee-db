@@ -10,7 +10,8 @@ import { pageMetadata } from '@/lib/page-metadata';
 import { BEAN_GUIDE_PATH, BREW_GUIDE_PATH, FILTER_PAIR, FILTER_SIDE, faqPage, howTo, leading, lira, sideFacts, trDay, type Faq, type HowToStep } from '@/lib/rehber';
 import { absoluteUrl } from '@/lib/site';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
-import type { CatalogCoffee } from '../../../../shared/v2/catalog';
+import type { CatalogCoffee } from '@shared/v2/catalog';
+import { logRouteError } from '@/lib/log-error';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
 export const revalidate = 172800;
@@ -65,7 +66,7 @@ async function loadFilterCoffees(): Promise<{ data: ComparisonData | null; coffe
     if (!pair || !side) return { data, coffees: [] };
     const cards = await comparisonCards(db, pair, data);
     return { data, coffees: side.shown.flatMap(id => cards[id] ?? []) };
-  } catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); return { data: null, coffees: [] }; }
+  } catch (error) { unstable_rethrow(error); logRouteError('/rehber/filtre-kahve-nasil-yapilir', error); keepOutOfEdgeCache(); return { data: null, coffees: [] }; }
 }
 
 const linkClass = 'text-accent underline underline-offset-4';

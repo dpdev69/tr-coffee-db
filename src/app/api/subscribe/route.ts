@@ -1,6 +1,7 @@
-import { analyticsConsent } from '../../../../shared/v2/consent';
+import { analyticsConsent } from '@shared/v2/consent';
 import { getV2Environment } from '@/lib/v2-runtime';
 import { handleSubscribe, subscribeResponse, subscribeUnavailable } from '@/lib/v2-subscribe';
+import { logRouteError } from '@/lib/log-error';
 
 export async function POST(request: Request) {
   try {
@@ -8,7 +9,7 @@ export async function POST(request: Request) {
     const result = await handleSubscribe(request, { ...env, ANALYTICS: analyticsConsent(request.headers.get('cookie')) ? env.ANALYTICS : undefined });
     if (result.diagnostic) console.warn('subscribe_provider_failure', result.diagnostic);
     return subscribeResponse(result);
-  } catch {
+  } catch (error) { logRouteError('/api/subscribe', error);
     return subscribeResponse(subscribeUnavailable());
   }
 }

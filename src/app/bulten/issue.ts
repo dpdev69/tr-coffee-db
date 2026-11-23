@@ -4,8 +4,8 @@
  * The site gets issues from issues.generated.ts (scripts/bulten-bundle.mts, run before build/dev/typecheck);
  * the monthly email (scripts/v2-digest.mts --issue) reads the file directly.
  */
-import { getSavedCoffees, SAVED_SLUG, type CatalogCoffee } from '../../../shared/v2/catalog';
-import type { CatalogDatabase } from '../../../shared/v2/database';
+import { getSavedCoffees, SAVED_SLUG, type CatalogCoffee } from '@shared/v2/catalog';
+import type { CatalogDatabase } from '@shared/v2/database';
 import { brand } from '../../lib/brand';
 import { trustedSponsorUrl, type Sponsor } from '../../components/v2/sponsor-card';
 

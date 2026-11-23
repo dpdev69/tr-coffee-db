@@ -5,7 +5,7 @@ import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { signupsEnabled } from '@/lib/signups';
 import { DiscoveryCatalog, type DiscoverySearchParams } from '@/components/v2/discovery-catalog';
 import { getFirstSearchParamValue } from '@/lib/filter-contract';
-import { ARRIVAL_DAYS } from '../../../shared/v2/events';
+import { ARRIVAL_DAYS } from '@shared/v2/events';
 import { dropTrackingParams } from '@/lib/v2-runtime';
 export async function generateMetadata({ searchParams }: { searchParams: Promise<DiscoverySearchParams> }): Promise<Metadata> {
   return listingMetadata('Yeni gelen kahveler', `Kavurucuların son ${ARRIVAL_DAYS} günde satışa çıkardığı nitelikli kahveler, en yenisi önce: köken, işlem, tadım notları ve paket fiyatları.`, '/yeni', await searchParams);

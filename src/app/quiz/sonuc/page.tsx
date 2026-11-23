@@ -10,7 +10,7 @@ import { brand } from '@/lib/brand';
 import { pageMetadata } from '@/lib/page-metadata';
 import { formatQuizReason, hasQuizSelections, parseQuizAnswers, quizAnswerSummary, quizQuery } from '@/lib/quiz-filters';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
-import { rankQuizMatches } from '../../../../shared/v2/quiz-rank';
+import { rankQuizMatches } from '@shared/v2/quiz-rank';
 
 // A result is personal and lives in its URL: shareable, bookmarkable, never indexed.
 export const metadata: Metadata = {

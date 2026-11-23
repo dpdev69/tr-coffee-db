@@ -11,18 +11,19 @@ import { findLanding, landingFacts, landingHeading, landingPhrase, type Landing 
 import { listingMetadata } from '@/lib/page-metadata';
 import { catalogRefreshedAt, trDate } from '@/lib/catalog-stats';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
+import { logRouteError } from '@/lib/log-error';
 
 type Props = { params: Promise<{ facet: string; slug: string }>; searchParams: Promise<DiscoverySearchParams> };
 
 /** The catalog with one origin or process preset: same filter, same cards, its own address and copy. */
 const loadFacts = cache(async (landing: Landing) => {
   try { return await landingFacts(await getCatalogDatabase(), landing); }
-  catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); return null; }
+  catch (error) { unstable_rethrow(error); logRouteError('/kahveler/[facet]/[slug]', error); keepOutOfEdgeCache(); return null; }
 });
 /** When the catalog last changed at the source (newest successful crawl), from the derived roaster list: 2 rows on a miss. */
 const loadRefreshed = cache(async () => {
   try { return await catalogRefreshedAt(await getCatalogDatabase()); }
-  catch (error) { unstable_rethrow(error); return null; }
+  catch (error) { unstable_rethrow(error); logRouteError('/kahveler/[facet]/[slug]', error); return null; }
 });
 async function resolve(params: Props['params']) {
   const { facet, slug } = await params;

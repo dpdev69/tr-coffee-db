@@ -1,9 +1,10 @@
-import { publicCatalogCoffee } from '../../../../shared/v2/public-catalog';
-import { getCatalogCounts, lastGoodListingName, listCatalog, type CatalogFilters } from '../../../../shared/v2/catalog';
+import { publicCatalogCoffee } from '@shared/v2/public-catalog';
+import { getCatalogCounts, lastGoodListingName, listCatalog, type CatalogFilters } from '@shared/v2/catalog';
 import { catalogLastGood, getCatalogDatabase } from '@/lib/v2-runtime';
 import { getPageParamValue, normalizeSearchTerm } from '@/lib/filter-contract';
-import { EDGE_CACHE_HEADERS } from '../../../../shared/v2/read-cache';
-import { withLastGood } from '../../../../shared/v2/last-good';
+import { EDGE_CACHE_HEADERS } from '@shared/v2/read-cache';
+import { withLastGood } from '@shared/v2/last-good';
+import { logRouteError } from '@/lib/log-error';
 
 export async function GET(request: Request) {
   try {
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
     const body = {counts,...catalog,coffees:catalog.coffees.map(publicCatalogCoffee)};
     return copiedAt === undefined ? Response.json(body,{headers:EDGE_CACHE_HEADERS})
       : Response.json({...body,copy:{writtenAt:copiedAt}},{headers:{'Cache-Control':'no-store'}});
-  } catch {
+  } catch (error) { logRouteError('/api/catalog', error);
     return Response.json({error:'Katalog şu anda yüklenemiyor.'},{status:503,headers:{'Cache-Control':'no-store'}});
   }
 }

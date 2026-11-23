@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { unstable_rethrow } from 'next/navigation';
 import { getCoffeeBySlug } from '@/lib/queries/coffees';
 import { displayCoffeeName, displayNotes, formatPackageWeight } from '@/lib/coffee-display';
-import { countryLabel } from '../../../shared/v2/country-labels';
+import { countryLabel } from '@shared/v2/country-labels';
+import { logRouteError } from '@/lib/log-error';
 import {
   BREW_METHOD_LABELS,
   PROCESS_LABELS,
@@ -54,7 +55,7 @@ export default async function ComparePage({
       try {
         return { coffee: await getCoffeeBySlug(slug), failed: false };
       } catch (error) {
-        unstable_rethrow(error);
+        unstable_rethrow(error); logRouteError('/compare', error);
         return { coffee: null, failed: true };
       }
     }),

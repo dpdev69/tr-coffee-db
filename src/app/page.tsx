@@ -11,10 +11,11 @@ import { JsonLd } from '@/components/layout/json-ld';
 import { absoluteUrl } from '@/lib/site';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
 import { RoasterInitial } from '@/components/v2/discovery-detail';
-import { getCoffeeOfTheDay, listCatalog, listRoasters, type CatalogCoffee, type CatalogRoaster } from '../../shared/v2/catalog';
-import { ARRIVAL_DAYS } from '../../shared/v2/events';
+import { getCoffeeOfTheDay, listCatalog, listRoasters, type CatalogCoffee, type CatalogRoaster } from '@shared/v2/catalog';
+import { ARRIVAL_DAYS } from '@shared/v2/events';
 import { CoffeeImage } from '@/components/v2/coffee-image';
-import { SAVED_KEY } from '@/lib/device-keys';
+import { SavedListFlag } from '@/components/v2/saved-list-flag';
+import { logRouteError } from '@/lib/log-error';
 import { SavedPanel, SinceLastVisit, TasteArrivals } from '@/components/v2/home-personal';
 import { COMPARISONS, comparisonQuestion } from '@/lib/comparisons';
 
@@ -33,8 +34,6 @@ function FeedSection({ title, href, coffees }: { title: string; href: string; co
   return <section className="section-space border-t border-line"><div className="section-heading"><h2>{title}</h2><Link href={href} prefetch={false} className="text-link">Tümünü gör ↗</Link></div><DiscoveryGrid coffees={coffees} source="home" /></section>;
 }
 
-// Runs before paint: a stored list reserves the Listem panel's cell, so the page does not jump when it hydrates.
-const savedListScript = `try{if(JSON.parse(localStorage.getItem(${JSON.stringify(SAVED_KEY)})||"[]").length)document.documentElement.dataset.savedList=""}catch(e){}`;
 const dayLabel = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' });
 
 /** Same card for every visitor on a given day; caches with the page. */
@@ -70,7 +69,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       listRoasters(db), getCoffeeOfTheDay(db, now),
     ]);
     data = { catalog: catalog.coffees, drops: drops.coffees, restocked: restocked.coffees, roasters, day };
-  } catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); }
+  } catch (error) { unstable_rethrow(error); logRouteError('/', error); keepOutOfEdgeCache(); }
   return <div className="page-shell studio-home">
     <JsonLd data={{ '@type': 'Organization', name: brand.name, url: absoluteUrl('/'), logo: absoluteUrl(brand.logoPath), description: brand.description, parentOrganization: studioOrganization }} />
     {/* The catalog search reads `search` (parseDiscoveryFilters). */}
@@ -85,7 +84,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
       </div>
     </section>
     <SinceLastVisit />
-    <script dangerouslySetInnerHTML={{ __html: savedListScript }} />
+    <SavedListFlag />
     <div className="home-daylist mb-4">
       {data?.day ? <DayCard coffee={data.day} now={now} /> : null}
       <div className="saved-panel-slot"><SavedPanel /></div>
