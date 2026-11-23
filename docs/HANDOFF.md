@@ -33,7 +33,7 @@ On 2026-10-05 the database exceeded the free plan's 5 million rows-read daily al
 | Area | What |
 |---|---|
 | Data pipeline | Manual corrections that survive crawls (`data/corrections.json`), per-offer failure isolation, roasters synced from `configs.ts`, bag sizes grouped into one coffee, offers hidden after 7 days unconfirmed, attributes taken only where the roaster states them, IKAS tasting-note fields read |
-| New arrivals | One definition of a genuine new arrival (`GENUINE_NEW` in `shared/v2/catalog.ts`, 30-day window) used by `/yeni`, the badge, home counts, both emails and issue pages |
+| New arrivals | One definition of a genuine new arrival (`GENUINE_NEW` in `shared/v2/catalog/sql.ts`, 30-day window) used by `/yeni`, the badge, home counts, both emails and issue pages |
 | Sources | 42 qualified. Added and qualified: Caffe Di Toee, Coffee Sapiens, Lot Coffee, Mayard |
 | Design | İznik palette, fluid layout from 320 to 2200 px, 21 visual flaws fixed, phone menu, desktop search, filter chips |
 | Discovery | Ranked quiz with reasons (`shared/v2/quiz-rank.ts`, `/quiz/sonuc`), saved list (`/listem`), coffee of the day, since-last-visit counts; all device-local, no accounts |
@@ -102,7 +102,7 @@ On 2026-10-05 the database exceeded the free plan's 5 million rows-read daily al
 - Read `node_modules/next/dist/docs/` before writing Next code; this version differs from common knowledge, and vinext differs again (React's ViewTransition does nothing; a root `loading.tsx` turns 404s into 200s; pages with a query string need the cache header from `next.config.ts`).
 - Every concern has one place: `coffeeOnlySql()` and `shared/v2/coffee-eligibility.ts` for what is a coffee, `hydrate()` and the views `public_catalog_coffees` and `current_offers` for what is listed, `truthfulMetadata()` for attributes, the parser's `coffee()` builder for ingestion.
 - "Unknown beats wrong": never guess an attribute. Price observations are immutable.
-- CI runs Node 22 and `npm run check`, which includes a legacy `next build` stricter than the Cloudflare build: server files must not import client-only modules. Run `npm run check`, `npm test`, `npm run build:cloudflare` and `npm run build:crawler` before a pull request, and **read the CI result before merging**. A failed font download in the legacy build is transient; re-run it.
+- CI runs Node 22 with lint, format check, typecheck, a legacy `next build` stricter than the Cloudflare build (server files must not import client-only modules), tests, `build:cloudflare` and `build:crawler`. `npm run check` runs all of them locally; run it before a pull request, and **read the CI result before merging**. A failed font download in the legacy build is transient; re-run it.
 - D1 refuses LIKE patterns over 50 bytes and rows over 2 MB.
 - Wrangler reports an exhausted read allowance as error 7500, and sometimes as 7403 "not authorized".
 - Remote steps on staging (migrations, deploys, workflow runs) are pre-approved. Production, anything public, and anything that sends email stop for the owner.

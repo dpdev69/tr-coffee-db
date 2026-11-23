@@ -8,11 +8,12 @@ import { RoasterInitial } from '@/components/v2/discovery-detail';
 import { JsonLd, breadcrumbList, itemList } from '@/components/layout/json-ld';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
-import { getRoasterDetail } from '../../../../shared/v2/catalog';
+import { getRoasterDetail } from '@shared/v2/catalog';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { signupsEnabled } from '@/lib/signups';
-import { roasterSiteUrl } from '../../../../shared/v2/outbound';
+import { roasterSiteUrl } from '@shared/v2/outbound';
 import { ComparisonLinks } from '@/components/v2/comparison-links';
+import { logRouteError } from '@/lib/log-error';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
 export const revalidate = 172800;
@@ -23,7 +24,7 @@ const loadRoaster = cache(async (slug: string) => {
     const [result, site] = await Promise.all([getRoasterDetail(db, slug), roasterSiteUrl(db, slug)]);
     return { result, site, hasSite: Boolean(site), unavailable: false };
   }
-  catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); return { result: null, site: null, hasSite: false, unavailable: true }; }
+  catch (error) { unstable_rethrow(error); logRouteError('/kavurucu/[slug]', error); keepOutOfEdgeCache(); return { result: null, site: null, hasSite: false, unavailable: true }; }
 });
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { result } = await loadRoaster((await params).slug);

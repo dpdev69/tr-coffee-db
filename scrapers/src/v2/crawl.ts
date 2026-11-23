@@ -6,7 +6,7 @@ import { isWooCoffee, ikasCatalogContext, IKAS_CATALOG_QUERY, parseIkasProducts,
 import type { SourceCoffee, SourceCrawl } from './types.js';
 
 /** Bump whenever a parser, crawl-side filter or roaster config change alters which products a crawl discovers:
- * a coffee first seen in the first run after a bump is not evidence of a new arrival (shared/v2/catalog.ts GENUINE_NEW). */
+ * a coffee first seen in the first run after a bump is not evidence of a new arrival (shared/v2/catalog/sql.ts GENUINE_NEW). */
 export const PARSER_VERSION = 'v2-source-6-origin-evidence';
 /** The crawler's one honest identity, sent on every request, direct or relayed. */
 export const CRAWLER_HEADERS = { 'User-Agent': 'CoffeeDiscovery/2.0 (public coffee catalog; no challenge bypass)', Accept: 'application/json,text/html' };

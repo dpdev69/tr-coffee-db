@@ -9,6 +9,7 @@ import { pageMetadata } from '@/lib/page-metadata';
 import { BEAN_GUIDE_PATH, BREW_GUIDE_PATH, FILTER_PAIR, FILTER_SIDE, MIN_STATED, faqPage, leading, lira, sideFacts, trDay, type Faq } from '@/lib/rehber';
 import { absoluteUrl } from '@/lib/site';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
+import { logRouteError } from '@/lib/log-error';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
 export const revalidate = 172800;
@@ -53,7 +54,7 @@ async function loadData(): Promise<{ data: ComparisonData | null; landings: Land
     const db = await getCatalogDatabase();
     const [data, landings] = await Promise.all([comparisonFacts(db), listLandings(db)]);
     return { data, landings };
-  } catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); return { data: null, landings: [] }; }
+  } catch (error) { unstable_rethrow(error); logRouteError('/rehber/filtre-kahve-cekirdegi', error); keepOutOfEdgeCache(); return { data: null, landings: [] }; }
 }
 
 const linkClass = 'text-accent underline underline-offset-4';

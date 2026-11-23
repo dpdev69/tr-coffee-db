@@ -14,10 +14,11 @@ import { catalogStats, type CatalogStats } from '@/lib/catalog-stats';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { signupsEnabled } from '@/lib/signups';
 import { SponsorCard } from '@/components/v2/sponsor-card';
-import { listCatalog, type CatalogCoffee } from '../../../../shared/v2/catalog';
-import type { CoffeeEvent } from '../../../../shared/v2/types';
+import { listCatalog, type CatalogCoffee } from '@shared/v2/catalog';
+import type { CoffeeEvent } from '@shared/v2/types';
 import { campaignUrl, monthLabel, monthWindow, PICK_STATUS, resolvePicks, type Inline, type Issue } from '../issue';
 import { issues } from '../issues.generated';
+import { logRouteError } from '@/lib/log-error';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
 export const revalidate = 172800;
@@ -59,7 +60,7 @@ const loadCatalog = cache(async (issue: Issue) => {
     const restocked = lists[3].coffees.filter(coffee => inWindow(coffee, 'RESTOCKED') && !seen.has(coffee.id) && !arrivals.some(arrival => arrival.id === coffee.id)).slice(0, MAX_CARDS);
     return { picks, fresh, drops, restocked, spotlight, stats, recent: since !== month.since };
   } catch (error) {
-    unstable_rethrow(error);
+    unstable_rethrow(error); logRouteError('/bulten/[month]', error);
     keepOutOfEdgeCache();
     return { picks: await resolvePicks(null, issue.picks), fresh: [], drops: [], restocked: [], spotlight: null, stats: null, recent: false };
   }

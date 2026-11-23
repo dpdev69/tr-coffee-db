@@ -5,6 +5,7 @@ import { JsonLd, breadcrumbList, itemList, webPage } from '@/components/layout/j
 import { COMPARISONS, GROUP_LABELS, comparisonFacts, comparisonQuestion, sideKey, sideLabel, type Comparison, type ComparisonData } from '@/lib/comparisons';
 import { pageMetadata } from '@/lib/page-metadata';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
+import { logRouteError } from '@/lib/log-error';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
 export const revalidate = 172800;
@@ -19,7 +20,7 @@ export default async function ComparisonsPage({ searchParams }: { searchParams?:
   // The counts are a bonus here: without the catalog the links still work.
   let data: ComparisonData | null = null;
   try { data = await comparisonFacts(await getCatalogDatabase()); }
-  catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); }
+  catch (error) { unstable_rethrow(error); logRouteError('/karsilastir', error); keepOutOfEdgeCache(); }
   const count = (item: Comparison) => data ? `${sideLabel(item.a)} ${data.sides[sideKey(item.a)]?.coffees ?? 0} çekirdek · ${sideLabel(item.b)} ${data.sides[sideKey(item.b)]?.coffees ?? 0} çekirdek` : null;
   return <div className="page-shell section-space">
     <JsonLd data={webPage('Kahve karşılaştırmaları', description, '/karsilastir', { type: 'CollectionPage', dateModified: data?.at })} />

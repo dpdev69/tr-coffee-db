@@ -7,17 +7,18 @@ import { DiscoveryDetail } from '@/components/v2/discovery-detail';
 import { DiscoveryGrid } from '@/components/v2/discovery-card';
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
-import { getCoffeeDetail, getSimilarCoffees } from '../../../../shared/v2/catalog';
+import { getCoffeeDetail, getSimilarCoffees } from '@shared/v2/catalog';
 import { JsonLd, breadcrumbList, productJsonLd } from '@/components/layout/json-ld';
 import { NewsletterForm } from '@/components/v2/newsletter-form';
 import { signupsEnabled } from '@/lib/signups';
 import { ComparisonLinks, coffeeSides } from '@/components/v2/comparison-links';
+import { logRouteError } from '@/lib/log-error';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
 export const revalidate = 172800;
 const loadCoffee = cache(async (slug: string) => {
   try { return { coffee: await getCoffeeDetail(await getCatalogDatabase(), slug), unavailable: false }; }
-  catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); return { coffee: null, unavailable: true }; }
+  catch (error) { unstable_rethrow(error); logRouteError('/kahve/[slug]', error); keepOutOfEdgeCache(); return { coffee: null, unavailable: true }; }
 });
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { coffee } = await loadCoffee((await params).slug);
@@ -35,7 +36,7 @@ export default async function CoffeePage({ params, searchParams }: { params: Pro
   if (coffee.slug !== slug) permanentRedirect(`/kahve/${encodeURIComponent(coffee.slug)}`);
   let similar: Awaited<ReturnType<typeof getSimilarCoffees>> = [];
   try { similar = await getSimilarCoffees(await getCatalogDatabase(), coffee); }
-  catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); }
+  catch (error) { unstable_rethrow(error); logRouteError('/kahve/[slug]', error); keepOutOfEdgeCache(); }
   return <div className="page-shell section-space">
     <DetailViewTracker coffeeId={coffee.id} />
     <JsonLd data={productJsonLd(coffee)} />

@@ -6,10 +6,11 @@ import { JsonLd, breadcrumbList, itemList, webPage } from '@/components/layout/j
 import { DataSourceNotice } from '@/components/ui/data-source-notice';
 import { DiscoveryEmpty, DiscoveryGrid } from '@/components/v2/discovery-card';
 import { formatMoney } from '@/lib/coffee-display';
-import type { CatalogCoffee } from '../../../../shared/v2/catalog';
+import type { CatalogCoffee } from '@shared/v2/catalog';
 import { COMPARISONS, GROUP_LABELS, comparisonCards, comparisonDescription, comparisonFacts, comparisonQuestion, comparisonTitle, findComparison, indexable, sideHref, sideKey, sideLabel, type Comparison, type ComparisonData, type Share, type SideFacts, type SideRef } from '@/lib/comparisons';
 import { pageMetadata } from '@/lib/page-metadata';
 import { dropTrackingParams, getCatalogDatabase, keepOutOfEdgeCache } from '@/lib/v2-runtime';
+import { logRouteError } from '@/lib/log-error';
 
 // The edge keeps this page for EDGE_CACHE_CONTROL (next.config.ts, shared/v2/read-cache.ts); this matches it.
 export const revalidate = 172800;
@@ -17,13 +18,13 @@ type Props = { params: Promise<{ pair: string }>; searchParams?: Promise<Record<
 
 const loadFacts = cache(async () => {
   try { return await comparisonFacts(await getCatalogDatabase()); }
-  catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); return null; }
+  catch (error) { unstable_rethrow(error); logRouteError('/karsilastir/[pair]', error); keepOutOfEdgeCache(); return null; }
 });
 type Cards = Record<string, CatalogCoffee>;
 /** The pair's cards; without them the page still shows every number, only the coffee lists and names are missing. */
 async function loadCards(item: Comparison, data: ComparisonData): Promise<Cards> {
   try { return await comparisonCards(await getCatalogDatabase(), item, data); }
-  catch (error) { unstable_rethrow(error); keepOutOfEdgeCache(); return {}; }
+  catch (error) { unstable_rethrow(error); logRouteError('/karsilastir/[pair]', error); keepOutOfEdgeCache(); return {}; }
 }
 const money = (value: number) => formatMoney(value);
 const shares = (items: Share[], limit = 3) => items.slice(0, limit).map(item => `${item.label} ${item.count}`).join(' · ');

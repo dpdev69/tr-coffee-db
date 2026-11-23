@@ -22,8 +22,12 @@ test('production web Worker: own names and bindings, signups and sponsorships of
   const stagingNamespaces = staging.ratelimits.map((limiter: { namespace_id: string }) => limiter.namespace_id);
   for (const limiter of production.ratelimits) assert.ok(!stagingNamespaces.includes(limiter.namespace_id));
   assert.equal(production.d1_databases[0].binding, 'DB');
+  // Staging takes its account from CLOUDFLARE_ACCOUNT_ID or the login. Production keeps it: Workers Builds deploys from this
+  // config and does not document setting CLOUDFLARE_ACCOUNT_ID.
+  assert.equal(staging.account_id, undefined);
+  assert.match(production.account_id, /^[0-9a-f]{32}$/);
   // Everything outside names, identifiers and vars is the same as staging.
-  const rest = ({ name, d1_databases, vars, analytics_engine_datasets, ratelimits, ...other }: Record<string, unknown>) => (void name, void d1_databases, void vars, void analytics_engine_datasets, void ratelimits, other);
+  const rest = ({ name, account_id, d1_databases, vars, analytics_engine_datasets, ratelimits, ...other }: Record<string, unknown>) => (void name, void account_id, void d1_databases, void vars, void analytics_engine_datasets, void ratelimits, other);
   assert.deepEqual(rest(production), rest(staging));
   assert.deepEqual(production.ratelimits.map(({ namespace_id, ...limiter }: Record<string, unknown>) => (void namespace_id, limiter)), staging.ratelimits.map(({ namespace_id, ...limiter }: Record<string, unknown>) => (void namespace_id, limiter)));
 });

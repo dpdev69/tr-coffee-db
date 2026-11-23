@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { POST as retiredClick } from '../src/app/api/click/route';
 
@@ -17,7 +17,7 @@ describe('public visibility query surfaces', () => {
     assert.match(catalogPageSource, /listCatalog\(db,filters\)/);
     assert.match(catalogPageSource, /listRoasters\(db\)/);
     // Origin options moved into the catalog module (listOrigins) and still read only the canonical view.
-    const originSource = readSource('shared/v2/catalog.ts');
+    const originSource = catalogSource();
     assert.match(catalogPageSource, /listOrigins\(db\)/);
     assert.match(originSource, /FROM public_catalog_coffees c WHERE NOT \$\{manual\}/);
     assert.match(originSource, /JOIN public_catalog_coffees c ON c.id=f.coffee_id/);
@@ -68,7 +68,7 @@ describe('public visibility query surfaces', () => {
   });
 
   it('uses current canonical D1 lists and durable public-only details without a Supabase fallback on Workers', () => {
-    const catalog = readSource('shared/v2/catalog.ts');
+    const catalog = catalogSource();
     const bridge = readSource('src/lib/v2-legacy.ts');
     const migration = readSource('migrations/d1/0001_catalog.sql');
     assert.match(catalog, /FROM public_catalog_coffees c JOIN roasters/);
@@ -102,6 +102,8 @@ describe('public visibility query surfaces', () => {
 function readSource(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 }
+/** shared/v2/catalog.ts is a barrel; the catalog SQL lives in shared/v2/catalog/*.ts. */
+const catalogSource = () => ['shared/v2/catalog.ts', ...readdirSync(new URL('../shared/v2/catalog', import.meta.url)).filter((file) => file.endsWith('.ts')).sort().map((file) => `shared/v2/catalog/${file}`)].map(readSource).join('\n');
 
 function assertSurfaceUsesPublicGate(source: string, label: string, pattern: RegExp) {
   const match = source.match(pattern);

@@ -1,6 +1,6 @@
 # KahveDrop
 
-KahveDrop runs on Cloudflare Workers/D1 through vinext, with a Three.js coffee studio and a Turkish coffee discovery catalog. The public name is set in [`src/lib/brand.ts`](src/lib/brand.ts) and is provisional; the repository and some infrastructure names still use the earlier project name. The original Next/Supabase (v1) paths remain only for rollback and export. The product goal is simple: help buyers compare beans across roasters without opening a dozen separate storefronts.
+KahveDrop is a Turkish specialty coffee catalog. The web app is a Next.js App Router codebase built with [vinext](https://github.com/cloudflare/vinext) into a Cloudflare Worker (`workers/web.ts` gateway, Workers Cache, the miss guard, then the app) that reads a D1 database; a separate crawler Worker and the nightly GitHub Actions refresh keep D1 current. The public name is set in [`src/lib/brand.ts`](src/lib/brand.ts) and is provisional; the repository and some infrastructure names still use the earlier project name. The original Next/Supabase (v1) paths remain only for rollback and export. The product goal is simple: help buyers compare beans across roasters without opening a dozen separate storefronts.
 
 ## Choosing a coffee
 
@@ -14,8 +14,8 @@ KahveDrop runs on Cloudflare Workers/D1 through vinext, with a Three.js coffee s
 
 - `src/app`: Next.js App Router pages (catalog, coffee detail, roasters, quiz, guide, compare) and the `/go` outbound-link route.
 - `src/components`: UI; the live catalog UI is in `components/v2`.
-- `src/lib`: brand config, D1 catalog access, and legacy Supabase query helpers (still used by `/compare`).
-- `shared/v2`: catalog, qualification, ingestion and profile logic shared by the web app, crawler and scripts.
+- `src/lib`: brand config, D1 catalog access, and legacy Supabase query helpers (`/compare` reaches them only through a Node fallback; on Workers it reads D1).
+- `shared/v2`: catalog, qualification, ingestion and profile logic shared by the web app, crawler and scripts. `shared/v2/catalog.ts` re-exports the catalog modules in `shared/v2/catalog/`; import it from `src/` as `@shared/v2/catalog`.
 - `scrapers`: source adapters and parsers (its own `package.json`).
 - `workers`, `wrangler*.jsonc`: the web Worker and the crawler Worker (Cloudflare cron is currently off).
 - `migrations`: D1 schema. `supabase/migrations`: legacy Postgres schema, kept for rollback and export.
@@ -40,8 +40,6 @@ npm run dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001). `npm run dev` uses the Workers runtime so the D1 catalog binding is present. Schema migration alone does not import data; use the [migration runbook](docs/d1-migration-runbook.md). This workspace already has a repaired local catalog. `npm run dev:next` is retained for legacy compatibility and does not supply D1.
-
-Three.js loads only on the home page after hydration. It pauses when offscreen/hidden and supports reduced motion and WebGL fallback.
 
 Maintenance: `npx tsx scripts/v2-repair-local-catalog.ts --local-db <existing-project-.wrangler-database.sqlite>` (dry-run; add `--apply` after reviewing the report) checks saved qualified captures; internal repair reports live under `.local/v2`. Do not expose these reports in public routes.
 
@@ -127,13 +125,14 @@ The contributor rules live in [CONTRIBUTING.md](CONTRIBUTING.md). The short vers
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs the smoke checks we want required on pull requests:
 
 - web lint
+- Prettier format check (`npm run format:check`, currently scoped to the catalog modules)
 - web typecheck
 - production build
 - scraper typecheck
 - automated tests
 - PostgreSQL migration replay and service-role coffee INSERT/UPDATE checks
 
-The database job replays the legacy Supabase migrations against PostgreSQL and is retained with them for rollback. The web job also builds the Cloudflare web Worker and validates the crawler Worker bundle.
+`npm run check` runs the same web, scraper and test steps locally before a push. The database job replays the legacy Supabase migrations against PostgreSQL and is retained with them for rollback. The web job also builds the Cloudflare web Worker and validates the crawler Worker bundle.
 
 ## Catalog refresh behavior
 
