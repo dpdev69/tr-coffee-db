@@ -30,7 +30,7 @@ Source: Cloudflare D1 analytics for the account, 20 October 2026. By 18:53 UTC t
 
 What changed (measured below; local copy of the staging export of 17 October 2026, `staging-launch-2026-10-17.d1-import.sql`, 490 listed coffees):
 
-- **List index** (`listIndex` in `shared/v2/catalog.ts`, derived result `list-index`). Once per refresh, one pass records for every listed coffee what the list query filters and sorts on: roaster, the package price a card shows, the text values each closed facet (origin, process, roast, taste, brew method) can match under the MANUAL rule, the newest still-valid event of each type, and the order of each of the four sorts. A list without free text or traceability now reads the index (2 rows), picks its page of ids, and reads only those coffees by id (about 190 rows for 24) before hydrating them. Search, farm, producer, variety, altitude and traceability still run the query. The landing facts are counted from the same index, so the nightly derived results got cheaper too (258,414 → 187,039 rows). Stored size 121,120 bytes for 490 coffees (about 250 bytes a coffee; 1.9 MB is reached near 7,500); parsing and filtering it costs about 0.25 ms per list miss (M-series Mac, Node).
+- **List index** (`listIndex` in `shared/v2/catalog/list-index.ts`, derived result `list-index`). Once per refresh, one pass records for every listed coffee what the list query filters and sorts on: roaster, the package price a card shows, the text values each closed facet (origin, process, roast, taste, brew method) can match under the MANUAL rule, the newest still-valid event of each type, and the order of each of the four sorts. A list without free text or traceability now reads the index (2 rows), picks its page of ids, and reads only those coffees by id (about 190 rows for 24) before hydrating them. Search, farm, producer, variety, altitude and traceability still run the query. The landing facts are counted from the same index, so the nightly derived results got cheaper too (258,414 → 187,039 rows). Stored size 121,120 bytes for 490 coffees (about 250 bytes a coffee; 1.9 MB is reached near 7,500); parsing and filtering it costs about 0.25 ms per list miss (M-series Mac, Node).
 - **Coffee page**: `getCoffeeDetail` no longer reads the price history (no page shows it; `getPriceHistory` reads it on request).
 - **Roaster page**: the package count comes from the derived roaster list, which counts it with the same rules.
 - **Equivalence**: the old and new code on the same data (21 + 11 filter sets × 4 sorts × 4 pages, every landing, every roaster page, plus the existing checks), through the derived cache cold and warm: **4,188 of 4,188 identical** against the previous main. `tests/v2-list-index.test.ts` compares both paths on a small catalog with MANUAL facts, events, unpriced and foreign-currency packages.
@@ -114,7 +114,7 @@ The four causes, in order of size:
 
 The in-Worker Cache API read cache it replaces keyed on SQL text and bound values for five minutes, but the Cache API is local to one data center, is not tiered, is documented as working only on custom domains (staging is on workers.dev), and the event feeds bound a timestamp rounded to five minutes, so the key changed every five minutes. In practice nearly every read went to D1.
 
-**Rewritten queries** (`shared/v2/catalog.ts`, `shared/v2/quiz-rank.ts`):
+**Rewritten queries** (`shared/v2/catalog/`, `shared/v2/quiz-rank.ts`):
 
 | Query | Change | Rows |
 |---|---|---|

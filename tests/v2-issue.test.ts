@@ -184,7 +184,8 @@ test('a sponsor changes the order of nothing else: catalog listings, quiz rankin
     const answers = { brew: [], taste: ['fruity'], roast: [], process: ['natural'] };
     assert.deepEqual(rankCandidates(answers, candidates.map((c, i) => ({ ...c, sponsored: i === 2 })), 3), rankCandidates(answers, candidates, 3));
 
-    for (const path of ['shared/v2/catalog.ts', 'shared/v2/quiz-rank.ts', 'shared/v2/public-catalog.ts'])
+    const catalogModules = readdirSync(new URL('../shared/v2/catalog', import.meta.url)).filter((file) => file.endsWith('.ts')).map((file) => `shared/v2/catalog/${file}`);
+    for (const path of ['shared/v2/catalog.ts', ...catalogModules, 'shared/v2/quiz-rank.ts', 'shared/v2/public-catalog.ts'])
       assert.doesNotMatch(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ''), /sponsor/i, `${path} must not read sponsor data (comments aside)`);
   } finally { if (previous === undefined) delete process.env.NEXT_PUBLIC_SPONSORSHIPS_ENABLED; else process.env.NEXT_PUBLIC_SPONSORSHIPS_ENABLED = previous; }
 });
