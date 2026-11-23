@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { brand } from "@/lib/brand";
 import { SITE_CARD } from "@/lib/page-metadata";
+import { googleSiteVerification } from "@/lib/site-verification";
 import { Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -23,6 +24,8 @@ export const viewport: Viewport = {
   themeColor: '#f7f8f6',
   viewportFit: 'cover',
 };
+
+const verification = googleSiteVerification();
 
 export const metadata: Metadata = {
   metadataBase: SITE_URL,
@@ -63,6 +66,7 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
+  ...(verification ? { verification } : {}),
 };
 
 // Runs before the body paints: a stored choice hides the consent banner until React hydrates.
