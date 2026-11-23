@@ -35,9 +35,8 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   keywords: SITE_KEYWORDS,
-  alternates: {
-    canonical: '/',
-  },
+  // No canonical here: shallow merging would hand '/' to every page that sets none (404s, error pages).
+  // Each indexable page names its own (src/app/page.tsx sets '/'); tests/canonicals.test.ts checks.
   openGraph: {
     title: brand.title,
     description: SITE_DESCRIPTION,

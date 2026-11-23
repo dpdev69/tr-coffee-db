@@ -28,7 +28,7 @@ const loadRoaster = cache(async (slug: string) => {
 });
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { result } = await loadRoaster((await params).slug);
-  if (!result) return { ...pageMetadata('Kavurucu bulunamadı', 'Bu kavurucu bulunamadı. Türkiye’nin bağımsız kavurucularını keşfet.', '/kavurucular'), robots: { index: false } };
+  if (!result) return { ...pageMetadata('Kavurucu bulunamadı', 'Bu kavurucu bulunamadı. Türkiye’nin bağımsız kavurucularını keşfet.', '/kavurucular'), alternates: { canonical: null }, robots: { index: false } };
   const metadata = pageMetadata(`${result.roaster.name} kahveleri`, roasterDescription(result.roaster, result.catalog.coffees), `/kavurucu/${result.roaster.slug}`);
   // An inactive roaster, or one with nothing on sale, keeps its page for old links but leaves the index (and the sitemap).
   return result.roaster.coffeeCount ? metadata : { ...metadata, robots: { index: false, follow: true } };

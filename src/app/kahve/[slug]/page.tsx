@@ -22,7 +22,7 @@ const loadCoffee = cache(async (slug: string) => {
 });
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { coffee } = await loadCoffee((await params).slug);
-  if (!coffee) return { ...pageMetadata('Kahve bulunamadı', 'Bu kahve artık katalogda bulunmuyor. Diğer çekirdekleri keşfet.', '/kahveler'), robots: { index: false } };
+  if (!coffee) return { ...pageMetadata('Kahve bulunamadı', 'Bu kahve artık katalogda bulunmuyor. Diğer çekirdekleri keşfet.', '/kahveler'), alternates: { canonical: null }, robots: { index: false } };
   const { title, description, image } = coffeeMetadata(coffee);
   return pageMetadata(title, description, `/kahve/${coffee.slug}`, { type: 'product', image });
 }
