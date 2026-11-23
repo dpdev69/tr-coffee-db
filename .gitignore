@@ -66,3 +66,6 @@ skills-lock.json
 
 # Monthly issues bundled at build time (scripts/bulten-bundle.mts)
 src/app/bulten/issues.generated.ts
+
+# Early planning notes, kept outside git (history has them; PLAN.md and roaster-research.json supersede them).
+/*.docx
