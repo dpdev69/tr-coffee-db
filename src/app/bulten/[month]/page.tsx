@@ -98,7 +98,7 @@ function CatalogNumbers({ stats }: { stats: CatalogStats }) {
 
 export async function generateMetadata({ params }: { params: Promise<{ month: string }> }): Promise<Metadata> {
   const issue = findIssue((await params).month);
-  if (!issue) return { ...pageMetadata('Sayı bulunamadı', 'Bu bülten sayısı yok.', '/bulten'), robots: { index: false } };
+  if (!issue) return { ...pageMetadata('Sayı bulunamadı', 'Bu bülten sayısı yok.', '/bulten'), alternates: { canonical: null }, robots: { index: false } };
   const metadata = pageMetadata(issue.title, issue.intro, `/bulten/${issue.month}`);
   return { ...metadata, openGraph: { ...metadata.openGraph, type: 'article', publishedTime: `${issue.month}-01` }, ...(issue.published ? {} : { robots: { index: false } }) };
 }

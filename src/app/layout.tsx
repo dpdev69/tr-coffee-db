@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { brand } from "@/lib/brand";
 import { SITE_CARD } from "@/lib/page-metadata";
+import { googleSiteVerification } from "@/lib/site-verification";
 import { Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -24,6 +25,8 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
+const verification = googleSiteVerification();
+
 export const metadata: Metadata = {
   metadataBase: SITE_URL,
   applicationName: SITE_NAME,
@@ -35,9 +38,8 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   keywords: SITE_KEYWORDS,
-  alternates: {
-    canonical: '/',
-  },
+  // No canonical here: shallow merging would hand '/' to every page that sets none (404s, error pages).
+  // Each indexable page names its own (src/app/page.tsx sets '/'); tests/canonicals.test.ts checks.
   openGraph: {
     title: brand.title,
     description: SITE_DESCRIPTION,
@@ -64,6 +66,7 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
+  ...(verification ? { verification } : {}),
 };
 
 // Runs before the body paints: a stored choice hides the consent banner until React hydrates.

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  // A missing page names no canonical (the layout's default would point at the home page).
+  // A missing page names no canonical. The layout sets none either; null keeps it that way if one is ever added there.
   alternates: { canonical: null },
   // Overrides the layout's production `index, follow`, which would otherwise sit beside the framework's own 404 `noindex`.
   robots: { index: false, follow: true },
