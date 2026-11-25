@@ -4,6 +4,7 @@ import { describe, it } from 'node:test';
 import { crawlRoaster } from '../scrapers/src/v2/crawl.ts';
 import { canonicalUrl, money } from '../scrapers/src/v2/primitives.ts';
 import { choOptions, parseChoProduct, parseIdeaProduct, parseKafeinProduct, parseKronotropProduct, parseMilestonesProduct, parseProbadorCatalog, parseTicimaxProduct, parseIkasPage, parseIkasProducts, parseParsaProduct, parseShopifyPage, parseStructuredProductPage, parseWooProduct } from '../scrapers/src/v2/parsers.ts';
+import { kafeinKultur } from '../scrapers/src/roasters/configs.ts';
 import type { RoasterConfig } from '../scrapers/src/types.ts';
 
 const fixture = (name: string) => readFile(new URL(`./fixtures/v2/${name}`, import.meta.url), 'utf8');
@@ -80,7 +81,8 @@ describe('V2 pure adapter contracts', () => {
   it('strips tracking while preserving variant parameters and path identity', () => {
     assert.equal(canonicalUrl('/a/b?variant=7&utm_source=email#x', config), 'https://example.test/a/b?variant=7');
     assert.notEqual(canonicalUrl('/a/b', config), canonicalUrl('/a-b', config));
-    assert.throws(() => canonicalUrl('https://evil.test/p', config), /allowlist/);
+    assert.throws(() => canonicalUrl('https://evil.test/p?token=x', config), /allowlist\. Host: https:\/\/evil\.test$/);
+    assert.throws(() => canonicalUrl('whatsapp://905551112233', config), /Host: not http$/);
   });
   it('rejects malformed price, negative, infinite and unsafe identifiers', async () => {
     for (const value of [-1, Infinity, NaN, '500abc', '1,000']) assert.throws(() => money(value));
@@ -346,6 +348,17 @@ describe('complete storefront variants',()=>{
     assert.deepEqual(parseProbadorCatalog(html,config)[0].offers.map(o=>[o.sourceVariantId,o.price,o.inStock]),[['11',500,false],['12',1800,true]]);
     assert.throws(()=>parseProbadorCatalog(html.replace('variantprice12','missing'),config),/price missing/);
   });
+  it('reports a Probador coffee without price or options as unavailable only when the shop says it is out of stock',()=>{
+    const ready='<div class="list"><a class="image" href="/ethiopia"></a><div class="name">Ethiopia Coffee</div><select id="variant1"><option value="11">250 g</option></select><div class="variantprice" id="variantprice11" data-stock="1"><span class="price">500</span></div></div>';
+    const announced=(extra='',state='STOKTA YOK')=>`<div class="list"><a class="image" href="/peru"></a><div class="name">LAS ETIOPES GEISHA YIKANMIŞ, PERU</div><div class="buttons">${extra}<div class="addbasket"><div class="active">${state}</div></div></div></div>`;
+    const page=(card:string)=>`<div class="products-lists">${ready}${card}</div>`;
+    const [,gone]=parseProbadorCatalog(page(announced()),config);
+    assert.deepEqual([gone.unavailable,gone.offers,gone.sourceProductId,gone.canonicalUrl],[true,[],null,'https://example.test/peru']);
+    // A purchasable card, a priced card, or one that still has any option control must keep failing the run.
+    assert.throws(()=>parseProbadorCatalog(page(announced('','SEPETE EKLE')),config),/variant discovery/);
+    assert.throws(()=>parseProbadorCatalog(page(announced('<div class="variantprice" id="variantprice9" data-stock="0"></div>')),config),/variant discovery/);
+    assert.throws(()=>parseProbadorCatalog(page(announced('<div class="variant"><input type="hidden" name="variant9" value="9"></div>')),config),/variant discovery/);
+  });
   it('folds Turkish upper case in Probador names so sets are skipped and İ-spelled origins are kept',()=>{
     const card=(name:string,variants:boolean)=>`<div class="list"><a class="image" href="/x"></a><div class="name">${name}</div>${variants?'<select id="variant7"><option value="71">250gr</option></select>':''}<div class="variantprice" id="variantprice71" data-stock="1"><span class="price">745</span></div></div>`;
     const html=`<div class="products-lists">${card('PERU GEISHA SETİ',false)}${card('KOSTARİKA İŞLEM/TÜR ÖRNEKLEM SETİ',false)}${card('YIKANMIŞ KAHVELER 1',false)}${card('CHELCHELE DOĞAL, ETİYOPYA',true)}</div>`;
@@ -374,6 +387,26 @@ describe('complete storefront variants',()=>{
     assert.deepEqual(parseKafeinProduct({data},html,config,'https://example.test/coffee').offers.map(o=>[o.sourceVariantId,o.price,o.inStock]),[['2',500,false]]);
     const idea='<script>pageParams = {product: {id:"2",fullName:"Ethiopia Coffee",variantName:"250 Gr",currency:"TRY",salePrice:849.99996}};</script><input data-selector="qty" data-stockamount="0">';
     assert.deepEqual(parseIdeaProduct(idea,config,'https://example.test/coffee').offers.map(o=>[o.sourceVariantId,o.weightG,o.price,o.inStock]),[['2',250,850,false]]);
+  });
+  it('reads a Kafein product sold in one size, and refuses any other shape without options',()=>{
+    const data={mainProductId:'447',mainProductName:'KafeinKültür November Leaf Filter 250gr',mainProductUrl:'/coffee',hasVariants:false,variantType:'None',variantProperties:[],is_saleable:true,obProduct:{pk:'447'},pricing:{getSalePrice:499}};
+    const html='<script type="application/ld+json">{"@type":"Product","name":"November Leaf","offers":{"price":499,"priceCurrency":"TRY"}}</script>';
+    const parse=(change:object)=>parseKafeinProduct({data:{...data,...change}},html,config,'https://example.test/coffee').offers.map(o=>[o.sourceVariantId,o.weightG,o.price,o.inStock]);
+    assert.deepEqual(parse({}),[['447',250,499,true]]);
+    assert.deepEqual(parse({is_saleable:false}),[['447',250,499,false]]);
+    assert.throws(()=>parse({hasVariants:true}),/Expected an object/);
+    assert.throws(()=>parse({variantProperties:['x']}),/Expected an object/);
+    assert.throws(()=>parse({variantProperties:{}}),/structure requires review/);
+    assert.throws(()=>parse({variantProperties:{},variantType:'Master'}),/structure requires review/);
+    assert.throws(()=>parse({variantType:'Master'}),/Expected an object/);
+    assert.throws(()=>parse({obProduct:{pk:'448'}}),/single SKU/);
+    assert.throws(()=>parse({pricing:{}}),/single SKU/);
+  });
+  it('crawls a one-size Kafein product through to a complete run',async()=>{
+    const data={mainProductId:'447',mainProductName:'November Leaf Ethiopia Coffee 250gr',mainProductUrl:'/november-leaf',hasVariants:false,variantType:'None',variantProperties:[],is_saleable:true,obProduct:{pk:'447'},pricing:{getSalePrice:499}};
+    const bodies:Record<string,string>={'/kafeinkultur':'<div class="product-card default"><a class="product-title" href="/november-leaf">x</a></div>','/november-leaf':'<script type="application/ld+json">{"@type":"Product","name":"November Leaf","offers":{"price":499,"priceCurrency":"TRY"}}</script>','/site/v2/getProductDetail':JSON.stringify({data})};
+    const result=await crawlRoaster(kafeinKultur,{sleep:async()=>{},fetch:async input=>new Response(bodies[new URL(String(input)).pathname])});
+    assert.deepEqual([result.complete,result.diagnostics,result.products.map(p=>p.offers.map(o=>[o.sourceVariantId,o.weightG,o.price]))],[true,[],[[['447',250,499]]]]);
   });
   it('checks Cho option coverage, response identity and conditional inventory before accepting a catalog',()=>{
     const html='<div id="product-ribbon-info" data-productid="1"></div><meta itemprop="name" content="Ethiopia Coffee"><meta itemprop="priceCurrency" content="TRY"><meta itemprop="availability" content="https://schema.org/InStock"><form id="product-details-form"><input name="__RequestVerificationToken" value="fixture"><div class="attributes"><select name="product_attribute_1"><option value="0">Select</option><option value="2">250 Gr</option></select></div></form>';

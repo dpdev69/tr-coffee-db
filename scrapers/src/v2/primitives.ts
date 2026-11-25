@@ -43,9 +43,13 @@ export function money(value: unknown, inputMinorUnit = 0): number | null {
   if (!Number.isFinite(amount) || amount < 0 || !Number.isSafeInteger(minor) || minor < 0) throw new Error('Price must be finite and non-negative.');
   return minor / 100;
 }
+/** Scheme and host only, for the diagnostic: never a path, query or a non-web address (phone, mail). */
+function hostOf(value: unknown, base: string): string {
+  try { const url = new URL(text(value), base); return /^https?:$/.test(url.protocol) ? `${url.protocol}//${url.hostname}`.slice(0, 120) : 'not http'; } catch { return 'unreadable'; }
+}
 export function canonicalUrl(value: unknown, config: RoasterConfig, base = config.shopUrl): string {
   const safe = normalizeRoasterProductUrl(requiredText(value), config, base);
-  if (!safe) throw new Error('Product URL is outside the roaster allowlist.');
+  if (!safe) throw new Error(`Product URL is outside the roaster allowlist. Host: ${hostOf(value, base)}`);
   const url = new URL(safe);
   url.hash = '';
   for (const key of [...url.searchParams.keys()]) {
