@@ -293,6 +293,12 @@ export function parseProbadorCatalog(html: string, config: RoasterConfig): Sourc
     const url=canonicalUrl(card.find('a.image').attr('href'),config,config.websiteUrl);
     const select=card.find('select[id^="variant"]');
     const productId=select.attr('id')?.match(/^variant(\d+)$/)?.[1];
+    // Sold out with its options withdrawn: no price, no option control, and the shop itself says out of stock. Reported as
+    // unavailable (its offers retire), not skipped: a skipped coffee would keep its last price as in stock for a week.
+    if(!productId&&!card.find('select,input,.variantprice,.price,.buy').length&&card.find('.addbasket').text().trim()==='STOKTA YOK') {
+      products.push({...coffee(config,{name,description},url,name,null,[],description,card.find('img').attr('src')),unavailable:true});
+      return;
+    }
     if(!productId)throw new Error('Probador coffee lacks variant discovery.');
     const offers:SourceOffer[]=[];
     select.find('option').each((_,option)=>{
@@ -373,12 +379,23 @@ export function parseMilestonesProduct(html:string,config:RoasterConfig,url:stri
   return coffee(config,{id,name,offers,description},url,name,id,offers,description,image);
 }
 
+/** A one-size product carries no option groups: PHP sends an empty list where the others have an object. Any other shape is an error. */
+export function kafeinOptionGroups(data:Record<string,unknown>):[string,unknown][] {
+  if(data.hasVariants===false&&data.variantType==='None'&&Array.isArray(data.variantProperties)&&!data.variantProperties.length)return [];
+  return Object.entries(record(data.variantProperties));
+}
 export function parseKafeinProduct(payload:unknown,html:string,config:RoasterConfig,url:string,selected?:{label:string;data:unknown}[]):SourceCoffee {
   const data=record(record(payload).data),id=sourceId(data.mainProductId),name=requiredText(data.mainProductName);
   if(!id||canonicalUrl(data.mainProductUrl,config)!==canonicalUrl(url,config))throw new Error('Kafein product identity mismatch.');
   const structured=parseStructuredProductPage(html,config,url);
   if(structured.offers.length!==1||structured.offers[0].currency!=='TRY')throw new Error('Kafein currency unclear.');
-  const groups=Object.values(record(data.variantProperties));
+  const groups=kafeinOptionGroups(data).map(([,group])=>group);
+  if(!groups.length&&data.hasVariants===false&&Array.isArray(data.variantProperties)) {
+    const price=money(record(data.pricing).getSalePrice);
+    if(sourceId(record(data.obProduct).pk)!==id||price===null)throw new Error('Kafein single SKU identity or price missing.');
+    const offers=[{sourceVariantId:id,label:name,weightG:weight(name),price,compareAtPrice:null,currency:'TRY',inStock:bool(data.is_saleable),purchaseUrl:url}];
+    return coffee(config,{id,name,offers,description:data.description},url,name,id,offers,data.description,data.getPhotoImgTagData);
+  }
   if(data.hasVariants!==true||(!selected && groups.length!==1))throw new Error('Kafein variant structure requires review.');
   const group=record(groups[0]);
   const offers=selected ? selected.map(({label,data:payload})=>{const item=record(record(payload).data),native=sourceId(record(item.obProduct).pk);if(!native||native===id)throw new Error('Kafein combination did not resolve to a native SKU.');const pricing=record(item.pricing);return {sourceVariantId:native,label,weightG:weight(label),price:money(pricing.getSalePrice),compareAtPrice:null,currency:'TRY',inStock:bool(item.is_saleable),purchaseUrl:url};}) : Object.values(record(group.options)).map(value=>{const option=record(value);return {sourceVariantId:requiredText(option.product_id),label:requiredText(option.name),weightG:weight(requiredText(option.name)),price:money(option.price),compareAtPrice:null,currency:'TRY',inStock:bool(option.saleable),purchaseUrl:url};});

@@ -2,12 +2,12 @@ import { load } from 'cheerio';
 import { isLikelyCatalogCoffeeProduct } from '../product-classification.js';
 import type { RoasterConfig } from '../types.js';
 import { canonicalUrl, list, record, requiredText, sourceId } from './primitives.js';
-import { isWooCoffee, ikasCatalogContext, IKAS_CATALOG_QUERY, parseIkasProducts, parseParsaProduct, parseProbadorCatalog, parseTicimaxProduct, choOptions, parseChoProduct, parseIdeaProduct, parseKronotropProduct, parseMilestonesProduct, parseKafeinProduct, parseShopifyPage, parseStructuredProductPage, parseWooProduct } from './parsers.js';
+import { isWooCoffee, ikasCatalogContext, IKAS_CATALOG_QUERY, parseIkasProducts, parseParsaProduct, parseProbadorCatalog, parseTicimaxProduct, choOptions, parseChoProduct, parseIdeaProduct, parseKronotropProduct, parseMilestonesProduct, parseKafeinProduct, kafeinOptionGroups, parseShopifyPage, parseStructuredProductPage, parseWooProduct } from './parsers.js';
 import type { SourceCoffee, SourceCrawl } from './types.js';
 
 /** Bump whenever a parser, crawl-side filter or roaster config change alters which products a crawl discovers:
  * a coffee first seen in the first run after a bump is not evidence of a new arrival (shared/v2/catalog/sql.ts GENUINE_NEW). */
-export const PARSER_VERSION = 'v2-source-6-origin-evidence';
+export const PARSER_VERSION = 'v2-source-7-single-sku';
 /** The crawler's one honest identity, sent on every request, direct or relayed. */
 export const CRAWLER_HEADERS = { 'User-Agent': 'CoffeeDiscovery/2.0 (public coffee catalog; no challenge bypass)', Accept: 'application/json,text/html' };
 
@@ -138,7 +138,7 @@ export async function crawlRoaster(config: RoasterConfig, options: CrawlOptions 
             product=parseChoProduct(detail,config,url,variants);
           } else if(config.slug==='kafeinkultur') {
             const api=`https://api.kafeinkultur.com/site/v2/getProductDetail?slug=${encodeURIComponent(new URL(url).pathname.slice(1))}`;
-            const payload=JSON.parse((await request(api)).body),data=record(record(payload).data),groups=Object.entries(record(data.variantProperties));
+            const payload=JSON.parse((await request(api)).body),data=record(record(payload).data),groups=kafeinOptionGroups(data);
             let selected:{label:string;data:unknown}[]|undefined;
             if(groups.length>1) {
               let choices:{label:string;params:[string,string][]}[]=[{label:'',params:[]}];
